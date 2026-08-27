@@ -143,7 +143,7 @@ export function DeclareResultDialog({ matchId, teamAName, teamBName, teamALogo, 
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canApply} onClick={handleApply}>
+      <DialogSaveButton disabled={!canApply} loading={isDeclaringResult} onClick={handleApply}>
         {isDeclaringResult ? 'Applying…' : 'Apply'}
       </DialogSaveButton>
     </>

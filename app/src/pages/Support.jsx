@@ -199,10 +199,11 @@ export default function Support() {
             <p className="text-muted text-[12px]">We will only use your details to respond to your request.</p>
             <Button
               type="submit"
-              variant="orangeDialogWhite"
+              variant="orange"
               size="dialog"
               className="sm:w-[180px]"
               disabled={!isValid || isSubmitting}
+              loading={isSubmitting}
             >
               {isSubmitting ? 'Sending…' : 'Send Message'}
             </Button>

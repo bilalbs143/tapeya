@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Console;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\StreamProviderManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -29,14 +29,14 @@ class SyncStreamStatusesTest extends TestCase
 
     public function test_sync_command_updates_youtube_stream_without_npe_alongside_standalone_row(): void
     {
-        MatchStream::factory()->create([
+        LiveStream::factory()->create([
             'match_id' => null,
             'provider' => 'external',
             'status' => 'live',
         ]);
 
         $match = $this->createMatch();
-        $youtubeStream = MatchStream::factory()->create([
+        $youtubeStream = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
             'provider_stream_id' => 'fake-broadcast-id',
@@ -51,7 +51,7 @@ class SyncStreamStatusesTest extends TestCase
 
     public function test_sync_command_skips_external_rows_even_if_provider_stream_id_is_set(): void
     {
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => null,
             'provider' => 'external',
             'provider_stream_id' => 'unexpected-id',

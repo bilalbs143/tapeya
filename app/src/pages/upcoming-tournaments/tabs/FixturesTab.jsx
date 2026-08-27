@@ -8,6 +8,8 @@ import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 const STATUS_LABELS = { upcoming: 'Upcoming', live: 'Live', result: 'Result' };
 
@@ -29,6 +31,7 @@ export function FixturesTab({
     data: fetchedMatches = [],
     isLoading: isFetchingMatches,
     isError,
+    refetch,
   } = useGetTournamentMatchesQuery({ tournamentId, all: true }, { skip: !hasValidId || hasEmbeddedMatches || isLoadingMatches });
 
   const matches = hasEmbeddedMatches ? preloadedMatches : fetchedMatches;
@@ -56,25 +59,19 @@ export function FixturesTab({
   // ------------------------------------------------------------------
 
   if (!hasValidId) {
-    return wrap(
-      <p className="text-muted py-4 text-center text-[13px]">Fixtures are not available for this sample tournament.</p>,
-    );
+    return wrap(<ListEmpty title="Fixtures Unavailable." description="Fixtures are not available for this sample tournament." />);
   }
 
   if (isLoading) {
-    return wrap(<p className="text-muted py-4 text-center text-[13px]">Loading fixtures…</p>);
+    return wrap(<LoaderBlock label="Loading fixtures" className="py-4" />);
   }
 
   if (isError) {
-    return wrap(<p className="py-4 text-center text-[13px] text-red-400">Failed to load fixtures.</p>);
+    return wrap(<ListError message="Could not load fixtures." onRetry={() => refetch()} />);
   }
 
   if (!matches.length) {
-    return wrap(
-      <div className="py-8 text-center">
-        <p className="text-muted text-[13px]">No upcoming fixtures scheduled yet.</p>
-      </div>,
-    );
+    return wrap(<ListEmpty title="No Fixtures Yet." description="No upcoming fixtures scheduled yet." />);
   }
 
   // ------------------------------------------------------------------
@@ -126,14 +123,8 @@ export function FixturesTab({
         )}
         {canManageTournament && match.id != null && (
           <div className="mt-3 flex justify-end border-t border-white/10 pt-3">
-            <Button
-              type="button"
-              variant="orange"
-              size="sm"
-              className="min-w-[132px] px-4 py-2 text-[12px] font-bold tracking-wide uppercase"
-              onClick={() => navigate(`/organizer/scoring/match/${match.id}`)}
-            >
-              {status === 'live' ? 'Continue scoring' : status === 'result' ? 'View fixture' : 'Start match'}
+            <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/organizer/scoring/match/${match.id}`)}>
+              {status === 'live' ? 'Continue Scoring' : status === 'result' ? 'View Fixture' : 'Start Match'}
             </Button>
           </div>
         )}
@@ -151,9 +142,7 @@ export function FixturesTab({
               <section key={groupIndex}>
                 <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
                 {groupMatches.length === 0 ? (
-                  <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">
-                    No fixtures in this group yet.
-                  </p>
+                  <ListEmpty title="No Fixtures In This Group Yet." />
                 ) : (
                   <div className="space-y-3">
                     {groupMatches.map((m) => (

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\User;
 
+use App\Models\User;
 use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -9,15 +10,21 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class UserResource extends JsonResource
 {
     /**
+     * Self profile (/me, login, profile update): include vendor when the user has a store.
+     */
+    public static function self(User $user): self
+    {
+        return new self($user->loadMissing('shopVendor'));
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        $user = $this->resource;
-        $appRoles = $user->getAppRoles();
         $avatarUrl = MediaDisk::url($this->avatar);
 
-        return [
+        $payload = [
             'id' => $this->id,
             'name' => $this->name,
             'nickname' => $this->nickname,
@@ -44,13 +51,18 @@ class UserResource extends JsonResource
             'can_broadcast' => (bool) $this->can_broadcast,
             'is_official' => (bool) $this->is_official,
             'broadcast_terms_accepted_at' => $this->broadcast_terms_accepted_at?->toIso8601String(),
-            'roles' => $appRoles->map(fn ($r) => [
-                'id' => $r->id,
-                'name' => $r->name,
-                'slug' => $r->slug,
-            ])->values()->all(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+
+        if ($this->relationLoaded('shopVendor') && $this->shopVendor !== null) {
+            $payload['vendor'] = [
+                'id' => $this->shopVendor->id,
+                'store_name' => $this->shopVendor->store_name,
+                'status' => $this->shopVendor->status?->value,
+            ];
+        }
+
+        return $payload;
     }
 }

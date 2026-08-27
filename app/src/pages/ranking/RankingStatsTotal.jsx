@@ -15,6 +15,7 @@ import { formatListIndex } from '@/lib/format';
 import { buildStatsTotalRows } from '@/lib/utils/rankingUtils';
 import { VALID_STAT_TYPES } from '@/pages/scorecard/statsTotalFlow';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 
 const COL_TH = 'min-w-[80px] py-3.5 pl-4 text-left font-bold';
 const COL_TD = 'py-3.5 pl-4 text-left';
@@ -114,7 +115,7 @@ export default function RankingStatsTotal() {
         <h3 className="text-muted mt-0 text-left text-[13px] font-bold tracking-wide uppercase">{subheading}</h3>
 
         {noDataDirectAccess ? (
-          <p className="text-muted mt-3 text-[13px]">No data available. Go back to Rankings to view stats.</p>
+          <ListEmpty title="No Data Available." description="Go back to Rankings to view stats." />
         ) : (
           <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <table className="w-full min-w-max border-collapse text-[12px] text-white">

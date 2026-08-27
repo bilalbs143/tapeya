@@ -1,0 +1,47 @@
+<app-dialog-wrapper [title]="data.title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Vendor Reason Form"
+  >
+    <mat-dialog-content>
+      <p class="text-sm text-secondary m-0 mb-4">{{ data.message }}</p>
+      <mat-label class="text-sm font-semibold mb-2 block">
+        {{ data.reasonLabel ?? 'Reason' }}
+        @if (data.reasonRequired) {
+          <span class="text-error">*</span>
+        }
+      </mat-label>
+      <mat-form-field
+        appearance="outline"
+        class="w-full"
+      >
+        <textarea
+          matInput
+          formControlName="reason"
+          rows="3"
+          [placeholder]="data.reasonRequired ? 'Enter Reason' : 'Optional Notes'"
+        ></textarea>
+        @if (form.get('reason')?.hasError('required') && form.get('reason')?.touched) {
+          <mat-error>Reason is required</mat-error>
+        }
+      </mat-form-field>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="null"
+      >
+        Cancel
+      </button>
+      <app-submit-button
+        [text]="data.confirmText"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

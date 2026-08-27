@@ -82,6 +82,29 @@ function forbidConsumerImports() {
   };
 }
 
+function unwrapIsSelectors(selector) {
+  let result = selector;
+  let prev;
+  do {
+    prev = result;
+    result = result.replace(/:is\(([^()]*)\)/g, '$1');
+  } while (result !== prev);
+  return result;
+}
+
+/** Strip :is() from emitted CSS so dist-graphics passes check:graphics-output (Chrome 86 / vMix). */
+function postcssUnwrapIs() {
+  return {
+    postcssPlugin: 'postcss-unwrap-is',
+    Rule(rule) {
+      if (rule.selector?.includes(':is(')) {
+        rule.selector = unwrapIsSelectors(rule.selector);
+      }
+    },
+  };
+}
+postcssUnwrapIs.postcss = true;
+
 export default defineConfig(({ command, isPreview }) => {
   // `command === 'serve'` is also true for `vite preview` — isPreview is the
   // only reliable way to tell dev-server and preview-of-build-output apart.
@@ -138,6 +161,7 @@ export default defineConfig(({ command, isPreview }) => {
           autoprefixer({
             overrideBrowserslist: ['chrome >= 86', 'edge >= 86', 'firefox >= 78', 'safari >= 14'],
           }),
+          postcssUnwrapIs(),
         ],
       },
       preprocessorOptions: {

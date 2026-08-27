@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
-import { useGetBrandsQuery, useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
+import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
@@ -31,8 +33,6 @@ export default function ShopFilter() {
   const tabsSentinelRef = useRef(null);
 
   const config = filterKey ? FILTER_CONFIG[filterKey] : null;
-  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
-  const brands = brandsResponse?.data ?? [];
   const { data: categoriesResponse } = useGetCategoriesQuery({ all: true });
   const allCategories = categoriesResponse?.data ?? [];
 
@@ -41,7 +41,11 @@ export default function ShopFilter() {
   const categoryIdsWithProducts = [...new Set(allProductsForFilter.map((p) => p.category_id).filter((id) => id != null))];
   const categoriesWithProducts = allCategories.filter((c) => categoryIdsWithProducts.includes(c.id));
 
-  const { data: productsResponse } = useGetProductsQuery(
+  const {
+    data: productsResponse,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useGetProductsQuery(
     {
       ...config?.params,
       category_id: activeCategoryId ?? undefined,
@@ -61,7 +65,7 @@ export default function ShopFilter() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -76,21 +80,18 @@ export default function ShopFilter() {
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate('/shop')} />
         <Container>
-          <div className="py-8 text-center text-white">
-            <p>Invalid filter.</p>
-            <Link to="/shop" className="text-brand mt-4 inline-block underline">
-              Back to Shop
-            </Link>
-          </div>
+          <ListEmpty
+            title="Invalid Filter."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
+                Back to Shop
+              </Button>
+            }
+          />
         </Container>
       </div>
     );
   }
-
-  const productsWithBrandSlug = products.map((p) => ({
-    ...p,
-    brandSlug: brands.find((b) => b.id === p.brand_id)?.slug ?? '',
-  }));
 
   return (
     <div className="bg-black">
@@ -151,7 +152,7 @@ export default function ShopFilter() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_OFFSET_CSS }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <button
@@ -182,11 +183,17 @@ export default function ShopFilter() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {productsWithBrandSlug.map((product) => (
-              <ListingProductCard key={product.id} product={product} brandSlug={product.brandSlug} />
-            ))}
-          </div>
+          {productsError ? (
+            <ListError message="Could not load products." onRetry={() => refetchProducts()} />
+          ) : products.length === 0 ? (
+            <ListEmpty title={query || activeCategoryId ? 'No Products Match Your Search.' : 'No Products Yet.'} />
+          ) : (
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {products.map((product) => (
+                <ListingProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </Container>
     </div>

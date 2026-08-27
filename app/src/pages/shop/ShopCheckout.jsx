@@ -9,15 +9,18 @@ import { AppEventParams, AppEvents, flushEvents, logEvent, logPurchase } from '@
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
-import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
+import { useCreateOrderMutation, useGetCartQuery, useGetOrdersQuery, useGetShippingQuoteQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 export default function ShopCheckout() {
@@ -26,6 +29,8 @@ export default function ShopCheckout() {
   const user = useAppSelector(selectUser);
   const checkoutTracked = useRef(false);
   const { data: cart, isLoading: cartLoading } = useGetCartQuery();
+  const { data: ordersResponse } = useGetOrdersQuery({ per_page: 1 });
+  const lastOrder = ordersResponse?.data?.[0] ?? null;
   const [createOrder, { isLoading: isSubmitting }] = useCreateOrderMutation();
 
   const { register, control, handleSubmit, reset, watch, setValue } = useForm({
@@ -43,23 +48,30 @@ export default function ShopCheckout() {
   const country = watch('country');
   const city = watch('city');
 
+  const { data: quote, isFetching: quoteLoading } = useGetShippingQuoteQuery(
+    { city: city?.trim() || undefined, country: country?.trim() || undefined },
+    { skip: !city?.trim() || !country?.trim() },
+  );
+  const shippingAmount = quote?.amount != null ? Number(quote.amount) : 0;
+
   useEffect(() => {
     register('country', { required: true });
     register('city', { required: true });
   }, [register]);
 
+  // Prefill profile + last order shipping address.
   useEffect(() => {
     const countryFromProfile = user?.country && String(user.country).trim();
     reset({
       fullName: user?.name ?? '',
-      phone: user?.phone ?? '',
+      phone: user?.phone || '',
       email: user?.email ?? '',
-      address: '',
-      city: user?.city ?? '',
-      country: countryFromProfile || DEFAULT_COUNTRY,
+      address: lastOrder?.address ?? '',
+      city: lastOrder?.city || user?.city || '',
+      country: lastOrder?.country || countryFromProfile || DEFAULT_COUNTRY,
       notes: '',
     });
-  }, [user, reset]);
+  }, [user, lastOrder, reset]);
 
   const hasName = !!user?.name;
   const hasPhone = !!user?.phone;
@@ -72,16 +84,15 @@ export default function ShopCheckout() {
         city: data.city,
         country: data.country,
         notes: data.notes || undefined,
-        shipping_amount: 0,
       }).unwrap();
       const order = result?.data ?? result;
       if (order?.id) {
         toast.success('Order placed');
-        await logPurchase(subtotal, 'PKR', {
+        await logPurchase(subtotal + shippingAmount, 'PKR', {
           [AppEventParams.CONTENT_ID]: String(order.id),
         });
         await flushEvents();
-        navigate(`/shop/order-payment/${order.id}`, { replace: true });
+        navigate('/shop/order-success', { replace: true, state: { orderId: order.id } });
       }
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Checkout failed. Please try again.'));
@@ -90,6 +101,7 @@ export default function ShopCheckout() {
 
   const items = cart?.items ?? [];
   const subtotal = cart?.subtotal ?? 0;
+  const total = subtotal + shippingAmount;
   const canCheckout = items.length > 0 && !cartLoading;
 
   useEffect(() => {
@@ -107,25 +119,26 @@ export default function ShopCheckout() {
   return (
     <div className="bg-black">
       <AppSubpageHeader title="BILLING DETAILS" />
-      <Container>
-        {cartLoading ? null : !canCheckout ? (
-          <div className="py-8 text-center">
-            <p className="text-muted text-[14px]">Your cart is empty.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/shop/cart')}
-              className="bg-brand mt-4 rounded-full px-6 py-3 text-[14px] font-bold text-black"
-            >
-              View Cart
-            </button>
-          </div>
+      <Container className="pb-8">
+        {cartLoading ? (
+          <PageLoader label="Loading checkout" />
+        ) : !canCheckout ? (
+          <ListEmpty
+            title="Your Cart Is Empty."
+            description="Add items before checking out."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop/cart')}>
+                View Cart
+              </Button>
+            }
+          />
         ) : (
           <FormStack as="form" layout="grid-3" onSubmit={handleSubmit(onSubmit)}>
             <FormField label="Full Name" htmlFor="fullName">
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Enter full name"
+                placeholder="Enter Full Name"
                 autoComplete="name"
                 readOnly={hasName}
                 aria-readonly={hasName}
@@ -141,7 +154,7 @@ export default function ShopCheckout() {
                 render={({ field }) => (
                   <PhoneInput
                     id="phone"
-                    placeholder="Enter phone number"
+                    placeholder="Enter Phone Number"
                     readOnly={hasPhone}
                     aria-readonly={hasPhone}
                     className={hasPhone ? 'cursor-default opacity-90' : ''}
@@ -155,7 +168,7 @@ export default function ShopCheckout() {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter email address"
+                placeholder="Enter Email Address"
                 autoComplete="email"
                 readOnly={hasEmail}
                 aria-readonly={hasEmail}
@@ -168,7 +181,7 @@ export default function ShopCheckout() {
               <Input
                 id="address"
                 type="text"
-                placeholder="Street address"
+                placeholder="Street Address"
                 autoComplete="street-address"
                 aria-required="true"
                 {...register('address', {
@@ -185,22 +198,38 @@ export default function ShopCheckout() {
               required
             />
 
-            <FormField label="Notes (optional)" htmlFor="notes">
-              <Input id="notes" type="text" placeholder="Order notes" {...register('notes')} />
+            <FormField label="Notes (Optional)" htmlFor="notes">
+              <Input id="notes" type="text" placeholder="Order Notes" {...register('notes')} />
             </FormField>
 
-            <p className="text-muted text-[14px] lg:col-span-3">
-              Subtotal: <strong className="text-brand">{formatPrice(subtotal)}</strong> ({items.length} item
-              {items.length !== 1 ? 's' : ''})
-            </p>
+            <div className="bg-surface space-y-2 rounded-2xl p-4 lg:col-span-3">
+              <div className="flex justify-between text-[14px]">
+                <span className="text-white">
+                  Subtotal ({items.length} item{items.length !== 1 ? 's' : ''}):
+                </span>
+                <span className="font-bold text-white">{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-[14px]">
+                <span className="text-white">Shipping:</span>
+                <span className="font-bold text-white">
+                  {quoteLoading ? '…' : city?.trim() && country?.trim() ? formatPrice(shippingAmount) : '—'}
+                </span>
+              </div>
+              <div className="flex justify-between text-[16px]">
+                <span className="font-semibold text-white">Total:</span>
+                <span className="text-brand font-bold">{formatPrice(total)}</span>
+              </div>
+            </div>
 
             <FormActions align="start" className="lg:col-span-3">
-              <button
+              <Button
                 type="submit"
+                variant="orange"
                 disabled={isSubmitting}
-                className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:px-4"
+                loading={isSubmitting}
+                className="w-full gap-2 py-3.5 text-[16px] lg:w-auto lg:px-4"
               >
-                {isSubmitting ? 'Placing Order…' : 'Place Order'}
+                Place Order
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -212,7 +241,7 @@ export default function ShopCheckout() {
                 >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Button>
             </FormActions>
           </FormStack>
         )}

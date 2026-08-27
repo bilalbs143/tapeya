@@ -14,6 +14,8 @@ import {
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
@@ -75,7 +77,7 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
         <AppSubpageHeader title={title} titleClassName="truncate" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading…</p>
+          <PageLoader label="Loading tournament" className="py-6" />
         </Container>
       </div>
     );
@@ -119,52 +121,35 @@ export default function TournamentCreateTeamIntro() {
 
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
         {noTeams && canAddTeam ? (
-          <>
-            <p className="text-muted text-center text-[14px]">No teams yet. Create your first team to get started.</p>
-            <Button
-              type="button"
-              variant="card"
-              onClick={handleCreateTeam}
-              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
-            >
-              <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
-                +
-              </span>
-              <span className="text-muted text-[16px] font-bold">Create Team</span>
-            </Button>
-          </>
+          <ListEmpty
+            title="No Teams Yet."
+            description="Create your first team to get started."
+            action={
+              <Button type="button" variant="card" size="card" onClick={handleCreateTeam}>
+                <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
+                  +
+                </span>
+                <span className="text-muted text-[16px] font-bold">Create Team</span>
+              </Button>
+            }
+          />
         ) : teamsComplete ? (
           <>
             <p className="text-muted text-center text-[14px]">Teams are complete. Manage squads or add fixtures.</p>
-            <Button
-              type="button"
-              variant="card"
-              onClick={handleViewTeams}
-              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
-            >
+            <Button type="button" variant="card" size="card" onClick={handleViewTeams}>
               <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                 +
               </span>
               <span className="text-muted text-[16px] font-bold">View Teams</span>
             </Button>
-            <Button
-              type="button"
-              variant="card"
-              onClick={handleAddFixtures}
-              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
-            >
+            <Button type="button" variant="card" size="card" onClick={handleAddFixtures}>
               <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                 +
               </span>
               <span className="text-muted text-[16px] font-bold">Add Fixtures</span>
             </Button>
             {showViewFixtures ? (
-              <Button
-                type="button"
-                variant="card"
-                onClick={handleViewFixtures}
-                className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
-              >
+              <Button type="button" variant="card" size="card" onClick={handleViewFixtures}>
                 <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                   +
                 </span>

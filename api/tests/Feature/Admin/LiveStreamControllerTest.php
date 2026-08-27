@@ -3,7 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\User\UserTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Streaming\StreamProviderManager;
 use Database\Seeders\SystemSettingsSeeder;
@@ -46,7 +46,7 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.stream.status', 'idle')
             ->assertJsonPath('data.stream.match_id', null);
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'title' => 'Tapeya Launch Event',
             'match_id' => null,
             'provider' => 'external',
@@ -72,7 +72,7 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.ingest.rtmp_url', 'rtmp://fake.example.com/live')
             ->assertJsonPath('data.ingest.stream_key', 'fake-key');
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'title' => 'Tapeya Studio Show',
             'match_id' => null,
             'provider' => 'youtube',
@@ -101,11 +101,33 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.ingest.stream_key', 'fake-key');
     }
 
+    public function test_setup_accepts_null_description_when_stream_description_is_null(): void
+    {
+        $admin = $this->admin();
+
+        $create = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
+            'provider' => 'youtube',
+            'title' => 'Null Description Stream',
+        ])->assertCreated();
+
+        $streamId = $create->json('data.stream.id');
+        LiveStream::query()->whereKey($streamId)->update(['description' => null]);
+
+        $this->actingAs($admin, 'api')
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/setup", [
+                'title' => 'Still Works',
+                'description' => null,
+                'privacy' => 'public',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.stream.title', 'Still Works');
+    }
+
     public function test_setup_rejects_match_linked_stream(): void
     {
         $admin = $this->admin();
         $match = $this->createMatch();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
         ]);
@@ -139,8 +161,8 @@ class LiveStreamControllerTest extends TestCase
         $admin = $this->admin();
         $match = $this->createMatch();
 
-        $standalone = MatchStream::factory()->create(['title' => 'Standalone Event']);
-        $linked = MatchStream::factory()->create([
+        $standalone = LiveStream::factory()->create(['title' => 'Standalone Event']);
+        $linked = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
             'title' => null,
@@ -161,7 +183,7 @@ class LiveStreamControllerTest extends TestCase
     {
         $admin = $this->admin();
         $owner = User::factory()->create();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'owner_user_id' => $owner->id,
             'status' => 'live',
             'provider' => 'youtube',
@@ -185,7 +207,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_update_updates_title_description_streaming_url(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create();
+        $stream = LiveStream::factory()->create();
 
         $this->actingAs($admin, 'api')->patchJson("/api/v1/admin/live-streams/{$stream->id}", [
             'title' => 'Updated Title',
@@ -193,7 +215,7 @@ class LiveStreamControllerTest extends TestCase
             'streaming_url' => 'https://example.com/updated.m3u8',
         ])->assertOk();
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $stream->id,
             'title' => 'Updated Title',
             'description' => 'Updated description',
@@ -204,7 +226,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_start_marks_external_stream_live(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'idle']);
+        $stream = LiveStream::factory()->create(['status' => 'idle']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/start")
@@ -219,7 +241,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_start_rejects_non_external_provider(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['provider' => 'youtube']);
+        $stream = LiveStream::factory()->create(['provider' => 'youtube']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/start")
@@ -229,7 +251,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_end_marks_external_stream_ended_without_provider_call(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'live', 'started_at' => now()]);
+        $stream = LiveStream::factory()->create(['status' => 'live', 'started_at' => now()]);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/end")
@@ -244,7 +266,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_sync_is_noop_for_external_provider(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'starting']);
+        $stream = LiveStream::factory()->create(['status' => 'starting']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/sync")
@@ -255,23 +277,23 @@ class LiveStreamControllerTest extends TestCase
     public function test_destroy_deletes_standalone_stream(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create();
+        $stream = LiveStream::factory()->create();
 
         $this->actingAs($admin, 'api')
             ->deleteJson("/api/v1/admin/live-streams/{$stream->id}")
             ->assertNoContent();
 
-        $this->assertDatabaseMissing('match_streams', ['id' => $stream->id]);
+        $this->assertDatabaseMissing('live_streams', ['id' => $stream->id]);
     }
 
     public function test_partial_unique_index_enforces_one_stream_per_match(): void
     {
         $match = $this->createMatch();
 
-        MatchStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
+        LiveStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
 
         $this->expectException(QueryException::class);
 
-        MatchStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
+        LiveStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
     }
 }

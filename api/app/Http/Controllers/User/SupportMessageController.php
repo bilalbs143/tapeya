@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Events\SupportMessageSubmitted;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreSupportMessageRequest;
@@ -29,6 +30,8 @@ class SupportMessageController extends Controller
             'message' => $validated['message'],
             'attachment_path' => $fileData['attachment'] ?? null,
         ]);
+
+        event(new SupportMessageSubmitted($record));
 
         return $this->success(
             ['id' => $record->id],

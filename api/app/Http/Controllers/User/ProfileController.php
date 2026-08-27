@@ -33,7 +33,7 @@ class ProfileController extends Controller
         $user->update($data);
         $user = $user->fresh();
 
-        return $this->success(new UserResource($user), 'Profile updated.');
+        return $this->success(UserResource::self($user), 'Profile updated.');
     }
 
     /**

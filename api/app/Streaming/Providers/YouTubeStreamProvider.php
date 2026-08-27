@@ -2,13 +2,13 @@
 
 namespace App\Streaming\Providers;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Settings\StreamingSettings;
 use App\Streaming\Contracts\StreamProviderContract;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
 use App\Streaming\Data\StreamPlayback;
-use App\Streaming\Support\MatchStreamStatusTransition;
+use App\Streaming\Support\LiveStreamStatusTransition;
 use App\Streaming\Support\YouTubeEmbedUrl;
 use App\Streaming\Support\YouTubeQuotaTracker;
 use Google\Client as GoogleClient;
@@ -43,7 +43,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         $this->yt = new YouTube($client);
     }
 
-    public function createStream(MatchStream $stream, CreateStreamData $data): void
+    public function createStream(LiveStream $stream, CreateStreamData $data): void
     {
         $liveStream = new LiveStream(['kind' => 'youtube#liveStream']);
         $liveStream->setSnippet(new LiveStreamSnippet(['title' => $data->title]));
@@ -99,7 +99,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         ]);
     }
 
-    public function syncStatus(MatchStream $stream): void
+    public function syncStatus(LiveStream $stream): void
     {
         $this->syncStatuses(collect([$stream]));
     }
@@ -111,11 +111,11 @@ class YouTubeStreamProvider implements StreamProviderContract
      * cost reduction, not micro-optimization — see YouTubeQuotaTracker / MonitorBroadcastOperations
      * and the "reduce quota usage" discussion in LIVE_STREAM_MOBILE_BROADCAST.md's history.
      *
-     * @param  Collection<int, MatchStream>  $streams
+     * @param  Collection<int, LiveStream>  $streams
      */
     public function syncStatuses(Collection $streams): void
     {
-        $streams = $streams->filter(fn (MatchStream $stream) => filled($stream->provider_stream_id))->values();
+        $streams = $streams->filter(fn (LiveStream $stream) => filled($stream->provider_stream_id))->values();
 
         if ($streams->isEmpty()) {
             return;
@@ -128,7 +128,7 @@ class YouTubeStreamProvider implements StreamProviderContract
             $lifecycle = $lifecycleByBroadcastId[$stream->provider_stream_id] ?? null;
             $ingestStatus = $stream->provider_ingest_id ? ($ingestStatusByStreamId[$stream->provider_ingest_id] ?? null) : null;
             $providerStatus = $this->mapProviderStatus($lifecycle, $ingestStatus);
-            $updates = MatchStreamStatusTransition::resolve($stream, $providerStatus);
+            $updates = LiveStreamStatusTransition::resolve($stream, $providerStatus);
 
             if ($updates !== null) {
                 $stream->update($updates);
@@ -203,7 +203,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         };
     }
 
-    public function endStream(MatchStream $stream): void
+    public function endStream(LiveStream $stream): void
     {
         if (! $stream->provider_stream_id) {
             return;
@@ -227,7 +227,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         }
     }
 
-    public function deleteStream(MatchStream $stream): void
+    public function deleteStream(LiveStream $stream): void
     {
         if (! $stream->provider_stream_id) {
             return;
@@ -243,7 +243,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         $stream->update(['status' => 'ended', 'ended_at' => $stream->ended_at ?? now()]);
     }
 
-    public function playback(MatchStream $stream): StreamPlayback
+    public function playback(LiveStream $stream): StreamPlayback
     {
         return new StreamPlayback(
             mode: 'iframe',
@@ -254,7 +254,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         );
     }
 
-    public function ingestConfig(MatchStream $stream): StreamIngestConfig
+    public function ingestConfig(LiveStream $stream): StreamIngestConfig
     {
         return new StreamIngestConfig(
             rtmpUrl: $stream->ingest_rtmp_url ?? 'rtmp://a.rtmp.youtube.com/live2',
@@ -276,7 +276,7 @@ class YouTubeStreamProvider implements StreamProviderContract
     /**
      * @return array<string, mixed>
      */
-    private function metadataWithoutIdleSince(MatchStream $stream): array
+    private function metadataWithoutIdleSince(LiveStream $stream): array
     {
         $metadata = $stream->provider_metadata ?? [];
         unset($metadata['idle_since']);

@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
 import { useGetBrandsQuery, useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -13,7 +13,8 @@ const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
 export default function ShopCategory() {
   const navigate = useNavigate();
-  const { brandId: brandSlug } = useParams();
+  const { slug, brandSlug: brandSlugParam } = useParams();
+  const brandSlug = brandSlugParam || slug;
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
@@ -46,7 +47,7 @@ export default function ShopCategory() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -60,12 +61,7 @@ export default function ShopCategory() {
     <div className="bg-black">
       <AppSubpageHeader
         onBack={() => navigate('/shop')}
-        title={
-          <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
-            <span className="text-white">SHOP - </span>
-            <span className="text-brand">{displayTitle || 'Brand'}</span>
-          </h1>
-        }
+        title={<h1 className="min-w-0 text-[16px] font-bold tracking-wide text-white uppercase">{displayTitle || 'Brand'}</h1>}
       />
       <Container>
         <div className="flex flex-col gap-3">
@@ -74,7 +70,7 @@ export default function ShopCategory() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="What are you looking for?"
+              placeholder="What Are You Looking For?"
               className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] pr-14 pl-4 text-white focus:ring-2 focus:outline-none"
               aria-label="Search Shop"
             />
@@ -115,7 +111,7 @@ export default function ShopCategory() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_OFFSET_CSS }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                   <button
@@ -148,7 +144,7 @@ export default function ShopCategory() {
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
-              <ListingProductCard key={product.id} product={product} brandSlug={brandSlug} />
+              <ListingProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>

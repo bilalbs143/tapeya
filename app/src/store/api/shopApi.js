@@ -2,7 +2,8 @@ import { baseApi } from './baseApi';
 
 /**
  * Shop API – single place for all shop-related endpoints (user-facing).
- * Injects into baseApi; all routes live under /shop and require auth.
+ * Injects into baseApi; routes live under /shop.
+ * Catalog GETs are public; cart/checkout/orders require auth.
  * Backend wraps single resources in { data }; list responses are { data: [...] }.
  */
 export const shopApi = baseApi.injectEndpoints({
@@ -15,6 +16,7 @@ export const shopApi = baseApi.injectEndpoints({
           search: params.search,
           'filter[brand_id]': params.brand_id,
           'filter[category_id]': params.category_id,
+          'filter[vendor_id]': params.vendor_id,
           'filter[is_featured]': params.is_featured,
           'filter[is_popular]': params.is_popular,
           'filter[is_special_offer]': params.is_special_offer,
@@ -26,7 +28,32 @@ export const shopApi = baseApi.injectEndpoints({
       providesTags: ['Shop'],
     }),
     getProduct: builder.query({
-      query: (id) => `/shop/products/${id}`,
+      query: (arg) => {
+        const slug = typeof arg === 'object' ? (arg.slug ?? arg.id) : arg;
+        const vendor = typeof arg === 'object' ? arg.vendor : undefined;
+        if (vendor) {
+          return `/shop/vendors/${vendor}/products/${slug}`;
+        }
+        return `/shop/products/${slug}`;
+      },
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: ['Shop'],
+    }),
+
+    // —— Vendors (buyer store pages) ——
+    getVendors: builder.query({
+      query: (params = {}) => ({
+        url: '/shop/vendors',
+        params: {
+          per_page: params.per_page ?? 15,
+          page: params.page,
+          all: params.all ? 1 : undefined,
+        },
+      }),
+      providesTags: ['Shop'],
+    }),
+    getVendorBySlug: builder.query({
+      query: (slug) => `/shop/vendors/${slug}`,
       transformResponse: (response) => response?.data ?? response,
       providesTags: ['Shop'],
     }),
@@ -39,6 +66,7 @@ export const shopApi = baseApi.injectEndpoints({
           per_page: params.per_page ?? 15,
           page: params.page,
           all: params.all ? 1 : undefined,
+          has_products: params.has_products ? 1 : undefined,
         },
       }),
       providesTags: ['Shop'],
@@ -118,12 +146,31 @@ export const shopApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Shop'],
     }),
+    cancelOrder: builder.mutation({
+      query: (id) => ({
+        url: `/shop/orders/${id}/cancel`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Shop'],
+    }),
+
+    // —— Shipping quote ——
+    getShippingQuote: builder.query({
+      query: ({ city, country } = {}) => ({
+        url: '/shop/shipping/quote',
+        params: { city, country },
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: ['Shop'],
+    }),
   }),
 });
 
 export const {
   useGetProductsQuery,
   useGetProductQuery,
+  useGetVendorsQuery,
+  useGetVendorBySlugQuery,
   useGetBrandsQuery,
   useGetBrandQuery,
   useGetCategoriesQuery,
@@ -135,4 +182,7 @@ export const {
   useGetOrdersQuery,
   useGetOrderQuery,
   useCreateOrderMutation,
+  useCancelOrderMutation,
+  useGetShippingQuoteQuery,
+  useLazyGetShippingQuoteQuery,
 } = shopApi;

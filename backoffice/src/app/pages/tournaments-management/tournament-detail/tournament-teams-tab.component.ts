@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -17,6 +16,7 @@ import { MessageService } from 'src/app/services/message.service';
 import { type TeamRow } from 'src/app/services/teams.service';
 import { TournamentTeamsService, type TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
@@ -32,10 +32,10 @@ import { EditTournamentTeamGroupDialogComponent } from './edit-tournament-team-g
     MatButtonModule,
     MatTableModule,
     MatSortModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     TablerIconsModule,
     TableWrapperComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './tournament-teams-tab.component.html',
 })

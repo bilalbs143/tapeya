@@ -283,7 +283,7 @@ public function playbackForApp(): ?array
 |-------------|-----------------|-------|
 | YouTube watch / embed / youtu.be | `iframe` | Extract video id → same embed params as `YouTubeEmbedUrl` |
 | Ends with `.m3u8` or known HLS host | `hls` | `playback.url` = streaming_url |
-| Other HTTPS | `iframe` | Embed URL directly (Facebook Live embed, etc.) — v1 |
+| Other HTTPS | `iframe` | Embed URL directly (generic HTTPS embeds) — v1 |
 
 ```php
 // fillable continued — display helpers
@@ -1382,7 +1382,7 @@ listenLiveStream(streamId: number, onStatusUpdated: …): () => void
 | Link stream to match later | **Out of scope v1** — would require PATCH `match_id` with validation (no existing match stream) |
 | External `streaming_url` changed while live | Allowed via PATCH; app picks up on refetch / Reverb if you broadcast on URL change |
 | Invalid streaming URL | 422 on create/update; only `https://` allowed |
-| Facebook / custom embed URL | v1: `mode = iframe`, embed `streaming_url` directly in player |
+| Custom embed URL | v1: `mode = iframe`, embed `streaming_url` directly in player |
 | YouTube title vs DB title | YouTube broadcast title applies only to **match-linked YouTube** creates; standalone uses `streaming_url` only |
 | Open tournament filter | Applies only to match-linked streams; standalone streams always eligible when live/starting |
 | Private YouTube broadcast | Same as today — embed works for unlisted when embed URL/id known |

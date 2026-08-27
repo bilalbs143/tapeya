@@ -5,8 +5,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { addSavedProfile } from '@/lib/savedProfiles';
-// import starMatchIcon from '@/assets/images/icons/star-match.svg';
+import { resolveOwnProfilePath } from '@/lib/share';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
+import { userCanApplyAsSeller, userHasVendorAccess } from '@/lib/vendorAccess';
 import { isNative } from '@/platform/platform';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
@@ -18,42 +19,73 @@ const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
 const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;
 const homeIcon = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
+const myTournamentsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-tournaments.svg`;
 const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tournament.svg`;
 const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
+const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 const interestCampaignIcon = `${CLOUDFRONT_APP_BASE}/images/icons/interest-campaign.svg`;
 const goLiveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/voice-cricle-live.svg`;
+const sellerHubIcon = `${CLOUDFRONT_APP_BASE}/images/icons/seller-hub.svg`;
+const becomeASellerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/become-a-seller.svg`;
+const quickMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/quick-match.svg`;
+const myMatchesIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-matches.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
-const MENU_ITEMS = [
-  { label: 'Home', icon: homeIcon, path: '/home' },
-  { label: 'Score', icon: scoreIcon, path: '/scorecard' },
+/**
+ * Sidebar nav grouped by job — Discover → Play → Tournaments → Career → Shop → Help.
+ * Gated rows use requiresBroadcast / requiresVendor / requiresNoVendor.
+ */
+const MENU_SECTIONS = [
   {
-    label: 'My Tournaments',
-    icon: requestTournamentIcon,
-    path: '/organizer/tournaments',
+    id: 'discover',
+    items: [
+      { label: 'Home', icon: homeIcon, path: '/home' },
+      { label: 'Score', icon: scoreIcon, path: '/scorecard' },
+    ],
   },
-  { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
-    label: 'Request Tournament',
-    icon: requestTournamentIcon,
-    path: '/tournament-request',
+    id: 'play',
+    items: [
+      { label: 'Quick Match', icon: quickMatchIcon, path: '/quick-match' },
+      { label: 'My Matches', icon: myMatchesIcon, path: '/matches' },
+      { label: 'Go Live', icon: goLiveIcon, path: '/live/go-live', requiresBroadcast: true },
+    ],
   },
-  // {
-  //   label: 'Start Match',
-  //   icon: starMatchIcon,
-  //   path: '/organizer/scoring/start-match',
-  // },
-  /* { label: 'Drafting', path: '/drafting' }, */
-  /* See LIVE_STREAM_MOBILE_BROADCAST.md — entry point, gated in navItems below. */
-  { label: 'Go Live', icon: goLiveIcon, path: '/live/go-live', requiresBroadcast: true },
-  /* { label: 'Toss', comingSoon: true }, */
-  { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
-  /* { label: 'Top Sponsors', comingSoon: true }, */
-  /* { label: 'Profiles', comingSoon: true }, */
-  { label: 'Support', icon: supportIcon, path: '/support' },
-  { label: 'Logout', icon: logoutIcon },
+  {
+    id: 'tournaments',
+    items: [
+      { label: 'My Tournaments', icon: myTournamentsIcon, path: '/organizer/tournaments' },
+      { label: 'Request Tournament', icon: requestTournamentIcon, path: '/tournament-request' },
+    ],
+  },
+  {
+    id: 'career',
+    items: [
+      { label: 'My Stats', icon: userStatsIcon, path: '/stats' },
+      { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
+    ],
+  },
+  {
+    id: 'shop',
+    items: [
+      { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
+      { label: 'Seller Hub', icon: sellerHubIcon, path: '/seller', requiresVendor: true },
+      { label: 'Become a Seller', icon: becomeASellerIcon, path: '/seller/apply', requiresNoVendor: true },
+    ],
+  },
+  {
+    id: 'help',
+    items: [{ label: 'Support', icon: supportIcon, path: '/support' }],
+  },
 ];
+
+function itemVisible(item, { canBroadcast, canAccessSellerHub, canApplyAsSeller }) {
+  if (item.requiresBroadcast && !canBroadcast) return false;
+  if (item.requiresVendor && !canAccessSellerHub) return false;
+  if (item.requiresNoVendor && !canApplyAsSeller) return false;
+  return true;
+}
 
 const overlay = (open) =>
   `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`;
@@ -80,26 +112,39 @@ export function Sidebar({ open, onClose }) {
   /** Same merge as Profile page / ProfileHeader — live /me data when available */
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
+  const ownProfilePath = resolveOwnProfilePath(profileUser?.id);
 
   const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
   const canBroadcast = isNative() && Boolean(profileUser?.can_broadcast);
+  const canAccessSellerHub = userHasVendorAccess(profileUser);
+  const canApplyAsSeller = userCanApplyAsSeller(profileUser);
 
-  const navItems = useMemo(() => {
-    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout' && (!item.requiresBroadcast || canBroadcast));
+  const navSections = useMemo(() => {
+    const gates = { canBroadcast, canAccessSellerHub, canApplyAsSeller };
     const slug = sidebarCampaign?.slug;
-    if (!slug) return filtered;
-    const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
-    const interestRow = {
-      label: sidebarCampaign.tournament_name?.trim() || 'Interest',
-      icon: interestCampaignIcon,
-      path: `/interest/${slug}`,
-    };
-    if (afterRequestIdx === -1) {
-      return [...filtered, interestRow];
-    }
-    return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
-  }, [sidebarCampaign, canBroadcast]);
+
+    return MENU_SECTIONS.map((section) => {
+      let items = section.items.filter((item) => itemVisible(item, gates));
+
+      if (section.id === 'tournaments' && slug) {
+        const interestRow = {
+          label: sidebarCampaign.tournament_name?.trim() || 'Interest',
+          icon: interestCampaignIcon,
+          path: `/interest/${slug}`,
+        };
+        const requestIdx = items.findIndex((i) => i.path === '/tournament-request');
+        if (requestIdx === -1) {
+          items = [...items, interestRow];
+        } else {
+          items = [...items.slice(0, requestIdx + 1), interestRow, ...items.slice(requestIdx + 1)];
+        }
+      }
+
+      return { ...section, items };
+    }).filter((section) => section.items.length > 0);
+  }, [sidebarCampaign, canBroadcast, canAccessSellerHub, canApplyAsSeller]);
+
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {
@@ -189,7 +234,7 @@ export function Sidebar({ open, onClose }) {
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}>
             <Link
-              to="/profile"
+              to={ownProfilePath}
               onClick={onClose}
               className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:outline-none"
             >
@@ -202,7 +247,9 @@ export function Sidebar({ open, onClose }) {
                 <p className="truncate text-[14px] font-bold text-white">
                   {profileUser?.name || profileUser?.nickname || 'Profile'}
                 </p>
-                <p className="text-muted truncate text-[12px] font-medium">{profileUser?.email || profileUser?.phone || ''}</p>
+                <p className="text-muted truncate text-[12px] font-medium">
+                  {profileUser?.nickname?.trim() ? `@${profileUser.nickname.trim()}` : profileUser?.phone || ''}
+                </p>
               </div>
             </Link>
 
@@ -217,9 +264,10 @@ export function Sidebar({ open, onClose }) {
 
             <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
-            <nav className="flex flex-col gap-1 pt-4">
-              {navItems.map(({ label, icon, path }) =>
-                path ? (
+            <nav className="flex flex-col gap-1 pt-4" aria-label="Main">
+              {navSections
+                .flatMap((section) => section.items)
+                .map(({ label, icon, path }) => (
                   <Link
                     key={path}
                     to={path}
@@ -238,20 +286,7 @@ export function Sidebar({ open, onClose }) {
                       {label}
                     </span>
                   </Link>
-                ) : (
-                  <button
-                    key={label}
-                    type="button"
-                    className={`${menuBtn} hover:bg-transparent`}
-                    disabled
-                    aria-disabled="true"
-                    aria-label={`${label} (coming soon)`}
-                  >
-                    <img src={icon} alt="" className="h-5 w-5 shrink-0 opacity-60" />
-                    <span className="text-muted text-[16px] font-medium opacity-60">{label}</span>
-                  </button>
-                ),
-              )}
+                ))}
             </nav>
           </div>
 

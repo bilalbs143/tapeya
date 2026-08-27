@@ -9,6 +9,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { TeamLogo } from '@/components/TeamLogo';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function SquadTeams({ tournamentId }) {
   const [searchParams] = useSearchParams();
@@ -19,6 +21,7 @@ export function SquadTeams({ tournamentId }) {
     data: teams = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentTeamsQuery(tournamentId, {
     skip: !tournamentId,
   });
@@ -37,7 +40,7 @@ export function SquadTeams({ tournamentId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Loading squads…</p>
+        <LoaderBlock label="Loading squads" className="py-4" />
       </div>
     );
   }
@@ -45,7 +48,7 @@ export function SquadTeams({ tournamentId }) {
   if (isError) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-red-400">Failed to load teams for squads.</p>
+        <ListError message="Could not load teams for squads." onRetry={() => refetch()} />
       </div>
     );
   }
@@ -53,7 +56,7 @@ export function SquadTeams({ tournamentId }) {
   if (!teams.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-8 text-center text-[13px]">No teams added yet.</p>
+        <ListEmpty title="No Teams Yet." description="Teams will appear here once they are added." />
       </div>
     );
   }

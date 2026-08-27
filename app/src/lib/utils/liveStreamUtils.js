@@ -23,14 +23,14 @@ export function getYoutubeEmbedOrigin() {
 }
 
 /** Default YouTube iframe query params (must stay aligned with API YouTubeEmbedUrl). */
-function getYoutubeEmbedDefaultParams() {
+function getYoutubeEmbedDefaultParams({ showControls = false } = {}) {
   const params = {
     autoplay: '1',
     rel: '0',
     modestbranding: '1',
-    controls: '0',
-    fs: '0',
-    disablekb: '1',
+    controls: showControls ? '1' : '0',
+    fs: showControls ? '1' : '0',
+    disablekb: showControls ? '0' : '1',
     playsinline: '1',
     iv_load_policy: '3',
     cc_load_policy: '0',
@@ -40,6 +40,40 @@ function getYoutubeEmbedDefaultParams() {
     params.origin = origin;
   }
   return params;
+}
+
+/**
+ * Extract a YouTube video id from watch / embed / shorts / youtu.be URLs.
+ *
+ * @param {string|null|undefined} input
+ * @returns {string|null}
+ */
+export function extractYoutubeVideoId(input) {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(input.trim());
+    const host = url.hostname.replace(/^www\./, '').toLowerCase();
+
+    if (host === 'youtu.be') {
+      const id = url.pathname.split('/').filter(Boolean)[0];
+      return id || null;
+    }
+
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+      if (url.pathname.startsWith('/embed/') || url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/live/')) {
+        const id = url.pathname.split('/').filter(Boolean)[1];
+        return id || null;
+      }
+      return url.searchParams.get('v');
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 /**
@@ -95,9 +129,10 @@ export function buildProxyTargetEmbedUrl(directEmbedUrl) {
 
 /**
  * @param {string} directEmbedUrl
+ * @param {{ showControls?: boolean }} [options]
  * @returns {string}
  */
-export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
+export function buildYoutubeEmbedProxyUrl(directEmbedUrl, { showControls = false } = {}) {
   const proxyBase = getYoutubeEmbedProxyBase();
   if (!proxyBase) {
     return '';
@@ -105,17 +140,20 @@ export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
 
   const proxyUrl = new URL(proxyBase);
   proxyUrl.searchParams.set('src', buildProxyTargetEmbedUrl(directEmbedUrl) ?? directEmbedUrl);
+  if (showControls) {
+    proxyUrl.searchParams.set('controls', '1');
+  }
   return proxyUrl.toString();
 }
 
 /**
- * iOS native overlay embed params — rotate/cover only for landscape immersive.
+ * iOS native overlay embed params — rotate/cover for landscape immersive; optional VOD controls.
  *
  * @param {string} proxyUrl
- * @param {{ landscape?: boolean }} [options]
+ * @param {{ landscape?: boolean, showControls?: boolean }} [options]
  * @returns {string}
  */
-export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
+export function withIosNativeEmbedParams(proxyUrl, { landscape = false, showControls = false } = {}) {
   try {
     const url = new URL(proxyUrl);
     if (landscape) {
@@ -124,6 +162,9 @@ export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
     } else {
       url.searchParams.delete('cover');
       url.searchParams.delete('rotate');
+    }
+    if (showControls) {
+      url.searchParams.set('controls', '1');
     }
     return url.toString();
   } catch {
@@ -134,24 +175,17 @@ export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
 /**
  * @param {string|null|undefined} embedUrl
  * @param {string|null|undefined} embedId
+ * @param {{ showControls?: boolean }} [options]
  * @returns {string|null}
  */
-export function buildDirectYoutubeEmbedUrl(embedUrl, embedId) {
-  if (embedUrl?.trim()) {
-    const url = new URL(embedUrl.trim());
-    const origin = getYoutubeEmbedOrigin();
-    if (origin && !url.searchParams.has('origin')) {
-      url.searchParams.set('origin', origin);
-    }
-    return url.toString();
-  }
-
-  if (!embedId?.trim()) {
+export function buildDirectYoutubeEmbedUrl(embedUrl, embedId, { showControls = false } = {}) {
+  const videoId = extractYoutubeVideoId(embedUrl) || embedId?.trim() || null;
+  if (!videoId) {
     return null;
   }
 
-  const params = new URLSearchParams(getYoutubeEmbedDefaultParams());
-  return `https://www.youtube.com/embed/${embedId.trim()}?${params.toString()}`;
+  const params = new URLSearchParams(getYoutubeEmbedDefaultParams({ showControls }));
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 }
 
 /**
@@ -280,14 +314,99 @@ export function liveMatchWatchPath(tournamentId, matchId) {
 }
 
 /**
+ * @param {string|null|undefined} embedUrl
+ * @param {string|null|undefined} embedId
+ * @param {{ showControls?: boolean }} [options]
  * @returns {{ iframeSrc: string|null, usesProxy: boolean }}
  */
-export function resolveYoutubeEmbed(embedUrl, embedId) {
-  const directEmbedUrl = buildDirectYoutubeEmbedUrl(embedUrl, embedId);
+export function resolveYoutubeEmbed(embedUrl, embedId, { showControls = false } = {}) {
+  const directEmbedUrl = buildDirectYoutubeEmbedUrl(embedUrl, embedId, { showControls });
   const usesProxy = shouldUseYoutubeEmbedProxy();
-  const iframeSrc = directEmbedUrl ? (usesProxy ? buildYoutubeEmbedProxyUrl(directEmbedUrl) : directEmbedUrl) : null;
+  const iframeSrc = directEmbedUrl
+    ? usesProxy
+      ? buildYoutubeEmbedProxyUrl(directEmbedUrl, { showControls })
+      : directEmbedUrl
+    : null;
 
   return { iframeSrc, usesProxy };
+}
+
+/**
+ * Resolve iframe src for live playback — YouTube (optionally proxied) or generic HTTPS embeds
+ * from {@link StreamUrlPlayback}.
+ *
+ * @param {{ embed_url?: string|null, embed_id?: string|null }|null|undefined} playback
+ * @param {{ showControls?: boolean }} [options]
+ * @returns {{ iframeSrc: string|null, usesProxy: boolean }}
+ */
+export function resolveStreamIframeSrc(playback, { showControls = false } = {}) {
+  const raw = typeof playback?.embed_url === 'string' ? playback.embed_url.trim() : '';
+
+  const youtube = resolveYoutubeEmbed(raw, playback?.embed_id, { showControls });
+  if (youtube.iframeSrc) {
+    return youtube;
+  }
+
+  if (raw.startsWith('https://')) {
+    return { iframeSrc: raw, usesProxy: false };
+  }
+
+  return { iframeSrc: null, usesProxy: false };
+}
+
+/** True when playback resolves to a YouTube iframe (autoplay / proxy path — not tap-to-play). */
+export function isYoutubeIframePlayback(playback) {
+  if (!playback || playback.mode !== 'iframe') {
+    return false;
+  }
+  const raw = typeof playback.embed_url === 'string' ? playback.embed_url.trim() : '';
+  return Boolean(playback.embed_id?.trim() || resolveYoutubeEmbed(raw, playback.embed_id).iframeSrc);
+}
+
+/** True for non-YouTube iframe embeds that need tap-to-play + chrome passthrough. */
+export function isInteractiveIframePlayback(playback) {
+  if (!playback || playback.mode !== 'iframe') {
+    return false;
+  }
+  return !isYoutubeIframePlayback(playback);
+}
+
+/** True when a watch-URL points at YouTube (before playback resolves). */
+export function isYoutubeStreamUrl(input) {
+  return Boolean(extractYoutubeVideoId(input));
+}
+
+/** True when a watch-URL points at HLS (before playback resolves). */
+export function isHlsStreamUrl(input) {
+  if (!input?.trim()) {
+    return false;
+  }
+  try {
+    const url = new URL(input.trim());
+    const path = url.pathname.toLowerCase();
+    const host = url.hostname.toLowerCase();
+    if (path.endsWith('.m3u8')) {
+      return true;
+    }
+    return host.includes('cloudfront.net') || host.includes('live-video.net');
+  } catch {
+    return false;
+  }
+}
+
+/** True for HTTPS watch-URLs that map to interactive iframe playback (not YouTube or HLS). */
+export function isInteractiveStreamUrl(input) {
+  if (!input?.trim()) {
+    return false;
+  }
+  if (isYoutubeStreamUrl(input) || isHlsStreamUrl(input)) {
+    return false;
+  }
+  try {
+    return new URL(input.trim()).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 /**

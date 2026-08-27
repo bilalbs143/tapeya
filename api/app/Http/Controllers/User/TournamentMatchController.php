@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Event\MatchKindEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTournamentMatchRequest;
@@ -26,6 +27,7 @@ class TournamentMatchController extends Controller
     public function index(Tournament $tournament): JsonResponse
     {
         $query = $tournament->matches()
+            ->where('kind', MatchKindEnum::TOURNAMENT)
             ->with(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'stream'])
             ->orderBy('match_date')
             ->orderBy('match_time');

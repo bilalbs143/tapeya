@@ -324,7 +324,7 @@ function isEndOfOver(validCount) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function BallsTab() {
-  const { matchId, innings1Id, innings2Id, matchComplete } = useScoringMatch();
+  const { matchId, innings1Id, innings2Id, matchComplete, canOperate } = useScoringMatch();
   const { data: scorecard } = useGetScorecardQuery(matchId, { skip: !matchId });
   const { innings1Squads, innings2Squads } = useMatchSquads();
 
@@ -353,7 +353,7 @@ export function BallsTab() {
   const [activeInnings, setActiveInnings] = useState('1');
 
   const activeInningsId = activeInnings === '2' ? innings2Id : innings1Id;
-  const canManageBalls = activeInnings === '2' ? innings2Editable : innings1Editable;
+  const canManageBalls = canOperate && (activeInnings === '2' ? innings2Editable : innings1Editable);
 
   const handleEditBall = useCallback(
     (ball, ballLabel) => {

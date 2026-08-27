@@ -78,6 +78,29 @@ export function buildCreatorProfilePath(userId) {
   return buildDeepLinkPath('reelCreator', { userId });
 }
 
+/**
+ * Safe profile path for UI links. Returns null when userId is missing/invalid
+ * so we never navigate to `/reels/u/NaN` (or throw from deep-link validation).
+ * @param {string|number|null|undefined} userId
+ * @returns {string|null}
+ */
+export function resolveCreatorProfilePath(userId) {
+  if (userId == null || userId === '') return null;
+  const numeric = Number(userId);
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+  return buildCreatorProfilePath(numeric);
+}
+
+/**
+ * Signed-in user's main profile path (`/reels/u/:id`).
+ * Falls back to `/profile` (edit/account) when id is unavailable.
+ * @param {string|number|null|undefined} userId
+ * @returns {string}
+ */
+export function resolveOwnProfilePath(userId) {
+  return resolveCreatorProfilePath(userId) ?? '/profile';
+}
+
 export function buildCreatorProfileShareUrl(userId) {
   return buildHttpsDeepLink(buildCreatorProfilePath(userId));
 }
@@ -88,4 +111,12 @@ export function buildHighlightShareUrl(highlightId) {
 
 export function buildTournamentShareUrl(tournamentId) {
   return buildHttpsDeepLink(`/upcoming-tournaments/${tournamentId}`);
+}
+
+export function buildQuickMatchScorecardPath(matchId) {
+  return buildDeepLinkPath('quickMatchScorecard', { matchId });
+}
+
+export function buildQuickMatchScorecardShareUrl(matchId) {
+  return buildHttpsDeepLink(buildQuickMatchScorecardPath(matchId));
 }

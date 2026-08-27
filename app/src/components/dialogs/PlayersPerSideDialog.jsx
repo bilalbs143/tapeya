@@ -5,17 +5,19 @@ import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrol
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 /**
  * Body-only — DialogManager provides the BaseDialog wrapper.
  * Manages local value state; calls onSelect + closes on selection.
+ * Same input + preset-grid pattern as OversDialog.
  */
 export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect }) {
   const { closeDialog } = useDialog();
-  const [playersPerSide, setPlayersPerSide] = useState(initialPlayersPerSide ?? '');
+  const [playersPerSide, setPlayersPerSide] = useState(initialPlayersPerSide != null ? String(initialPlayersPerSide) : '');
 
-  const handleSelect = (val) => {
-    onSelect?.(val);
+  const handlePreset = (v) => {
+    onSelect?.(v);
     closeDialog();
   };
 
@@ -42,24 +44,20 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
               onChange={(e) => setPlayersPerSide(e.target.value)}
             />
           </FormField>
-          <div className="flex flex-col gap-2">
-            {options.map((opt) => {
-              const val = String(opt.value);
-              const isSelected = playersPerSide === val;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSelect(val)}
-                  className={`flex w-full items-center rounded-full px-4 py-3 text-[14px] font-medium transition-colors focus:outline-none ${
-                    isSelected ? 'bg-brand text-ink' : 'bg-surface text-white'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          <ToggleGroup
+            type="single"
+            value={playersPerSide}
+            onValueChange={(v) => {
+              if (v != null && v !== '') handlePreset(v);
+            }}
+            className="flex flex-wrap gap-2"
+          >
+            {options.map((opt) => (
+              <ToggleGroupItem key={opt.value} value={String(opt.value)} aria-label={`${opt.label} players per side`}>
+                {opt.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </FormStack>
       </DialogScrollBody>
 

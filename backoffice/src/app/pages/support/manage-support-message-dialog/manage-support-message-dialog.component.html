@@ -1,0 +1,104 @@
+<app-dialog-wrapper title="Support Message">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Support message form"
+  >
+    <mat-dialog-content>
+      <div class="flex flex-col gap-2">
+        <div class="shrink-0">
+          <h2 class="text-base font-semibold m-0">Message Details</h2>
+          <p class="text-muted m-0 mt-1 text-xs">Submitted contact details and message.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Message ID</p>
+            <p class="m-0 text-sm font-semibold leading-snug">#{{ message.id }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">From</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ submitterLabel() }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Phone</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ message.phone || emptyCell }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Current Status</p>
+            <p class="m-0">
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                [ngClass]="statusClass(message.status)"
+              >
+                {{ message.status_label ?? message.status }}
+              </span>
+            </p>
+          </div>
+          <div class="border-border border-b py-3 sm:col-span-2">
+            <p class="text-muted m-0 mb-1 text-xs">Message</p>
+            <p class="m-0 text-sm font-semibold leading-snug whitespace-pre-wrap">{{ message.message }}</p>
+          </div>
+          @if (message.attachment_url) {
+            <div class="border-border border-b py-3 sm:col-span-2">
+              <p class="text-muted m-0 mb-1 text-xs">Attachment</p>
+              <a
+                [href]="message.attachment_url"
+                target="_blank"
+                rel="noopener"
+                class="text-primary text-sm font-semibold"
+              >
+                View Attachment
+              </a>
+            </div>
+          }
+        </div>
+
+        <div class="shrink-0 mt-6">
+          <h2 class="text-base font-semibold m-0">Update Status</h2>
+          <p class="text-muted m-0 mt-1 text-xs">Mark this message as in progress or resolved once handled.</p>
+        </div>
+
+        <div class="grid grid-cols-12 gap-x-6 pt-2">
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select
+                formControlName="status"
+                placeholder="Select Status"
+              >
+                @if (statusOptions$ | async; as opts) {
+                  @for (opt of opts; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

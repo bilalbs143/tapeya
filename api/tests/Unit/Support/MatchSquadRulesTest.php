@@ -9,6 +9,7 @@ use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Support\MatchSquadRules;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MatchSquadRulesTest extends TestCase
@@ -92,6 +93,10 @@ class MatchSquadRulesTest extends TestCase
             'Playing eleven must have exactly 11 players once the match has started.',
             MatchSquadRules::playingElevenSizeError($match, 9),
         );
+        $this->assertSame(
+            'Playing eleven cannot exceed 11 players.',
+            MatchSquadRules::playingElevenSizeError($match, 12),
+        );
         $this->assertNull(MatchSquadRules::playingElevenSizeError($match, 11));
     }
 
@@ -100,5 +105,37 @@ class MatchSquadRulesTest extends TestCase
         $match = $this->makeMatch(MatchStatusEnum::SCHEDULED->value);
 
         $this->assertNull(MatchSquadRules::playingElevenSizeError($match, 1));
+    }
+
+    public function test_roster_subset_requires_team_user(): void
+    {
+        $match = $this->makeMatch(MatchStatusEnum::SCHEDULED->value);
+        $player = User::factory()->create(['type' => 'user']);
+        $home = $match->homeTeam()->first();
+
+        $this->assertNotNull(MatchSquadRules::rosterSubsetError($match, $home, [$player->id]));
+
+        $home->players()->attach($player->id);
+
+        $this->assertNull(MatchSquadRules::rosterSubsetError($match, $home, [$player->id]));
+    }
+
+    public function test_playing_eleven_subset_requires_match_squad(): void
+    {
+        $match = $this->makeMatch(MatchStatusEnum::SCHEDULED->value);
+        $player = User::factory()->create(['type' => 'user']);
+        $home = $match->homeTeam()->first();
+
+        $this->assertNotNull(MatchSquadRules::playingElevenSubsetError($match, $home, [$player->id]));
+
+        DB::table('match_squads')->insert([
+            'match_id' => $match->id,
+            'team_id' => $home->id,
+            'user_id' => $player->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->assertNull(MatchSquadRules::playingElevenSubsetError($match, $home, [$player->id]));
     }
 }

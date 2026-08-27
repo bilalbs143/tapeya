@@ -146,6 +146,21 @@ class PostController extends Controller
         return $this->cursorSuccess($paginator, $request);
     }
 
+    /**
+     * Public non-video posts for a user profile.
+     */
+    public function forUserPosts(Request $request, User $user): JsonResponse
+    {
+        $paginator = $this->feedService->forUserPosts(
+            (int) $user->id,
+            $request->user()?->id,
+            $request->query('cursor'),
+            (int) $request->query('per_page', 10),
+        );
+
+        return $this->cursorSuccess($paginator, $request);
+    }
+
     public function show(Request $request, Post $post): JsonResponse
     {
         $visible = $this->feedService->findVisible(

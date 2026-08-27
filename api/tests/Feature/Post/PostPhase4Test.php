@@ -133,7 +133,7 @@ class PostPhase4Test extends TestCase
 
         $owner = User::factory()->create();
         $withHls = $this->readyReel($owner, [
-            'ready_at' => now(),
+            'ready_at' => now()->subHours(49),
             'original_path' => 'posts/videos/original/old.mp4',
             'processed_path' => null,
             'hls_master_path' => 'posts/videos/hls/old/master.m3u8',

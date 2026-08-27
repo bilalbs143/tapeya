@@ -16,8 +16,10 @@ import { ScoringMatchContext } from '@/context/ScoringMatchContext';
 import { useInningsLifecycle } from '@/hooks/useInningsLifecycle';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { useScoringMatchData } from '@/hooks/useScoringMatchData';
-import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
+import { ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import { BallsTab, InfoTab, PartnershipTab, ScorecardTab, ScoringTab, StatsTab } from './scoring-tabs';
@@ -104,7 +106,7 @@ export default function ScoringMatch() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -122,6 +124,15 @@ export default function ScoringMatch() {
       settings: apiMatch?.analytics_settings ?? {},
     });
   }, [matchId, apiMatch?.analytics_settings, openDialog]);
+
+  const handleOpenBroadcastGraphics = useCallback(() => {
+    if (!matchId) return;
+    openDialog('scoringBroadcastGraphics', {
+      matchId,
+      homeName: apiMatch?.home_team?.name ?? 'Home',
+      awayName: apiMatch?.away_team?.name ?? 'Away',
+    });
+  }, [apiMatch?.away_team?.name, apiMatch?.home_team?.name, matchId, openDialog]);
 
   const registerOpenActionMenu = useCallback((openFn) => {
     openActionMenuRef.current = openFn ?? null;
@@ -147,10 +158,25 @@ export default function ScoringMatch() {
     openActionMenuRef.current?.();
   }, [activeTab, setSearchParams]);
 
+  const canOperate = Boolean(apiMatch?.can_operate);
+
   const headerTrailingActions = useMemo(() => {
     if (!matchId || matchLoading || matchError) return null;
     return (
       <>
+        {canOperate ? (
+          <button
+            type="button"
+            onClick={handleOpenBroadcastGraphics}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80"
+            aria-label="Broadcast graphics"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <rect x="2" y="4" width="20" height="13" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={handleOpenMatchSettings}
@@ -181,7 +207,7 @@ export default function ScoringMatch() {
         </button>
       </>
     );
-  }, [matchId, matchLoading, matchError, handleOpenActionMenu, handleOpenMatchSettings]);
+  }, [matchId, matchLoading, matchError, canOperate, handleOpenActionMenu, handleOpenMatchSettings, handleOpenBroadcastGraphics]);
 
   const ActiveView = TAB_VIEWS[activeTab];
 
@@ -220,12 +246,14 @@ export default function ScoringMatch() {
     () => ({
       matchId,
       match,
+      apiMatch: apiMatch ?? null,
       matchComplete,
+      canOperate,
       wagonWheelEnabled,
       innings1Id,
       innings2Id,
     }),
-    [matchId, match, matchComplete, wagonWheelEnabled, innings1Id, innings2Id],
+    [matchId, match, apiMatch, matchComplete, canOperate, wagonWheelEnabled, innings1Id, innings2Id],
   );
 
   // ── Scoring tab props ──────────────────────────────────────────────────────
@@ -295,24 +323,15 @@ export default function ScoringMatch() {
               {tabsFixedVisible ? (
                 <div
                   className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
-                  style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
+                  style={{ top: NAVBAR_OFFSET_CSS, zIndex: STICKY_TABS_Z }}
                 >
                   <div className={`${SCORING_PAGE_WIDTH_CLASS} min-w-0 px-4`}>{tabsContent}</div>
                 </div>
               ) : null}
 
               <div className="-mx-4 bg-black px-4 pb-2">
-                {matchLoading && (
-                  <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
-                )}
-                {matchError && (
-                  <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
-                    <p className="text-[14px] text-red-400">Failed to load match.</p>
-                    <button type="button" onClick={() => navigate(-1)} className="text-brand text-[14px] font-medium underline">
-                      Go back
-                    </button>
-                  </div>
-                )}
+                {matchLoading && <LoaderBlock label="Loading match" className="min-h-[200px] py-8" />}
+                {matchError ? <ListError message="Could not load match." /> : null}
                 {matchComplete && !matchLoading && !matchError && (
                   <MatchResultBanner
                     match={match}

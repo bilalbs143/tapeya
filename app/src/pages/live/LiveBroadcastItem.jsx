@@ -17,12 +17,14 @@ import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
+  LIVE_BROADCAST_BOTTOM_OVERLAY,
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
   LIVE_BROADCAST_HEADER_TOP_PADDING,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
+  LIVE_BROADCAST_TOGGLE_BTN,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
@@ -35,11 +37,6 @@ import LandscapeRotatedStage from './LandscapeRotatedStage';
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
-const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 px-4 pb-2';
-
-const TOGGLE_BTN =
-  'flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
-
 function LandscapeExitToggle({ onClick }) {
   if (typeof document === 'undefined') return null;
 
@@ -51,7 +48,7 @@ function LandscapeExitToggle({ onClick }) {
       <button
         type="button"
         onClick={onClick}
-        className={`pointer-events-auto touch-manipulation ${TOGGLE_BTN}`}
+        className={`pointer-events-auto touch-manipulation ${LIVE_BROADCAST_TOGGLE_BTN}`}
         aria-label="Rotate to portrait"
       >
         <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
@@ -71,7 +68,7 @@ function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout,
       <button
         type="button"
         onClick={onToggleBottomPanel}
-        className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
+        className={`${LIVE_BROADCAST_TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
         aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
         aria-pressed={bottomPanelVisible}
       >
@@ -85,7 +82,7 @@ function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout,
       <button
         type="button"
         onClick={onToggleLayout}
-        className={TOGGLE_BTN}
+        className={LIVE_BROADCAST_TOGGLE_BTN}
         aria-label={isLandscape ? 'Rotate to portrait' : 'Rotate to landscape'}
       >
         <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
@@ -162,11 +159,11 @@ function BroadcastViewport({
   hideHeaderOverlay = false,
   /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
   fillPortrait = false,
+  /** Non-YouTube iframe embeds — keep iframe tappable (incl. landscape). */
+  allowVideoInteraction = false,
 }) {
-  // Landscape / desktop / self-serve portrait: fill the shell.
-  // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
-  const blockLandscapeVideoPointer = !isDesktop && isLandscape;
-  const fillVideo = isDesktop || isLandscape || fillPortrait;
+  const blockLandscapeVideoPointer = !isDesktop && isLandscape && !allowVideoInteraction;
+  const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction;
   const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
 
   const videoLayer = fillVideo ? (
@@ -217,7 +214,7 @@ function BroadcastViewport({
       )}
 
       {!isDesktop && !isLandscape && (
-        <div className={BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
+        <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
           <div className="pointer-events-auto">{bottomPanel}</div>
         </div>
       )}
@@ -242,6 +239,8 @@ export default function LiveBroadcastItem({
   fillPortrait = false,
   /** Self-serve go-live watch — no comment/landscape toggles; comments always visible. */
   selfServeChrome = false,
+  /** Interactive iframe embed — keep video tappable and fill portrait shell. */
+  allowVideoInteraction = false,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -360,6 +359,7 @@ export default function LiveBroadcastItem({
       isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
       fillPortrait={fillPortrait}
+      allowVideoInteraction={allowVideoInteraction}
     />
   );
 

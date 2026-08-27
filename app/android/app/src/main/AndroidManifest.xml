@@ -57,6 +57,7 @@
                 <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/reels" />
                 <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/feed" />
                 <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/live/go-live" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/scorecard" />
             </intent-filter>
 
         </activity>

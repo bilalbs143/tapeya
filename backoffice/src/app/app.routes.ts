@@ -50,6 +50,10 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/notifications/notifications.routes').then((m) => m.NotificationsRoutes),
       },
       {
+        path: 'support',
+        loadChildren: () => import('./pages/support/support.routes').then((m) => m.SupportRoutes),
+      },
+      {
         path: 'engagement',
         loadChildren: () => import('./pages/engagement/engagement.routes').then((m) => m.EngagementRoutes),
       },

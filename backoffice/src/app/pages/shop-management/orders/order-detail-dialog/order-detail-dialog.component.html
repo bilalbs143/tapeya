@@ -1,178 +1,332 @@
 <app-dialog-wrapper title="Order Details">
   @if (isLoading) {
     <mat-dialog-content>
-      <p class="m-0 py-6 text-center text-muted text-sm">Loading order…</p>
+      <app-loader-block
+        label="Loading order"
+        class="py-6"
+      />
     </mat-dialog-content>
   } @else if (order) {
-    <form
-      [formGroup]="form"
-      (ngSubmit)="onSubmit()"
-      aria-label="Update order status"
-    >
-      <mat-dialog-content>
-        <div class="flex flex-col gap-2">
-          <div class="shrink-0">
-            <h2 class="text-base font-semibold m-0">Order Details</h2>
-            <p class="text-muted m-0 mt-1 text-xs">
-              Customer, totals, shipping address, line items, and fulfillment status for this order.
-            </p>
-          </div>
+    <mat-dialog-content>
+      <div class="flex flex-col gap-2">
+        <div class="shrink-0">
+          <h2 class="text-base font-semibold m-0">Order Details</h2>
+          <p class="text-muted m-0 mt-1 text-xs">
+            Customer, totals, shipping address, line items, payment, and fulfillment status for this order.
+          </p>
+        </div>
 
-          <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
-            <div class="flex min-w-0 items-start gap-4">
-              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
-                <i-tabler
-                  name="user"
-                  class="size-5"
-                />
-              </span>
-              <div class="min-w-0 flex-1">
-                <p class="text-muted m-0 mb-1 text-xs font-medium">Customer</p>
-                <p class="m-0 truncate text-base font-semibold leading-snug">
-                  {{ order.user?.name ?? emptyCell }}
+        <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
+          <div class="flex min-w-0 items-start gap-4">
+            <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+              <i-tabler
+                name="user"
+                class="size-5"
+              />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-muted m-0 mb-1 text-xs font-medium">Customer</p>
+              <p class="m-0 truncate text-base font-semibold leading-snug">
+                {{ order.user?.name ?? emptyCell }}
+              </p>
+              @if (order.user?.email || order.user?.phone) {
+                <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+                  {{ order.user?.email || '' }}
+                  {{ order.user?.email && order.user?.phone ? ' · ' : '' }}
+                  {{ order.user?.phone || '' }}
                 </p>
-                @if (order.user?.email || order.user?.phone) {
-                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
-                    {{ order.user?.email || '' }}
-                    {{ order.user?.email && order.user?.phone ? ' · ' : '' }}
-                    {{ order.user?.phone || '' }}
-                  </p>
-                }
-              </div>
+              }
             </div>
-            <div class="flex min-w-0 items-start gap-4">
-              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
-                <i-tabler
-                  name="package"
-                  class="size-5"
-                />
-              </span>
-              <div class="min-w-0 flex-1">
-                <p class="text-muted m-0 mb-1 text-xs font-medium">Order</p>
-                <p class="m-0 truncate text-base font-semibold leading-snug">{{ order.order_number }}</p>
-                <p class="m-0 mt-2">
+          </div>
+          <div class="flex min-w-0 items-start gap-4">
+            <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+              <i-tabler
+                name="package"
+                class="size-5"
+              />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-muted m-0 mb-1 text-xs font-medium">Order</p>
+              <p class="m-0 truncate text-base font-semibold leading-snug">{{ order.order_number }}</p>
+              <p class="m-0 mt-2 flex flex-wrap gap-1.5">
+                <span
+                  class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                  [ngClass]="statusClass(order.status)"
+                >
+                  {{ order.status | titlecase }}
+                </span>
+                @if (order.payment_status) {
                   <span
                     class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                    [ngClass]="statusClass(order.status)"
+                    [ngClass]="statusClass(order.payment_status)"
                   >
-                    {{ order.status | titlecase }}
+                    {{ order.payment_status_label || (order.payment_status | titlecase) }}
                   </span>
-                </p>
-              </div>
+                }
+              </p>
             </div>
           </div>
+        </div>
 
-          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+          <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+            <p class="text-muted m-0 mb-1 text-xs">Totals</p>
+            <p class="m-0 text-sm font-semibold leading-snug">
+              Subtotal {{ order.subtotal | number: '1.0-0' }} {{ order.currency }} · Shipping
+              {{ order.shipping_amount | number: '1.0-0' }} {{ order.currency }} · Discount
+              {{ order.discount_amount | number: '1.0-0' }} {{ order.currency }}
+            </p>
+            <p class="m-0 mt-1 text-sm font-semibold leading-snug">
+              Total {{ order.total | number: '1.0-0' }} {{ order.currency }}
+            </p>
+          </div>
+          <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+            <p class="text-muted m-0 mb-1 text-xs">Shipping Address</p>
+            <p class="m-0 text-sm font-semibold leading-snug break-words">
+              {{ order.address }}, {{ order.city }}, {{ order.country }}
+            </p>
+          </div>
+          @if (order.notes) {
             <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
-              <p class="text-muted m-0 mb-1 text-xs">Totals</p>
-              <p class="m-0 text-sm font-semibold leading-snug">
-                Subtotal {{ order.subtotal | number: '1.0-0' }} {{ order.currency }} · Shipping
-                {{ order.shipping_amount | number: '1.0-0' }} {{ order.currency }} · Discount
-                {{ order.discount_amount | number: '1.0-0' }} {{ order.currency }}
-              </p>
-              <p class="m-0 mt-1 text-sm font-semibold leading-snug">
-                Total {{ order.total | number: '1.0-0' }} {{ order.currency }}
-              </p>
+              <p class="text-muted m-0 mb-1 text-xs">Notes</p>
+              <p class="m-0 text-sm font-semibold leading-snug break-words">{{ order.notes }}</p>
             </div>
-            <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
-              <p class="text-muted m-0 mb-1 text-xs">Shipping Address</p>
-              <p class="m-0 text-sm font-semibold leading-snug break-words">
-                {{ order.address }}, {{ order.city }}, {{ order.country }}
-              </p>
-            </div>
-            @if (order.notes) {
-              <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
-                <p class="text-muted m-0 mb-1 text-xs">Notes</p>
-                <p class="m-0 text-sm font-semibold leading-snug break-words">{{ order.notes }}</p>
-              </div>
+          }
+        </div>
+
+        <div class="bg-light-secondary mt-2 rounded-sm border border-border p-4">
+          <p class="text-muted m-0 mb-3 text-xs font-medium">Order Items</p>
+          <div class="overflow-x-auto">
+            <table
+              mat-table
+              [dataSource]="items"
+              class="min-w-full bg-transparent"
+            >
+              <ng-container matColumnDef="product">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  class="bg-light-secondary text-sm font-semibold"
+                >
+                  Product
+                </th>
+                <td
+                  mat-cell
+                  *matCellDef="let item"
+                  class="text-sm"
+                >
+                  {{ productName(item) }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  class="bg-light-secondary text-sm font-semibold"
+                >
+                  Qty
+                </th>
+                <td
+                  mat-cell
+                  *matCellDef="let item"
+                  class="text-sm"
+                >
+                  {{ item.quantity }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="unit_price">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  class="bg-light-secondary text-sm font-semibold"
+                >
+                  Unit Price
+                </th>
+                <td
+                  mat-cell
+                  *matCellDef="let item"
+                  class="text-sm"
+                >
+                  {{ item.unit_price | number: '1.0-0' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="total_price">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  class="bg-light-secondary text-sm font-semibold"
+                >
+                  Total
+                </th>
+                <td
+                  mat-cell
+                  *matCellDef="let item"
+                  class="text-sm"
+                >
+                  {{ item.total_price | number: '1.0-0' }}
+                </td>
+              </ng-container>
+              <tr
+                mat-header-row
+                *matHeaderRowDef="displayedColumns"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: displayedColumns"
+              ></tr>
+            </table>
+          </div>
+        </div>
+
+        <mat-divider class="!my-4"></mat-divider>
+
+        <form
+          [formGroup]="paymentForm"
+          (ngSubmit)="onSubmitPayment()"
+          aria-label="Verify Order Payment"
+          class="flex flex-col gap-2"
+        >
+          <div class="shrink-0 flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold m-0">Payment</h2>
+            @if (order.payment_status) {
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                [ngClass]="statusClass(order.payment_status)"
+              >
+                {{ order.payment_status_label || (order.payment_status | titlecase) }}
+              </span>
             }
           </div>
-
-          <div class="bg-light-secondary mt-2 rounded-sm border border-border p-4">
-            <p class="text-muted m-0 mb-3 text-xs font-medium">Order Items</p>
-            <div class="overflow-x-auto">
-              <table
-                mat-table
-                [dataSource]="items"
-                class="min-w-full bg-transparent"
+          <p class="text-muted m-0 text-xs">
+            Record amount received and set payment status.
+            @if (order.payment_verified_at) {
+              Verified {{ order.payment_verified_at | date: 'medium' }}.
+            }
+          </p>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Amount Received</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="amount_received"
+                min="0"
+                step="1"
+                placeholder="0"
+              />
+            </mat-form-field>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Payment Status</mat-label>
+              <mat-select
+                formControlName="payment_status"
+                placeholder="Select Payment Status"
               >
-                <ng-container matColumnDef="product">
-                  <th
-                    mat-header-cell
-                    *matHeaderCellDef
-                    class="bg-light-secondary text-sm font-semibold"
-                  >
-                    Product
-                  </th>
-                  <td
-                    mat-cell
-                    *matCellDef="let item"
-                    class="text-sm"
-                  >
-                    {{ productName(item) }}
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="quantity">
-                  <th
-                    mat-header-cell
-                    *matHeaderCellDef
-                    class="bg-light-secondary text-sm font-semibold"
-                  >
-                    Qty
-                  </th>
-                  <td
-                    mat-cell
-                    *matCellDef="let item"
-                    class="text-sm"
-                  >
-                    {{ item.quantity }}
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="unit_price">
-                  <th
-                    mat-header-cell
-                    *matHeaderCellDef
-                    class="bg-light-secondary text-sm font-semibold"
-                  >
-                    Unit Price
-                  </th>
-                  <td
-                    mat-cell
-                    *matCellDef="let item"
-                    class="text-sm"
-                  >
-                    {{ item.unit_price | number: '1.0-0' }}
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="total_price">
-                  <th
-                    mat-header-cell
-                    *matHeaderCellDef
-                    class="bg-light-secondary text-sm font-semibold"
-                  >
-                    Total
-                  </th>
-                  <td
-                    mat-cell
-                    *matCellDef="let item"
-                    class="text-sm"
-                  >
-                    {{ item.total_price | number: '1.0-0' }}
-                  </td>
-                </ng-container>
-                <tr
-                  mat-header-row
-                  *matHeaderRowDef="displayedColumns"
-                ></tr>
-                <tr
-                  mat-row
-                  *matRowDef="let row; columns: displayedColumns"
-                ></tr>
-              </table>
-            </div>
+                @if (paymentStatusOptions$ | async; as opts) {
+                  @for (opt of opts; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                }
+              </mat-select>
+            </mat-form-field>
           </div>
+          <div class="flex justify-end">
+            <app-submit-button
+              className=""
+              [disabled]="paymentForm.invalid"
+              [isSubmitting]="isSubmittingPayment"
+              text="Save / Verify"
+              color="primary"
+            />
+          </div>
+        </form>
 
+        @if (canRefund) {
           <mat-divider class="!my-4"></mat-divider>
+
+          <form
+            [formGroup]="refundForm"
+            (ngSubmit)="onSubmitRefund()"
+            aria-label="Record Order Refund"
+            class="flex flex-col gap-2"
+          >
+            <div class="shrink-0">
+              <h2 class="text-base font-semibold m-0">Refund</h2>
+              <p class="text-muted m-0 mt-1 text-xs">
+                Full refund only — clears amount received and marks the order refunded. Notes are appended to the order. COD cash
+                return is handled outside the app.
+              </p>
+            </div>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <mat-label>Refund Status</mat-label>
+                <mat-select formControlName="payment_status">
+                  @for (opt of refundStatusOptions; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field
+                appearance="outline"
+                class="w-full sm:col-span-2"
+              >
+                <mat-label>Refund Notes</mat-label>
+                <textarea
+                  matInput
+                  rows="2"
+                  formControlName="notes"
+                  placeholder="Optional Notes"
+                ></textarea>
+              </mat-form-field>
+            </div>
+            <div class="flex justify-end">
+              <app-submit-button
+                className=""
+                [disabled]="refundForm.invalid"
+                [isSubmitting]="isSubmittingRefund"
+                text="Record Refund"
+                color="warn"
+              />
+            </div>
+          </form>
+        }
+
+        @if (vendorOrders.length) {
+          <div class="mt-2 rounded-sm border border-border p-3">
+            <p class="text-muted m-0 mb-2 text-xs font-medium">Vendor Orders</p>
+            <ul class="m-0 list-none p-0 flex flex-col gap-1.5">
+              @for (vo of vendorOrders; track vo.id) {
+                <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span class="font-semibold">{{ vo.vendor_order_number }}</span>
+                  <span class="flex items-center gap-2">
+                    <span
+                      class="rounded-sm font-semibold px-1.5 py-0.5 text-xs inline-block"
+                      [ngClass]="statusClass(vo.status)"
+                    >
+                      {{ vo.status_label || (vo.status | titlecase) }}
+                    </span>
+                    <span class="text-muted text-xs"> {{ vo.total | number: '1.0-0' }} {{ order.currency }} </span>
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <mat-divider class="!my-4"></mat-divider>
+
+        <div
+          [formGroup]="form"
+          class="flex flex-col gap-2"
+        >
           <div class="shrink-0">
             <h2 class="text-base font-semibold m-0">Update Status</h2>
             <p class="text-muted m-0 mt-1 text-xs">Change the fulfillment state shown to the customer.</p>
@@ -194,25 +348,27 @@
             </mat-select>
           </mat-form-field>
         </div>
-      </mat-dialog-content>
+      </div>
+    </mat-dialog-content>
 
-      <mat-divider></mat-divider>
-      <mat-dialog-actions>
-        <button
-          type="button"
-          mat-stroked-button
-          class="border border-error! text-error"
-          [mat-dialog-close]="false"
-        >
-          Close
-        </button>
-        <app-submit-button
-          [disabled]="form.invalid"
-          [isSubmitting]="isSubmitting"
-          text="Update Status"
-          color="primary"
-        />
-      </mat-dialog-actions>
-    </form>
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="paymentUpdated"
+      >
+        Close
+      </button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Update Status"
+        color="primary"
+        buttonType="button"
+        (action)="onSubmit()"
+      />
+    </mat-dialog-actions>
   }
 </app-dialog-wrapper>

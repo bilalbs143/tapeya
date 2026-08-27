@@ -20,10 +20,19 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         $product = $this->route('product');
+        $vendorId = (int) ($this->input('vendor_id') ?: $product->vendor_id);
 
         return [
+            'vendor_id' => ['sometimes', 'integer', 'exists:shop_vendors,id'],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('shop_products', 'slug')->ignore($product->id)],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('shop_products', 'slug')
+                    ->where(fn ($q) => $q->where('vendor_id', $vendorId))
+                    ->ignore($product->id),
+            ],
             'description' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'brand_id' => ['required', 'integer', 'exists:shop_brands,id'],

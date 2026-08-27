@@ -102,6 +102,8 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'viewRedisBuffer' => 1,
                         'multipartPartSizeMb' => 1,
                         'multipartMaxParts' => 0,
+                        'autoEngagementEnabled' => 0,
+                        'reelsEngagementPerDay' => 5,
                         default => 0,
                     };
                 }

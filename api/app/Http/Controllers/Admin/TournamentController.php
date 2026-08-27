@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Http\Requests\Admin\StoreTournamentRequest;
 use App\Http\Requests\Admin\UpdateTournamentRequest;
 use App\Http\Resources\Admin\TournamentResource;
@@ -12,8 +11,6 @@ use Illuminate\Http\JsonResponse;
 
 class TournamentController extends BaseAdminController
 {
-    use EnsuresTournamentStaffAppRoles;
-
     private const TOURNAMENTS_IMAGE_DIR = 'tournaments';
 
     public function __construct()
@@ -48,10 +45,8 @@ class TournamentController extends BaseAdminController
         }
 
         $record = $this->model->create($data);
-        $this->ensureOrganizerRole($record->organizer_id);
         if ($user && $user->hasBroadcastBackofficeRole()) {
             $record->broadcasters()->sync([$user->id]);
-            $this->ensureOrganizerRole($user->id);
         }
         $record = $this->refresh($record);
 
@@ -69,9 +64,6 @@ class TournamentController extends BaseAdminController
 
         $tournament = $this->refresh($tournament);
         $tournament->update($data);
-        if (isset($data['organizer_id'])) {
-            $this->ensureOrganizerRole($data['organizer_id']);
-        }
         $tournament = $this->refresh($tournament);
 
         return $this->success(new TournamentResource($tournament), 'Tournament updated.');

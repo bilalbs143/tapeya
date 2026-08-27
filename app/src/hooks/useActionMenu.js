@@ -29,7 +29,7 @@ export function useActionMenu({
   openPenaltyRunsDialog,
   openChangeSquadWizard,
 }) {
-  const { matchId, match, matchComplete } = useScoringMatch();
+  const { matchId, match, matchComplete, canOperate } = useScoringMatch();
   const { openDialog } = useDialog();
   const toast = useToast();
 
@@ -55,7 +55,7 @@ export function useActionMenu({
 
   const actionMenuDisabledIds = useMemo(() => {
     const disabled = new Set();
-    if (matchComplete) {
+    if (matchComplete || !canOperate) {
       for (const item of SCORING_ACTION_MENU_ITEMS) disabled.add(item.id);
       return disabled;
     }
@@ -71,7 +71,7 @@ export function useActionMenu({
       disabled.add('revise_target');
     }
     return disabled;
-  }, [matchComplete, isLiveInnings, inningsId, scorecardInnings?.status, inningsNumber, firstInningsComplete]);
+  }, [matchComplete, canOperate, isLiveInnings, inningsId, scorecardInnings?.status, inningsNumber, firstInningsComplete]);
 
   const handleActionMenuSelect = useCallback(
     (actionId) => {

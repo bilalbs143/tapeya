@@ -7,6 +7,7 @@ use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
 use App\Events\Broadcast\User\PostEngagementBroadcast;
 use App\Models\User;
 use App\Notifications\OrderPlacedUserNotification;
+use App\Notifications\OrderPlacedVendorNotification;
 use App\Notifications\OrderStatusUpdatedUserNotification;
 use App\Notifications\PostCommentedUserNotification;
 use App\Notifications\PostCommentLikedUserNotification;
@@ -17,6 +18,7 @@ use App\Notifications\PostPublishedFollowerNotification;
 use App\Notifications\PostRepostedUserNotification;
 use App\Notifications\UserFollowedUserNotification;
 use App\Notifications\UserReferredUserNotification;
+use App\Notifications\VendorOrderStatusUpdatedVendorNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -32,13 +34,15 @@ final class ResolveUserNotificationBroadcast
         $data = is_array($record->data) ? $record->data : [];
 
         return match ($notificationType) {
-            OrderPlacedUserNotification::class => new OrderPlacedBroadcast(
+            OrderPlacedUserNotification::class,
+            OrderPlacedVendorNotification::class => new OrderPlacedBroadcast(
                 $user->getKey(),
                 $notificationId,
                 $notificationType,
                 $data,
             ),
-            OrderStatusUpdatedUserNotification::class => new OrderStatusUpdatedBroadcast(
+            OrderStatusUpdatedUserNotification::class,
+            VendorOrderStatusUpdatedVendorNotification::class => new OrderStatusUpdatedBroadcast(
                 $user->getKey(),
                 $notificationId,
                 $notificationType,

@@ -9,6 +9,13 @@ export const LIVE_BROADCAST_HEADER_OVERLAY_Z = 20;
 /** Comment / toggle controls overlaid on the video — above header so toggles stay tappable. */
 export const LIVE_BROADCAST_CONTROLS_OVERLAY_Z = 25;
 
+/** Portrait floating rotate / comment toggles — shared by live + highlights. */
+export const LIVE_BROADCAST_TOGGLE_BTN =
+  'flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
+
+/** Dock for portrait floating toggles (right-aligned above bottom chrome). */
+export const LIVE_BROADCAST_BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 px-4 pb-2';
+
 /** Fixed landscape toggle — portaled above all app chrome. */
 export const LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z = 100;
 
@@ -56,10 +63,16 @@ export const LIVE_BROADCAST_HEADER_SCRIM =
   'pointer-events-none absolute top-0 right-0 left-0 bg-gradient-to-b from-black/70 via-black/25 to-transparent px-4 pb-10';
 
 /** Navbar clearance for floating controls on hero / immersive live pages. */
-export const LIVE_BROADCAST_HEADER_TOP_PADDING = 'calc(env(safe-area-inset-top) + 56px)';
+export const LIVE_BROADCAST_HEADER_TOP_PADDING = `calc(env(safe-area-inset-top) + ${NAVBAR_HEIGHT}px)`;
 
 /** Go-live camera — navbar hidden; controls sit below the status bar only. */
 export const LIVE_BROADCAST_CAMERA_HEADER_TOP = 'calc(env(safe-area-inset-top) + 10px)';
+
+/**
+ * Secondary banners under the go-live camera header (e.g. rotate tip).
+ * Keeps the previous 88px web offset; adds safe-area on native.
+ */
+export const LIVE_BROADCAST_CAMERA_BANNER_TOP = 'calc(env(safe-area-inset-top, 0px) + 88px)';
 
 /** Top header row on the go-live camera screen. */
 export const LIVE_BROADCAST_CAMERA_HEADER_CLASS =

@@ -26,6 +26,14 @@ class ProductResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'vendor_id' => $this->vendor_id,
+            'vendor' => $this->whenLoaded('vendor', fn () => $this->vendor ? [
+                'id' => $this->vendor->id,
+                'store_name' => $this->vendor->store_name,
+                'slug' => $this->vendor->slug,
+                'is_platform' => (bool) $this->vendor->is_platform,
+                'status' => $this->vendor->status?->value,
+            ] : null),
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,

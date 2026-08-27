@@ -13,13 +13,17 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { OpenInAppBanner } from '@/components/deepLinks/OpenInAppBanner';
+import { PullToRefreshIndicator } from '@/components/PullToRefreshIndicator';
 import { buildCycledReelRows } from '@/features/reels/buildCycledReelRows';
 import { isInPlayerWindow } from '@/features/reels/reelPlayerWindow';
 import { setReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelPrefetch } from '@/features/reels/useReelPrefetch';
 import { useReelProcessingChannel } from '@/features/reels/useReelProcessingChannel';
 import { useCatalogCycle } from '@/hooks/useCatalogCycle';
-import { NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { NAVBAR_HERO_CONTROL_OFFSET, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
+import { useTabReselect } from '@/lib/navigation/tabReselect';
+import { PTR_SETTLE } from '@/lib/pullToRefresh';
 import { buildReelSharePath } from '@/lib/share';
 import { REELS_LIST_ARG } from '@/store/api/postEngagementCache';
 import {
@@ -36,6 +40,9 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
+import { Button } from '@/ui/Button';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 
 import ReelItem from './ReelItem';
 
@@ -192,6 +199,15 @@ export default function Reels() {
         : activeTab === TAB_SAVED
           ? savedQuery
           : mineQuery;
+  const refetchActive = activeQuery.refetch;
+  const refreshReelsFeed = useCallback(() => refetchActive?.(), [refetchActive]);
+  const onReelsReselect = useCallback(() => {
+    containerRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    setActiveIndex(0);
+    refreshReelsFeed();
+  }, [refreshReelsFeed]);
+  useTabReselect('reels', onReelsReselect);
+  const { offset, refreshing, settling } = usePullToRefresh({ scrollRef: containerRef, onRefresh: refreshReelsFeed });
 
   const baseReels = useMemo(() => {
     const playable = (activeQuery.data?.items ?? []).filter((item) => item.status !== 'uploading');
@@ -303,88 +319,112 @@ export default function Reels() {
 
   const emptyCopy =
     deepReelId && deepReelQuery.isError
-      ? 'This reel is unavailable.'
+      ? 'This Reel Is Unavailable.'
       : activeTab === TAB_EXPLORE
-        ? 'No reels to explore yet.'
+        ? 'No Reels To Explore Yet.'
         : activeTab === TAB_FOLLOWING
-          ? 'No reels from people you follow yet.'
+          ? 'No Reels From People You Follow Yet.'
           : activeTab === TAB_SAVED
-            ? 'No saved reels yet.'
-            : 'You have not uploaded any reels yet.';
+            ? 'No Saved Reels Yet.'
+            : 'No Reels Yet.';
 
   return (
     <div className="fixed inset-0 z-30 bg-black lg:left-[280px]">
-      <div className="lg:border-surface-border relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x">
-        <div className="pointer-events-none absolute inset-x-0 z-10 px-3" style={{ top: NAVBAR_HERO_CONTROL_OFFSET }}>
-          <div className="pointer-events-auto flex items-center gap-2">
-            <div className="shrink-0">
-              <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go Back" />
-            </div>
-
-            <nav className="min-w-0 flex-1" aria-label="Reels feeds">
-              <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/55 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
-                {REELS_TABS.map(({ id, label, shortLabel, Icon }) => {
-                  const active = activeTab === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => selectTab(id)}
-                      aria-current={active ? 'page' : undefined}
-                      aria-label={label}
-                      title={label}
-                      className={`flex items-center justify-center gap-1.5 rounded-full text-[12px] font-semibold tracking-wide transition-all duration-200 ${
-                        active
-                          ? 'bg-brand text-ink min-w-0 flex-1 px-3 py-2 shadow-sm'
-                          : 'size-9 shrink-0 text-white/65 hover:bg-white/10 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="size-4 shrink-0" />
-                      {active ? <span className="truncate">{shortLabel}</span> : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-
-            <Link
-              to="/reels/upload"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-colors hover:bg-white/10"
-              aria-label="Upload Reel"
-              title="Upload Reel"
-            >
-              <UploadIcon className="size-4" />
-            </Link>
-          </div>
-        </div>
-
-        {deepReelId ? <OpenInAppBanner path={buildReelSharePath(deepReelId)} /> : null}
+      <div className="lg:border-surface-border relative h-full w-full overflow-hidden lg:mx-auto lg:max-w-[430px] lg:border-x">
+        <PullToRefreshIndicator
+          offset={offset}
+          refreshing={refreshing}
+          className="absolute inset-x-0 z-20"
+          style={{ top: NAVBAR_OFFSET_CSS }}
+        />
 
         <div
-          key={deepReelId ?? 'explore'}
-          ref={containerRef}
-          onScroll={handleScroll}
-          className="h-full w-full [scroll-snap-type:y_mandatory] overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="relative h-full"
+          style={{
+            top: offset,
+            transition: settling ? `top ${PTR_SETTLE}` : 'none',
+          }}
         >
-          {reelRows.length === 0 && !isInitialLoading ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-              <p className="text-sm font-medium text-white">{emptyCopy}</p>
-              {activeTab === TAB_MY_VIDEOS ? (
-                <button type="button" onClick={() => navigate('/reels/upload')} className="text-brand text-sm font-semibold">
-                  Upload Your First Reel
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+          <div className="pointer-events-none absolute inset-x-0 z-10 px-3" style={{ top: NAVBAR_HERO_CONTROL_OFFSET }}>
+            <div className="pointer-events-auto flex items-center gap-2">
+              <div className="shrink-0">
+                <AppSubpageBackButton aria-label="Go Back" />
+              </div>
 
-          {reelRows.map((row, index) => (
-            <ReelItem
-              key={row.key}
-              reel={row.reel}
-              isActive={index === activeIndex}
-              inPlayerWindow={isInPlayerWindow(index, activeIndex)}
-            />
-          ))}
+              <nav className="min-w-0 flex-1" aria-label="Reels feeds">
+                <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/55 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                  {REELS_TABS.map(({ id, label, shortLabel, Icon }) => {
+                    const active = activeTab === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => selectTab(id)}
+                        aria-current={active ? 'page' : undefined}
+                        aria-label={label}
+                        title={label}
+                        className={`flex items-center justify-center gap-1.5 rounded-full text-[12px] font-semibold tracking-wide transition-all duration-200 ${
+                          active
+                            ? 'bg-brand text-ink min-w-0 flex-1 px-3 py-2 shadow-sm'
+                            : 'size-9 shrink-0 text-white/65 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="size-4 shrink-0" />
+                        {active ? <span className="truncate">{shortLabel}</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </nav>
+
+              <Link
+                to="/reels/upload"
+                className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/55 text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-colors hover:bg-white/10"
+                aria-label="Upload Reel"
+                title="Upload Reel"
+              >
+                <UploadIcon className="size-4" />
+              </Link>
+            </div>
+          </div>
+
+          {deepReelId ? <OpenInAppBanner path={buildReelSharePath(deepReelId)} /> : null}
+
+          <div
+            key={deepReelId ?? 'explore'}
+            ref={containerRef}
+            onScroll={handleScroll}
+            className={`h-full w-full overflow-y-scroll overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+              offset > 0 || refreshing ? '' : '[scroll-snap-type:y_mandatory]'
+            }`}
+          >
+            {isInitialLoading ? <PageLoader label="Loading reels" className="h-full" /> : null}
+
+            {reelRows.length === 0 && !isInitialLoading ? (
+              <div className="flex h-full flex-col items-center justify-center px-6">
+                <ListEmpty
+                  title={emptyCopy}
+                  description={activeTab === TAB_MY_VIDEOS ? 'You have not uploaded any reels yet.' : undefined}
+                  action={
+                    activeTab === TAB_MY_VIDEOS ? (
+                      <Button type="button" variant="orange" onClick={() => navigate('/reels/upload')}>
+                        Upload Your First Reel
+                      </Button>
+                    ) : null
+                  }
+                />
+              </div>
+            ) : null}
+
+            {reelRows.map((row, index) => (
+              <ReelItem
+                key={row.key}
+                reel={row.reel}
+                isActive={index === activeIndex}
+                inPlayerWindow={isInPlayerWindow(index, activeIndex)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

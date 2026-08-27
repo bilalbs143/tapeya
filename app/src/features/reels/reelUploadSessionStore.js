@@ -6,7 +6,7 @@ import { store } from '@/store/store';
 
 /**
  * In-flight reel upload session (module store).
- * Survives navigation away from /reels/upload so a floating chip can show progress.
+ * Survives navigation away from /reels/upload so the blocking progress dialog can stay open.
  *
  * @typedef {'idle' | 'uploading' | 'success' | 'error'} ReelUploadStatus
  * @typedef {{
@@ -15,6 +15,7 @@ import { store } from '@/store/store';
  *   stage: string,
  *   previewUrl: string | null,
  *   error: string | null,
+ *   reelId: number | null,
  * }} ReelUploadSession
  */
 
@@ -25,6 +26,7 @@ const IDLE = {
   stage: 'preparing',
   previewUrl: null,
   error: null,
+  reelId: null,
 };
 
 /** @type {ReelUploadSession} */
@@ -36,6 +38,9 @@ let beforeUnloadAttached = false;
 let ownedPreviewUrl = null;
 /** Bumps on each start/clear so late async completions cannot resurrect a cleared session. */
 let uploadGeneration = 0;
+
+/** How long the success state stays visible in the blocking dialog before auto-dismiss. */
+export const REEL_UPLOAD_SUCCESS_CLEAR_MS = 2200;
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -108,7 +113,7 @@ function isCurrentGeneration(generation) {
 }
 
 /**
- * Start a background reel upload. Navigating away is safe — progress lives here.
+ * Start a reel upload. Progress lives in this session so the blocking dialog can stay open.
  *
  * @param {{
  *   file: File,
@@ -152,12 +157,13 @@ export function startReelUpload(opts) {
     stage: 'preparing',
     previewUrl: ownedPreviewUrl,
     error: null,
+    reelId: null,
   });
   attachBeforeUnload();
 
   void (async () => {
     try {
-      await publishReel(mutations, {
+      const created = await publishReel(mutations, {
         file,
         caption,
         visibility,
@@ -174,11 +180,15 @@ export function startReelUpload(opts) {
 
       if (!isCurrentGeneration(generation)) return;
 
+      const reelId = Number(created?.id);
+      const nextReelId = Number.isFinite(reelId) && reelId > 0 ? reelId : null;
+
       try {
         store.dispatch(
           baseApi.util.invalidateTags([
             { type: 'Reel', id: 'MINE' },
             { type: 'Reel', id: 'FEED' },
+            ...(nextReelId ? [{ type: 'Reel', id: nextReelId }] : []),
           ]),
         );
       } catch {
@@ -190,6 +200,7 @@ export function startReelUpload(opts) {
         percent: 100,
         stage: 'finishing',
         error: null,
+        reelId: nextReelId,
       });
       detachBeforeUnload();
 
@@ -197,7 +208,7 @@ export function startReelUpload(opts) {
         clearTimer = null;
         if (!isCurrentGeneration(generation)) return;
         clearReelUploadSession();
-      }, 1500);
+      }, REEL_UPLOAD_SUCCESS_CLEAR_MS);
     } catch (err) {
       if (!isCurrentGeneration(generation)) return;
 

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -19,16 +20,17 @@ import {
   mergeTournamentMeta,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import {
   useGetTournamentQuery,
   useGetTournamentSquadOccupancyQuery,
   useGetTournamentTeamsQuery,
 } from '@/store/api/tournamentApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+import { LoaderBlock, PageLoader } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -190,7 +192,7 @@ export default function TournamentSquad() {
     setFindPlayer('');
   }, [selectedTeamId]);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedFindPlayer, {
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedFindPlayer, {
     skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
   });
 
@@ -302,7 +304,7 @@ export default function TournamentSquad() {
       <div className="bg-black">
         <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading teams…</p>
+          <PageLoader label="Loading squad" className="py-6" />
         </Container>
       </div>
     );
@@ -349,7 +351,7 @@ export default function TournamentSquad() {
           </FormField>
         </div>
 
-        {isLoadingSquad && <p className="text-muted mb-3 text-[13px]">Loading squad…</p>}
+        {isLoadingSquad && <LoaderBlock label="Loading squad" className="mb-3 py-3" />}
 
         <div className="bg-surface mb-5 flex items-stretch gap-3 rounded-[17px] p-4">
           <TeamLogo team={selectedTeam} variant="organizerCard" />
@@ -389,22 +391,11 @@ export default function TournamentSquad() {
                 {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
                   <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
                 ) : isSearchingPlayers ? (
-                  <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+                  <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                 ) : playersToAdd.length > 0 ? (
                   <ul className="py-1">
                     {playersToAdd.map((player) => (
-                      <li key={player.id}>
-                        <button
-                          type="button"
-                          onClick={() => handleAddPlayer(player)}
-                          className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
-                        >
-                          <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                          {(player.playing_role ?? player.playing_role_enum) && (
-                            <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
-                          )}
-                        </button>
-                      </li>
+                      <PlayerSearchResultRow key={player.id} player={player} onClick={() => handleAddPlayer(player)} />
                     ))}
                   </ul>
                 ) : (

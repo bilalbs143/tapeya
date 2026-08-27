@@ -2,6 +2,7 @@
 
 namespace App\Services\Tournament;
 
+use App\Enums\Event\MatchKindEnum;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 
@@ -53,6 +54,7 @@ class TournamentMatchSchedulingService
         }
 
         $match = TournamentMatch::create([
+            'kind' => MatchKindEnum::TOURNAMENT,
             'tournament_id' => $tournament->id,
             'group_index' => $groupIndex,
             'home_team_id' => $data['home_team_id'],

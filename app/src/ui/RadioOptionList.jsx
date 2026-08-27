@@ -1,3 +1,5 @@
+import { Loader } from '@/ui/Loader';
+
 /**
  * Reusable radio-style option list used across scoring dialogs.
  * Renders a `<ul role="radiogroup">` with gold dot indicators.
@@ -11,7 +13,11 @@
 export function RadioOptionList({ options, value, onChange, ariaLabel, className = '' }) {
   return (
     <ul className={`flex flex-col gap-2 ${className}`} role="radiogroup" aria-label={ariaLabel}>
-      {options.length === 0 && <li className="text-muted text-[13px]">Loading options…</li>}
+      {options.length === 0 && (
+        <li className="flex items-center justify-center py-3">
+          <Loader label="Loading options" />
+        </li>
+      )}
       {options.map((opt) => {
         const selected = value === opt.value;
         return (

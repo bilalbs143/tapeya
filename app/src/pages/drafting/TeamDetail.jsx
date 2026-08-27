@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
@@ -12,11 +13,14 @@ import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useSearchTeamsQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+import { ListEmpty } from '@/ui/ListState';
+import { LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
@@ -84,7 +88,7 @@ export default function TeamDetail() {
   const trimmedFindPlayer = findPlayer.trim();
   const debouncedFindPlayer = useDebounce(trimmedFindPlayer, DEBOUNCE_MS);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedFindPlayer, {
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedFindPlayer, {
     skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
   });
 
@@ -151,7 +155,7 @@ export default function TeamDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="Drafting" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading team…</p>
+          <PageLoader label="Loading team" className="py-6" />
         </Container>
       </div>
     );
@@ -162,14 +166,14 @@ export default function TeamDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="Drafting" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Team not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/drafting/teams')}
-            className="text-brand mx-auto mt-2 block text-[13px] font-semibold"
-          >
-            Back to Teams
-          </button>
+          <ListEmpty
+            title="Team Not Found."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/drafting/teams')}>
+                Back To Teams
+              </Button>
+            }
+          />
         </Container>
       </div>
     );
@@ -226,23 +230,16 @@ export default function TeamDetail() {
                     {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
                       <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
                     ) : isSearchingPlayers ? (
-                      <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+                      <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                     ) : playersToAdd.length > 0 ? (
                       <ul className="py-1">
                         {playersToAdd.map((player) => (
-                          <li key={player.id}>
-                            <button
-                              type="button"
-                              onClick={() => handleAddPlayer(player)}
-                              disabled={isSavingSquad}
-                              className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10 disabled:opacity-60"
-                            >
-                              <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                              {(player.playing_role ?? player.playing_role_enum) && (
-                                <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
-                              )}
-                            </button>
-                          </li>
+                          <PlayerSearchResultRow
+                            key={player.id}
+                            player={player}
+                            disabled={isSavingSquad}
+                            onClick={() => handleAddPlayer(player)}
+                          />
                         ))}
                       </ul>
                     ) : (
@@ -259,7 +256,7 @@ export default function TeamDetail() {
           </div>
 
           <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {isLoadingSquad && <p className="text-muted mb-3 text-[13px]">Loading squad…</p>}
+            {isLoadingSquad && <LoaderBlock label="Loading squad" className="mb-3 py-3" />}
             <table className="w-full border-collapse text-[12px] text-white">
               <thead>
                 <tr className={HEADER_BG}>
@@ -311,7 +308,7 @@ export default function TeamDetail() {
         <button
           type="button"
           onClick={() => navigate('/drafting/teams')}
-          className="border-brand text-brand m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border px-4 text-center text-[16px] font-bold tracking-wide uppercase transition-opacity active:opacity-90 lg:m-0"
+          className="border-brand text-brand m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border px-4 text-center text-[16px] font-bold tracking-wide transition-opacity active:opacity-90 lg:m-0"
         >
           Back to Teams
         </button>

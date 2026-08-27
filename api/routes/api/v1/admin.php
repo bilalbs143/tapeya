@@ -21,13 +21,16 @@ use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\PostReportController as AdminPostReportController;
 use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\PushNotificationTemplateController;
+use App\Http\Controllers\Admin\QuickMatchController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\Shop\VendorController as AdminVendorController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\StreamController;
+use App\Http\Controllers\Admin\SupportMessageController as AdminSupportMessageController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
@@ -59,6 +62,10 @@ Route::prefix('admin')->group(function () {
         Route::get('post-reports', [AdminPostReportController::class, 'index']);
         Route::get('post-reports/{postReport}', [AdminPostReportController::class, 'show']);
         Route::patch('post-reports/{postReport}', [AdminPostReportController::class, 'update']);
+
+        Route::get('support-messages', [AdminSupportMessageController::class, 'index']);
+        Route::get('support-messages/{supportMessage}', [AdminSupportMessageController::class, 'show']);
+        Route::patch('support-messages/{supportMessage}', [AdminSupportMessageController::class, 'update']);
 
         Route::get('push-notifications', [PushNotificationController::class, 'index']);
         Route::post('push-notifications/send', [PushNotificationController::class, 'send']);
@@ -98,6 +105,10 @@ Route::prefix('admin')->group(function () {
         Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
         Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
         Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
+
+        Route::get('quick-matches', [QuickMatchController::class, 'index']);
+        Route::get('quick-matches/{quickMatch}', [QuickMatchController::class, 'show']);
+        Route::post('quick-matches/{quickMatch}/cancel', [QuickMatchController::class, 'cancel']);
 
         Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
         Route::match(['post', 'patch'], 'matches/{match}', [TournamentMatchController::class, 'update']);
@@ -155,13 +166,32 @@ Route::prefix('admin')->group(function () {
         Route::match(['put', 'patch'], 'interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
-            Route::get('dashboard-stats', EcommerceDashboardController::class);
-            Route::apiResource('brands', AdminBrandController::class);
-            Route::apiResource('categories', AdminCategoryController::class);
-            Route::apiResource('products', AdminProductController::class);
-            Route::get('orders', [AdminOrderController::class, 'index']);
-            Route::get('orders/{order}', [AdminOrderController::class, 'show']);
-            Route::match(['put', 'patch'], 'orders/{order}', [AdminOrderController::class, 'update']);
+            Route::get('dashboard-stats', EcommerceDashboardController::class)
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::apiResource('brands', AdminBrandController::class)
+                ->middleware('admin.permission:shop.catalog.manage');
+            Route::apiResource('categories', AdminCategoryController::class)
+                ->middleware('admin.permission:shop.catalog.manage');
+            Route::apiResource('vendors', AdminVendorController::class)
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/approve', [AdminVendorController::class, 'approve'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/suspend', [AdminVendorController::class, 'suspend'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/reject', [AdminVendorController::class, 'reject'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::apiResource('products', AdminProductController::class)
+                ->middleware('admin.permission:shop.products.oversee');
+            Route::get('orders', [AdminOrderController::class, 'index'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::get('orders/{order}', [AdminOrderController::class, 'show'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::match(['put', 'patch'], 'orders/{order}', [AdminOrderController::class, 'update'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::post('orders/{order}/payment', [AdminOrderController::class, 'updatePayment'])
+                ->middleware('admin.permission:shop.payments.verify');
+            Route::post('orders/{order}/refund', [AdminOrderController::class, 'refund'])
+                ->middleware('admin.permission:shop.payments.verify');
         });
     });
 });

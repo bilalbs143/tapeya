@@ -1,6 +1,8 @@
 /**
  * Match detail screen — live, result, or upcoming match info with tab navigation.
- * Route: /scorecard/:tournamentId/match/:matchId
+ * Routes:
+ *   /scorecard/:tournamentId/match/:matchId  — tournament fixture (table/stats/fixture tabs)
+ *   /scorecard/match/:matchId                — standalone / Quick Match (no tournament chrome)
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -8,10 +10,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { OpenInAppBanner } from '@/components/deepLinks/OpenInAppBanner';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
+import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { buildQuickMatchScorecardPath, buildQuickMatchScorecardShareUrl, shareLink } from '@/lib/share';
 import { calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
 import {
   apiTournamentMatchToStatusDetailsMatch,
@@ -25,6 +30,8 @@ import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetMatchQuery, useGetMatchStateQuery, useGetScorecardQuery } from '@/store/api/matchApi';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import {
@@ -36,13 +43,9 @@ import {
 } from './statusDetailsTabs';
 import { ScheduleTab, StatsTab, TableTab } from './tabs';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const winProbabilityIcon = `${CLOUDFRONT_APP_BASE}/images/icons/win-probabilty.svg`;
 
-const STATUS_TABS = {
+const TOURNAMENT_STATUS_TABS = {
   live: [
     { value: 'live', label: 'Live' },
     { value: 'scorecard', label: 'Scorecard' },
@@ -64,10 +67,31 @@ const STATUS_TABS = {
   ],
 };
 
+const STANDALONE_STATUS_TABS = {
+  live: [
+    { value: 'live', label: 'Live' },
+    { value: 'scorecard', label: 'Scorecard' },
+    { value: 'overs', label: 'Overs' },
+    { value: 'playing-xi', label: 'Playing XI' },
+  ],
+  result: [
+    { value: 'scorecard', label: 'Scorecard' },
+    { value: 'overs', label: 'Overs' },
+    { value: 'playing-xi', label: 'Playing XI' },
+  ],
+  upcoming: [{ value: 'playing-xi', label: 'Playing XI' }],
+};
+
 const STATUS_DEFAULT_TAB = {
   live: 'live',
   result: 'scorecard',
   upcoming: 'table',
+};
+
+const STANDALONE_DEFAULT_TAB = {
+  live: 'live',
+  result: 'scorecard',
+  upcoming: 'playing-xi',
 };
 
 const TAB_VIEWS = {
@@ -80,14 +104,6 @@ const TAB_VIEWS = {
   fixture: ScheduleTab,
 };
 
-// ---------------------------------------------------------------------------
-// Utils
-// ---------------------------------------------------------------------------
-
-/**
- * Parses a live score string into current score and overs context.
- * e.g. "27/1 (4.4/50 OV, T:235)" → { current: "27/1", overs: "(4.4/50 OV, T:235)" }
- */
 function parseLiveScore(score) {
   if (!score || typeof score !== 'string') return { current: score, overs: null };
   const idx = score.indexOf(' (');
@@ -95,13 +111,6 @@ function parseLiveScore(score) {
   return { current: score.slice(0, idx), overs: score.slice(idx) };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-/**
- * ResultTextHighlighted — highlights a specific word/phrase in gold.
- */
 function ResultTextHighlighted({ text, highlight }) {
   if (!highlight || !text.includes(highlight)) {
     return <span className="text-white">{text}</span>;
@@ -116,14 +125,10 @@ function ResultTextHighlighted({ text, highlight }) {
   );
 }
 
-/** TeamFlag — team logo with coloured-initial fallback. Alias for local readability. */
 function TeamFlag({ team }) {
   return <TeamLogo team={team} variant="scorecardInline" accent="green" />;
 }
 
-/**
- * WinProbabilityCard — win probability bar shown only for LIVE matches.
- */
 function WinProbabilityCard({ match, winProb }) {
   const p1 = winProb.team1;
   const p2 = winProb.team2;
@@ -150,10 +155,7 @@ function WinProbabilityCard({ match, winProb }) {
   );
 }
 
-/**
- * MatchHeader — renders match identity and score differently per status.
- */
-function MatchHeader({ match, details }) {
+function MatchHeader({ match, details, kindLabel }) {
   const { status, matchId, team1, team2, score1, score2, meta } = match;
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
@@ -162,6 +164,7 @@ function MatchHeader({ match, details }) {
 
   return (
     <div className="px-4 pb-4">
+      {kindLabel ? <p className="text-brand mb-2 text-[11px] font-bold tracking-wide uppercase">{kindLabel}</p> : null}
       {isUpcoming ? (
         <>
           <p className="mb-1 text-[13px] font-bold text-white uppercase">{status}</p>
@@ -223,20 +226,22 @@ function MatchHeader({ match, details }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
-
 export default function ScorecardStatusDetails() {
   const { tournamentId, matchId } = useParams();
+  const toast = useToast();
 
   const matchIdNum = matchId != null && matchId !== '' ? Number(matchId) : NaN;
   const matchIdOk = Number.isInteger(matchIdNum) && matchIdNum > 0;
   const tournamentOk = isValidTournamentId(tournamentId);
+  /** Route `/scorecard/match/:matchId` has no tournament segment. */
+  const standaloneRoute = tournamentId == null || tournamentId === '';
 
   const { data: apiMatch, isLoading: matchLoading, isError: matchIsError } = useGetMatchQuery(matchId, { skip: !matchIdOk });
 
-  const tournamentMismatch = Boolean(apiMatch) && Number(apiMatch.tournament_id) !== Number(tournamentId);
+  const isQuick = apiMatch?.kind === 'quick' || apiMatch?.tournament_id == null;
+  const standalone = standaloneRoute || isQuick;
+
+  const tournamentMismatch = !standalone && Boolean(apiMatch) && Number(apiMatch.tournament_id) !== Number(tournamentId);
 
   const { data: scorecard } = useGetScorecardQuery(matchId, {
     skip: !matchIdOk || !apiMatch || tournamentMismatch,
@@ -244,13 +249,9 @@ export default function ScorecardStatusDetails() {
 
   const { data: rawTournamentMatches = [] } = useGetTournamentMatchesQuery(
     { tournamentId, all: true },
-    { skip: !tournamentOk || tournamentMismatch },
+    { skip: standalone || !tournamentOk || tournamentMismatch },
   );
 
-  // Active = match has innings data (toss done or scoring in progress).
-  // We subscribe to match_state and the scoring channel for both toss_done and
-  // in_progress so that opener / playing-XI assignments are visible before
-  // ball 1 and live score updates arrive without delay.
   const isActive =
     !tournamentMismatch && matchIdOk && !!apiMatch && (apiMatch.status === 'toss_done' || apiMatch.status === 'in_progress');
 
@@ -258,9 +259,6 @@ export default function ScorecardStatusDetails() {
     skip: !isActive,
   });
 
-  // Subscribe to the scoring WebSocket channel while the match is active
-  // (toss done → completion).  This patches MatchState cache in real time and
-  // handles reconnection recovery (see useMatchScoringChannel).
   useMatchScoringChannel(isActive ? matchId : null);
 
   const scheduleMatches = useMemo(
@@ -277,16 +275,12 @@ export default function ScorecardStatusDetails() {
     if (!apiMatch || tournamentMismatch) return null;
     const resultBits = minimalStatusDetailsFromApi(apiMatch);
     const overs = oversDetailsFromScorecard(scorecard, apiMatch.home_team_id, apiMatch.away_team_id);
-    // Playing XI comes from match_state (single source) — avoids 2 extra HTTP
-    // round-trips and is kept live by the WebSocket subscription above.
     const xiHome = matchState?.playing_eleven?.home ?? null;
     const xiAway = matchState?.playing_eleven?.away ?? null;
     const playingXI = playingXIFromPlayingElevenResponses(xiHome, xiAway);
     return buildMatchStatusDetails(resultBits, overs, playingXI);
   }, [apiMatch, tournamentMismatch, scorecard, matchState?.playing_eleven]);
 
-  // Derive live batter/bowler display directly from match_state so the Live
-  // tab updates in real-time via the WebSocket patch without a network refetch.
   const liveDetails = useMemo(() => {
     const ai = matchState?.active_innings;
     if (!ai) return null;
@@ -319,68 +313,85 @@ export default function ScorecardStatusDetails() {
     const cp = ai.current_partnership;
     const partnership = cp ? `${cp.runs} runs (${cp.balls} balls)` : null;
 
-    return { ...details, batters, bowlers, partnership };
+    return {
+      ...details,
+      batters,
+      bowlers,
+      partnership,
+      crr: ai.current_run_rate ?? details?.crr ?? null,
+      rrr: ai.required_run_rate ?? details?.rrr ?? null,
+    };
   }, [matchState, details]);
 
-  // Override header scores with live match_state totals for zero-latency display.
-  // The scorecard-derived score1/score2 lags by ~4s (scorecard invalidation cycle);
-  // active_innings.total_runs/total_wickets is patched immediately by the WS event.
-  // Only the batting team's score for the active (non-completed) innings is overridden;
-  // the other team's score (completed innings) is already final on the scorecard.
   const liveMatch = useMemo(() => {
     const ai = matchState?.active_innings;
-    if (!match || !ai || ai.innings_status === 'completed') return match;
-    const liveScore = `${ai.total_runs ?? 0}/${ai.total_wickets ?? 0}`;
-    const hid = apiMatch?.home_team_id != null ? Number(apiMatch.home_team_id) : null;
-    const battingTeamId = ai.batting_team_id != null ? Number(ai.batting_team_id) : null;
-    if (battingTeamId === hid) return { ...match, score1: liveScore };
-    return { ...match, score2: liveScore };
+    if (!match) return match;
+
+    let next = match;
+    if (ai && ai.innings_status !== 'completed') {
+      const liveScore = `${ai.total_runs ?? 0}/${ai.total_wickets ?? 0}`;
+      const hid = apiMatch?.home_team_id != null ? Number(apiMatch.home_team_id) : null;
+      const battingTeamId = ai.batting_team_id != null ? Number(ai.batting_team_id) : null;
+      next = battingTeamId === hid ? { ...match, score1: liveScore } : { ...match, score2: liveScore };
+    }
+
+    if (match.status === 'live' && ai) {
+      let commentary = next.meta?.commentary ?? null;
+      if (ai.innings_number === 1) {
+        commentary = `Current run rate: ${ai.current_run_rate ?? '0.00'}.`;
+      } else if (ai.runs_to_win != null) {
+        const battingName = Number(ai.batting_team_id) === Number(apiMatch?.home_team_id) ? match.team1?.name : match.team2?.name;
+        const balls = ai.balls_remaining;
+        if (balls == null) commentary = `${battingName} need ${ai.runs_to_win} runs.`;
+        else if (balls % 6 === 0) commentary = `${battingName} need ${ai.runs_to_win} runs from ${balls / 6} overs.`;
+        else commentary = `${battingName} need ${ai.runs_to_win} runs from ${balls} balls.`;
+      }
+      if (commentary) {
+        next = { ...next, meta: { ...(next.meta ?? {}), commentary } };
+      }
+    }
+
+    return next;
   }, [match, matchState?.active_innings, apiMatch?.home_team_id]);
 
   const status = match?.status ?? 'upcoming';
-  const tabs = STATUS_TABS[status] ?? [];
-  const defaultTab = STATUS_DEFAULT_TAB[status] ?? tabs[0]?.value;
+  const tabSets = standalone ? STANDALONE_STATUS_TABS : TOURNAMENT_STATUS_TABS;
+  const defaults = standalone ? STANDALONE_DEFAULT_TAB : STATUS_DEFAULT_TAB;
+  const tabs = tabSets[status] ?? [];
+  const defaultTab = defaults[status] ?? tabs[0]?.value;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  // Reset active tab when the match or its status changes.
-  // TODO: gate on matchId only if you want to preserve the active tab when
-  //       a live match ends and status flips to 'result' (see top).
   useEffect(() => {
-    const nextDefault = STATUS_DEFAULT_TAB[status] ?? STATUS_TABS[status]?.[0]?.value;
+    const nextDefault = defaults[status] ?? tabSets[status]?.[0]?.value;
     setActiveTab(nextDefault);
-  }, [status, matchId]);
+  }, [status, matchId, standalone]);
 
-  if (!matchIdOk || !tournamentOk) {
+  if (!matchIdOk || (!standaloneRoute && !tournamentOk)) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-muted text-center text-[13px]">Invalid match or tournament link.</p>
+      <div className="bg-black">
+        <ListEmpty title="Invalid Link." description="This match or tournament link is not valid." />
       </div>
     );
   }
 
   if (matchLoading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black">
-        <p className="text-muted text-[13px]">Loading match…</p>
-      </div>
-    );
+    return <PageLoader label="Loading match" className="min-h-[40vh] bg-black py-12" />;
   }
 
   if (matchIsError || tournamentMismatch || !apiMatch || !match) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-muted text-center text-[13px]">
-          {tournamentMismatch ? 'This match does not belong to this tournament.' : 'Match not found.'}
-        </p>
+      <div className="bg-black">
+        <ListEmpty
+          title={tournamentMismatch ? 'Wrong Tournament.' : 'Match Not Found.'}
+          description={tournamentMismatch ? 'This match does not belong to this tournament.' : 'This match could not be found.'}
+        />
       </div>
     );
   }
 
   const ActiveView = TAB_VIEWS[activeTab] ?? StatusDetailsPlaceholderTab;
 
-  // TODO: compute only the active tab's props to avoid rebuilding all keys
-  //       on every render (see top).
   const tabProps = {
     live: { details: liveDetails ?? details },
     scorecard: { details },
@@ -391,11 +402,62 @@ export default function ScorecardStatusDetails() {
     fixture: { matches: scheduleMatches, tournamentId },
   };
 
+  const kindLabel =
+    apiMatch.kind === 'quick'
+      ? [
+          'Quick Match',
+          apiMatch.cricket_format_label ?? apiMatch.cricket_format,
+          apiMatch.overs != null ? `${apiMatch.overs} ov` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : null;
+
+  const sharePath = standalone ? buildQuickMatchScorecardPath(matchId) : null;
+
+  const handleShare = async () => {
+    if (!sharePath) return;
+    const url = buildQuickMatchScorecardShareUrl(matchId);
+    const home = apiMatch.home_team?.name ?? 'Home';
+    const away = apiMatch.away_team?.name ?? 'Away';
+    const result = await shareLink({
+      url,
+      title: `${home} vs ${away}`,
+      text: `Watch on Tapeya: ${home} vs ${away}`,
+    });
+    if (result === 'copy_link') {
+      toast.success('Link copied.');
+    }
+  };
+
   return (
     <div className="bg-black">
-      <AppSubpageHeader title="SCORE CARD" />
+      {sharePath ? <OpenInAppBanner path={sharePath} /> : null}
+      <AppSubpageHeader
+        title="SCORE CARD"
+        right={
+          standalone ? (
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-opacity active:opacity-80"
+              aria-label="Share Match"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : null
+        }
+      />
 
-      <MatchHeader match={liveMatch} details={details} />
+      <MatchHeader match={liveMatch} details={liveDetails ?? details} kindLabel={kindLabel} />
 
       {status === 'live' && details?.winProb && <WinProbabilityCard match={match} winProb={details.winProb} />}
 

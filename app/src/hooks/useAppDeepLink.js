@@ -3,15 +3,19 @@
  * Routes are registered in {@link DEEP_LINK_ROUTES}.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import { dispatchDeepLinkNavigation } from '@/lib/deepLinks/deepLinkNavigation';
 import { pathFromDeepLinkUrl } from '@/lib/deepLinks/deepLinkUtils';
 import { isNative } from '@/platform/platform';
 
 export function useAppDeepLink() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
   useEffect(() => {
     if (!isNative()) return undefined;
@@ -19,12 +23,18 @@ export function useAppDeepLink() {
     let listener;
     let cancelled = false;
 
+    const openUrl = (url) => {
+      if (cancelled) return;
+      dispatchDeepLinkNavigation(navigate, pathFromDeepLinkUrl(url), {
+        currentPath: locationRef.current.pathname,
+      });
+    };
+
     import('@capacitor/app').then(({ App }) => {
       if (cancelled) return;
 
       App.addListener('appUrlOpen', ({ url }) => {
-        const path = pathFromDeepLinkUrl(url);
-        if (path) navigate(path);
+        openUrl(url);
       }).then((l) => {
         if (cancelled) l.remove();
         else listener = l;
@@ -32,10 +42,7 @@ export function useAppDeepLink() {
 
       App.getLaunchUrl?.()
         .then((result) => {
-          const launchUrl = result?.url;
-          if (!launchUrl || cancelled) return;
-          const path = pathFromDeepLinkUrl(launchUrl);
-          if (path) navigate(path);
+          if (result?.url && !cancelled) openUrl(result.url);
         })
         .catch(() => {
           // getLaunchUrl unavailable on some platforms — ignore.

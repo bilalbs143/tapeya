@@ -18,6 +18,10 @@ class BrandController extends Controller
     {
         $query = Brand::query()->active();
 
+        if (request()->boolean('has_products')) {
+            $query->whereHas('products', fn ($q) => $q->sellable());
+        }
+
         $query = QueryBuilder::for($query)
             ->defaultSort('sort_order')
             ->allowedSorts(['id', 'name', 'slug', 'sort_order']);

@@ -3,7 +3,7 @@
 namespace App\Events\Broadcast;
 
 use App\Http\Resources\User\LiveStreamResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -27,7 +27,7 @@ class LiveHubUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public readonly MatchStream $stream,
+        public readonly LiveStream $stream,
         public readonly bool $visibleInApp,
     ) {}
 

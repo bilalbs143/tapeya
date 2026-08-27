@@ -115,6 +115,95 @@ export const liveApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: streamId }],
     }),
+
+    // ── User-owned watch-URL streams (YouTube / HLS) ───────────────
+    getMyLiveStreams: builder.query({
+      query: () => ({ url: '/live/my-streams' }),
+      transformResponse: (response) => response?.data ?? [],
+      providesTags: (result) =>
+        result?.length
+          ? [...result.map((row) => ({ type: 'LiveStreams', id: `mine:${row.id}` })), { type: 'LiveStreams', id: 'MINE' }]
+          : [{ type: 'LiveStreams', id: 'MINE' }],
+    }),
+    createMyLiveStream: builder.mutation({
+      query: ({ title, description, streaming_url }) => ({
+        url: '/live/my-streams',
+        method: 'POST',
+        body: { title, description, streaming_url },
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: [
+        { type: 'LiveStreams', id: 'MINE' },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
+    getMyLiveStream: builder.query({
+      query: (streamId) => ({ url: `/live/my-streams/${streamId}` }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: `mine:${streamId}` }],
+    }),
+    updateMyLiveStream: builder.mutation({
+      query: ({ streamId, ...body }) => ({
+        url: `/live/my-streams/${streamId}`,
+        method: 'PATCH',
+        body,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, { streamId }) => [
+        { type: 'LiveStreams', id: `mine:${streamId}` },
+        { type: 'LiveStreams', id: 'MINE' },
+        { type: 'LiveStreams', id: streamId },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
+    startMyLiveStream: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/my-streams/${streamId}/start`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, streamId) => [
+        { type: 'LiveStreams', id: `mine:${streamId}` },
+        { type: 'LiveStreams', id: 'MINE' },
+        { type: 'LiveStreams', id: streamId },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
+    endMyLiveStream: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/my-streams/${streamId}/end`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, streamId) => [
+        { type: 'LiveStreams', id: `mine:${streamId}` },
+        { type: 'LiveStreams', id: 'MINE' },
+        { type: 'LiveStreams', id: streamId },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
+    uploadMyLiveStreamThumbnail: builder.mutation({
+      query: ({ streamId, file }) => {
+        const body = new FormData();
+        body.append('file', file);
+        return { url: `/live/my-streams/${streamId}/thumbnail`, method: 'POST', body };
+      },
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, { streamId }) => [
+        { type: 'LiveStreams', id: `mine:${streamId}` },
+        { type: 'LiveStreams', id: streamId },
+      ],
+    }),
+    deleteMyLiveStreamThumbnail: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/my-streams/${streamId}/thumbnail`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _err, streamId) => [
+        { type: 'LiveStreams', id: `mine:${streamId}` },
+        { type: 'LiveStreams', id: streamId },
+      ],
+    }),
   }),
 });
 
@@ -131,4 +220,12 @@ export const {
   useEndBroadcastMutation,
   useUploadBroadcastThumbnailMutation,
   useDeleteBroadcastThumbnailMutation,
+  useGetMyLiveStreamsQuery,
+  useCreateMyLiveStreamMutation,
+  useGetMyLiveStreamQuery,
+  useUpdateMyLiveStreamMutation,
+  useStartMyLiveStreamMutation,
+  useEndMyLiveStreamMutation,
+  useUploadMyLiveStreamThumbnailMutation,
+  useDeleteMyLiveStreamThumbnailMutation,
 } = liveApi;

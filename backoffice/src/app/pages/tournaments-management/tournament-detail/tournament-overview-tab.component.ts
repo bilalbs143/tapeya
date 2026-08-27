@@ -9,7 +9,6 @@ import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -21,6 +20,7 @@ import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/servi
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 @Component({
@@ -36,10 +36,10 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
     MatIconModule,
     MatAutocompleteModule,
     MatChipsModule,
-    MatProgressSpinnerModule,
     TablerIconsModule,
     RouterLink,
     NgApexchartsModule,
+    LoaderBlockComponent,
   ],
   templateUrl: './tournament-overview-tab.component.html',
 })
@@ -128,13 +128,12 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
             if (!this.tournamentId) {
               return of({ data: [] as UserSearchRow[] });
             }
-            return this.usersService
-              .adminUserSearch(term ?? '', { context: 'broadcaster', tournament_id: this.tournamentId })
-              .pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
+            return this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
           })
         )
         .subscribe((res) => {
-          this.candidates = res.data ?? [];
+          const attachedId = this.broadcaster?.id;
+          this.candidates = (res.data ?? []).filter((u) => attachedId == null || u.id !== attachedId);
         })
     );
     this.sub.add(

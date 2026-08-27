@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Lazy-loaded routes for Shop Management (Brands, Categories, Products, Orders). */
+/** Lazy-loaded routes for Shop Management (Brands, Categories, Vendors, Products, Orders). */
 export const ShopManagementRoutes: Routes = [
   {
     path: 'brands',
@@ -16,6 +16,14 @@ export const ShopManagementRoutes: Routes = [
     data: {
       title: 'Categories',
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Categories' }],
+    },
+  },
+  {
+    path: 'vendors',
+    loadComponent: () => import('./vendors/vendors.component').then((m) => m.VendorsComponent),
+    data: {
+      title: 'Vendors',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Vendors' }],
     },
   },
   {

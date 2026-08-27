@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
+use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
@@ -11,7 +12,11 @@ use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Push\PushNotificationStatusEnum;
 use App\Enums\Push\PushTriggeredByEnum;
 use App\Enums\Shop\OrderStatusEnum;
+use App\Enums\Shop\PaymentMethodEnum;
+use App\Enums\Shop\PaymentStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Stats\StatsBucketEnum;
+use App\Enums\Support\SupportMessageStatusEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
@@ -43,7 +48,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v5', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v19', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -58,13 +63,18 @@ class EnumController extends Controller
             'user_status' => $this->toOptions(UserStatusEnum::cases()),
             'active_platform' => $this->toOptions(ActivePlatformEnum::cases()),
             'status' => $this->toOptions(StatusEnum::cases()),
+            'hero_slider_cta_type' => $this->toOptions(HeroSliderCtaTypeEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
+            'support_message_status' => $this->toOptions(SupportMessageStatusEnum::cases()),
+            'payment_status' => $this->toOptions(PaymentStatusEnum::cases()),
+            'payment_method' => $this->toOptions(PaymentMethodEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
             'system_setting_group' => $this->toOptions(SystemSettingGroupEnum::cases()),
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
+            'stats_bucket' => $this->toOptions(StatsBucketEnum::cases()),
             'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
@@ -78,11 +88,6 @@ class EnumController extends Controller
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),
             'push_triggered_by' => $this->toOptions(PushTriggeredByEnum::cases()),
-            'app_roles' => Role::forGuard(RoleGuardEnum::APP->value)->orderBy('name')->get()->map(fn (Role $r) => [
-                'value' => (string) $r->id,
-                'label' => $r->name,
-                'slug' => $r->slug,
-            ])->values()->all(),
             'admin_roles' => Role::forGuard(RoleGuardEnum::ADMIN->value)->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,

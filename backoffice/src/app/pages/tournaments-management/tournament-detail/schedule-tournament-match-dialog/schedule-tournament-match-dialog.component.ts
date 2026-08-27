@@ -9,7 +9,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin, merge } from 'rxjs';
@@ -25,6 +24,7 @@ import { TournamentsService } from 'src/app/services/tournaments.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { LIVE_STREAM_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
@@ -49,10 +49,10 @@ export interface ScheduleTournamentMatchDialogData {
     MatDatepickerModule,
     MatIconModule,
     MatDividerModule,
-    MatProgressSpinnerModule,
     FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './schedule-tournament-match-dialog.component.html',
 })

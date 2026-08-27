@@ -6,16 +6,15 @@
 import { Link } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '@/lib/constants/ranking';
 import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 import { profileListClass, profileTriggerClass, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/Tabs';
-
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 /** Number of players shown per section before the "View More" link. */
 const TOP_RANKINGS_LIMIT = 5;
@@ -79,10 +78,7 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
 
   return (
     <div className="bg-surface flex items-center gap-3 rounded-[17px] p-3">
-      <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10">
-        <AvatarImage src={player.image || defaultAvatar} alt="" className="object-cover" />
-        <AvatarFallback className="bg-zinc-700 text-white">{getInitials(player.name)}</AvatarFallback>
-      </Avatar>
+      <UserAvatar src={player.image} name={player.name} size="card" fallback={getInitials(player.name)} />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="truncate text-[16px] font-bold text-white">{player.name}</span>
@@ -108,14 +104,14 @@ function RankingSection({ title, linkTo, linkState, rows, variant = 'batter', lo
         <Link
           to={linkTo}
           state={linkState}
-          className="text-brand text-[12px] font-bold tracking-wide uppercase transition-opacity active:opacity-80"
+          className="text-brand text-[12px] font-bold tracking-wide transition-opacity active:opacity-80"
         >
           View More
         </Link>
       </div>
-      {loading && <p className="text-muted text-[13px]">Loading rankings…</p>}
-      {error && !loading && <p className="text-[13px] text-red-400">Failed to load rankings.</p>}
-      {!loading && !error && rows.length === 0 && <p className="text-muted text-[13px]">{emptyMessage}</p>}
+      {loading && <LoaderBlock label="Loading rankings" className="py-6" />}
+      {error && !loading ? <ListError message="Could not load rankings." /> : null}
+      {!loading && !error && rows.length === 0 ? <ListEmpty title={emptyMessage} /> : null}
       <div className="space-y-3 lg:grid lg:grid-cols-1 lg:justify-items-center lg:gap-3 lg:space-y-0">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <div key={player.id} className={desktopCardWidthClass}>

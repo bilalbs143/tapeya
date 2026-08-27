@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Streaming;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\Support\StreamUrlPlayback;
 use Tests\TestCase;
 
@@ -26,9 +26,19 @@ class StreamUrlPlaybackTest extends TestCase
         $this->assertSame($url, $playback['url']);
     }
 
+    public function test_resolve_generic_https_iframe_url(): void
+    {
+        $url = 'https://example.com/player/live';
+        $playback = StreamUrlPlayback::resolve($url);
+
+        $this->assertSame('iframe', $playback['mode']);
+        $this->assertSame($url, $playback['embed_url']);
+        $this->assertArrayNotHasKey('provider', $playback);
+    }
+
     public function test_playback_for_app_on_standalone_stream(): void
     {
-        $stream = new MatchStream([
+        $stream = new LiveStream([
             'match_id' => null,
             'streaming_url' => 'https://www.youtube.com/watch?v=testvid12',
             'status' => 'live',

@@ -1,0 +1,41 @@
+name = "cdn-tapeya"
+
+workers_dev = false
+compatibility_date = "2026-08-04"
+
+main = "index.js"
+
+# Workers Cache (in front of this Worker). Zone Cache Rules do not apply here —
+# TTL comes from Cache-Control / CDN-Cache-Control on the response.
+# https://developers.cloudflare.com/workers/cache/
+[cache]
+enabled = true
+# false = each deploy starts with an empty Worker cache so header/CORS changes apply
+# immediately. Prefer this over cross_version_cache for rare Worker deploys.
+cross_version_cache = false
+
+# Route over existing proxied hostname (DNS already present for cdn.tapeya.com).
+[[routes]]
+pattern = "cdn.tapeya.com/*"
+zone_name = "tapeya.com"
+
+# Don't put B2_APPLICATION_KEY in this file — use:
+#   echo "<key>" | npx wrangler secret put B2_APPLICATION_KEY
+[vars]
+B2_APPLICATION_KEY_ID = "005486a36bd362f0000000003"
+B2_ENDPOINT = "s3.us-east-005.backblazeb2.com"
+BUCKET_NAME = "tapeya"
+ALLOW_LIST_BUCKET = "false"
+RCLONE_DOWNLOAD = "false"
+# Keep range so reel/video seeking works through the CDN.
+ALLOWED_HEADERS = [
+    "content-type",
+    "date",
+    "host",
+    "range",
+    "x-amz-content-sha256",
+    "x-amz-date",
+    "x-amz-server-side-encryption-customer-algorithm",
+    "x-amz-server-side-encryption-customer-key",
+    "x-amz-server-side-encryption-customer-key-md5"
+]

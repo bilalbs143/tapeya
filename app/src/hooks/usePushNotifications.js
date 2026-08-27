@@ -9,8 +9,9 @@
 import { useEffect, useRef } from 'react';
 
 import { Capacitor } from '@capacitor/core';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import { dispatchDeepLinkNavigation } from '@/lib/deepLinks/deepLinkNavigation';
 import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { addIosFcmTokenRefreshListener, getIosFcmTokenWithRetry, isLikelyApnsToken } from '@/native/fcmToken';
 import { isNative } from '@/platform/platform';
@@ -88,15 +89,18 @@ async function resolvePushTokenForApi(registrationToken) {
   return null;
 }
 
-function routeFromPushData(navigate, data) {
+function routeFromPushData(navigate, data, currentPath = '/') {
   if (!data) return;
 
+  const go = (path) => {
+    const next = normalizeAppPath(path);
+    if (!isSafeNotificationNavigatePath(next)) return;
+    dispatchDeepLinkNavigation(navigate, next, { currentPath });
+  };
+
   if (typeof data.deep_link === 'string' && data.deep_link) {
-    const path = normalizeAppPath(data.deep_link);
-    if (isSafeNotificationNavigatePath(path)) {
-      navigate(path);
-      return;
-    }
+    go(data.deep_link);
+    return;
   }
 
   if (!data.type) return;
@@ -105,9 +109,8 @@ function routeFromPushData(navigate, data) {
     case 'order_placed':
     case 'order_status_updated':
     case 'order_delivered':
-      if (data.order_id) {
-        navigate(`/shop/orders/${data.order_id}`);
-      }
+      if (data.vendor_order_id) go(`/seller/orders/${data.vendor_order_id}`);
+      else if (data.order_id) go(`/shop/orders/${data.order_id}`);
       break;
     case 'post_liked':
     case 'post_commented':
@@ -116,14 +119,12 @@ function routeFromPushData(navigate, data) {
     case 'post_mentioned':
     case 'post_reposted':
     case 'post_published':
-      navigate('/notification-center');
-      break;
     case 'user_followed':
     case 'user_referred':
-      navigate('/notification-center');
+      go('/notification-center');
       break;
     case 'manual_broadcast':
-      navigate('/home');
+      go('/home');
       break;
     default:
       break;
@@ -135,6 +136,9 @@ function routeFromPushData(navigate, data) {
  */
 export function usePushNotifications() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
   const { accessToken } = useAppSelector(selectAuthUserAndToken);
   const [registerToken] = useRegisterDeviceTokenMutation();
   const initializedRef = useRef(false);
@@ -212,7 +216,7 @@ export function usePushNotifications() {
           await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
             const data = action.notification?.data;
             if (data) {
-              routeFromPushData(navigate, data);
+              routeFromPushData(navigate, data, pathRef.current);
             }
           }),
         );

@@ -6,11 +6,12 @@ import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { SystemSettingService, type SystemSetting } from 'src/app/services/system-setting.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 
 @Component({
   selector: 'app-system-settings',
   standalone: true,
-  imports: [FormsModule, MaterialModule, TablerIconsModule],
+  imports: [FormsModule, MaterialModule, TablerIconsModule, LoaderBlockComponent],
   templateUrl: './system-settings.component.html',
 })
 export class SystemSettingsComponent implements OnInit {

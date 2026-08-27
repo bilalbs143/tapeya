@@ -1,7 +1,10 @@
 <app-dialog-wrapper title="Tournament Request Details">
   @if (isLoading) {
     <mat-dialog-content>
-      <p class="m-0 py-6 text-center text-muted text-sm">Loading tournament request…</p>
+      <app-loader-block
+        label="Loading tournament request"
+        class="py-6"
+      />
     </mat-dialog-content>
   } @else if (tournamentRequest) {
     <mat-dialog-content>

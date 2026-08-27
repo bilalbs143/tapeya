@@ -4,17 +4,15 @@ namespace App\Services;
 
 use App\Enums\Common\StatusEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
-use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Models\Tournament;
 use App\Models\TournamentRequest;
 use Illuminate\Support\Facades\DB;
 
 class LeagueTournamentRequestProvisioner
 {
-    use EnsuresTournamentStaffAppRoles;
-
     /**
-     * Auto-approve the request, create the tournament row, and grant the submitter the Organizer app role.
+     * Auto-approve the request and create the tournament row (submitter becomes organizer_id / created_by).
+     * App authorization is assignment-based — no Organizer app role attach.
      *
      * @param  array<string, mixed>  $validated  Validated tournament-request payload (includes user_id, number_of_groups).
      * @return array{0: TournamentRequest, 1: Tournament}
@@ -47,8 +45,6 @@ class LeagueTournamentRequestProvisioner
                 'status' => StatusEnum::ACTIVE,
                 'prize' => $tournamentRequest->prize,
             ]);
-
-            $this->ensureOrganizerRole($userId);
 
             return [$tournamentRequest, $tournament];
         });

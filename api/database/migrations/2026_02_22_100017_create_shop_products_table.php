@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('shop_products', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('vendor_id')->constrained('shop_vendors')->restrictOnDelete();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
-            $table->string('sku')->unique()->nullable();
+            $table->string('sku')->nullable();
             $table->decimal('price', 12, 2);
             $table->foreignId('brand_id')->nullable()->constrained('shop_brands')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('shop_categories')->nullOnDelete();
@@ -28,6 +29,9 @@ return new class extends Migration
             $table->timestamp('discount_starts_at')->nullable();
             $table->timestamp('discount_ends_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['vendor_id', 'slug']);
+            $table->unique(['vendor_id', 'sku']);
         });
     }
 

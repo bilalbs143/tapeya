@@ -80,6 +80,8 @@ npm start
 - [API Documentation](docs/API.md)
 - [Setup Guide](docs/SETUP.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
+- [Tournament flow](docs/event_flow.md) — request → teams → fixtures → score
+- [Quick Match](docs/QUICK_MATCH.md) — standalone no-tournament match flow (design)
 - [Broadcast graphics architecture](app/src/graphics/ARCHITECTURE.md) — overlay pipeline, themes, theme 2, tests (SSOT)
 
 ## License

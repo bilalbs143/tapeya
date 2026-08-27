@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 
 import { formatPrice } from '@/lib/format';
+import { buildShopProductPath } from '@/lib/shopPaths';
 
-function FeedShopProductCard({ product, brandSlug }) {
-  const detailPath = brandSlug && product.slug ? `/shop/${brandSlug}/product/${product.slug}` : '/shop';
+function FeedShopProductCard({ product }) {
+  const detailPath = buildShopProductPath(product) || '/shop';
   const image = product.images?.[0];
   const hasDiscount = product.sale_price != null && Number(product.sale_price) < Number(product.price);
   const price = hasDiscount ? product.sale_price : product.price;
@@ -54,13 +55,10 @@ function FeedShopProductCard({ product, brandSlug }) {
  * @param {{
  *   title: string,
  *   products: Array<object>,
- *   brands: Array<{ id: number|string, slug?: string }>,
  * }} props
  */
-export function FeedShopWidget({ title, products, brands }) {
+export function FeedShopWidget({ title, products }) {
   if (!products.length) return null;
-
-  const brandSlugById = new Map(brands.map((brand) => [String(brand.id), brand.slug]));
 
   return (
     <section className="bg-surface overflow-hidden px-4 py-3.5">
@@ -73,7 +71,7 @@ export function FeedShopWidget({ title, products, brands }) {
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {products.slice(0, 3).map((product) => (
-          <FeedShopProductCard key={product.id} product={product} brandSlug={brandSlugById.get(String(product.brand_id))} />
+          <FeedShopProductCard key={product.id} product={product} />
         ))}
       </div>
     </section>

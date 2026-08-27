@@ -1,17 +1,18 @@
 import { Link } from 'react-router-dom';
 
 import { OfficialBadge } from '@/components/OfficialBadge';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
+import { resolveCreatorProfilePath } from '@/lib/share';
 import { useFollowReelCreatorMutation } from '@/store/api/reelsApi';
+import { Loader } from '@/ui/Loader';
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const VISIBLE_ROWS = 3;
 /** Keeps widget height stable while followed users drop out of the buffer. */
 const ROW_SLOT_CLASS = 'min-h-[3.25rem]';
 
 function SuggestedFollowRow({ user, onFollowed }) {
   const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
-  const profilePath = `/reels/u/${user.id}`;
+  const profilePath = resolveCreatorProfilePath(user.id);
   const displayName = user.name || user.nickname || 'User';
 
   const onFollowClick = async () => {
@@ -27,24 +28,20 @@ function SuggestedFollowRow({ user, onFollowed }) {
 
   return (
     <div className={`${ROW_SLOT_CLASS} flex animate-[fadeSlideIn_240ms_ease-out] items-center gap-3`}>
-      <Link to={profilePath} className="shrink-0" aria-label={`View ${displayName}`}>
-        <img
-          src={user.avatarUrl || defaultAvatar}
-          alt=""
-          className="border-border size-11 rounded-full border object-cover"
-          onError={(event) => {
-            if (event.currentTarget.src !== defaultAvatar) {
-              event.currentTarget.src = defaultAvatar;
-            }
-          }}
-        />
-      </Link>
+      <UserAvatar src={user.avatarUrl} name={displayName} userId={user.id} size="xl" />
 
       <div className="min-w-0 flex-1">
-        <Link to={profilePath} className="flex min-w-0 items-center gap-1">
-          <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
-          <OfficialBadge isOfficial={user.isOfficial} size="sm" />
-        </Link>
+        {profilePath ? (
+          <Link to={profilePath} className="flex min-w-0 items-center gap-1">
+            <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
+            <OfficialBadge isOfficial={user.isOfficial} size="sm" />
+          </Link>
+        ) : (
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
+            <OfficialBadge isOfficial={user.isOfficial} size="sm" />
+          </div>
+        )}
         {user.nickname ? <p className="text-muted truncate text-[12px]">@{user.nickname}</p> : null}
         {user.subtitle ? <p className="text-muted/90 mt-0.5 truncate text-[11px]">{user.subtitle}</p> : null}
       </div>
@@ -54,8 +51,9 @@ function SuggestedFollowRow({ user, onFollowed }) {
         onClick={onFollowClick}
         disabled={isFollowPending}
         aria-label={`Follow ${displayName}`}
-        className="text-brand ring-brand/40 hover:bg-brand/10 h-9 shrink-0 rounded-full px-3 text-[12px] font-semibold ring-1 transition-all ring-inset active:scale-95 disabled:opacity-50"
+        className="text-brand ring-brand/40 hover:bg-brand/10 flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[12px] font-semibold ring-1 transition-all ring-inset active:scale-95 disabled:opacity-50"
       >
+        {isFollowPending ? <Loader size="xs" /> : null}
         {isFollowPending ? 'Following…' : 'Follow'}
       </button>
     </div>

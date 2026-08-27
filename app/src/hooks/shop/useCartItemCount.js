@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useGetCartQuery } from '@/store/api/shopApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/store/selectors';
 
 /**
  * Cart item quantity total and badge pop animation when count increases.
  * Used by NavbarCartButton (replaces former FloatingCartButton behavior).
+ * Skips cart fetch when logged out so public catalog pages stay clean.
  */
 export function useCartItemCount() {
-  const { data: cart } = useGetCartQuery();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const { data: cart } = useGetCartQuery(undefined, { skip: !isAuthenticated });
   const items = cart?.items ?? [];
   const count = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
 

@@ -1,3 +1,5 @@
+import { Loader } from '@/ui/Loader';
+
 /**
  * Connecting / loading overlay for stream players.
  *
@@ -15,8 +17,8 @@ export function StreamVideoLoading({
 }) {
   return (
     <div
-      className={`absolute -top-px -right-px -bottom-[5px] -left-px z-10 flex flex-col items-center justify-center gap-3 overflow-hidden bg-black pb-[5px] transition-opacity duration-300 ${
-        visible ? 'opacity-100' : 'pointer-events-none opacity-0'
+      className={`pointer-events-none absolute -top-px -right-px -bottom-[5px] -left-px z-10 flex flex-col items-center justify-center gap-3 overflow-hidden bg-black pb-[5px] transition-opacity duration-300 ${
+        visible ? 'opacity-100' : 'opacity-0'
       }`}
       role="status"
       aria-live="polite"
@@ -30,7 +32,7 @@ export function StreamVideoLoading({
         </>
       ) : null}
       <div className="relative z-10 flex flex-col items-center gap-2 px-6 text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
+        <Loader />
         <p className="text-sm text-white/80">{label}</p>
         {hint ? <p className="max-w-xs text-[12px] text-white/50">{hint}</p> : null}
       </div>

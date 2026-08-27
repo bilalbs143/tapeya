@@ -6,7 +6,7 @@ use App\Http\Requests\Admin\LiveStream\StoreLiveStreamRequest;
 use App\Http\Requests\Admin\LiveStream\UpdateLiveStreamRequest;
 use App\Http\Resources\Admin\LiveStreamListResource;
 use App\Http\Resources\Admin\StreamAdminResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\LiveStreamService;
@@ -22,13 +22,13 @@ class LiveStreamController extends BaseAdminController
         private LiveStreamService $service,
         private StreamProviderManager $manager,
     ) {
-        parent::__construct(MatchStream::class, LiveStreamListResource::class, 'live_stream');
+        parent::__construct(LiveStream::class, LiveStreamListResource::class, 'live_stream');
     }
 
     protected function baseQuery()
     {
         // Unified admin list — both standalone and match-linked streams.
-        return MatchStream::query();
+        return LiveStream::query();
     }
 
     public function index()
@@ -42,12 +42,12 @@ class LiveStreamController extends BaseAdminController
         $rows = method_exists($page, 'getCollection') ? $page->getCollection() : $page;
 
         $eligibleIds = $rows
-            ->filter(fn (MatchStream $stream) => in_array($stream->status, ['live', 'starting'], true))
+            ->filter(fn (LiveStream $stream) => in_array($stream->status, ['live', 'starting'], true))
             ->pluck('id');
 
         $counts = app(LiveStreamPresenceOccupancy::class)->countsFor($eligibleIds);
 
-        $rows->each(function (MatchStream $stream) use ($counts): void {
+        $rows->each(function (LiveStream $stream) use ($counts): void {
             $stream->setAttribute('watching_count', $counts[$stream->id] ?? 0);
         });
 
@@ -67,26 +67,26 @@ class LiveStreamController extends BaseAdminController
         return $this->success($this->payload($stream), 'Live stream created.', 'CREATED');
     }
 
-    public function show(MatchStream $stream): JsonResponse
+    public function show(LiveStream $stream): JsonResponse
     {
         return $this->success($this->payload($stream));
     }
 
-    public function update(UpdateLiveStreamRequest $request, MatchStream $stream): JsonResponse
+    public function update(UpdateLiveStreamRequest $request, LiveStream $stream): JsonResponse
     {
         $stream->update($request->validated());
 
         return $this->success(new StreamAdminResource($stream->fresh()), 'Live stream updated.');
     }
 
-    public function destroy(MatchStream $stream): JsonResponse
+    public function destroy(LiveStream $stream): JsonResponse
     {
         $this->service->delete($stream);
 
         return $this->noContent();
     }
 
-    public function start(MatchStream $stream): JsonResponse
+    public function start(LiveStream $stream): JsonResponse
     {
         if ($stream->provider !== 'external') {
             abort(422, 'Only external streams can be started manually.');
@@ -97,14 +97,14 @@ class LiveStreamController extends BaseAdminController
         return $this->success(['status' => $stream->fresh()->status]);
     }
 
-    public function end(MatchStream $stream): JsonResponse
+    public function end(LiveStream $stream): JsonResponse
     {
         $this->service->end($stream);
 
         return $this->success(['status' => 'ended'], 'Stream Ended.');
     }
 
-    public function sync(MatchStream $stream): JsonResponse
+    public function sync(LiveStream $stream): JsonResponse
     {
         if ($stream->provider === 'external') {
             return $this->success(['status' => $stream->status]);
@@ -115,7 +115,7 @@ class LiveStreamController extends BaseAdminController
         return $this->success(['status' => $stream->fresh()->status]);
     }
 
-    public function setup(Request $request, MatchStream $stream): JsonResponse
+    public function setup(Request $request, LiveStream $stream): JsonResponse
     {
         if ($stream->match_id !== null) {
             abort(422, 'Use match stream endpoints for match-linked streams.');
@@ -131,10 +131,10 @@ class LiveStreamController extends BaseAdminController
         $settings = app(StreamingSettings::class);
 
         $data = new CreateStreamData(
-            title: $request->input('title', $stream->title ?? 'Live Stream'),
-            description: $request->input('description', $stream->description ?? ''),
-            privacy: $request->input('privacy', $settings->youtubeDefaultPrivacy ?? 'public'),
-            streamingUrl: $request->input('streaming_url', $stream->streaming_url),
+            title: (string) ($request->input('title') ?? $stream->title ?? 'Live Stream'),
+            description: $request->input('description') ?? $stream->description ?? '',
+            privacy: (string) ($request->input('privacy') ?? $settings->youtubeDefaultPrivacy ?? 'public'),
+            streamingUrl: $request->input('streaming_url') ?? $stream->streaming_url,
         );
 
         $stream = $this->service->provisionProviderStream($stream, $data);
@@ -145,7 +145,7 @@ class LiveStreamController extends BaseAdminController
     /**
      * @return array<string, mixed>
      */
-    private function payload(MatchStream $stream): array
+    private function payload(LiveStream $stream): array
     {
         $stream->loadMissing('owner:id,name,nickname,email,phone');
 

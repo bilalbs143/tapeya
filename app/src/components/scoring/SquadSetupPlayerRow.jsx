@@ -58,20 +58,20 @@ export function SquadSetupPlayerRow({
         <Button
           type="button"
           size="sm"
-          variant={isPlaying ? 'orange' : 'black'}
+          variant={isPlaying ? 'orange' : 'dark'}
           aria-pressed={isPlaying}
           onClick={() => onSetRole(pid, 'playing')}
-          className="text-[11px] font-bold uppercase"
+          className="text-[11px] font-bold"
         >
           Playing
         </Button>
         <Button
           type="button"
           size="sm"
-          variant={!isPlaying ? 'orange' : 'black'}
+          variant={!isPlaying ? 'orange' : 'dark'}
           aria-pressed={!isPlaying}
           onClick={() => onSetRole(pid, 'bench')}
-          className="text-[11px] font-bold uppercase"
+          className="text-[11px] font-bold"
         >
           Bench
         </Button>

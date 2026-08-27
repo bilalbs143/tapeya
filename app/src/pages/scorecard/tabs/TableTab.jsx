@@ -61,6 +61,8 @@
 import { BORDER_ALT, HEADER_BG } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { useGetTournamentStandingsQuery } from '@/store/api/tournamentApi';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -122,6 +124,7 @@ export function TableTab({ tournamentId }) {
     data: standingsData = {},
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentStandingsQuery(tournamentId, {
     skip: !tournamentId,
   });
@@ -137,7 +140,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-[13px]">No tournament selected.</p>
+        <ListEmpty title="No Tournament Selected." />
       </div>
     );
   }
@@ -146,7 +149,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-[13px]">Loading points table…</p>
+        <LoaderBlock label="Loading points table" className="mt-4 py-4" />
       </div>
     );
   }
@@ -155,7 +158,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-red-400">Failed to load points table.</p>
+        <ListError message="Could not load points table." onRetry={() => refetch()} />
       </div>
     );
   }
@@ -164,7 +167,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-[13px]">No matches have been completed yet.</p>
+        <ListEmpty title="No Matches Completed Yet." />
       </div>
     );
   }

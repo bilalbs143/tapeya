@@ -37,6 +37,11 @@ export const DEEP_LINK_ROUTES = [
     pattern: /^\/live\/go-live\/[^/]+$/,
     build: ({ streamId }) => `/live/go-live/${streamId}`,
   },
+  {
+    id: 'quickMatchScorecard',
+    pattern: /^\/scorecard\/match\/\d+$/,
+    build: ({ matchId }) => `/scorecard/match/${matchId}`,
+  },
 ];
 
 /**
@@ -58,8 +63,9 @@ export function isSafeNotificationNavigatePath(path) {
   if (!path || typeof path !== 'string') return false;
   const normalized = normalizeAppPath(path);
   if (isAllowedDeepLinkPath(normalized)) return true;
-  if (normalized === '/notification-center') return true;
+  if (normalized === '/notification-center' || normalized === '/home') return true;
   if (/^\/shop\/orders\/\d+$/.test(normalized)) return true;
+  if (/^\/seller\/orders\/\d+$/.test(normalized)) return true;
   return false;
 }
 

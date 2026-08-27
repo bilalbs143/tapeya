@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react';
 
-import { StatItem, StatItemInline } from '@/features/profile/components/StatItem';
-import { formatDecimal } from '@/lib/utils/displayUtils';
+import { useNavigate } from 'react-router-dom';
+
+import { StatItem } from '@/features/profile/components/StatItem';
+import { formatDecimal, formatNum } from '@/lib/utils/displayUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetPlayerStatsQuery, useGetPlayerTeamsQuery } from '@/store/api/playerApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { Button } from '@/ui/Button';
 import { FilterPillSelect, FilterPillSelectGroup } from '@/ui/FilterPillSelect';
+import { ListEmpty } from '@/ui/ListState';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const TEAMS_PREVIEW_COUNT = 3;
 const ALL_OPTION = { value: 'all', label: 'All' };
-
-const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 
 function withAllOption(options = []) {
   return [ALL_OPTION, ...options];
@@ -33,9 +36,9 @@ function buildSummaryStats(batting) {
   if (!hasBattingActivity(batting)) return [];
 
   return [
-    { label: 'SCORE', value: batting.runs },
-    { label: 'CENTURIES', value: batting.hundreds },
-    { label: 'SIXES', value: batting.sixes },
+    { label: 'Runs', value: batting.runs },
+    { label: 'Centuries', value: batting.hundreds },
+    { label: 'Sixes', value: batting.sixes },
   ];
 }
 
@@ -88,31 +91,51 @@ function buildFieldingCareer(fielding) {
 
 function CareerStatSection({ title, items, emptyMessage }) {
   return (
-    <>
-      <div className="mt-5 h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
-      <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">{title}</h2>
+    <section className="bg-surface rounded-[17px] px-4 py-5 sm:px-5">
+      <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">{title}</h2>
       {items.length > 0 ? (
-        <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-5">
+        <div className="mt-4 grid grid-cols-3 gap-x-6 gap-y-5 sm:gap-x-8">
           {items.map(({ label, value }) => (
             <StatItem key={label} label={label} value={value} />
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-sm text-white/60">{emptyMessage}</p>
+        <p className="text-muted mt-3 text-[13px]">{emptyMessage}</p>
       )}
-    </>
+    </section>
   );
 }
 
-export function ProfileStats() {
+function SummaryHighlight({ label, value }) {
+  return (
+    <div className="bg-surface flex min-w-0 flex-col items-center justify-center rounded-[17px] px-3 py-5 text-center">
+      <p className="text-brand text-[22px] leading-none font-bold sm:text-[26px]">{formatNum(value)}</p>
+      <p className="text-muted mt-2 text-[11px] font-bold tracking-wide uppercase sm:text-[12px]">{label}</p>
+    </div>
+  );
+}
+
+/**
+ * Career batting / bowling / fielding stats.
+ * - `/stats` page: omit `userId` → signed-in user
+ * - Creator profile Stats tab: pass that profile's `userId`
+ *
+ * @param {{ userId?: string|number|null }} [props]
+ */
+export function ProfileStats({ userId: userIdProp } = {}) {
+  const navigate = useNavigate();
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [tournamentType, setTournamentType] = useState('all');
   const [cricketFormat, setCricketFormat] = useState('all');
-  const user = useAppSelector(selectUser);
-  const userId = user?.id ?? null;
+  const currentUser = useAppSelector(selectUser);
+  const userId = userIdProp ?? currentUser?.id ?? null;
+  const isOwnStats = currentUser?.id != null && userId != null && Number(currentUser.id) === Number(userId);
 
   const { data: enums = {} } = useGetEnumsQuery();
-  const tournamentTypeOptions = useMemo(() => withAllOption(enums.tournament_type ?? []), [enums.tournament_type]);
+  const tournamentTypeOptions = useMemo(
+    () => withAllOption(enums.stats_bucket ?? enums.tournament_type ?? []),
+    [enums.stats_bucket, enums.tournament_type],
+  );
   const cricketFormatOptions = useMemo(() => withAllOption(enums.cricket_format ?? []), [enums.cricket_format]);
 
   const { data: statsData, isLoading: statsLoading } = useGetPlayerStatsQuery(
@@ -132,17 +155,35 @@ export function ProfileStats() {
   const showLessLink = hasMoreTeams && teamsExpanded;
 
   const summaryStats = buildSummaryStats(batting);
-
   const careerAverages = buildBattingCareer(batting);
   const bowlingCareer = buildBowlingCareer(bowling);
   const fieldingCareer = buildFieldingCareer(fielding);
 
-  const isLoading = statsLoading;
-  const hasAnyTeams = teamNames.length > 0;
+  if (!userId) {
+    return (
+      <ListEmpty
+        title="Sign In to See Stats."
+        description="Your career batting, bowling, and fielding stats live here."
+        action={
+          <Button type="button" variant="orange" onClick={() => navigate('/profile')}>
+            Go to Profile
+          </Button>
+        }
+      />
+    );
+  }
+
+  const highlightsEmptyDescription = isOwnStats
+    ? 'Play matches to build your record.'
+    : 'This player has no batting highlights yet.';
+  const battingEmpty = isOwnStats ? 'No batting stats recorded yet.' : 'No batting stats recorded for this player.';
+  const bowlingEmpty = isOwnStats ? 'No bowling stats recorded yet.' : 'No bowling stats recorded for this player.';
+  const fieldingEmpty = isOwnStats ? 'No fielding stats recorded yet.' : 'No fielding stats recorded for this player.';
+  const teamsEmpty = isOwnStats ? 'No teams yet' : 'No teams listed';
 
   return (
-    <div className="py-6">
-      <FilterPillSelectGroup className="mb-5">
+    <div className="flex flex-col gap-5 pb-8">
+      <FilterPillSelectGroup>
         <FilterPillSelect
           label="Type"
           segment="left"
@@ -161,69 +202,61 @@ export function ProfileStats() {
         />
       </FilterPillSelectGroup>
 
-      {isLoading ? (
-        <div className="text-sm text-white/60">Loading stats…</div>
+      {statsLoading ? (
+        <LoaderBlock label="Loading stats" className="py-10" />
       ) : (
         <>
-          <div className="flex flex-wrap items-baseline gap-x-8">
-            {summaryStats.length > 0 ? (
-              summaryStats.map(({ label, value }) => <StatItemInline key={label} label={label} value={value} />)
-            ) : (
-              <span className="text-sm text-white/60">No batting stats yet.</span>
-            )}
-          </div>
+          {summaryStats.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {summaryStats.map(({ label, value }) => (
+                <SummaryHighlight key={label} label={label} value={value} />
+              ))}
+            </div>
+          ) : (
+            <ListEmpty title="No Batting Highlights Yet." description={highlightsEmptyDescription} />
+          )}
 
-          <div className="mt-4 flex flex-wrap items-baseline gap-x-1">
-            <span className={LABEL_CLASS}>TEAMS:</span>
-            {teamsLoading ? (
-              <span className="text-sm text-white/60">Loading…</span>
-            ) : hasAnyTeams ? (
-              <>
-                <span className="text-sm font-normal text-white/70">
-                  {teamsToShow.join(', ')}
-                  {showMoreLink ? '...' : ''}
-                </span>
-                {showMoreLink && (
-                  <button
-                    type="button"
-                    className="text-brand hover:text-brand-hover focus-visible:ring-brand text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
-                    onClick={() => setTeamsExpanded(true)}
-                  >
-                    MORE
-                  </button>
-                )}
-                {showLessLink && (
-                  <button
-                    type="button"
-                    className="text-brand hover:text-brand-hover focus-visible:ring-brand ml-1 text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
-                    onClick={() => setTeamsExpanded(false)}
-                  >
-                    LESS
-                  </button>
-                )}
-              </>
-            ) : (
-              <span className="text-sm font-normal text-white/70">—</span>
-            )}
-          </div>
+          <section className="bg-surface rounded-[17px] px-4 py-4 sm:px-5">
+            <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-1 gap-y-1">
+              {teamsLoading ? (
+                <Loader label="Loading teams" />
+              ) : teamNames.length > 0 ? (
+                <>
+                  <span className="text-[14px] font-normal text-white/80">
+                    {teamsToShow.join(', ')}
+                    {showMoreLink ? '…' : ''}
+                  </span>
+                  {showMoreLink ? (
+                    <button
+                      type="button"
+                      className="text-brand hover:text-brand-hover focus-visible:ring-brand text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                      onClick={() => setTeamsExpanded(true)}
+                    >
+                      More
+                    </button>
+                  ) : null}
+                  {showLessLink ? (
+                    <button
+                      type="button"
+                      className="text-brand hover:text-brand-hover focus-visible:ring-brand ml-1 text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                      onClick={() => setTeamsExpanded(false)}
+                    >
+                      Less
+                    </button>
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-muted text-[14px]">{teamsEmpty}</span>
+              )}
+            </div>
+          </section>
 
-          <CareerStatSection
-            title="Career Averages (Batting)"
-            items={careerAverages}
-            emptyMessage="No batting stats recorded yet."
-          />
+          <CareerStatSection title="Batting" items={careerAverages} emptyMessage={battingEmpty} />
 
-          <CareerStatSection
-            title="Career Averages (Bowling)"
-            items={bowlingCareer}
-            emptyMessage="No bowling stats recorded yet."
-          />
+          <CareerStatSection title="Bowling" items={bowlingCareer} emptyMessage={bowlingEmpty} />
 
-          <CareerStatSection
-            title="Career Averages (Fielding)"
-            items={fieldingCareer}
-            emptyMessage="No fielding stats recorded yet."
-          />
+          <CareerStatSection title="Fielding" items={fieldingCareer} emptyMessage={fieldingEmpty} />
         </>
       )}
     </div>

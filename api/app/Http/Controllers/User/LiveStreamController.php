@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\LiveStreamResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use Illuminate\Http\JsonResponse;
 
 class LiveStreamController extends Controller
@@ -17,7 +17,7 @@ class LiveStreamController extends Controller
      */
     public function index(): JsonResponse
     {
-        $streams = MatchStream::query()
+        $streams = LiveStream::query()
             ->visibleInApp()
             ->with(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner'])
             ->orderByRaw("CASE status WHEN 'live' THEN 0 WHEN 'starting' THEN 1 ELSE 2 END")
@@ -31,7 +31,7 @@ class LiveStreamController extends Controller
     /**
      * Single stream viewer payload keyed by stream id.
      */
-    public function show(MatchStream $stream): JsonResponse
+    public function show(LiveStream $stream): JsonResponse
     {
         $stream->loadMissing(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner']);
 

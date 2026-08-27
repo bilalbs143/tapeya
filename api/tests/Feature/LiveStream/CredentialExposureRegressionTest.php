@@ -3,7 +3,7 @@
 namespace Tests\Feature\LiveStream;
 
 use App\Enums\User\UserTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,7 +18,7 @@ class CredentialExposureRegressionTest extends TestCase
 
     public function test_user_facing_live_stream_resource_never_includes_ingest_credentials(): void
     {
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'ingest_rtmp_url' => 'rtmp://leak.example.com/live',
             'stream_key_encrypted' => encrypt('super-secret-key'),
         ]);
@@ -35,7 +35,7 @@ class CredentialExposureRegressionTest extends TestCase
 
     public function test_admin_live_stream_list_never_includes_ingest_credentials(): void
     {
-        MatchStream::factory()->create([
+        LiveStream::factory()->create([
             'ingest_rtmp_url' => 'rtmp://leak.example.com/live',
             'stream_key_encrypted' => encrypt('super-secret-key'),
         ]);

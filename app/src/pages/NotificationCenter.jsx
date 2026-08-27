@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
@@ -12,11 +12,11 @@ import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from '@/store/api/notificationApi';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const PAGE_SIZE = 10;
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 function startOfLocalDay(date) {
   const d = new Date(date);
@@ -65,6 +65,11 @@ function mapApiNotificationToCard(notification) {
     if (isSafeNotificationNavigatePath(path) && path !== '/notification-center') {
       href = path;
     }
+  } else if (data.vendor_order_id) {
+    const path = `/seller/orders/${data.vendor_order_id}`;
+    if (isSafeNotificationNavigatePath(path)) {
+      href = path;
+    }
   } else if (data.order_id) {
     const path = `/shop/orders/${data.order_id}`;
     if (isSafeNotificationNavigatePath(path)) {
@@ -107,22 +112,6 @@ function groupNotifications(notifications) {
   return groups;
 }
 
-function NotificationSkeleton() {
-  return (
-    <ul className="flex flex-col gap-1.5" aria-hidden>
-      {Array.from({ length: 5 }, (_, i) => (
-        <li key={i} className="bg-surface/70 flex animate-pulse items-center gap-2.5 rounded-xl px-2.5 py-2">
-          <div className="h-9 w-9 shrink-0 rounded-full bg-white/8" />
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="h-2.5 w-[78%] rounded bg-white/8" />
-            <div className="h-2.5 w-[34%] rounded bg-white/6" />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function NotificationCard({ notification, onOpen }) {
   const { avatar, fallback, message, kind, timestamp, unread } = notification;
   const interactive = Boolean(onOpen);
@@ -147,10 +136,7 @@ function NotificationCard({ notification, onOpen }) {
           : undefined
       }
     >
-      <Avatar className="h-9 w-9 shrink-0 rounded-full bg-white/8">
-        <AvatarImage src={avatar || defaultAvatar} alt="" className="object-cover" />
-        <AvatarFallback className="bg-white/10 text-[11px] font-semibold text-white/80">{fallback}</AvatarFallback>
-      </Avatar>
+      <UserAvatar src={avatar} fallback={fallback} size="md" />
 
       <div className="min-w-0 flex-1">
         <p className="text-[12px] leading-[1.35] text-white/90">{message}</p>
@@ -263,7 +249,7 @@ export default function NotificationCenter() {
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-muted text-[11px]">
             {isLoading && items.length === 0
-              ? 'Loading…'
+              ? ''
               : unreadCount > 0
                 ? `${unreadCount} unread`
                 : notifications.length > 0
@@ -275,49 +261,23 @@ export default function NotificationCenter() {
               type="button"
               onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="text-brand shrink-0 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
+              className="text-brand inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
             >
-              {isMarkingAll ? 'Marking…' : 'Mark all read'}
+              {isMarkingAll ? <Loader size="xs" /> : null}
+              {isMarkingAll ? 'Marking…' : 'Mark All Read'}
             </button>
           ) : null}
         </div>
 
-        {(isError || markAllError) && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2">
-            <p className="text-[11px] text-red-300">{isError ? 'Couldn’t load notifications.' : 'Couldn’t mark all as read.'}</p>
-            {isError ? (
-              <button type="button" onClick={() => refetch()} className="text-[11px] font-semibold text-white underline">
-                Retry
-              </button>
-            ) : null}
-          </div>
-        )}
+        {isError ? <ListError message="Could not load notifications." onRetry={() => refetch()} /> : null}
+        {markAllError && !isError ? (
+          <p className="mb-3 text-center text-[11px] text-red-300">Couldn’t mark all as read.</p>
+        ) : null}
 
-        {isLoading && items.length === 0 ? <NotificationSkeleton /> : null}
+        {isLoading && items.length === 0 ? <LoaderBlock label="Loading notifications" className="py-10" /> : null}
 
         {!isLoading && notifications.length === 0 && !isError ? (
-          <div className="flex flex-col items-center px-4 py-10 text-center">
-            <div className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-white/6 ring-1 ring-white/10">
-              <svg
-                className="text-muted h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                aria-hidden
-              >
-                <path
-                  d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <p className="text-[14px] font-semibold text-white">No notifications yet</p>
-            <p className="text-muted mt-1 max-w-[16rem] text-[12px] leading-relaxed">
-              Likes, comments, follows, and order updates will show up here.
-            </p>
-          </div>
+          <ListEmpty title="No Notifications Yet." description="Likes, comments, follows, and order updates will show up here." />
         ) : null}
 
         {groups.length > 0 ? (
@@ -353,7 +313,8 @@ export default function NotificationCenter() {
               disabled={isFetching}
               className="text-muted inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-semibold transition-colors hover:text-white disabled:opacity-50"
             >
-              {isFetching ? 'Loading…' : 'View older'}
+              {isFetching ? <Loader size="xs" /> : null}
+              View Older
               {!isFetching ? (
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />

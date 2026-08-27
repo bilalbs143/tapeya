@@ -89,7 +89,7 @@ export const updateProfileSchema = z.object({
   city: z.string().optional(),
 });
 
-/** RHF form shape for UserEdit dialog (camelCase field names). */
+/** RHF form shape for the edit-profile page (camelCase field names). */
 export const userEditFormSchema = z.object({
   name: z.union([
     z.literal(''),

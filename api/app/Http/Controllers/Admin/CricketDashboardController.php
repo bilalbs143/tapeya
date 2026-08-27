@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\TournamentRequest;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -54,14 +55,8 @@ class CricketDashboardController extends Controller
         $matchesCompleted = TournamentMatch::query()->where('status', 'completed')->count();
         $teamsTotal = Team::query()->count();
 
-        // Players = users with 'player' role (app guard)
-        $playersTotal = DB::table('users')
-            ->join('role_user', 'users.id', '=', 'role_user.user_id')
-            ->join('roles', 'role_user.role_id', '=', 'roles.id')
-            ->where('roles.slug', 'player')
-            ->where('roles.guard', 'app')
-            ->distinct()
-            ->count('users.id');
+        // Players = app users (type = user)
+        $playersTotal = User::query()->user()->count();
 
         // ── Tournament Phase Breakdown ────────────────────────────────────────
         $phaseUpcoming = Tournament::query()
@@ -158,12 +153,9 @@ class CricketDashboardController extends Controller
 
         // ── Player / User Growth — last 6 months ─────────────────────────────
         $playerGrowthRaw = DB::table('users')
-            ->join('role_user', 'users.id', '=', 'role_user.user_id')
-            ->join('roles', 'role_user.role_id', '=', 'roles.id')
-            ->where('roles.slug', 'player')
-            ->where('roles.guard', 'app')
+            ->where('type', 'user')
             ->where('users.created_at', '>=', $sixMonths)
-            ->selectRaw("TO_CHAR(users.created_at, 'YYYY-MM') as month, COUNT(DISTINCT users.id) as cnt")
+            ->selectRaw("TO_CHAR(users.created_at, 'YYYY-MM') as month, COUNT(*) as cnt")
             ->groupBy('month')
             ->orderBy('month')
             ->get()

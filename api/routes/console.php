@@ -25,3 +25,5 @@ Schedule::command('broadcasts:monitor-operations')->everyFifteenMinutes()->witho
 Schedule::command('posts:purge-expired-originals')->dailyAt('04:30')->withoutOverlapping();
 
 Schedule::command('posts:flush-view-counters')->everyMinute()->withoutOverlapping();
+
+Schedule::command('posts:process-auto-engagement')->everyFifteenMinutes()->withoutOverlapping();

@@ -211,6 +211,32 @@ export const feedApi = baseApi.injectEndpoints({
       ...cursorQueryOptions('SAVED'),
     }),
 
+    getUserPosts: builder.query({
+      query: ({ userId, cursor, perPage = FEED_LIST_ARG.perPage } = {}) => ({
+        url: `/users/${userId}/posts`,
+        params: {
+          cursor: cursor || undefined,
+          per_page: perPage,
+        },
+      }),
+      transformResponse: (response) => normalizeCursorPage(response?.data),
+      serializeQueryArgs: ({ endpointName, queryArgs }) => `${endpointName}-${queryArgs?.userId}`,
+      merge: (currentCache, newItems, { arg }) => mergeCursorPages(currentCache, newItems, arg),
+      forceRefetch: ({ currentArg, previousArg }) =>
+        currentArg?.cursor !== previousArg?.cursor || currentArg?.userId !== previousArg?.userId,
+      providesTags: (result, _e, arg) =>
+        result
+          ? [
+              ...result.items.map((p) => ({ type: 'Post', id: p.id })),
+              { type: 'Post', id: 'USER_POSTS' },
+              { type: 'Post', id: `USER-${arg.userId}` },
+            ]
+          : [
+              { type: 'Post', id: 'USER_POSTS' },
+              { type: 'Post', id: `USER-${arg?.userId}` },
+            ],
+    }),
+
     getPost: builder.query({
       query: (id) => `/posts/${id}`,
       transformResponse: (response) => normalizePost(response?.data),
@@ -237,6 +263,7 @@ export const feedApi = baseApi.injectEndpoints({
         { type: 'Post', id: 'FEED' },
         { type: 'Post', id: 'FOLLOWING' },
         { type: 'Post', id: 'MINE' },
+        { type: 'Post', id: 'USER_POSTS' },
       ],
     }),
 
@@ -254,6 +281,7 @@ export const feedApi = baseApi.injectEndpoints({
         { type: 'Post', id: 'FEED' },
         { type: 'Post', id: 'FOLLOWING' },
         { type: 'Post', id: 'MINE' },
+        { type: 'Post', id: 'USER_POSTS' },
         { type: 'Post', id },
       ],
     }),
@@ -363,10 +391,12 @@ export const {
   useGetFollowingFeedQuery,
   useGetMineFeedQuery,
   useGetSavedFeedQuery,
+  useGetUserPostsQuery,
   useLazyGetHomeFeedQuery,
   useLazyGetFollowingFeedQuery,
   useLazyGetMineFeedQuery,
   useLazyGetSavedFeedQuery,
+  useLazyGetUserPostsQuery,
   useLazyPeekHomeFeedQuery,
   useGetPostQuery,
   useCreatePostMutation,

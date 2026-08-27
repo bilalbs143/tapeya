@@ -7,7 +7,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -41,6 +40,7 @@ import {
 } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 
 import {
   ControllerSettingsDialogComponent,
@@ -78,10 +78,10 @@ export interface BatterCommandCardView {
     MatChipsModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     LiveMatchStateComponent,
     LiveStreamHeaderStatusComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',

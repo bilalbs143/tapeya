@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Services\BallDeliveryNormalizer;
 use App\Services\Broadcast\GraphicContextOrchestrator;
 use App\Services\Broadcast\ScoringFlashResolver;
+use App\Services\Broadcast\SyncUserOwnedOverlayCommand;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
@@ -44,6 +45,7 @@ class ScorecardController extends Controller
         private readonly InningsStatsService $inningsStats,
         private readonly MatchStateService $matchStateService,
         private readonly GraphicContextOrchestrator $graphicContextOrchestrator,
+        private readonly SyncUserOwnedOverlayCommand $syncUserOwnedOverlayCommand,
     ) {}
 
     // ─── Mutation endpoints ───────────────────────────────────────────────────
@@ -154,6 +156,11 @@ class ScorecardController extends Controller
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
+
+        // First ball (and later) → LT_DEFAULT when overlay is on the pre-match lifecycle.
+        if ($this->syncUserOwnedOverlayCommand->advanceIfPresent($match->fresh() ?? $match, $authUser->id)) {
+            $this->graphicContextOrchestrator->syncAndBroadcast($match->fresh() ?? $match);
+        }
 
         $this->dispatchScoringFlash($match, $ball);
 
@@ -382,6 +389,7 @@ class ScorecardController extends Controller
 
         $data = [
             'match_id' => $match->id,
+            'tournament' => $match->tournamentSummary(),
             'innings' => $innings->map(fn (Innings $inn) => $this->formatInnings($match, $inn)),
         ];
 

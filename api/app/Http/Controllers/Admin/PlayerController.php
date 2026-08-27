@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\User\AppRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Http\Controllers\BaseControllerTrait;
@@ -12,21 +10,20 @@ use App\Http\Requests\Admin\Player\StoreBroadcasterPlayerRequest;
 use App\Http\Requests\Admin\Player\StorePlayerCsvImportRequest;
 use App\Http\Requests\Admin\Player\UpdateBroadcasterPlayerRequest;
 use App\Http\Resources\Admin\User\UserResource;
-use App\Models\Role;
 use App\Models\User;
 use App\Services\User\PlayerCsvImportService;
 use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
- * Player registry: {@see UserTypeEnum::USER} accounts with the {@see AppRoleEnum::PLAYER} app role only.
+ * Player registry: all {@see UserTypeEnum::USER} accounts (assignment-based; no app roles).
  */
 class PlayerController extends Controller
 {
     use BaseControllerTrait;
 
     /**
-     * CSV bulk import. Each row creates one app user with the Player role.
+     * CSV bulk import. Each row creates one app user.
      * Authorization: same as other admin routes (`auth:api`, `admin.only`).
      */
     public function importCsv(StorePlayerCsvImportRequest $request, PlayerCsvImportService $importService): JsonResponse
@@ -53,14 +50,6 @@ class PlayerController extends Controller
     public function store(StoreBroadcasterPlayerRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $playerRoleId = Role::query()
-            ->where('slug', AppRoleEnum::PLAYER->value)
-            ->where('guard', RoleGuardEnum::APP->value)
-            ->value('id');
-
-        if ($playerRoleId === null) {
-            return $this->failure('Player app role is not configured.', 'SERVER_ERROR');
-        }
 
         $user = User::create([
             'name' => $data['name'],
@@ -77,9 +66,6 @@ class PlayerController extends Controller
             'status' => UserStatusEnum::VERIFICATION_PENDING,
             'created_by' => $request->user()?->id,
         ]);
-
-        $user->roles()->sync([$playerRoleId]);
-        $user->load('roles');
 
         return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])), 'Player created.', 'CREATED');
     }
@@ -102,6 +88,6 @@ class PlayerController extends Controller
 
     private function playerBaseQuery()
     {
-        return User::query()->user()->withRole(AppRoleEnum::PLAYER)->with(['creator:id,name,nickname', 'referrer:id,nickname']);
+        return User::query()->user()->with(['creator:id,name,nickname', 'referrer:id,nickname']);
     }
 }

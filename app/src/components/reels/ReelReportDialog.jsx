@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { useReportReelMutation } from '@/store/api/reelsApi';
 import { BottomSheet } from '@/ui/BottomSheet';
+import { Button } from '@/ui/Button';
 import { FormStack } from '@/ui/form/FormStack';
 import { RadioOptionList } from '@/ui/RadioOptionList';
 import { Textarea } from '@/ui/Textarea';
@@ -82,22 +83,25 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
       title="Report Reel"
       footer={
         done ? (
-          <button
+          <Button
             type="button"
+            variant="orange"
             onClick={() => handleOpenChange(false)}
-            className="bg-brand text-ink w-full rounded-full px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.98]"
+            className="w-full rounded-full px-4 py-3 text-sm"
           >
             Done
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="submit"
+            variant="orange"
             form="reel-report-form"
             disabled={isLoading || !reason}
-            className="bg-brand text-ink w-full rounded-full px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
+            loading={isLoading}
+            className="w-full rounded-full px-4 py-3 text-sm"
           >
-            {isLoading ? 'Submitting…' : 'Submit Report'}
-          </button>
+            Submit Report
+          </Button>
         )
       }
     >

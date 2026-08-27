@@ -3,7 +3,7 @@
 namespace App\Services\LiveChat;
 
 use App\Events\Broadcast\LiveStreamHeartReceived;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Support\LiveChat\LiveChatRedisKeys;
 use App\Support\Media\MediaDisk;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Redis;
 
 class LiveStreamHeartService
 {
-    public function send(MatchStream $stream, User $user): void
+    public function send(LiveStream $stream, User $user): void
     {
         if (! in_array($stream->status, ['live', 'starting'], true)) {
             abort(422, 'This stream is not active.');

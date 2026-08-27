@@ -14,6 +14,7 @@ import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.serv
 import { CoreService } from 'src/app/services/core.service';
 import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
 import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
@@ -28,7 +29,7 @@ interface profiledd {
 
 @Component({
   selector: 'app-horizontal-header',
-  imports: [RouterModule, TablerIconsModule, MaterialModule, BrandingComponent, NgScrollbarModule],
+  imports: [RouterModule, TablerIconsModule, MaterialModule, BrandingComponent, NgScrollbarModule, LoaderComponent],
   templateUrl: './header.component.html',
 })
 export class AppHorizontalHeaderComponent implements OnInit {
@@ -107,8 +108,10 @@ export class AppHorizontalHeaderComponent implements OnInit {
   public notificationIcon(type: string | null): string {
     if (type === AdminNotificationType.ORDER_PLACED) return 'shopping-cart';
     if (type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED) return 'file-text';
+    if (type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED) return 'building-store';
     if (type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) return 'broadcast';
     if (type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) return 'gauge';
+    if (type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED) return 'headset';
     return 'user';
   }
 

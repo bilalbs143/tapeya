@@ -25,13 +25,13 @@ function ChevronRightIcon({ className = '' }) {
 }
 
 function ReelCard({ reel }) {
-  const handle =
-    reel.handle || (reel.creator?.nickname ? `@${reel.creator.nickname}` : null) || reel.creator?.name || reel.username || 'Reel';
-  const label = handle.startsWith('@') ? handle : `@${handle}`;
+  const name = reel.creator?.name || reel.username || reel.handle || 'Reel';
+  const handle = reel.handle || (reel.creator?.nickname ? `@${reel.creator.nickname}` : '');
+  const showHandle = Boolean(handle) && handle !== name;
   const poster = reel.posterUrl || reel.coverUrl;
 
   return (
-    <Link to={`/reels/${reel.id}`} className={`${CARD_CLASS} group`} aria-label={`Watch reel by ${label}`}>
+    <Link to={`/reels/${reel.id}`} className={`${CARD_CLASS} group`} aria-label={`Watch reel by ${name}`}>
       {poster ? (
         <img
           src={poster}
@@ -43,7 +43,10 @@ function ReelCard({ reel }) {
         <div className="bg-surface-raised h-full w-full" aria-hidden />
       )}
       <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/80 via-black/15 to-transparent" />
-      <p className="absolute right-2 bottom-2 left-2 truncate text-[11px] font-semibold text-white sm:text-[12px]">{label}</p>
+      <div className="absolute right-2 bottom-2 left-2">
+        <p className="truncate text-[11px] font-semibold text-white sm:text-[12px]">{name}</p>
+        {showHandle ? <p className="truncate text-[10px] font-medium text-white/70">{handle}</p> : null}
+      </div>
     </Link>
   );
 }
@@ -85,12 +88,14 @@ export function FeedReelsWidget({ reels = [] }) {
         </Link>
       </header>
 
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-0.5">
-        {visible.map((reel) => (
-          <ReelCard key={reel.id} reel={reel} />
-        ))}
+      <div className="px-4">
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-0.5">
+          {visible.map((reel) => (
+            <ReelCard key={reel.id} reel={reel} />
+          ))}
 
-        <ViewAllCard />
+          <ViewAllCard />
+        </div>
       </div>
     </section>
   );

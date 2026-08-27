@@ -5,7 +5,9 @@ import { useDialog } from '@/context/DialogContext';
 import AddBreakDialog from './AddBreakDialog';
 import AdditionalRunsDialog from './AdditionalRunsDialog';
 import AppUpdateDialog from './AppUpdateDialog';
+import BallTypeDialog from './BallTypeDialog';
 import BaseDialog from './BaseDialog';
+import BroadcastGraphicsDialog from './BroadcastGraphicsDialog';
 import CaughtOutDialog from './CaughtOutDialog';
 import ChangeSquadDialog from './ChangeSquadDialog';
 import ChangeWicketKeeperDialog from './ChangeWicketKeeperDialog';
@@ -36,6 +38,8 @@ import PenaltyRunsDialog from './PenaltyRunsDialog';
 import PlayersPerSideDialog from './PlayersPerSideDialog';
 import PricingSuccessDialog from './PricingSuccessDialog';
 import ProfileStrengthReminderDialog from './ProfileStrengthReminderDialog';
+import QuickMatchWizardAddPlayerDialog from './QuickMatchWizardAddPlayerDialog';
+import QuickMatchWizardSetSideDialog from './QuickMatchWizardSetSideDialog';
 import RetiredHurtDialog from './RetiredHurtDialog';
 import RetiredOutDialog from './RetiredOutDialog';
 import ReviseTargetDialog from './ReviseTargetDialog';
@@ -67,8 +71,11 @@ const DIALOG_COMPONENTS = {
   // Start Match dialogs
   startMatchOvers: OversDialog,
   startMatchPlayersPerSide: PlayersPerSideDialog,
+  startMatchBallType: BallTypeDialog,
   startMatchTeamSelect: TeamSelectDialog,
   startMatchToss: TossDialog,
+  quickMatchWizardAddPlayer: QuickMatchWizardAddPlayerDialog,
+  quickMatchWizardSetSide: QuickMatchWizardSetSideDialog,
   // Scoring dialogs
   scoringExtraRuns: ExtraRunsDialog,
   scoringNoBall: NoBallDialog,
@@ -92,6 +99,7 @@ const DIALOG_COMPONENTS = {
   scoringAddBreaks: AddBreakDialog,
   scoringAdditionalRuns: AdditionalRunsDialog,
   scoringMatchSettings: MatchSettingsDialog,
+  scoringBroadcastGraphics: BroadcastGraphicsDialog,
   scoringMatchNotes: MatchNotesDialog,
   scoringMatchRules: MatchRulesDialog,
   scoringChangeSquad: ChangeSquadDialog,
@@ -112,6 +120,7 @@ const DIALOG_CONTENT_CLASS_BY_KEY = {
   scoringAddBreaks: '!min-h-[480px] !max-h-[90vh]',
   scoringAdditionalRuns: '!min-h-[240px]',
   scoringMatchSettings: '!min-h-[420px] !max-h-[90vh]',
+  scoringBroadcastGraphics: '!min-h-[480px] !max-h-[90vh]',
   scoringMatchNotes: '!min-h-[420px] !max-h-[90vh]',
   scoringMatchRules: '!min-h-[360px] !max-h-[90vh]',
   scoringExtraRuns: '!min-h-[280px] !max-h-[90vh]',
@@ -123,7 +132,6 @@ const DIALOG_CONTENT_CLASS_BY_KEY = {
   scoringEndInnings: '!min-h-[320px] !max-h-[90vh]',
   scoringEndMatch: '!min-h-[320px] !max-h-[90vh]',
   scoringDeclareResult: '!min-h-[360px] !max-h-[90vh]',
-  scoringReviseTarget: '!min-h-[300px] !max-h-[90vh]',
   scoringNoBall: '!min-h-[420px] !max-h-[90vh]',
   scoringWideBall: '!min-h-[280px] !max-h-[90vh]',
   scoringOverthrow: '!min-h-[300px] !max-h-[90vh]',

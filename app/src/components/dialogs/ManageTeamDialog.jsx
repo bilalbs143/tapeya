@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
@@ -13,10 +14,9 @@ import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploa
 import { canAddTournamentTeams, getTournamentNumberOfGroups, mergeTournamentMeta } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
-import { useSearchSponsorsQuery } from '@/store/api/sponsorApi';
 import { useCreateTeamMutation, useSearchTeamsQuery, useUpdateTeamMutation } from '@/store/api/teamApi';
 import { useAttachTeamsToTournamentMutation, useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
@@ -25,6 +25,7 @@ import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -219,11 +220,11 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
 
   // ── API ──────────────────────────────────────────────────────────────────────
 
-  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useSearchSponsorsQuery(debouncedSponsorSearch, {
+  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useLookupUsersQuery(debouncedSponsorSearch, {
     skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
   });
 
-  const { data: playersList = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedIconPlayerSearch, {
+  const { data: playersList = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedIconPlayerSearch, {
     skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
   });
 
@@ -443,7 +444,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                 {showTeamNameDropdown ? (
                   <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                     {isSearchingTeams ? (
-                      <p className="text-muted px-4 py-3 text-[13px] capitalize">Searching…</p>
+                      <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                     ) : searchResults.length > 0 ? (
                       <ul className="py-1">
                         {searchResults.map((result) => (
@@ -542,26 +543,22 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                           Type at least {MIN_SEARCH_LENGTH} characters to search
                         </p>
                       ) : isSearchingSponsors ? (
-                        <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
+                        <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
                       ) : sponsorsList.length === 0 ? (
                         <p className="text-muted px-3 py-4 text-center text-[13px]">No users found</p>
                       ) : (
                         <ul>
                           {sponsorsList.map((s) => (
-                            <li key={s.id}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  field.onChange(String(s.id));
-                                  setSelectedSponsor({ id: s.id, name: s.name ?? '' });
-                                  setSponsorSearch('');
-                                  setSponsorDropdownOpen(false);
-                                }}
-                                className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
-                              >
-                                {s.name}
-                              </button>
-                            </li>
+                            <PlayerSearchResultRow
+                              key={s.id}
+                              player={s}
+                              onClick={() => {
+                                field.onChange(String(s.id));
+                                setSelectedSponsor({ id: s.id, name: s.name ?? '' });
+                                setSponsorSearch('');
+                                setSponsorDropdownOpen(false);
+                              }}
+                            />
                           ))}
                         </ul>
                       )}
@@ -648,7 +645,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                               Type at least {MIN_SEARCH_LENGTH} characters
                             </p>
                           ) : isSearchingPlayers ? (
-                            <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
+                            <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
                           ) : playersList.length === 0 ? (
                             <p className="text-muted px-3 py-4 text-center text-[13px]">No players found</p>
                           ) : (
@@ -727,7 +724,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving}>
+      <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving} loading={isSaving}>
         {saveLabel}
       </DialogSaveButton>
     </>

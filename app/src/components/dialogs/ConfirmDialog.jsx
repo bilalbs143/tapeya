@@ -63,7 +63,7 @@ export function ConfirmDialog({ title = 'Confirm', message, children, confirmLab
         {typeof body === 'string' ? <p className="text-muted text-center text-[13px] leading-relaxed">{body}</p> : body}
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={isConfirming} onClick={handleConfirm}>
+      <DialogSaveButton disabled={isConfirming} loading={isConfirming} onClick={handleConfirm}>
         {isConfirming ? 'Confirming…' : confirmLabel}
       </DialogSaveButton>
     </>

@@ -32,6 +32,11 @@ export const navItems: NavItem[] = [
         route: '/tournaments-management/tournament-requests',
       },
       {
+        displayName: 'Quick Matches',
+        iconName: 'tabler:point',
+        route: '/tournaments-management/quick-matches',
+      },
+      {
         displayName: 'Teams',
         iconName: 'tabler:point',
         route: '/tournaments-management/teams',
@@ -101,6 +106,11 @@ export const navItems: NavItem[] = [
     route: '/notifications',
   },
   {
+    displayName: 'Support',
+    iconName: 'solar:chat-round-call-line-duotone',
+    route: '/support',
+  },
+  {
     displayName: 'Engagement',
     iconName: 'solar:chat-round-dots-line-duotone',
     children: [
@@ -129,6 +139,11 @@ export const navItems: NavItem[] = [
         displayName: 'Categories',
         iconName: 'tabler:point',
         route: '/shop-management/categories',
+      },
+      {
+        displayName: 'Vendors',
+        iconName: 'tabler:point',
+        route: '/shop-management/vendors',
       },
       {
         displayName: 'Products',

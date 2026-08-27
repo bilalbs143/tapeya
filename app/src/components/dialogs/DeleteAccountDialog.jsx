@@ -66,7 +66,7 @@ export function DeleteAccountDialog() {
         </p>
       </DialogScrollBody>
 
-      <DialogDangerButton disabled={isLoading} onClick={handleDelete}>
+      <DialogDangerButton disabled={isLoading} loading={isLoading} onClick={handleDelete}>
         {isLoading ? 'Deleting…' : 'Delete My Account'}
       </DialogDangerButton>
     </>

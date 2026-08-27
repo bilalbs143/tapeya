@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Notifications\BroadcastConcurrencyAlertAdminNotification;
 use App\Notifications\YouTubeQuotaAlertAdminNotification;
 use App\Settings\AdminNotificationSettings;
@@ -43,7 +43,7 @@ class MonitorBroadcastOperations extends Command
     {
         $threshold = $settings->concurrentBroadcastAlertThreshold;
 
-        $concurrentCount = MatchStream::query()
+        $concurrentCount = LiveStream::query()
             ->where('provider', 'youtube')
             ->whereIn('status', ['starting', 'live'])
             ->count();

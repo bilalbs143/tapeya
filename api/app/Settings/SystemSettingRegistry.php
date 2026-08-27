@@ -236,6 +236,36 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::PUSH_FCM_SERVICE_ACCOUNT_JSON => [
                 'value' => ['nullable', 'string', 'max:8192'],
             ],
+            SystemSettingKeyEnum::REELS_MAX_DURATION_SECONDS,
+            SystemSettingKeyEnum::REELS_MIN_DURATION_SECONDS => [
+                'value' => ['required', 'integer', 'min:0', 'max:3600'],
+            ],
+            SystemSettingKeyEnum::REELS_MAX_UPLOAD_MB => [
+                'value' => ['required', 'integer', 'min:0', 'max:2048'],
+            ],
+            SystemSettingKeyEnum::REELS_HLS_SEGMENT_SECONDS => [
+                'value' => ['required', 'integer', 'min:2', 'max:4'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_WATCHED_MS => [
+                'value' => ['required', 'integer', 'min:0', 'max:600000'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_COMPLETION_RATE_PERCENT => [
+                'value' => ['required', 'integer', 'min:0', 'max:100'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_ALLOW_ANONYMOUS,
+            SystemSettingKeyEnum::REELS_VIEW_REDIS_BUFFER,
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ENABLED => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_PART_SIZE_MB => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_MAX_PARTS => [
+                'value' => ['required', 'integer', 'min:0', 'max:10000'],
+            ],
+            SystemSettingKeyEnum::REELS_ENGAGEMENT_PER_DAY => [
+                'value' => ['required', 'integer', 'min:0', 'max:50'],
+            ],
         };
     }
 
@@ -810,6 +840,24 @@ final class SystemSettingRegistry
                 'description' => 'Maximum number of upload parts. 0 = no app limit.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'multipartMaxParts',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ENABLED->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Engagement Enabled',
+                'description' => '1 = drip likes/views from random active users each day toward the lifetime max. 0 = off.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoEngagementEnabled',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_ENGAGEMENT_PER_DAY->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Engagement Daily Max',
+                'description' => 'Max likes/views auto-added per reel per day (0–50). Each day picks a random amount from 1 to this value. Simple posts use ~60%. Soft lifetime = daily × 30 days.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'reelsEngagementPerDay',
                 'nullable_string' => false,
             ],
         ];

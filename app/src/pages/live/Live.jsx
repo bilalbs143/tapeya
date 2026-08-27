@@ -11,11 +11,12 @@ import { useMemo } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { LIVE_STREAM_THUMBNAIL_ASPECT_CLASS } from '@/lib/constants/streamThumbnail.constants';
 import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import { LiveTab, UpcomingTab } from '@/pages/live/tabs';
 import { useGetLiveStreamsQuery } from '@/store/api/liveApi';
 import { Container } from '@/ui/Container';
+import { ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 import {
   profileListClass,
   profileTabIconClass,
@@ -34,30 +35,7 @@ const liveTabListClass = `${profileListClass} justify-center`;
 const liveTabTriggerClass = `${profileTriggerClass} w-[120px] md:w-[150px] flex-none shrink-0 md:text-[14px]`;
 
 function LiveHubSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-4 pb-6 lg:grid-cols-3">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-surface-border overflow-hidden rounded-[20px]">
-          <div className={`bg-surface-deep w-full animate-pulse ${LIVE_STREAM_THUMBNAIL_ASPECT_CLASS}`} />
-          <div className="space-y-2 px-4 py-4">
-            <div className="bg-surface-deep h-4 w-3/4 animate-pulse rounded" />
-            <div className="bg-surface-deep h-3 w-1/2 animate-pulse rounded" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function LiveHubError({ onRetry }) {
-  return (
-    <div className="py-12 text-center">
-      <p className="text-muted text-[13px]">Failed to load live matches.</p>
-      <button type="button" onClick={onRetry} className="mt-3 text-[13px] font-medium text-white underline underline-offset-2">
-        Try Again
-      </button>
-    </div>
-  );
+  return <LoaderBlock label="Loading live matches" className="py-16" />;
 }
 
 export default function Live() {
@@ -78,7 +56,7 @@ export default function Live() {
         {isLoading ? (
           <LiveHubSkeleton />
         ) : isError ? (
-          <LiveHubError onRetry={refetch} />
+          <ListError message="Could not load live matches." onRetry={refetch} />
         ) : (
           <Tabs defaultValue="live" className="w-full">
             <TabsList className={`${liveTabListClass} mb-4`}>

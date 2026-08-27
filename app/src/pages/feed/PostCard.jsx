@@ -5,17 +5,16 @@ import { Link } from 'react-router-dom';
 import RepostedPostEmbed from '@/components/feed/RepostedPostEmbed';
 import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
+import { UserAvatar } from '@/components/UserAvatar';
 import { usePostEngagement } from '@/features/feed/usePostEngagement';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
-import { buildPostDetailPath } from '@/lib/share';
+import { buildPostDetailPath, resolveCreatorProfilePath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 
-const avatarPlaceholder = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const imagePlaceholder =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
 
@@ -133,20 +132,6 @@ function PlayIcon({ className = '' }) {
   );
 }
 
-function AvatarRing({ src, errored, onError }) {
-  return (
-    <div className="rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))] p-[2px]">
-      <img
-        src={errored || !src ? avatarPlaceholder : src}
-        alt=""
-        className="border-surface h-11 w-11 rounded-full border-2 object-cover"
-        loading="lazy"
-        onError={onError}
-      />
-    </div>
-  );
-}
-
 export function ActionButton({ active, onClick, icon, ariaLabel, disabled }) {
   return (
     <button
@@ -219,7 +204,6 @@ export default function PostCard({ post }) {
   const [unfollowCreator, { isLoading: isUnfollowPending }] = useUnfollowReelCreatorMutation();
 
   const [imageError, setImageError] = useState(false);
-  const [authorAvatarError, setAuthorAvatarError] = useState(false);
 
   const { toggleLike, toggleSave, share, repost, isReposting } = usePostEngagement(post);
 
@@ -230,6 +214,7 @@ export default function PostCard({ post }) {
   const mediaWidth = media?.[0]?.width || null;
   const mediaHeight = media?.[0]?.height || null;
   const detailTo = buildPostDetailPath(post);
+  const profileTo = resolveCreatorProfilePath(authorId);
 
   const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
   const showFollow = Boolean(authorId) && !isOwnPost;
@@ -252,21 +237,36 @@ export default function PostCard({ post }) {
       data-post-id={id}
     >
       <header className="flex items-center gap-2 px-4 pt-3.5">
-        <Link
-          to={detailTo}
-          className="focus-visible:ring-brand focus-visible:ring-offset-surface flex min-w-0 flex-1 items-center gap-3 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <AvatarRing src={authorAvatarUrl} errored={authorAvatarError} onError={() => setAuthorAvatarError(true)} />
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <UserAvatar src={authorAvatarUrl} name={authorName} userId={authorId} size="xl" ring="brand" />
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
-              <OfficialBadge isOfficial={authorIsOfficial} />
-            </div>
-            <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
-              {formattedTimestamp}
-            </time>
+            {profileTo ? (
+              <Link
+                to={profileTo}
+                className="focus-visible:ring-brand focus-visible:ring-offset-surface flex min-w-0 items-center gap-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                aria-label={authorName ? `View ${authorName}'s profile` : 'View profile'}
+              >
+                <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                <OfficialBadge isOfficial={authorIsOfficial} />
+              </Link>
+            ) : (
+              <div className="flex min-w-0 items-center gap-1">
+                <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                <OfficialBadge isOfficial={authorIsOfficial} />
+              </div>
+            )}
+            {formattedTimestamp ? (
+              <Link
+                to={detailTo}
+                className="focus-visible:ring-brand focus-visible:ring-offset-surface focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
+                  {formattedTimestamp}
+                </time>
+              </Link>
+            ) : null}
           </div>
-        </Link>
+        </div>
         {showFollow ? (
           <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
         ) : null}

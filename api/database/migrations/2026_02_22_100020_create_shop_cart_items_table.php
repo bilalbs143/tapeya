@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('shop_cart_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cart_id')->constrained('shop_carts')->cascadeOnDelete();
+            $table->foreignId('vendor_id')->constrained('shop_vendors')->restrictOnDelete();
             $table->foreignId('product_id')->constrained('shop_products')->cascadeOnDelete();
             $table->unsignedInteger('quantity')->default(1);
             $table->decimal('price_snapshot', 12, 2);

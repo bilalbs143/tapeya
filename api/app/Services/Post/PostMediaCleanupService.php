@@ -129,18 +129,20 @@ class PostMediaCleanupService
 
     /**
      * Safety net: delete originals that still linger after HLS is ready
-     * (e.g. cleanup job failed after encode).
+     * and the reel has been ready for at least 48 hours.
      */
     public function purgeExpiredOriginals(): int
     {
         $count = 0;
+        $cutoff = now()->subHours(48);
 
         Post::query()
             ->videosOnly()
             ->where('status', PostStatusEnum::Ready)
-            ->whereHas('video', function ($q) {
+            ->whereHas('video', function ($q) use ($cutoff) {
                 $q->whereNotNull('original_path')
-                    ->whereNotNull('hls_master_path');
+                    ->whereNotNull('hls_master_path')
+                    ->where('ready_at', '<=', $cutoff);
             })
             ->with('video')
             ->orderBy('id')

@@ -13,6 +13,7 @@ import { isAllowedDeepLinkPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { buildAppSchemeDeepLink } from '@/lib/deepLinks/deepLinkUtils';
 import { detectMobileWebStorePlatform } from '@/lib/nativeStore/storeLinks/web';
 import { isNative } from '@/platform/platform';
+import { Button } from '@/ui/Button';
 
 const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 
@@ -53,13 +54,9 @@ export function OpenInAppBanner({ path }) {
           <p className="truncate text-[13px] font-semibold text-white">Open in Tapeya</p>
           <p className="text-muted truncate text-[11px]">Better experience in the app</p>
         </div>
-        <button
-          type="button"
-          onClick={handleOpen}
-          className="bg-brand text-ink shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-bold"
-        >
+        <Button type="button" variant="orange" onClick={handleOpen} className="shrink-0 rounded-full px-3.5 py-1.5 text-[12px]">
           Open
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => setDismissed(true)}

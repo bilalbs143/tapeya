@@ -24,26 +24,32 @@ export function readElementLayoutRect(element) {
   };
 }
 
-/** Z-order + interaction. Portrait keeps the measured frame; landscape fills the host. */
-export function buildNativeStackLayout(isLandscape) {
+/**
+ * @param {boolean} isLandscape
+ * @param {{ interactive?: boolean, touchEnabled?: boolean }} [options]
+ *   - `interactive` — false = underlay (below Capacitor). true = above Capacitor (YouTube VOD controls).
+ *   - `touchEnabled` — native WKWebView receives taps (defaults to `interactive`).
+ */
+export function buildNativeStackLayout(isLandscape, { interactive = false, touchEnabled } = {}) {
+  const nativeTouches = touchEnabled ?? interactive;
   return {
-    underlay: true,
+    underlay: !interactive,
     immersiveFullscreen: Boolean(isLandscape),
-    userInteractionEnabled: false,
+    userInteractionEnabled: Boolean(nativeTouches),
   };
 }
 
 /**
  * @param {Element} placeholder
- * @param {{ isLandscape: boolean }} options
+ * @param {{ isLandscape: boolean, interactive?: boolean, touchEnabled?: boolean }} options
  */
-export function buildNativeOverlayLayout(placeholder, { isLandscape }) {
+export function buildNativeOverlayLayout(placeholder, { isLandscape, interactive = false, touchEnabled } = {}) {
   if (isLandscape) {
-    return buildNativeStackLayout(true);
+    return buildNativeStackLayout(true, { interactive, touchEnabled });
   }
 
   return {
     ...readElementLayoutRect(placeholder),
-    ...buildNativeStackLayout(false),
+    ...buildNativeStackLayout(false, { interactive, touchEnabled }),
   };
 }

@@ -21,7 +21,7 @@ class CartController extends Controller
     {
         $cart = $this->getOrCreateCart();
 
-        $cart->load(['items.product.images']);
+        $cart->load(['items.product.images', 'items.product.vendor', 'items.vendor']);
 
         return $this->success(new CartResource($cart));
     }
@@ -30,7 +30,7 @@ class CartController extends Controller
     public function addItem(AddToCartRequest $request): JsonResponse
     {
         $cart = $this->getOrCreateCart();
-        $product = Product::query()->active()->findOrFail($request->validated('product_id'));
+        $product = Product::query()->sellable()->findOrFail($request->validated('product_id'));
         $quantity = (int) $request->validated('quantity');
 
         $available = max(0, $product->stock_quantity ?? 0);
@@ -46,16 +46,21 @@ class CartController extends Controller
             if ($newQty > $available) {
                 return $this->failure("Total quantity would exceed available stock ({$available}).", 'VALIDATION_ERROR');
             }
-            $item->update(['quantity' => $newQty, 'price_snapshot' => $price]);
+            $item->update([
+                'quantity' => $newQty,
+                'price_snapshot' => $price,
+                'vendor_id' => $product->vendor_id,
+            ]);
         } else {
             $cart->items()->create([
                 'product_id' => $product->id,
+                'vendor_id' => $product->vendor_id,
                 'quantity' => $quantity,
                 'price_snapshot' => $price,
             ]);
         }
 
-        $cart->load(['items.product.images']);
+        $cart->load(['items.product.images', 'items.product.vendor', 'items.vendor']);
 
         return $this->success(new CartResource($cart), 'Cart updated.');
     }
@@ -78,9 +83,10 @@ class CartController extends Controller
         $cartItem->update([
             'quantity' => $quantity,
             'price_snapshot' => $product->getSalePrice() ?? (float) $product->price,
+            'vendor_id' => $product->vendor_id,
         ]);
 
-        $cart->load(['items.product.images']);
+        $cart->load(['items.product.images', 'items.product.vendor', 'items.vendor']);
 
         return $this->success(new CartResource($cart), 'Cart updated.');
     }
@@ -94,7 +100,7 @@ class CartController extends Controller
         }
 
         $cartItem->delete();
-        $cart->load(['items.product.images']);
+        $cart->load(['items.product.images', 'items.product.vendor', 'items.vendor']);
 
         return $this->success(new CartResource($cart), 'Item removed.');
     }

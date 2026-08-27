@@ -4,14 +4,18 @@ namespace App\Support\Stats;
 
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Stats\StatCategoryEnum;
+use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use InvalidArgumentException;
 
 final class StatBucketFilters
 {
     /**
+     * Profile career filters. Accepts league | open_tournament | emerging | quick | all.
+     * null statsBucket means "all tournament buckets" (excludes quick).
+     *
      * @return array{
-     *     tournamentType: TournamentTypeEnum|null,
+     *     statsBucket: StatsBucketEnum|null,
      *     cricketFormat: CricketFormatEnum|null,
      *     tournamentTypeQuery: string,
      *     cricketFormatQuery: string
@@ -20,7 +24,7 @@ final class StatBucketFilters
     public static function fromProfileQuery(string $tournamentType = 'all', string $cricketFormat = 'all'): array
     {
         return [
-            'tournamentType' => self::parseTournamentType($tournamentType, allowAll: true),
+            'statsBucket' => self::parseStatsBucket($tournamentType, allowAll: true),
             'cricketFormat' => self::parseCricketFormat($cricketFormat, allowAll: true),
             'tournamentTypeQuery' => $tournamentType,
             'cricketFormatQuery' => $cricketFormat,
@@ -28,6 +32,8 @@ final class StatBucketFilters
     }
 
     /**
+     * Rankings filters — tournament types only (never quick).
+     *
      * @return array{
      *     tournamentType: TournamentTypeEnum,
      *     cricketFormat: CricketFormatEnum|null,
@@ -37,7 +43,7 @@ final class StatBucketFilters
      */
     public static function fromRankingsQuery(string $tournamentType, string $cricketFormat = 'all'): array
     {
-        if ($tournamentType === 'all') {
+        if ($tournamentType === 'all' || $tournamentType === StatsBucketEnum::QUICK->value) {
             throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging.');
         }
 
@@ -52,6 +58,24 @@ final class StatBucketFilters
             'tournamentTypeQuery' => $tournamentType,
             'cricketFormatQuery' => $cricketFormat,
         ];
+    }
+
+    private static function parseStatsBucket(string $value, bool $allowAll): ?StatsBucketEnum
+    {
+        if ($value === 'all') {
+            if (! $allowAll) {
+                throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging, quick.');
+            }
+
+            return null;
+        }
+
+        $enum = StatsBucketEnum::tryFrom($value);
+        if ($enum === null) {
+            throw new InvalidArgumentException('Invalid tournament_type. Use: league, open_tournament, emerging, quick, all.');
+        }
+
+        return $enum;
     }
 
     private static function parseTournamentType(string $value, bool $allowAll): ?TournamentTypeEnum

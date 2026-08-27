@@ -119,8 +119,13 @@ class LiveScoreFeedService
             $active['balls_remaining'] = $ballsRemaining;
         }
 
-        $tournament = $match->tournament;
-        $shortName = $tournament?->short_name ?: $tournament?->tournament_name ?: 'Match';
+        $summary = $match->tournamentSummary();
+        $shortName = 'Match';
+        if ($summary !== null) {
+            $shortName = $summary['short_name'] !== ''
+                ? $summary['short_name']
+                : ($summary['name'] !== '' ? $summary['name'] : 'Match');
+        }
 
         return [
             'id' => (int) $match->id,
@@ -132,11 +137,13 @@ class LiveScoreFeedService
             'overs_limit' => (int) ($match->overs ?: 20),
             'home_team' => $this->teamSlice($match->homeTeam),
             'away_team' => $this->teamSlice($match->awayTeam),
-            'tournament' => [
-                'id' => $tournament?->id,
-                'name' => $tournament?->tournament_name ?? '',
-                'short_name' => $tournament?->short_name ?? '',
-            ],
+            'tournament' => $summary === null
+                ? ['id' => null, 'name' => '', 'short_name' => '']
+                : [
+                    'id' => $summary['id'],
+                    'name' => $summary['name'],
+                    'short_name' => $summary['short_name'],
+                ],
             'innings' => $inningsPayload,
             'active_innings' => $active,
             'commentary' => $this->commentary(

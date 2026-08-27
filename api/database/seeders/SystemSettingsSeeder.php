@@ -180,6 +180,8 @@ class SystemSettingsSeeder extends Seeder
         $reels->viewRedisBuffer ??= 1;
         $reels->multipartPartSizeMb ??= 1;
         $reels->multipartMaxParts ??= 0;
+        $reels->autoEngagementEnabled ??= 0;
+        $reels->reelsEngagementPerDay ??= 5;
         $reels->save();
     }
 

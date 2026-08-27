@@ -86,7 +86,7 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canConfirm || isStarting} onClick={handleConfirm}>
+      <DialogSaveButton disabled={!canConfirm || isStarting} loading={isStarting} onClick={handleConfirm}>
         {isStarting ? 'Creating…' : 'Start Scoring'}
       </DialogSaveButton>
     </>

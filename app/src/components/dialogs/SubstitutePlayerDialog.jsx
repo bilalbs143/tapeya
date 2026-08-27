@@ -104,8 +104,8 @@ export function SubstitutePlayerDialog({ matchId, inningsId, batsmen = [], subst
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>
-        Done
+      <DialogSaveButton disabled={!canSubmit} loading={isLoading} onClick={handleDone}>
+        {isLoading ? 'Substituting…' : 'Done'}
       </DialogSaveButton>
     </>
   );

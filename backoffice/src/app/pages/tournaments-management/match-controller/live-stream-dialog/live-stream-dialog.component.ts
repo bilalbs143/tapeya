@@ -7,7 +7,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -18,6 +17,7 @@ import { liveStreamStatusLabel } from '../live-stream.utils';
 import { LiveStreamService, type LiveStreamPayload } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface LiveStreamDialogData {
@@ -42,11 +42,11 @@ type CopyField = 'rtmp' | 'key' | 'backup';
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    LoaderComponent,
   ],
   templateUrl: './live-stream-dialog.component.html',
 })

@@ -11,6 +11,7 @@ class AdminOnlyServiceProvider
         $middleware->alias([
             'admin.only' => AdminOnly::class,
             'admin.permission' => EnsureAdminPermission::class,
+            'vendor' => EnsureVendor::class,
         ]);
     }
 }

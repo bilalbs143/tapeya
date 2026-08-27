@@ -1,7 +1,8 @@
 @if (loading) {
-  <div class="flex justify-center py-24">
-    <mat-spinner diameter="48" />
-  </div>
+  <app-loader-block
+    label="Loading match"
+    class="py-24"
+  />
 } @else if (match) {
   <div
     class="match-controller-host"

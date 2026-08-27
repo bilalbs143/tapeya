@@ -3,7 +3,7 @@
 namespace App\Services\LiveChat;
 
 use App\Events\Broadcast\LiveStreamChatMessageReceived;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Settings\LiveChatSettings;
 use App\Support\LiveChat\LiveChatRedisKeys;
 use Illuminate\Support\Facades\Redis;
@@ -16,7 +16,7 @@ class LiveStreamCommentService
     /**
      * Validate, guard, and broadcast a chat comment. Returns the generated ULID.
      */
-    public function send(MatchStream $stream, int $userId, string $displayName, string $rawBody): string
+    public function send(LiveStream $stream, int $userId, string $displayName, string $rawBody): string
     {
         if ($this->settings->enabled !== 1) {
             abort(403, 'Live chat is currently disabled.');

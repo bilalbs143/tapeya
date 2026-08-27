@@ -9,6 +9,7 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   inactive: 'bg-light-secondary text-secondary',
   pending: 'bg-light-warning text-warning',
   approved: 'bg-light-success text-success',
+  suspended: 'bg-light-error text-error',
   rejected: 'bg-light-error text-error',
   processing: 'bg-light-primary text-primary',
   dispatched: 'bg-light-info text-info',
@@ -27,9 +28,14 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   failed: 'bg-light-error text-error',
   removed: 'bg-light-secondary text-secondary',
   open: 'bg-light-warning text-warning',
+  resolved: 'bg-light-success text-success',
   reviewed: 'bg-light-info text-info',
   dismissed: 'bg-light-secondary text-secondary',
   actioned: 'bg-light-success text-success',
+  unpaid: 'bg-light-warning text-warning',
+  advance: 'bg-light-info text-info',
+  paid: 'bg-light-success text-success',
+  refunded: 'bg-light-secondary text-secondary',
 };
 
 const DEFAULT_STATUS_CLASS = 'bg-light-secondary text-secondary';

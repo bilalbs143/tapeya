@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\User\AppRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Http\Requests\Admin\Team\StoreTeamRequest;
 use App\Http\Requests\Admin\Team\UpdateTeamRequest;
 use App\Http\Resources\User\TeamResource;
-use App\Models\Role;
 use App\Models\Team;
 use App\Models\TournamentMatch;
 use App\Models\User;
@@ -34,8 +31,7 @@ class TeamController extends BaseAdminController
 
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
 
-        $owner = User::findOrFail($sponsorId);
-        $this->ensureAppUserHasSponsorRole($owner);
+        User::findOrFail($sponsorId);
 
         $team = Team::create([
             'name' => $data['name'],
@@ -72,8 +68,7 @@ class TeamController extends BaseAdminController
         $team->fill($data);
 
         if ($sponsorId !== null) {
-            $owner = User::findOrFail((int) $sponsorId);
-            $this->ensureAppUserHasSponsorRole($owner);
+            User::findOrFail((int) $sponsorId);
             $team->user_id = (int) $sponsorId;
         }
 
@@ -104,19 +99,5 @@ class TeamController extends BaseAdminController
         $team->delete();
 
         return $this->noContent();
-    }
-
-    private function ensureAppUserHasSponsorRole(User $user): void
-    {
-        if ($user->hasRole(AppRoleEnum::SPONSOR)) {
-            return;
-        }
-
-        $sponsorRole = Role::query()
-            ->where('slug', AppRoleEnum::SPONSOR->value)
-            ->where('guard', RoleGuardEnum::APP->value)
-            ->firstOrFail();
-
-        $user->roles()->syncWithoutDetaching([$sponsorRole->id]);
     }
 }

@@ -54,6 +54,7 @@ class OrderStatusUpdatedUserNotification extends Notification
             'status_label' => $statusLabel,
             'previous_status' => $this->previousStatus?->value,
             'customer_name' => $customerName,
+            'deep_link' => '/shop/orders/'.$this->order->id,
             'message' => $message,
         ];
     }

@@ -5,10 +5,11 @@ import React from 'react';
 
 import ReactDOM from 'react-dom/client';
 
-import { bootstrapCdnFromPublicSettings } from '@/lib/bootstrapCdn';
+import { bootstrapCdnFromPublicSettings, watchForCdnRecovery } from '@/lib/bootstrapCdn';
 
 async function start() {
   await bootstrapCdnFromPublicSettings();
+  watchForCdnRecovery();
 
   const [{ StoreProvider }, { default: App }] = await Promise.all([import('@/providers/StoreProvider'), import('./App')]);
 

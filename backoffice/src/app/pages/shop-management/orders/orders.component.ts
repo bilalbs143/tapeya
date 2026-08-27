@@ -27,7 +27,7 @@ import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { OrderDetailDialogComponent } from './order-detail-dialog/order-detail-dialog.component';
 
-const DEFAULT_FILTERS = { order_number: '', status: '', phone: '' } as const;
+const DEFAULT_FILTERS = { order_number: '', status: '', payment_status: '', phone: '' } as const;
 
 @Component({
   selector: 'app-orders',
@@ -68,6 +68,7 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
     'total',
     'currency',
     'status',
+    'payment_status',
     'address',
     'created_at',
     'actions',
@@ -81,11 +82,13 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
   public isLoading = false;
 
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('order_status');
+  public paymentStatusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('payment_status');
 
   constructor() {
     this.searchForm = this.fb.group({
       order_number: [DEFAULT_FILTERS.order_number],
       status: [DEFAULT_FILTERS.status],
+      payment_status: [DEFAULT_FILTERS.payment_status],
       phone: [DEFAULT_FILTERS.phone],
     });
     this.pageSize = this.paginatorConfig.pageSize;
@@ -131,6 +134,9 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
       string,
       unknown
     >;
+    if ((filters.payment_status ?? '') !== '') {
+      params = { ...params, 'filter[payment_status]': filters.payment_status };
+    }
     if ((filters.order_number ?? '').trim() !== '') {
       params = { ...params, 'filter[order_number]': (filters.order_number as string).trim() };
     }

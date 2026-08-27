@@ -8,7 +8,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -22,6 +21,7 @@ import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/sch
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
@@ -51,10 +51,10 @@ const DEFAULT_FILTERS = {
     MatSelectModule,
     MatSlideToggleModule,
     MatPaginatorModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     TablerIconsModule,
     TableWrapperComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './tournament-matches.component.html',
 })

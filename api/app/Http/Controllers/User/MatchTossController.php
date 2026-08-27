@@ -9,8 +9,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateMatchTossRequest;
 use App\Http\Resources\User\TournamentMatchResource;
 use App\Models\TournamentMatch;
+use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Services\Broadcast\SyncUserOwnedOverlayCommand;
 use App\Services\MatchStateService;
+use App\Services\QuickMatch\QuickMatchService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class MatchTossController extends Controller
 {
@@ -20,18 +24,35 @@ class MatchTossController extends Controller
      * Record toss for a match (Step 6 in tournament_flow).
      *
      * Only organizers. Winning team must be home or away in this match.
+     * Quick matches: promote squad → XI in the same request (same invariant as create-with-toss).
      */
-    public function update(UpdateMatchTossRequest $request, TournamentMatch $match, MatchStateService $matchStateService): JsonResponse
-    {
+    public function update(
+        UpdateMatchTossRequest $request,
+        TournamentMatch $match,
+        MatchStateService $matchStateService,
+        QuickMatchService $quickMatches,
+        SyncUserOwnedOverlayCommand $syncUserOwnedOverlayCommand,
+        GraphicContextOrchestrator $graphicContextOrchestrator,
+    ): JsonResponse {
         $authUser = $request->user();
 
-        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+        if (! $authUser->canOperateMatchInApp($match)) {
             return $this->forbidden('You cannot record the toss for this match.');
         }
 
         $winningTeamId = (int) $request->validated('winning_team_id');
         if (! in_array($winningTeamId, [$match->home_team_id, $match->away_team_id], true)) {
             return $this->forbidden('Winning team must be one of the match teams (home or away).');
+        }
+
+        try {
+            if ($match->isQuick()) {
+                $quickMatches->promoteSquadToPlayingEleven($match);
+            }
+        } catch (ValidationException $e) {
+            $first = collect($e->errors())->flatten()->first();
+
+            return $this->conflict(is_string($first) ? $first : 'Could not set playing eleven for toss.');
         }
 
         $chose = $request->validated('chose_to_bat_or_bowl');
@@ -65,10 +86,15 @@ class MatchTossController extends Controller
 
         $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch', 'stream']);
 
+        $fresh = $match->fresh() ?? $match;
+        if ($syncUserOwnedOverlayCommand->advanceIfPresent($fresh, $authUser->id)) {
+            $graphicContextOrchestrator->syncAndBroadcast($fresh);
+        }
+
         // Broadcast the full match state now that toss result and both innings
         // rows are persisted, so subscribers can show batting/bowling teams and
         // match status before the first ball is bowled.
-        $matchState = $matchStateService->build($match->fresh());
+        $matchState = $matchStateService->build($fresh);
         MatchStateUpdated::dispatch($match->id, $matchState);
 
         return $this->success(

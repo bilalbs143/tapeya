@@ -3,17 +3,23 @@
 namespace App\Models;
 
 use App\Casts\AsFile;
+use App\Enums\Event\CricketFormatEnum;
+use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use InvalidArgumentException;
 
 class TournamentMatch extends BaseModel
 {
     protected $table = 'matches';
 
     protected $fillable = [
+        'kind',
         'tournament_id',
+        'created_by',
+        'cricket_format',
         'group_index',
         'home_team_id',
         'away_team_id',
@@ -50,20 +56,43 @@ class TournamentMatch extends BaseModel
     protected function casts(): array
     {
         return [
+            'kind' => MatchKindEnum::class,
+            'cricket_format' => CricketFormatEnum::class,
             'match_date' => 'date',
             'status' => MatchStatusEnum::class,
             'cancel_points_awarded_each' => 'boolean',
             'wagon_wheel_enabled' => 'boolean',
             'is_no_result' => 'boolean',
+            'created_by' => 'integer',
             'revised_target_at' => 'timestamp',
             'stream_thumbnail' => AsFile::class.':match-stream-thumbnails,false,media',
             'pending_crease' => 'array',
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $match): void {
+            if ($match->venue_name === '') {
+                $match->venue_name = null;
+            }
+
+            if ($match->kind === null) {
+                $match->kind = MatchKindEnum::TOURNAMENT;
+            }
+
+            $match->assertKindInvariant();
+        });
+    }
+
     public function tournament(): BelongsTo
     {
         return $this->belongsTo(Tournament::class, 'tournament_id');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
@@ -144,10 +173,72 @@ class TournamentMatch extends BaseModel
 
     public function stream(): HasOne
     {
-        return $this->hasOne(MatchStream::class, 'match_id');
+        return $this->hasOne(LiveStream::class, 'match_id');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    public function isQuick(): bool
+    {
+        return $this->kind === MatchKindEnum::QUICK;
+    }
+
+    public function isTournamentKind(): bool
+    {
+        return $this->kind === MatchKindEnum::TOURNAMENT || $this->kind === null;
+    }
+
+    /**
+     * Serialized tournament identity for match APIs / graphics. Null when the match has no tournament.
+     *
+     * @return array{id: int, name: string, short_name: string, logo_url: ?string}|null
+     */
+    public function tournamentSummary(): ?array
+    {
+        if ($this->tournament_id === null) {
+            return null;
+        }
+
+        $this->loadMissing('tournament');
+        $tournament = $this->tournament;
+        if ($tournament === null) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $tournament->id,
+            'name' => (string) ($tournament->tournament_name ?? ''),
+            'short_name' => (string) ($tournament->short_name ?? ''),
+            'logo_url' => $tournament->logoUrl(),
+        ];
+    }
+
+    public function assertKindInvariant(): void
+    {
+        $kind = $this->kind instanceof MatchKindEnum
+            ? $this->kind
+            : MatchKindEnum::tryFrom((string) $this->kind);
+
+        if ($kind === MatchKindEnum::QUICK) {
+            if ($this->tournament_id !== null || $this->cricket_format === null || $this->created_by === null) {
+                throw new InvalidArgumentException(
+                    'Quick matches require tournament_id null, cricket_format, and created_by.'
+                );
+            }
+
+            return;
+        }
+
+        if ($kind === MatchKindEnum::TOURNAMENT) {
+            if ($this->tournament_id === null) {
+                throw new InvalidArgumentException('Tournament matches require tournament_id.');
+            }
+
+            return;
+        }
+
+        throw new InvalidArgumentException('Invalid match kind.');
+    }
 
     /**
      * Custom upload URL when set; otherwise YouTube auto-thumbnail when stream is eager-loaded.

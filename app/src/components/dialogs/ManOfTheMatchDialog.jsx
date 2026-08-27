@@ -99,6 +99,7 @@ export function ManOfTheMatchDialog({ matchId, tournamentId, manOfMatchPickerUse
 
       <DialogSaveButton
         disabled={isSavingMotm || manOfMatchCandidates.length === 0 || selectedPlayerId == null}
+        loading={isSavingMotm}
         onClick={handleSaveMotm}
       >
         {isSavingMotm ? 'Saving…' : 'Save'}

@@ -8,6 +8,8 @@ import { formatDateRange, parseDate, toDateStr } from '@/lib/utils/dateUtils';
 import { getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
@@ -57,7 +59,7 @@ export default function UpcomingTournaments() {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [activeMonth, setActiveMonth] = useState(currentMonth);
 
-  const { data, isLoading, isError } = useGetTournamentsQuery({ all: true });
+  const { data, isLoading, isError, refetch } = useGetTournamentsQuery({ all: true });
   const todayStr = toDateStr(now);
 
   const monthTabs = useMemo(() => {
@@ -133,32 +135,25 @@ export default function UpcomingTournaments() {
             </TabsList>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
-            {isLoading
-              ? Array.from({ length: 4 }, (_, i) => (
-                  <div key={`skeleton-${i}`} className="bg-surface flex animate-pulse flex-col overflow-hidden rounded-[17px]">
-                    <div className="bg-surface-border h-[148px] w-full" />
-                    <div className="flex flex-col gap-2 p-3">
-                      <div className="bg-surface-border h-4 w-3/4 rounded" />
-                      <div className="bg-surface-border h-3 w-1/2 rounded" />
-                    </div>
-                  </div>
-                ))
-              : cardsToShow.map((tournament) => (
-                  <UpcomingTournamentCard
-                    key={tournament.id}
-                    tournament={tournament}
-                    onClick={handleCardClick}
-                    disabled={tournament.id == null}
-                  />
-                ))}
-          </div>
-
-          {isLoading && <p className="text-muted py-4 text-center text-[13px]">Loading tournaments…</p>}
-          {isError && <p className="py-4 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
-          {isEmpty && !isLoading && !isError && (
-            <p className="text-muted py-2 text-center text-[13px]">No upcoming tournaments for this month.</p>
+          {isLoading ? (
+            <LoaderBlock label="Loading tournaments" className="py-16" />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
+              {cardsToShow.map((tournament) => (
+                <UpcomingTournamentCard
+                  key={tournament.id}
+                  tournament={tournament}
+                  onClick={handleCardClick}
+                  disabled={tournament.id == null}
+                />
+              ))}
+            </div>
           )}
+
+          {isError ? <ListError message="Could not load tournaments." onRetry={() => refetch()} /> : null}
+          {isEmpty && !isLoading && !isError ? (
+            <ListEmpty title="No Upcoming Tournaments." description="Nothing scheduled for this month." />
+          ) : null}
         </Tabs>
       </Container>
     </div>

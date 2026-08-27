@@ -4,9 +4,9 @@ import { useDialog } from '@/context/DialogContext';
 import { useMatchAdmin } from '@/hooks/useMatchAdmin';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { Button } from '@/ui/Button';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { DialogFormSection } from '@/ui/form/DialogFormSection';
-import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { Input } from '@/ui/Input';
 
@@ -77,26 +77,30 @@ export function ReviseTargetDialog({ matchId, currentTarget, onInningsEnded }) {
             />
           </DialogFormSection>
 
-          <DialogFormSection label="How Do You Want to Proceed?" controlOffset="sm">
-            <FormActions className="flex-row gap-3 pt-0">
-              <button
-                type="button"
-                disabled={!targetValid || isRevisingTarget}
-                onClick={() => submit('continue')}
-                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
-              >
-                {pendingAction === 'continue' && isRevisingTarget ? 'Saving…' : 'Continue Innings'}
-              </button>
-              <button
-                type="button"
-                disabled={!targetValid || isRevisingTarget}
-                onClick={() => submit('end_innings')}
-                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
-              >
-                {pendingAction === 'end_innings' && isRevisingTarget ? 'Saving…' : 'End Innings'}
-              </button>
-            </FormActions>
-          </DialogFormSection>
+          <div className="flex gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-w-0 flex-1"
+              disabled={!targetValid || isRevisingTarget}
+              loading={pendingAction === 'end_innings' && isRevisingTarget}
+              onClick={() => submit('end_innings')}
+            >
+              End Innings
+            </Button>
+            <Button
+              type="button"
+              variant="orange"
+              size="sm"
+              className="min-w-0 flex-1"
+              disabled={!targetValid || isRevisingTarget}
+              loading={pendingAction === 'continue' && isRevisingTarget}
+              onClick={() => submit('continue')}
+            >
+              Continue Innings
+            </Button>
+          </div>
         </FormStack>
       </DialogScrollBody>
     </>

@@ -14,6 +14,8 @@ use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
+use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Services\Broadcast\SyncUserOwnedOverlayCommand;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
@@ -30,6 +32,8 @@ class AdditionalRunsController extends Controller
     public function __construct(
         private readonly MatchCompletionService $completionService,
         private readonly MatchStateService $matchStateService,
+        private readonly SyncUserOwnedOverlayCommand $syncUserOwnedOverlayCommand,
+        private readonly GraphicContextOrchestrator $graphicContextOrchestrator,
     ) {}
 
     public function store(StoreAdditionalRunsRequest $request, TournamentMatch $match, Innings $innings): JsonResponse
@@ -116,6 +120,10 @@ class AdditionalRunsController extends Controller
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
+
+        if ($this->syncUserOwnedOverlayCommand->advanceIfPresent($match->fresh() ?? $match, $authUser->id)) {
+            $this->graphicContextOrchestrator->syncAndBroadcast($match->fresh() ?? $match);
+        }
 
         $ball->load(['striker', 'nonStriker', 'bowler']);
 

@@ -1,6 +1,5 @@
 # Dependencies (largest indexing cost)
 **/node_modules/
-**/vendor/
 
 # Build output
 **/dist/

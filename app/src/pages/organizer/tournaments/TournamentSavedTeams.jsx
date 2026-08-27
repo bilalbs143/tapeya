@@ -17,6 +17,8 @@ import {
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 function teamDisplay(team) {
   const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
@@ -139,8 +141,8 @@ export default function TournamentSavedTeams() {
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
-        {isLoading && <p className="text-muted mb-3 text-[13px]">Loading teams…</p>}
-        {isError && <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>}
+        {isLoading && <LoaderBlock label="Loading teams" className="mb-3 py-3" />}
+        {isError ? <ListError message="Could not load teams." /> : null}
 
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
@@ -172,9 +174,7 @@ export default function TournamentSavedTeams() {
         )}
 
         {!isLoading && isSuccess && teams.length === 0 && (
-          <p className="bg-surface text-muted mb-6 rounded-[17px] px-4 py-6 text-center text-[13px]">
-            No teams added yet. Create a team to get started.
-          </p>
+          <ListEmpty title="No Teams Yet." description="Create a team to get started." />
         )}
 
         {!isLoading && teamsByGroup != null && (
@@ -206,9 +206,7 @@ export default function TournamentSavedTeams() {
                     </li>
                   ))}
                 </ul>
-                {teamsByGroup[groupIndex].length === 0 && (
-                  <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No teams in this group</p>
-                )}
+                {teamsByGroup[groupIndex].length === 0 && <ListEmpty title="No Teams In This Group." />}
               </section>
             ))}
           </div>
@@ -230,8 +228,8 @@ export default function TournamentSavedTeams() {
         <div className="flex justify-start pt-2">
           <Button
             type="button"
-            variant="auth"
-            className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1A1A1A] uppercase lg:w-auto"
+            variant="orange"
+            className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1A1A1A] lg:w-auto"
             onClick={handleSubmitTeams}
             disabled={isLoading || teams.length === 0 || !teamsComplete}
           >

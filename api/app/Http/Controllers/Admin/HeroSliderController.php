@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
+use App\Http\Requests\Admin\HeroSlider\HeroSliderCtaRules;
 use App\Http\Requests\Admin\HeroSlider\StoreHeroSliderRequest;
 use App\Http\Requests\Admin\HeroSlider\UpdateHeroSliderRequest;
 use App\Http\Resources\Admin\HeroSlider\HeroSliderResource;
@@ -24,9 +25,10 @@ class HeroSliderController extends BaseAdminController
 
     public function store(StoreHeroSliderRequest $request): JsonResponse
     {
-        $data = [
-            'status' => StatusEnum::from($request->validated('status')),
-        ];
+        $data = array_merge(
+            ['status' => StatusEnum::from($request->validated('status'))],
+            HeroSliderCtaRules::payload($request->validated(), $request->boolean('cta_target_blank', true)),
+        );
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -40,14 +42,18 @@ class HeroSliderController extends BaseAdminController
 
     public function update(UpdateHeroSliderRequest $request, HeroSlider $hero_slider): JsonResponse
     {
-        $data = [
-            'status' => StatusEnum::from($request->validated('status')),
-        ];
+        $targetBlank = array_key_exists('cta_target_blank', $request->validated())
+            ? $request->boolean('cta_target_blank')
+            : (bool) $hero_slider->cta_target_blank;
+        $data = array_merge(
+            ['status' => StatusEnum::from($request->validated('status'))],
+            HeroSliderCtaRules::payload($request->validated(), $targetBlank),
+        );
         $hero_slider = $this->refresh($hero_slider);
         $hero_slider->update($data);
         $hero_slider = $this->refresh($hero_slider);
 
-        return $this->success(new HeroSliderResource($hero_slider), 'Hero slider updated.');
+        return $this->success(new HeroSliderResource($hero_slider), 'Hero Slider Updated.');
     }
 
     public function destroy(HeroSlider $hero_slider): JsonResponse

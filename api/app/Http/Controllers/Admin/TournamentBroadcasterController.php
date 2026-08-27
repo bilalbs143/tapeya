@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTournamentBroadcasterRequest;
@@ -14,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 class TournamentBroadcasterController extends Controller
 {
     use BaseControllerTrait;
-    use EnsuresTournamentStaffAppRoles;
 
     public function index(Tournament $tournament): JsonResponse
     {
@@ -37,7 +35,6 @@ class TournamentBroadcasterController extends Controller
         }
 
         $tournament->broadcasters()->sync([$target->id]);
-        $this->ensureOrganizerRole($target->id);
 
         return $this->success(
             new TournamentBroadcasterUserResource($target),

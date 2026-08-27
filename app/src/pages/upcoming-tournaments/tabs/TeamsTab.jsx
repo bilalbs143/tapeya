@@ -2,6 +2,8 @@ import { TeamLogo } from '@/components/TeamLogo';
 import { formatListIndex } from '@/lib/format';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function TeamsTab({ tournamentId }) {
   const hasValidId = isValidTournamentId(tournamentId);
@@ -10,6 +12,7 @@ export function TeamsTab({ tournamentId }) {
     data: teams = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentTeamsQuery(tournamentId, {
     skip: !hasValidId,
   });
@@ -17,23 +20,19 @@ export function TeamsTab({ tournamentId }) {
   if (!hasValidId) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Teams are not available for this sample tournament.</p>
+        <ListEmpty title="Teams Unavailable." description="Teams are not available for this sample tournament." />
       </div>
     );
   }
 
   if (isLoading) {
-    return (
-      <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Loading teams…</p>
-      </div>
-    );
+    return <LoaderBlock label="Loading teams" className="mt-4 py-6" />;
   }
 
   if (isError) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-red-400">Failed to load teams.</p>
+        <ListError message="Could not load teams." onRetry={() => refetch()} />
       </div>
     );
   }
@@ -41,7 +40,7 @@ export function TeamsTab({ tournamentId }) {
   if (!teams.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-8 text-center text-[13px]">No teams added yet.</p>
+        <ListEmpty title="No Teams Yet." />
       </div>
     );
   }

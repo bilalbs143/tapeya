@@ -2,14 +2,14 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Hero slide form"
+    aria-label="Hero Slide Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
-        <div class="col-span-12">
+        <div class="col-span-12 mb-4">
           <app-file-upload
             formControlName="image_mobile"
-            label="Mobile Image (default)"
+            label="Mobile Image (Default)"
             accept="image/jpeg,image/png,image/webp"
             acceptLabel="JPG, PNG, WebP"
             hint="Shown on mobile devices and used as fallback on desktop. 1200×628 px recommended."
@@ -17,11 +17,11 @@
             [maxSizeMb]="5"
           ></app-file-upload>
           @if (form.get('image_mobile')?.invalid && form.get('image_mobile')?.touched) {
-            <p class="text-xs text-error mt-1 m-0">Mobile image is required.</p>
+            <p class="text-xs text-error mt-1 m-0">Mobile Image Is Required.</p>
           }
         </div>
 
-        <div class="col-span-12">
+        <div class="col-span-12 mb-4">
           <app-file-upload
             formControlName="image_desktop"
             label="Desktop Image"
@@ -50,6 +50,130 @@
             </mat-select>
           </mat-form-field>
         </div>
+
+        <div class="col-span-12 mb-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Slide Action <span class="text-error">*</span></mat-label>
+          <mat-radio-group
+            formControlName="cta_type"
+            class="flex flex-wrap items-center gap-4"
+          >
+            @if (ctaTypeOptions$ | async; as ctaTypeOptions) {
+              @for (opt of ctaTypeOptions; track opt.value) {
+                <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+              }
+            }
+          </mat-radio-group>
+          <p class="text-muted text-xs mt-1 m-0">
+            Image Only Is A Banner. Link Opens A URL. Open Dialog Shows An In-App Dialog On Tap.
+          </p>
+        </div>
+
+        @if (ctaType === 'url') {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">CTA Label</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="cta_label"
+                placeholder="Optional Badge On The Image"
+                maxlength="255"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">CTA URL <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="cta_url"
+                [placeholder]="
+                  form.get('cta_target_blank')?.value === false ? '/upcoming-tournaments' : 'https://example.com/promo'
+                "
+                maxlength="2048"
+              />
+              <mat-error>
+                @if (form.get('cta_url')?.hasError('required')) {
+                  CTA URL Is Required For A Link Slide.
+                } @else if (form.get('cta_url')?.hasError('ctaUrlExternal')) {
+                  External Links Need A Full HTTP(S) URL (E.g. https://example.com/promo).
+                } @else if (form.get('cta_url')?.hasError('ctaUrlInternal')) {
+                  In-App Links Need A Path Starting With / (E.g. /upcoming-tournaments).
+                }
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">Open In External Browser</mat-label>
+            <mat-checkbox
+              formControlName="cta_target_blank"
+              color="primary"
+            >
+              Open In Device Browser
+            </mat-checkbox>
+            <p class="text-muted text-xs mt-1 m-0">
+              Unchecked Treats The URL As An In-App Path (E.g. <code>/upcoming-tournaments</code>).
+            </p>
+          </div>
+        }
+
+        @if (ctaType === 'dialog') {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">CTA Label</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="cta_label"
+                placeholder="Optional Badge On The Image"
+                maxlength="255"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Dialog Key <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="cta_dialog_key"
+                placeholder="e.g. downloadApp"
+                maxlength="64"
+              />
+              <mat-error>Dialog Key Is Required.</mat-error>
+            </mat-form-field>
+          </div>
+
+          @if (isInterestCampaign) {
+            <div class="col-span-12 lg:col-span-6">
+              <mat-label class="text-sm font-semibold mb-2 block">Campaign Slug <span class="text-error">*</span></mat-label>
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <input
+                  matInput
+                  formControlName="cta_dialog_param"
+                  placeholder="e.g. summer-league"
+                  maxlength="255"
+                />
+                <mat-error>Interest Campaign Dialogs Need The Campaign Slug.</mat-error>
+              </mat-form-field>
+            </div>
+          }
+        }
       </div>
     </mat-dialog-content>
 

@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-2">
@@ -56,7 +56,7 @@
         <table
           mat-table
           matSort
-          aria-label="Hero sliders list"
+          aria-label="Hero Sliders List"
           matSortActive="created_at"
           matSortStart="desc"
           matSortDirection="desc"
@@ -128,6 +128,26 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="cta_label">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              CTA / Action
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.cta_type_label || row.cta_type || emptyCell }}
+              @if (row.cta_label) {
+                <span class="text-muted"> — {{ row.cta_label }}</span>
+              }
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th
               mat-header-cell
@@ -158,7 +178,7 @@
               mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
-              Created at
+              Created At
             </th>
             <td
               mat-cell
@@ -203,7 +223,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit slide"
+                aria-label="Edit Slide"
                 (click)="openEditDialog(row)"
               >
                 <i-tabler
@@ -214,7 +234,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete slide"
+                aria-label="Delete Slide"
                 (click)="openDeleteDialog(row)"
               >
                 <i-tabler

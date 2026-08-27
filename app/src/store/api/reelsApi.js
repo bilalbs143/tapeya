@@ -289,6 +289,7 @@ export const reelsApi = baseApi.injectEndpoints({
           followersCount: raw.followers_count ?? 0,
           followingCount: raw.following_count ?? 0,
           reelsCount: raw.reels_count ?? 0,
+          postsCount: raw.posts_count ?? 0,
           isFollowing: Boolean(raw.is_following),
           isOfficial: Boolean(raw.is_official),
           country: raw.country ?? null,
@@ -371,7 +372,7 @@ export const reelsApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => normalizeReel(response?.data ?? {}),
       // Do not invalidate MINE here — the shell is status=uploading with no playback yet.
-      // Floating upload navigates to My Videos immediately; invalidating would insert an empty slide.
+      // Upload navigates to My Videos immediately; invalidating would insert an empty slide.
       // reelUploadSessionStore invalidates MINE/FEED after the original finishes uploading.
     }),
 

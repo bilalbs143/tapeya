@@ -226,7 +226,23 @@ class PostFeedService
     }
 
     /**
-     * Same visibility rules as {@see forUser}, for the profile posts_count badge.
+     * Profile list: published non-video posts visible to the viewer.
+     *
+     * @return CursorPaginator<int, Post>
+     */
+    public function forUserPosts(int $userId, ?int $viewerId, ?string $cursor, int $perPage = 10): CursorPaginator
+    {
+        $perPage = max(1, min($perPage, 20));
+
+        return $this->profilePostsQuery($userId, $viewerId)
+            ->with(self::withRelations())
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $cursor);
+    }
+
+    /**
+     * Same visibility rules as {@see forUser}, for the profile reels_count badge.
      */
     public function countForUser(int $userId, ?int $viewerId): int
     {
@@ -234,12 +250,35 @@ class PostFeedService
     }
 
     /**
+     * Same visibility rules as {@see forUserPosts}, for the profile posts_count badge.
+     */
+    public function countPostsForUser(int $userId, ?int $viewerId): int
+    {
+        return $this->profilePostsQuery($userId, $viewerId)->count();
+    }
+
+    /**
      * @return Builder<Post>
      */
     private function profileReelsQuery(int $userId, ?int $viewerId)
     {
+        return $this->profilePublishedQuery($userId, $viewerId)->videosOnly();
+    }
+
+    /**
+     * @return Builder<Post>
+     */
+    private function profilePostsQuery(int $userId, ?int $viewerId)
+    {
+        return $this->profilePublishedQuery($userId, $viewerId)->nonVideos();
+    }
+
+    /**
+     * @return Builder<Post>
+     */
+    private function profilePublishedQuery(int $userId, ?int $viewerId)
+    {
         $query = Post::query()
-            ->videosOnly()
             ->ownedBy($userId)
             ->whereNotNull('published_at')
             ->whereNotIn('status', [
@@ -250,7 +289,7 @@ class PostFeedService
             ]);
 
         if ($viewerId !== null && $viewerId === $userId) {
-            // Owner sees their published reels regardless of visibility.
+            // Owner sees their published posts regardless of visibility.
             return $query;
         }
 

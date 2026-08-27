@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\StreamAdminResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
@@ -107,7 +107,7 @@ class StreamController extends Controller
      */
     private function streamPayload(
         TournamentMatch $match,
-        ?MatchStream $stream = null,
+        ?LiveStream $stream = null,
         ?StreamIngestConfig $ingest = null,
     ): array {
         $match->loadMissing('stream');

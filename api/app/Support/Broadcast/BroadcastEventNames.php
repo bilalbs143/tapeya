@@ -3,8 +3,10 @@
 namespace App\Support\Broadcast;
 
 use App\Events\Broadcast\Admin\BroadcastConcurrencyAlertBroadcast;
+use App\Events\Broadcast\Admin\SupportMessageSubmittedBroadcast;
 use App\Events\Broadcast\Admin\TournamentRequestSubmittedBroadcast;
 use App\Events\Broadcast\Admin\UserRegisteredBroadcast;
+use App\Events\Broadcast\Admin\VendorApplicationSubmittedBroadcast;
 use App\Events\Broadcast\Admin\YouTubeQuotaAlertBroadcast;
 use App\Events\Broadcast\User\OrderPlacedBroadcast;
 use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
@@ -21,8 +23,10 @@ use App\Events\Broadcast\User\PostEngagementBroadcast;
  * @see \App\Events\Broadcast\Admin\OrderPlacedBroadcast
  * @see TournamentRequestSubmittedBroadcast
  * @see UserRegisteredBroadcast
+ * @see VendorApplicationSubmittedBroadcast
  * @see BroadcastConcurrencyAlertBroadcast
  * @see YouTubeQuotaAlertBroadcast
+ * @see SupportMessageSubmittedBroadcast
  */
 final class BroadcastEventNames
 {
@@ -38,9 +42,13 @@ final class BroadcastEventNames
 
     public const ADMIN_USER_REGISTERED = 'admin.user.registered';
 
+    public const ADMIN_VENDOR_APPLICATION_SUBMITTED = 'admin.vendor_application.submitted';
+
     public const ADMIN_BROADCAST_CONCURRENCY_HIGH = 'admin.broadcast_concurrency.high';
 
     public const ADMIN_YOUTUBE_QUOTA_HIGH = 'admin.youtube_quota.high';
+
+    public const ADMIN_SUPPORT_MESSAGE_SUBMITTED = 'admin.support_message.submitted';
 
     /** Fired on public channel `match.{matchId}.graphics` when the active graphic changes. */
     public const MATCH_GRAPHIC_ACTIVATED = 'match.graphic.activated';

@@ -3,16 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useSearchPopover } from '@/hooks/useSearchPopover';
 import { MIN_SEARCH_LENGTH, SEARCH_RESULTS_LIMIT } from '@/lib/constants/search';
 import { formatPrice } from '@/lib/format';
-import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { buildShopProductPath } from '@/lib/shopPaths';
+import { useGetProductsQuery } from '@/store/api/shopApi';
+import { LoaderBlock } from '@/ui/Loader';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 import { SearchInput } from '@/ui/SearchInput';
 
 export function ShopSearchPopover() {
   const navigate = useNavigate();
   const { searchTerm, setSearchTerm, debouncedSearch, isOpen, clear, handleOpenChange } = useSearchPopover();
-
-  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
-  const brands = brandsResponse?.data ?? [];
 
   const { data: searchResponse, isLoading: isSearching } = useGetProductsQuery(
     {
@@ -23,18 +22,14 @@ export function ShopSearchPopover() {
   );
   const searchProducts = searchResponse?.data ?? [];
 
-  const productsWithBrandSlug = searchProducts.map((p) => ({
-    ...p,
-    brandSlug: brands.find((b) => b.id === p.brand_id)?.slug ?? '',
-  }));
-
   const handleSelectProduct = (product) => {
-    if (!product.slug || !product.brandSlug) return;
+    const detailPath = buildShopProductPath(product);
+    if (!detailPath) return;
     clear();
-    navigate(`/shop/${product.brandSlug}/product/${product.slug}`);
+    navigate(detailPath);
   };
 
-  const hasResults = productsWithBrandSlug.length > 0;
+  const hasResults = searchProducts.length > 0;
   const showEmpty = debouncedSearch.length >= MIN_SEARCH_LENGTH && !isSearching && !hasResults;
 
   return (
@@ -60,7 +55,7 @@ export function ShopSearchPopover() {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isSearching && <div className="text-muted px-4 py-6 text-center text-[13px]">Searching…</div>}
+          {isSearching && <LoaderBlock label="Searching" size="xs" className="px-4 py-6" />}
           {!isSearching && showEmpty && (
             <div className="text-muted px-4 py-6 text-center text-[13px]">
               No products found for &quot;{debouncedSearch}&quot;
@@ -68,7 +63,7 @@ export function ShopSearchPopover() {
           )}
           {!isSearching && hasResults && (
             <ul className="list-none">
-              {productsWithBrandSlug.map((product) => {
+              {searchProducts.map((product) => {
                 const imageUrl = product.images?.[0]?.path;
                 const hasDiscount = product.sale_price != null && product.sale_price < product.price;
                 const displayPrice = product.sale_price ?? product.price;

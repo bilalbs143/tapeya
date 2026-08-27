@@ -26,6 +26,9 @@ tapeya://feed/8
 
 https://tapeya.com/live/go-live/31
 tapeya://live/go-live/31
+
+https://tapeya.com/scorecard/match/901
+tapeya://scorecard/match/901
 ```
 
 ## Adding a new deep link
@@ -52,15 +55,15 @@ tapeya://live/go-live/31
 1. [x] Put **Play App Signing** SHA-256 in [`assetlinks.json`](../app/public/.well-known/assetlinks.json)  
    - See [`PLAY_APP_SIGNING_SHA256.md`](./PLAY_APP_SIGNING_SHA256.md)
 2. Host at `https://tapeya.com/.well-known/assetlinks.json` (nginx `app.conf` serves JSON)
-3. [x] `AndroidManifest` HTTPS `pathPrefix`: `/reels`, `/feed`, `/live/go-live` on `tapeya.com` only  
-   - Custom scheme: `tapeya://reels…`, `tapeya://feed…`, `tapeya://live…`
+3. [x] `AndroidManifest` HTTPS `pathPrefix`: `/reels`, `/feed`, `/live/go-live`, `/scorecard` on `tapeya.com` only  
+   - Custom scheme: `tapeya://reels…`, `tapeya://feed…`, `tapeya://live…`, `tapeya://scorecard…`
 4. Verify after deploy + install: `adb shell pm get-app-links com.tapbytapeya.app`
 5. Rebuild + ship native Android (versionCode **17** / `1.1.6` bumped for this change)
 
 ### iOS Universal Links
 
 1. [x] Team ID `M7P9P5UTTZ` in [`apple-app-site-association`](../app/public/.well-known/apple-app-site-association) (`appID` = `M7P9P5UTTZ.com.tapbytapeya.app`)
-2. [x] Paths cover `/reels/*`, `/feed/*`, `/live/go-live/*`
+2. [x] Paths cover `/reels/*`, `/feed/*`, `/live/go-live/*`, `/scorecard/*`
 3. [x] Associated Domains in `App.entitlements` + `AppRelease.entitlements`: `applinks:tapeya.com` (apex only — `www` 301s and cannot host AASA)
 4. Host AASA after mobile web deploy: `https://tapeya.com/.well-known/apple-app-site-association`  
    - nginx `location = /.well-known/apple-app-site-association` → `application/json`, no SPA fallback  

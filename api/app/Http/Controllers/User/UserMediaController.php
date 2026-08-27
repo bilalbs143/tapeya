@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Events\Broadcast\Post\PostProcessingUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\Shop\Product;
 use App\Models\Team;
 use App\Models\TournamentInterestSubmission;
 use App\Models\TournamentMatch;
 use App\Services\Post\PostService;
 use App\Settings\PostsSettings;
 use App\Support\Media\MediaDisk;
+use App\Support\MediaRegistry;
 use App\Support\PhpUploadError;
 use App\Support\Post\PostImageStorage;
 use App\Support\Post\PostVideoFormats;
@@ -27,7 +30,7 @@ use Illuminate\Http\Request;
  * DELETE /api/v1/media/{type}/{id}/{field}   — remove a media field
  *
  * Requires an authenticated app user (Sanctum). Ownership is enforced for
- * interest-submission and reel (video post) types.
+ * interest-submission, reel (video post), and product types.
  *
  * Registered types and fields:
  *   team / logo
@@ -36,6 +39,7 @@ use Illuminate\Http\Request;
  *   interest-submission / id_document
  *   reel / original   (video post — type key kept for app compat)
  *   reel / thumbnail
+ *   product / images  (multiple; MediaRegistry)
  */
 class UserMediaController extends Controller
 {
@@ -106,9 +110,14 @@ class UserMediaController extends Controller
 
     /**
      * Upload (or replace) a media field. Multipart body key: "file"
+     * Product images (multiple): multipart body key "files[]"
      */
     public function upload(Request $request, string $type, int $id, string $field): JsonResponse
     {
+        if ($type === 'product') {
+            return $this->uploadProductMedia($request, $id, $field);
+        }
+
         $resolved = $this->resolveRecord($request, $type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
@@ -201,9 +210,14 @@ class UserMediaController extends Controller
 
     /**
      * Delete a media field.
+     * Product images (multiple): pass JSON body {"url": "..."} to identify the image.
      */
     public function delete(Request $request, string $type, int $id, string $field): JsonResponse
     {
+        if ($type === 'product') {
+            return $this->deleteProductMedia($request, $id, $field);
+        }
+
         $resolved = $this->resolveRecord($request, $type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
@@ -270,6 +284,107 @@ class UserMediaController extends Controller
             }
         }
 
+        if ($type === 'match') {
+            /** @var TournamentMatch $record */
+            $user = $request->user();
+            if ($user === null || ! $user->canScoreMatchInApp($record)) {
+                return $this->forbidden('You cannot modify this match thumbnail.');
+            }
+        }
+
         return [$record, $typeConfig['fields'][$field]];
+    }
+
+    private function uploadProductMedia(Request $request, int $id, string $field): JsonResponse
+    {
+        try {
+            [$record, $config] = MediaRegistry::resolve('product', $id, $field);
+        } catch (\InvalidArgumentException $e) {
+            return $this->notFound($e->getMessage());
+        }
+
+        $ownership = $this->assertProductVendorOwnership($request, $record);
+        if ($ownership instanceof JsonResponse) {
+            return $ownership;
+        }
+
+        $request->validate([
+            'files' => ['required', 'array', 'min:1'],
+            'files.*' => ['image', 'max:5120'],
+        ]);
+
+        $relation = $config['relation'];
+        $pathCol = $config['relation_path_col'];
+        $sortOrder = $record->$relation()->count();
+        $results = [];
+
+        foreach ($request->file('files', []) as $file) {
+            $path = MediaDisk::storeUploaded($file, $config['dir']);
+            $pivot = $record->$relation()->create([
+                $pathCol => $path,
+                'sort_order' => $sortOrder++,
+            ]);
+            $results[] = [
+                'id' => $pivot->id,
+                'url' => MediaDisk::url($path),
+            ];
+        }
+
+        return $this->success(['images' => $results]);
+    }
+
+    private function deleteProductMedia(Request $request, int $id, string $field): JsonResponse
+    {
+        try {
+            [$record, $config] = MediaRegistry::resolve('product', $id, $field);
+        } catch (\InvalidArgumentException $e) {
+            return $this->notFound($e->getMessage());
+        }
+
+        $ownership = $this->assertProductVendorOwnership($request, $record);
+        if ($ownership instanceof JsonResponse) {
+            return $ownership;
+        }
+
+        $request->validate(['url' => ['required', 'string']]);
+
+        $relation = $config['relation'];
+        $pathCol = $config['relation_path_col'];
+        $url = $request->input('url');
+
+        $target = $record->$relation()->get()->first(
+            fn ($img) => MediaDisk::url($img->$pathCol) === $url
+        );
+
+        if (! $target) {
+            return $this->notFound('Image not found.');
+        }
+
+        MediaDisk::delete($target->$pathCol);
+        $target->delete();
+
+        return $this->noContent();
+    }
+
+    private function assertProductVendorOwnership(Request $request, Model $record): ?JsonResponse
+    {
+        /** @var Product $record */
+        $vendor = $record->relationLoaded('vendor')
+            ? $record->vendor
+            : $record->vendor()->first();
+
+        if ($vendor === null || (int) $vendor->user_id !== (int) $request->user()?->id) {
+            return $this->forbidden('You cannot modify this product.');
+        }
+
+        if ($vendor->status === VendorStatusEnum::SUSPENDED) {
+            return $this->failure('Vendor account is suspended.', 'VENDOR_SUSPENDED');
+        }
+
+        if ($vendor->status !== VendorStatusEnum::APPROVED) {
+            return $this->failure('Vendor account is not approved.', 'VENDOR_NOT_APPROVED');
+        }
+
+        return null;
     }
 }

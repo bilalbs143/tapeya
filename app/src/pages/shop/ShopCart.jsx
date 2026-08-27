@@ -1,13 +1,17 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice, toNumber } from '@/lib/format';
+import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -88,6 +92,14 @@ export default function ShopCart() {
   const [removeItem] = useRemoveCartItemMutation();
 
   const items = cart?.items ?? [];
+  const vendorGroups = useMemo(() => {
+    if (Array.isArray(cart?.vendor_groups) && cart.vendor_groups.length > 0) {
+      return cart.vendor_groups;
+    }
+    if (items.length === 0) return [];
+    return [{ vendor: null, items, subtotal: null }];
+  }, [cart?.vendor_groups, items]);
+
   const subtotalFromApi = toNumber(cart?.subtotal);
   const subtotalFromItems = items.reduce((sum, i) => sum + toNumber(i.price_snapshot) * Math.max(0, toNumber(i.quantity)), 0);
   const subtotal = subtotalFromApi > 0 ? subtotalFromApi : subtotalFromItems;
@@ -123,31 +135,61 @@ export default function ShopCart() {
     <div className="flex flex-1 flex-col bg-black">
       <AppSubpageHeader title="SELECTED ITEMS" />
       <Container fullWidth className="flex flex-1 flex-col">
-        {isLoading ? null : emptyCart ? (
-          <div className="flex flex-1 items-center justify-center">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-muted text-[14px]">Your cart is empty.</p>
-              <button
-                type="button"
-                onClick={() => navigate('/shop')}
-                className="bg-brand rounded-full px-6 py-3 text-[14px] font-bold text-black"
-              >
+        {isLoading ? (
+          <PageLoader label="Loading cart" className="flex-1 py-16" />
+        ) : emptyCart ? (
+          <ListEmpty
+            title="Your Cart Is Empty."
+            description="Browse the shop and add items to continue."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
                 Continue Shopping
-              </button>
-            </div>
-          </div>
+              </Button>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-3 pb-28 lg:flex-row lg:items-start lg:gap-6 lg:pb-0">
-            <div className="min-w-0 flex-1 space-y-3">
-              {items.map((item) => (
-                <CartItemCard
-                  key={item.id}
-                  item={item}
-                  onUpdateQty={handleUpdateQty}
-                  onRemove={handleRemove}
-                  isUpdating={isUpdating}
-                />
-              ))}
+            <div className="min-w-0 flex-1 space-y-5">
+              {vendorGroups.map((group, groupIndex) => {
+                const storeName = group.vendor?.store_name;
+                const storeSlug = group.vendor?.slug;
+                const groupKey = group.vendor?.id ?? `flat-${groupIndex}`;
+                const groupSubtotal = toNumber(group.subtotal);
+                const groupItems = group.items ?? [];
+
+                return (
+                  <section key={groupKey} className="space-y-3">
+                    {storeName && (
+                      <div className="flex items-baseline justify-between gap-3 px-0.5">
+                        <h2 className="min-w-0 text-[13px] font-bold tracking-wide text-white uppercase">
+                          {storeSlug ? (
+                            <Link
+                              to={buildShopVendorPath(storeSlug)}
+                              className="text-brand transition-opacity hover:opacity-80 active:opacity-80"
+                            >
+                              {storeName}
+                            </Link>
+                          ) : (
+                            storeName
+                          )}
+                        </h2>
+                        {groupSubtotal > 0 && (
+                          <span className="text-muted shrink-0 text-[12px] font-medium">{formatPrice(groupSubtotal)}</span>
+                        )}
+                      </div>
+                    )}
+                    {groupItems.map((item) => (
+                      <CartItemCard
+                        key={item.id}
+                        item={item}
+                        onUpdateQty={handleUpdateQty}
+                        onRemove={handleRemove}
+                        isUpdating={isUpdating}
+                      />
+                    ))}
+                  </section>
+                );
+              })}
             </div>
 
             <div className="lg:sticky lg:top-20 lg:w-[320px] lg:shrink-0">
@@ -176,7 +218,7 @@ export default function ShopCart() {
                     <button
                       type="button"
                       onClick={() => navigate('/shop/checkout')}
-                      className="bg-brand shrink-0 rounded-[6px] px-6 py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity hover:opacity-95 active:opacity-90 lg:px-8 lg:py-3.5"
+                      className="bg-brand shrink-0 rounded-[6px] px-6 py-3 text-[14px] font-bold tracking-wide text-black transition-opacity hover:opacity-95 active:opacity-90 lg:px-8 lg:py-3.5"
                     >
                       Checkout
                     </button>
@@ -198,7 +240,7 @@ export default function ShopCart() {
             <button
               type="button"
               onClick={() => navigate('/shop/checkout')}
-              className="bg-brand shrink-0 rounded-[6px] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
+              className="bg-brand shrink-0 rounded-[6px] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black transition-opacity active:opacity-90"
             >
               Checkout
             </button>

@@ -8,7 +8,7 @@ use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\Admin\User\UserResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\Role;
 use App\Models\User;
 use App\Streaming\LiveStreamService;
@@ -29,9 +29,8 @@ class UserController extends BaseAdminController
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $roleIds = $data['role_ids'] ?? null;
         $adminRoleIds = $data['admin_role_ids'] ?? null;
-        unset($data['role_ids'], $data['admin_role_ids']);
+        unset($data['admin_role_ids']);
 
         if (! isset($data['status'])) {
             $data['status'] = ($data['type'] ?? null) === UserTypeEnum::USER->value
@@ -42,20 +41,13 @@ class UserController extends BaseAdminController
         $data['created_by'] = $request->user()?->id;
 
         $record = $this->model->create($data);
-        if (is_array($roleIds) && count($roleIds) > 0) {
-            $appIds = Role::query()
-                ->whereIn('id', $roleIds)
-                ->where('guard', RoleGuardEnum::APP->value)
+        if (is_array($adminRoleIds)) {
+            $adminIds = Role::query()
+                ->whereIn('id', $adminRoleIds)
+                ->where('guard', RoleGuardEnum::ADMIN->value)
                 ->pluck('id')
                 ->toArray();
-            $adminIds = is_array($adminRoleIds)
-                ? Role::query()
-                    ->whereIn('id', $adminRoleIds)
-                    ->where('guard', RoleGuardEnum::ADMIN->value)
-                    ->pluck('id')
-                    ->toArray()
-                : [];
-            $record->roles()->sync(array_values(array_unique(array_merge($appIds, $adminIds))));
+            $record->roles()->sync($adminIds);
         }
         $record = $this->refresh($record);
 
@@ -70,43 +62,27 @@ class UserController extends BaseAdminController
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $validated = $request->validated();
-        $roleIds = $validated['role_ids'] ?? null;
         $adminRoleIds = $validated['admin_role_ids'] ?? null;
         $wasAllowedToBroadcast = (bool) $user->can_broadcast;
         $revokingBroadcast = array_key_exists('can_broadcast', $validated)
             && ! (bool) $validated['can_broadcast']
             && $wasAllowedToBroadcast;
 
-        $response = $this->_patch($request, $user, null, function ($record) use ($roleIds, $adminRoleIds): void {
-            if (! is_array($roleIds) && ! is_array($adminRoleIds)) {
+        $response = $this->_patch($request, $user, null, function ($record) use ($adminRoleIds): void {
+            if (! is_array($adminRoleIds)) {
                 return;
             }
-            $appIds = is_array($roleIds)
-                ? Role::query()
-                    ->whereIn('id', $roleIds)
-                    ->where('guard', RoleGuardEnum::APP->value)
-                    ->pluck('id')
-                    ->toArray()
-                : $record->roles()
-                    ->where('roles.guard', RoleGuardEnum::APP->value)
-                    ->pluck('roles.id')
-                    ->toArray();
-            $adminIds = is_array($adminRoleIds)
-                ? Role::query()
-                    ->whereIn('id', $adminRoleIds)
-                    ->where('guard', RoleGuardEnum::ADMIN->value)
-                    ->pluck('id')
-                    ->toArray()
-                : $record->roles()
-                    ->where('roles.guard', RoleGuardEnum::ADMIN->value)
-                    ->pluck('roles.id')
-                    ->toArray();
-            $record->roles()->sync(array_values(array_unique(array_merge($appIds, $adminIds))));
+            $adminIds = Role::query()
+                ->whereIn('id', $adminRoleIds)
+                ->where('guard', RoleGuardEnum::ADMIN->value)
+                ->pluck('id')
+                ->toArray();
+            $record->roles()->sync($adminIds);
         }, function (array &$data): void {
             if (isset($data['password']) && $data['password'] === '') {
                 unset($data['password']);
             }
-            unset($data['role_ids'], $data['admin_role_ids']);
+            unset($data['admin_role_ids']);
         });
 
         // Clearing "Allow broadcast" without Ban must still cut off reconnect — same stream
@@ -152,7 +128,7 @@ class UserController extends BaseAdminController
      */
     private function revokeActiveSelfServeBroadcasts(User $user): int
     {
-        $activeStreams = MatchStream::query()
+        $activeStreams = LiveStream::query()
             ->where('owner_user_id', $user->id)
             ->whereIn('status', ['idle', 'starting', 'live'])
             ->get();

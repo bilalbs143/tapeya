@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { ScoringBatsmanPickerRow, ScoringBowlerPickerRow } from '@/components/scoring/ScoringPlayerPickerRows';
 import { SquadSetupPlayerRow } from '@/components/scoring/SquadSetupPlayerRow';
 import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import {
   DialogHeaderClose,
   DialogHeaderRow,
@@ -16,6 +17,7 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 import { FormStack } from '@/ui/form/FormStack';
+import { LoaderBlock } from '@/ui/Loader';
 
 // ─── Nav icons ───────────────────────────────────────────────────────────────
 
@@ -44,7 +46,7 @@ function SquadPickerSaveFooter({ hideSquadSetup, saving, requiredPlayingCount, s
   const label = saving ? 'Saving…' : isReady ? 'Save' : `Select ${remaining} more`;
 
   return (
-    <DialogSaveButton disabled={saving || !isReady} onClick={onSave}>
+    <DialogSaveButton disabled={saving || !isReady} loading={saving} onClick={onSave}>
       {label}
     </DialogSaveButton>
   );
@@ -60,7 +62,7 @@ function AddPlayerSearch({ squadIds, onAdd }) {
 
   const trimmed = query.trim();
   const debouncedQuery = useDebounce(trimmed, DEBOUNCE_MS);
-  const { data: results = [], isFetching } = useSearchSquadMembersQuery(debouncedQuery, {
+  const { data: results = [], isFetching } = useLookupUsersQuery(debouncedQuery, {
     skip: debouncedQuery.length < MIN_SEARCH_LENGTH,
   });
 
@@ -105,25 +107,18 @@ function AddPlayerSearch({ squadIds, onAdd }) {
           {trimmed.length < MIN_SEARCH_LENGTH ? (
             <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
           ) : isFetching ? (
-            <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+            <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
           ) : candidates.length > 0 ? (
             <ul className="py-1">
               {candidates.map((player) => (
-                <li key={player.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onAdd(player);
-                      setQuery('');
-                    }}
-                    className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
-                  >
-                    <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                    {(player.playing_role ?? player.playing_role_enum) && (
-                      <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
-                    )}
-                  </button>
-                </li>
+                <PlayerSearchResultRow
+                  key={player.id}
+                  player={player}
+                  onClick={() => {
+                    onAdd(player);
+                    setQuery('');
+                  }}
+                />
               ))}
             </ul>
           ) : (

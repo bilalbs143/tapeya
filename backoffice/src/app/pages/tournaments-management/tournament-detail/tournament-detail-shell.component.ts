@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { EMPTY, Subscription, filter, merge, of } from 'rxjs';
@@ -10,12 +9,13 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 @Component({
   selector: 'app-tournament-detail-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, LoaderBlockComponent],
   templateUrl: './tournament-detail-shell.component.html',
 })
 export class TournamentDetailShellComponent implements OnInit, OnDestroy {

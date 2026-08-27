@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { UserAvatar } from '@/components/UserAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage, isUnauthorizedError } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -17,15 +18,14 @@ import { loginSchema } from '@/lib/validations/auth';
 import { authApi, useRequestOtpMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
 import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
+import { Loader } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -191,7 +191,7 @@ export default function Login() {
               to="/register"
               className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
             >
-              Sign up
+              Sign Up
             </Link>
           </p>
         </div>
@@ -229,17 +229,19 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
                 disabled={busy}
                 className="focus:ring-brand flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:opacity-90 disabled:opacity-60"
               >
-                <Avatar className="border-surface-border h-12 w-12 shrink-0 overflow-hidden rounded-full border">
-                  <AvatarImage src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar} alt="" />
-                  <AvatarFallback className="bg-brand text-ink text-sm font-bold">
-                    {getInitials(profile.name, profile.nickname)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  src={profile.avatarUrl ?? profile.avatar_url}
+                  name={profile.name}
+                  size="card"
+                  fallback={getInitials(profile.name, profile.nickname)}
+                />
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-bold text-white">{isTapping ? 'Signing in…' : profile.name}</p>
+                  <p className="truncate text-[14px] font-bold text-white">{profile.name}</p>
                   <p className="text-muted truncate text-[12px] font-medium">{formatPhoneMasked(profile.phone)}</p>
                 </div>
+
+                {isTapping ? <Loader size="xs" /> : null}
               </button>
             </div>
           );
@@ -285,8 +287,8 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
       )}
 
       <FormActions align="stack" className="pt-0">
-        <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
-          {busy ? 'Signing in…' : 'Login'}
+        <Button type="submit" disabled={busy} loading={busy} variant="orange" className="lg:w-full">
+          Login
         </Button>
       </FormActions>
     </FormStack>

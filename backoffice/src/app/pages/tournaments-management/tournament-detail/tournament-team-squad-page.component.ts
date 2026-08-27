@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -29,6 +28,7 @@ import {
 } from 'src/app/services/tournament-teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import type { User } from 'src/app/services/users.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
@@ -56,9 +56,9 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
     MatSortModule,
 
-    MatProgressSpinnerModule,
-
     MatTooltipModule,
+
+    LoaderBlockComponent,
 
     TablerIconsModule,
 
@@ -243,11 +243,7 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
           distinctUntilChanged(),
 
           switchMap((term) =>
-            this.usersService
-
-              .adminUserSearch(term ?? '', { for_squad: true })
-
-              .pipe(catchError(() => of({ data: [] as SquadUser[] })))
+            this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as SquadUser[] })))
           )
         )
 

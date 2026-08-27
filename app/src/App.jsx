@@ -4,16 +4,20 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
+import { GoogleAnalyticsBoot } from '@/components/GoogleAnalyticsBoot';
 import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
 import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
 import { RequireBroadcastAccess } from '@/components/RequireBroadcastAccess';
+import { RequireVendorAccess } from '@/components/RequireVendorAccess';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
+import { RedirectShopLegacyBrandProduct, RedirectShopProductPrefix, RedirectShopVendorPrefix } from '@/pages/shop/ShopRedirects';
+import { FullScreenLoader } from '@/ui/Loader';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -23,6 +27,7 @@ const Otp = lazy(() => import('@/pages/auth/Otp'));
 
 const Home = lazy(() => import('@/pages/Home'));
 const Profile = lazy(() => import('@/pages/Profile'));
+const Stats = lazy(() => import('@/pages/Stats'));
 const StaticPage = lazy(() => import('@/pages/StaticPage'));
 const Support = lazy(() => import('@/pages/Support'));
 const NotificationCenter = lazy(() => import('@/pages/NotificationCenter'));
@@ -45,6 +50,9 @@ const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal')
 const Live = lazy(() => import('@/pages/live/Live'));
 const LiveBroadcast = lazy(() => import('@/pages/live/LiveBroadcast'));
 const GoLive = lazy(() => import('@/pages/live/GoLive'));
+const LiveStreaming = lazy(() => import('@/pages/live/LiveStreaming'));
+const LiveStreamingCreate = lazy(() => import('@/pages/live/LiveStreamingCreate'));
+const LiveStreamingManage = lazy(() => import('@/pages/live/LiveStreamingManage'));
 
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
@@ -61,10 +69,20 @@ const ShopCheckout = lazy(() => import('@/pages/shop/ShopCheckout'));
 const ShopCategory = lazy(() => import('@/pages/shop/ShopCategory'));
 const ShopFilter = lazy(() => import('@/pages/shop/ShopFilter'));
 const ShopProductDetail = lazy(() => import('@/pages/shop/ShopProductDetail'));
+const ShopSlugPage = lazy(() => import('@/pages/shop/ShopSlugPage'));
 const MyOrders = lazy(() => import('@/pages/shop/MyOrders'));
 const OrderDetail = lazy(() => import('@/pages/shop/OrderDetail'));
-const OrderPayment = lazy(() => import('@/pages/shop/OrderPayment'));
 const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
+
+const SellerHub = lazy(() => import('@/pages/vendor/SellerHub'));
+const SellerApply = lazy(() => import('@/pages/vendor/SellerApply'));
+const SellerOrders = lazy(() => import('@/pages/vendor/SellerOrders'));
+const SellerOrderDetail = lazy(() => import('@/pages/vendor/SellerOrderDetail'));
+const SellerProducts = lazy(() => import('@/pages/vendor/SellerProducts'));
+const SellerProductForm = lazy(() => import('@/pages/vendor/SellerProductForm'));
+const SellerStore = lazy(() => import('@/pages/vendor/SellerStore'));
+const SellerBrands = lazy(() => import('@/pages/vendor/SellerBrands'));
+const SellerCategories = lazy(() => import('@/pages/vendor/SellerCategories'));
 
 const UpcomingTournaments = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournaments'));
 const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'));
@@ -84,13 +102,11 @@ const TournamentAddSquad = lazy(() => import('@/pages/organizer/tournaments/Tour
 const TournamentSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentSquad'));
 const StartMatch = lazy(() => import('@/pages/organizer/scoring/StartMatch'));
 const ScoringMatch = lazy(() => import('@/pages/organizer/scoring/ScoringMatch'));
+const QuickMatchWizard = lazy(() => import('@/pages/quick-match/QuickMatchWizard'));
+const MyMatches = lazy(() => import('@/pages/quick-match/MyMatches'));
 
 function PageFallback() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-    </div>
-  );
+  return <FullScreenLoader label="Loading page" />;
 }
 
 /** Consumer-only side effects (skipped on /overlay/*). */
@@ -115,6 +131,7 @@ function App() {
               }}
             >
               <RouterEffects />
+              <GoogleAnalyticsBoot />
               <ScrollRestoration />
               <DialogManager />
               <ProgrammaticDialogPrompts />
@@ -124,17 +141,27 @@ function App() {
                   <Route path="/" element={<SplashScreen />} />
                   <Route path="/pages/:slug" element={<StaticPage />} />
 
-                  <Route element={<RequireAuth />}>
-                    <Route element={<MainLayout />}>
+                  <Route element={<MainLayout />}>
+                    {/* Public shop catalog (unauthenticated GETs) */}
+                    <Route path="/shop" element={<ShopHome />} />
+                    <Route path="/shop/filter/:filterKey" element={<ShopFilter />} />
+                    <Route path="/shop/brands/:brandSlug" element={<ShopCategory />} />
+                    <Route path="/shop/vendors/:vendorSlug" element={<RedirectShopVendorPrefix />} />
+                    <Route path="/shop/product/:vendorSlug/:productSlug" element={<RedirectShopProductPrefix />} />
+                    <Route path="/shop/:brandId/product/:productSlug" element={<RedirectShopLegacyBrandProduct />} />
+                    <Route path="/shop/:vendorSlug/:productSlug" element={<ShopProductDetail />} />
+                    <Route path="/shop/:slug" element={<ShopSlugPage />} />
+
+                    <Route element={<RequireAuth />}>
                       <Route path="/home" element={<Home />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/stats" element={<Stats />} />
                       <Route path="/drafting" element={<DraftingHome />} />
                       <Route path="/drafting/teams" element={<TeamList />} />
                       <Route path="/drafting/teams/:teamId" element={<TeamDetail />} />
                       <Route path="/upcoming-tournaments" element={<UpcomingTournaments />} />
                       <Route path="/upcoming-tournaments/:tournamentId" element={<UpcomingTournamentDetails />} />
                       <Route path="/interest/:slug" element={<InterestForm />} />
-                      {/* <Route element={<RequireOrganizerRole />}> */}
                       <Route path="/organizer/tournaments" element={<Tournaments />} />
                       <Route
                         path="/organizer/tournaments/:tournamentId/create-team-intro"
@@ -143,30 +170,43 @@ function App() {
                       <Route path="/organizer/tournaments/:tournamentId/saved-teams" element={<TournamentSavedTeams />} />
                       <Route path="/organizer/tournaments/:tournamentId/add-squad" element={<TournamentAddSquad />} />
                       <Route path="/organizer/tournaments/:tournamentId/squad" element={<TournamentSquad />} />
-                      {/* </Route> */}
                       <Route path="/organizer/scoring/start-match" element={<StartMatch />} />
                       <Route path="/organizer/scoring/match/:matchId" element={<ScoringMatch />} />
+                      <Route path="/quick-match" element={<QuickMatchWizard />} />
+                      <Route path="/quick-match/:matchId" element={<QuickMatchWizard />} />
+                      <Route path="/matches" element={<MyMatches />} />
                       <Route path="/scorecard" element={<ScorecardHome />} />
+                      <Route path="/scorecard/match/:matchId" element={<ScorecardStatusDetails />} />
                       <Route path="/scorecard/:tournamentId" element={<ScorecardDetails />} />
                       <Route path="/scorecard/:tournamentId/match/:matchId" element={<ScorecardStatusDetails />} />
                       <Route path="/scorecard/:tournamentId/stats-total/:statType" element={<StatsTotal />} />
-                      {/* Shop */}
-                      <Route path="/shop" element={<ShopHome />} />
+                      {/* Shop — auth-only */}
                       <Route path="/shop/cart" element={<ShopCart />} />
                       <Route path="/shop/checkout" element={<ShopCheckout />} />
-                      <Route path="/shop/order-payment/:orderId" element={<OrderPayment />} />
                       <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
                       <Route path="/shop/orders" element={<MyOrders />} />
                       <Route path="/shop/order-success" element={<OrderSuccess />} />
-                      <Route path="/shop/:brandId/product/:productSlug" element={<ShopProductDetail />} />
-                      <Route path="/shop/filter/:filterKey" element={<ShopFilter />} />
-                      <Route path="/shop/:brandId" element={<ShopCategory />} />
+                      <Route path="/seller/apply" element={<SellerApply />} />
+                      <Route element={<RequireVendorAccess />}>
+                        <Route path="/seller" element={<SellerHub />} />
+                        <Route path="/seller/orders" element={<SellerOrders />} />
+                        <Route path="/seller/orders/:id" element={<SellerOrderDetail />} />
+                        <Route path="/seller/products" element={<SellerProducts />} />
+                        <Route path="/seller/products/new" element={<SellerProductForm />} />
+                        <Route path="/seller/products/:id/edit" element={<SellerProductForm />} />
+                        <Route path="/seller/store" element={<SellerStore />} />
+                        <Route path="/seller/brands" element={<SellerBrands />} />
+                        <Route path="/seller/categories" element={<SellerCategories />} />
+                      </Route>
                       <Route path="/tournament-request" element={<TournamentRequest />} />
                       <Route path="/tournament-request/success" element={<TournamentRequestSuccess />} />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
                       <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
+                      <Route path="/live/streaming" element={<LiveStreaming />} />
+                      <Route path="/live/streaming/create" element={<LiveStreamingCreate />} />
+                      <Route path="/live/streaming/:streamId" element={<LiveStreamingManage />} />
                       <Route element={<RequireBroadcastAccess />}>
                         <Route path="/live/go-live" element={<GoLive />} />
                         <Route path="/live/go-live/:streamId" element={<GoLive />} />

@@ -1,7 +1,8 @@
 @if (isLoadingPlayer) {
-  <div class="flex justify-center py-16">
-    <mat-spinner diameter="40" />
-  </div>
+  <app-loader-block
+    label="Loading player"
+    class="py-16"
+  />
 } @else if (player) {
   <div class="flex flex-col">
     <mat-card class="cardWithShadow mb-3!">
@@ -115,9 +116,10 @@
 
     <mat-tab-nav-panel #tabPanel>
       @if (isLoadingStats) {
-        <div class="flex justify-center py-12">
-          <mat-spinner diameter="40" />
-        </div>
+        <app-loader-block
+          label="Loading stats"
+          class="py-12"
+        />
       } @else if (!stats || !hasActiveTabStats()) {
         <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
           <app-empty-data-message variant="inline" />

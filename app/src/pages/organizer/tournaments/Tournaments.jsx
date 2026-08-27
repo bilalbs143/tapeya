@@ -8,25 +8,15 @@ import { formatDateRange } from '@/lib/utils/dateUtils';
 import { areTournamentTeamsComplete, getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { useGetMyTournamentRequestsQuery } from '@/store/api/tournamentRequestApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
+import { StatusPill } from '@/ui/StatusPill';
+import { tournamentRequestStatusTone } from '@/ui/statusPillTones';
 
 /** Same asset as upcoming tournament details (Fixtures) header. */
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
-
-const STATUS_STYLES = {
-  pending: 'bg-brand/15 text-brand border-brand/40',
-  approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40',
-  rejected: 'bg-red-500/15 text-red-400 border-red-500/40',
-};
-
-function StatusBadge({ status, label }) {
-  const style = STATUS_STYLES[status] ?? STATUS_STYLES.pending;
-  return (
-    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase ${style}`}>
-      {label ?? status}
-    </span>
-  );
-}
 
 function PendingRequestCard({ request }) {
   const dates = formatDateRange(request.start_date, request.end_date);
@@ -40,7 +30,11 @@ function PendingRequestCard({ request }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          <StatusBadge status={request.status} label={request.status_label} />
+          <StatusPill
+            tone={tournamentRequestStatusTone(request.status)}
+            size="sm"
+            label={request.status_label ?? request.status}
+          />
         </div>
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{request.tournament_name}</h3>
         {request.tournament_type_label && <p className="text-muted mt-0.5 text-[12px]">{request.tournament_type_label}</p>}
@@ -141,16 +135,13 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
   );
 }
 
-function Section({ title, children, emptyMessage = 'No tournaments' }) {
+function Section({ title, children }) {
   const count = Children.count(children);
+  if (count === 0) return null;
   return (
     <section>
       <h2 className="text-muted mb-3 text-[13px] font-bold tracking-wide uppercase">{title}</h2>
-      {count > 0 ? (
-        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">{children}</div>
-      ) : (
-        <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">{emptyMessage}</p>
-      )}
+      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">{children}</div>
     </section>
   );
 }
@@ -161,14 +152,25 @@ export default function Tournaments() {
     data: tournamentsData,
     isLoading: isLoadingTournaments,
     isError: isTournamentsError,
+    refetch: refetchTournaments,
   } = useGetTournamentsQuery({
     all: true,
     organizer_tournaments: true,
   });
-  const { data: myRequests = [], isLoading: isLoadingRequests, isError: isRequestsError } = useGetMyTournamentRequestsQuery();
+  const {
+    data: myRequests = [],
+    isLoading: isLoadingRequests,
+    isError: isRequestsError,
+    refetch: refetchRequests,
+  } = useGetMyTournamentRequestsQuery();
 
   const isLoading = isLoadingTournaments || isLoadingRequests;
   const isError = isTournamentsError || isRequestsError;
+
+  const handleRetry = () => {
+    if (isTournamentsError) refetchTournaments();
+    if (isRequestsError) refetchRequests();
+  };
 
   /**
    * Show pending + rejected requests so the organizer can track their request status.
@@ -223,14 +225,15 @@ export default function Tournaments() {
   };
 
   const hasTournaments = scheduled.length > 0 || previous.length > 0;
-  const isEmpty = trackedRequests.length === 0 && !hasTournaments;
+  const hasContent = trackedRequests.length > 0 || hasTournaments;
+  const isEmpty = !hasContent;
 
   if (isLoading) {
     return (
       <div className="bg-black">
         <AppSubpageHeader title="My Tournaments" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading tournaments…</p>
+          <PageLoader label="Loading tournaments" className="py-16" />
         </Container>
       </div>
     );
@@ -238,50 +241,57 @@ export default function Tournaments() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader title="My Tournaments" />
+      <AppSubpageHeader
+        title="My Tournaments"
+        right={
+          hasContent ? (
+            <button
+              type="button"
+              onClick={() => navigate('/tournament-request')}
+              className="bg-brand flex h-9 w-9 items-center justify-center rounded-full text-lg font-bold text-black"
+              aria-label="Request a Tournament"
+            >
+              +
+            </button>
+          ) : undefined
+        }
+      />
       <Container>
-        {isError && <p className="mb-3 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
-        <div className="space-y-6 pb-6">
-          {/* Pending / rejected requests — visible until the request becomes a real tournament */}
-          {trackedRequests.length > 0 && (
-            <Section title="My Requests" emptyMessage="">
+        {isError ? <ListError message="Could not load tournaments." onRetry={handleRetry} /> : null}
+
+        {!isError && isEmpty ? (
+          <ListEmpty
+            title="No Tournaments Yet."
+            description="Want to host one? Request a tournament."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/tournament-request')}>
+                Request a Tournament
+              </Button>
+            }
+          />
+        ) : null}
+
+        {!isError && hasContent ? (
+          <div className="space-y-6 pb-10">
+            <Section title="My Requests">
               {trackedRequests.map((request) => (
                 <PendingRequestCard key={request.id} request={request} />
               ))}
             </Section>
-          )}
 
-          {/* Tournaments the user organises */}
-          {hasTournaments && (
-            <>
-              <Section title="Scheduled Tournaments" emptyMessage="No scheduled tournaments.">
-                {scheduled.map((t) => (
-                  <TournamentCard key={t.id} tournament={t} onClick={handleTournamentClick} />
-                ))}
-              </Section>
+            <Section title="Scheduled Tournaments">
+              {scheduled.map((t) => (
+                <TournamentCard key={t.id} tournament={t} onClick={handleTournamentClick} />
+              ))}
+            </Section>
 
-              <Section title="Previous Tournaments" emptyMessage="No previous tournaments.">
-                {previous.map((t) => (
-                  <TournamentCard key={t.id} tournament={t} showWinningTeam onClick={handleTournamentClick} />
-                ))}
-              </Section>
-            </>
-          )}
-
-          {/* Nothing at all — prompt to request */}
-          {isEmpty && !isError && (
-            <div className="bg-surface rounded-[17px] px-4 py-8 text-center">
-              <p className="text-muted text-[14px]">You have no tournaments yet.</p>
-              <button
-                type="button"
-                onClick={() => navigate('/tournament-request')}
-                className="bg-brand mt-4 rounded-[6px] px-6 py-2.5 text-[14px] font-bold text-black transition-opacity active:opacity-90"
-              >
-                Request a Tournament
-              </button>
-            </div>
-          )}
-        </div>
+            <Section title="Previous Tournaments">
+              {previous.map((t) => (
+                <TournamentCard key={t.id} tournament={t} showWinningTeam onClick={handleTournamentClick} />
+              ))}
+            </Section>
+          </div>
+        ) : null}
       </Container>
     </div>
   );

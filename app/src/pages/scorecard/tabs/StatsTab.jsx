@@ -1,12 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
-
-const defaultPlayerImage = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { LoaderBlock } from '@/ui/Loader';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -66,12 +65,7 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
 
   return (
     <div className="bg-surface flex items-start gap-3 rounded-[17px] p-3">
-      <Avatar className="border-surface-border h-12 w-12 shrink-0 overflow-hidden rounded-full border">
-        {/* Fixed: was two conditional AvatarImage renders — simplified to one
-            since AvatarImage handles a falsy src via the AvatarFallback. */}
-        <AvatarImage src={player.image || defaultPlayerImage} alt="" />
-        <AvatarFallback className="bg-surface-border text-xs font-medium text-white">{initials}</AvatarFallback>
-      </Avatar>
+      <UserAvatar src={player.image} name={player.name} size="card" fallback={initials} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-[16px] font-bold text-white">{player.name}</span>
@@ -100,11 +94,8 @@ function SectionHeader({ title, viewMoreTo }) {
     <div className="mb-3 flex items-center justify-between">
       <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
       {viewMoreTo && (
-        <Link
-          to={viewMoreTo}
-          className="text-brand text-[12px] font-bold tracking-wide uppercase transition-opacity hover:opacity-90"
-        >
-          VIEW MORE
+        <Link to={viewMoreTo} className="text-brand text-[12px] font-bold tracking-wide transition-opacity hover:opacity-90">
+          View More
         </Link>
       )}
     </div>
@@ -119,7 +110,7 @@ export function StatsTab({ tournamentId }) {
   const { tournamentId: paramId } = useParams();
   const id = tournamentId ?? paramId;
 
-  const { data: stats, isLoading, isError } = useGetTournamentSeasonStatsQuery(id, { skip: !id });
+  const { data: stats, isLoading, isError, refetch } = useGetTournamentSeasonStatsQuery(id, { skip: !id });
 
   const title = id ? `${id} - SEASON STATS` : 'SEASON STATS';
 
@@ -139,7 +130,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-center text-[13px]">Select a tournament to view season stats.</p>
+        <ListEmpty title="No Tournament Selected." description="Select a tournament to view season stats." />
       </div>
     );
   }
@@ -148,7 +139,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-center text-[13px]">Loading season stats…</p>
+        <LoaderBlock label="Loading season stats" className="mt-4 py-4" />
       </div>
     );
   }
@@ -157,7 +148,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-center text-[13px] text-red-400">Failed to load season stats.</p>
+        <ListError message="Could not load season stats." onRetry={() => refetch()} />
       </div>
     );
   }
@@ -180,7 +171,7 @@ export function StatsTab({ tournamentId }) {
 
       <div className="mt-8 space-y-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
         <section>
-          <SectionHeader title="TOP RUN SCORERS" viewMoreTo={statsTotalRunScorers} />
+          <SectionHeader title="Top Run Scorers" viewMoreTo={statsTotalRunScorers} />
           <div className="space-y-3">
             {topRunScorers.map((player) => (
               <PlayerStatCard key={player.id} player={player} primaryStat={player.runs} />
@@ -189,7 +180,7 @@ export function StatsTab({ tournamentId }) {
         </section>
 
         <section>
-          <SectionHeader title="TOP WICKET TAKERS" viewMoreTo={statsTotalWicketTakers} />
+          <SectionHeader title="Top Wicket Takers" viewMoreTo={statsTotalWicketTakers} />
           <div className="space-y-3">
             {topWicketTakers.map((player) => (
               <PlayerStatCard key={player.id} player={player} primaryStat={player.wickets} />

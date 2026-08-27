@@ -1,9 +1,10 @@
 <app-dialog-wrapper [title]="dialogTitle">
   @if (isLoading) {
     <mat-dialog-content>
-      <div class="flex justify-center py-10">
-        <mat-spinner diameter="36" />
-      </div>
+      <app-loader-block
+        label="Loading teams"
+        class="py-10"
+      />
     </mat-dialog-content>
   } @else if (teams.length < 2) {
     <mat-dialog-content>

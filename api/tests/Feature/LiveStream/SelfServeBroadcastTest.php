@@ -3,7 +3,7 @@
 namespace Tests\Feature\LiveStream;
 
 use App\Jobs\FinalizeEndedBroadcastJob;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Settings\StreamingSettings;
 use App\Streaming\StreamProviderManager;
@@ -103,7 +103,7 @@ class SelfServeBroadcastTest extends TestCase
         $this->assertNotNull($response->json('data.rtmp_url'));
         $this->assertNotNull($response->json('data.stream_key'));
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $streamId,
             'match_id' => null,
             'owner_user_id' => $user->id,
@@ -127,7 +127,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertCreated();
 
         $this->assertSame('portrait', $response->json('data.orientation'));
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $response->json('data.stream_id'),
             'orientation' => 'portrait',
         ]);
@@ -146,7 +146,7 @@ class SelfServeBroadcastTest extends TestCase
 
         $streamId = $response->json('data.stream_id');
         $this->assertSame('landscape', $response->json('data.orientation'));
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $streamId,
             'orientation' => 'landscape',
         ]);
@@ -196,7 +196,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertCreated()
             ->json('data.stream_id');
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $abandonedId,
             'status' => 'idle',
             'started_at' => null,
@@ -208,8 +208,8 @@ class SelfServeBroadcastTest extends TestCase
             ->json('data.stream_id');
 
         $this->assertNotSame($abandonedId, $newId);
-        $this->assertDatabaseMissing('match_streams', ['id' => $abandonedId]);
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseMissing('live_streams', ['id' => $abandonedId]);
+        $this->assertDatabaseHas('live_streams', [
             'id' => $newId,
             'owner_user_id' => $user->id,
             'title' => 'Retry',
@@ -276,8 +276,8 @@ class SelfServeBroadcastTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'ended');
 
-        $this->assertSame('ended', MatchStream::find($streamId)->status);
-        $this->assertNotNull(MatchStream::find($streamId)->ended_at);
+        $this->assertSame('ended', LiveStream::find($streamId)->status);
+        $this->assertNotNull(LiveStream::find($streamId)->ended_at);
 
         Bus::assertDispatched(FinalizeEndedBroadcastJob::class, function (FinalizeEndedBroadcastJob $job) use ($streamId) {
             return $job->streamId === (int) $streamId && $job->notifyClients === true;
@@ -312,7 +312,7 @@ class SelfServeBroadcastTest extends TestCase
             ->postJson("/api/v1/live/broadcasts/{$streamId}/end")
             ->assertForbidden();
 
-        $this->assertDatabaseHas('match_streams', ['id' => $streamId, 'status' => 'idle']);
+        $this->assertDatabaseHas('live_streams', ['id' => $streamId, 'status' => 'idle']);
     }
 
     public function test_start_marks_idle_stream_live_for_hub_and_chat(): void
@@ -328,7 +328,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'live');
 
-        $stream = MatchStream::find($streamId);
+        $stream = LiveStream::find($streamId);
         $this->assertSame('live', $stream->status);
         $this->assertNotNull($stream->started_at);
         $this->assertNotNull($stream->provider_metadata['owner_publishing_since'] ?? null);
@@ -371,7 +371,7 @@ class SelfServeBroadcastTest extends TestCase
             ->post("/api/v1/live/broadcasts/{$streamId}/thumbnail", ['file' => $file])
             ->assertOk();
 
-        $stream = MatchStream::find($streamId);
+        $stream = LiveStream::find($streamId);
         $this->assertNotNull($stream->getRawOriginal('stream_thumbnail'));
 
         $this->actingAs($owner, 'api')
@@ -393,7 +393,7 @@ class SelfServeBroadcastTest extends TestCase
             ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
             ->assertOk();
 
-        $stream = MatchStream::findOrFail($streamId);
+        $stream = LiveStream::findOrFail($streamId);
         $stream->update([
             'provider_metadata' => array_merge($stream->provider_metadata ?? [], [
                 'owner_publishing_since' => now()->subMinutes(4)->toIso8601String(),

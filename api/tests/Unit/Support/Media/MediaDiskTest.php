@@ -65,6 +65,19 @@ class MediaDiskTest extends TestCase
         $this->assertSame('private, max-age=60', $options['CacheControl']);
     }
 
+    public function test_hls_master_cache_control_is_short_lived(): void
+    {
+        $this->assertStringContainsString('max-age=60', MediaDisk::HLS_MASTER_CACHE_CONTROL);
+        $this->assertStringNotContainsString('immutable', MediaDisk::HLS_MASTER_CACHE_CONTROL);
+
+        $options = MediaDisk::writeOptions([
+            'CacheControl' => MediaDisk::HLS_MASTER_CACHE_CONTROL,
+            'ContentType' => 'application/vnd.apple.mpegurl',
+        ]);
+
+        $this->assertSame(MediaDisk::HLS_MASTER_CACHE_CONTROL, $options['CacheControl']);
+    }
+
     public function test_require_path_rejects_falsey_paths(): void
     {
         $this->expectException(MediaWriteException::class);

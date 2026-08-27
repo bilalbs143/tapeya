@@ -8,7 +8,6 @@ describe('buildFeedTimelineRows', () => {
       posts: [{ id: 1 }, { id: 2 }],
       tab: 'following',
       shopCollections: [{ id: 'popular', title: 'Popular', products: [{ id: 'p1' }] }],
-      brands: [],
       suggestedUsers: [{ id: 'u1' }],
       highlights: [{ id: 'h1' }],
     });
@@ -23,7 +22,6 @@ describe('buildFeedTimelineRows', () => {
       posts,
       tab: 'explore',
       shopCollections: [{ id: 'popular', title: 'Popular', products: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }] }],
-      brands: [{ id: 1 }],
       suggestedUsers: [{ id: 'u1' }, { id: 'u2' }, { id: 'u3' }],
       highlights: [{ id: 'h1' }, { id: 'h2' }],
     });
@@ -49,7 +47,6 @@ describe('buildFeedTimelineRows', () => {
       tab: 'explore',
       cycles: 2,
       shopCollections: [{ id: 'popular', title: 'Popular', products: [{ id: 'p1' }] }],
-      brands: [],
       suggestedUsers: [],
       highlights: [],
     });
@@ -66,7 +63,6 @@ describe('buildFeedTimelineRows', () => {
       tab: 'following',
       cycles: 5,
       shopCollections: [],
-      brands: [],
       suggestedUsers: [],
       highlights: [],
     });
@@ -82,7 +78,6 @@ describe('buildFeedTimelineRows', () => {
       freshItems: [{ id: 9 }],
       freshFromCycle: 1,
       shopCollections: [],
-      brands: [],
       suggestedUsers: [],
       highlights: [],
     });

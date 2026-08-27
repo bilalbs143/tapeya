@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -25,6 +26,9 @@ import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
+
+const pickerInputBase =
+  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-brand/50 cursor-pointer';
 
 const DEFAULT_VALUES = {
   contact_person_name: '',
@@ -48,6 +52,7 @@ const DEFAULT_VALUES = {
 export default function TournamentRequest() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { openDialog } = useDialog();
   const user = useAppSelector(selectUser);
 
   const { data: enums = {}, isLoading: enumsLoading } = useGetEnumsQuery();
@@ -82,6 +87,7 @@ export default function TournamentRequest() {
   const groupMode = watch('group_mode');
   const country = watch('country');
   const city = watch('city');
+  const cricketFormat = watch('cricket_format');
 
   // Pre-fill contact details and default enum selections once enums are loaded.
   // Depends on `enums` (not derived arrays) to avoid re-firing on reference changes.
@@ -203,14 +209,31 @@ export default function TournamentRequest() {
             required
           />
 
-          <ToggleGroupField
-            name="cricket_format"
-            control={control}
-            label="Cricket Format"
-            options={cricketFormatOptions}
-            error={errors.cricket_format?.message}
-            required
-          />
+          <FormField label="Cricket Format" required>
+            <button
+              type="button"
+              className={`${pickerInputBase} ${errors.cricket_format ? 'ring-2 ring-red-500' : ''}`}
+              onClick={() =>
+                openDialog('startMatchBallType', {
+                  title: 'Select Cricket Format',
+                  initialValue: cricketFormat,
+                  options: cricketFormatOptions.map((o) => ({
+                    value: o.value,
+                    label: o.label ?? o.value,
+                  })),
+                  onSelect: (v) => setValue('cricket_format', v, { shouldValidate: true }),
+                })
+              }
+            >
+              {cricketFormatOptions.find((o) => o.value === cricketFormat)?.label ??
+                (cricketFormat ? String(cricketFormat) : 'Select Cricket Format')}
+            </button>
+            {errors.cricket_format?.message ? (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.cricket_format.message}
+              </p>
+            ) : null}
+          </FormField>
 
           <FormField label="Number of Teams" htmlFor="number_of_teams" required>
             <Input
@@ -317,7 +340,7 @@ export default function TournamentRequest() {
           </FormField>
 
           <FormActions align="start" className="max-lg:order-16 lg:col-span-3">
-            <Button type="submit" disabled={busy} variant="auth" className="w-full lg:w-[150px]">
+            <Button type="submit" disabled={busy} loading={isSubmitting} variant="orange" className="w-full lg:w-[150px]">
               {isSubmitting ? 'Submitting…' : 'Submit'}
             </Button>
           </FormActions>

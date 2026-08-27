@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useMatchAdmin } from '@/hooks/useMatchAdmin';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDate } from '@/lib/utils/dateUtils';
 import { useGetMatchNotesQuery } from '@/store/api/matchApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
@@ -10,8 +11,11 @@ import { DialogBackButton } from '@/ui/DialogBackButton';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 import { Textarea } from '@/ui/Textarea';
+
+const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 function FilterIcon() {
   return (
@@ -34,9 +38,9 @@ function NoteCard({ note, onDelete, isDeleting }) {
           onClick={() => onDelete(note.id)}
           disabled={isDeleting}
           aria-label="Delete Note"
-          className="text-muted shrink-0 text-[11px] font-medium tracking-wide uppercase transition-colors hover:text-red-400 disabled:opacity-50"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg transition-opacity active:opacity-80 disabled:opacity-50"
         >
-          Delete
+          <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
         </button>
       </div>
     </article>
@@ -173,7 +177,7 @@ export function MatchNotesDialog({ matchId }) {
           {view === 'add' ? (
             <AddNoteForm body={draftBody} onBodyChange={setDraftBody} />
           ) : isLoading ? (
-            <p className="text-muted py-8 text-center text-[13px]">Loading notes…</p>
+            <LoaderBlock label="Loading notes" className="py-8" />
           ) : notes.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <p className="text-[14px] font-medium text-white">{emptyMessage ?? "You don't have any Notes added yet."}</p>
@@ -192,12 +196,12 @@ export function MatchNotesDialog({ matchId }) {
               ))}
             </ul>
           )}
-          {isFetching && !isLoading ? <p className="text-muted text-center text-[11px]">Updating…</p> : null}
+          {isFetching && !isLoading ? <LoaderBlock label="Updating notes" className="py-1" /> : null}
         </FormStack>
       </DialogScrollBody>
 
       {view === 'add' ? (
-        <DialogSaveButton disabled={!canSubmitNote} onClick={handleCreate}>
+        <DialogSaveButton disabled={!canSubmitNote} loading={isCreating} onClick={handleCreate}>
           {isCreating ? 'Saving…' : 'Add Note'}
         </DialogSaveButton>
       ) : (

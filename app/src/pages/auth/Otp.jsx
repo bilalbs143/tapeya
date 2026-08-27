@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { consumeJustRegistered, markPendingCompleteProfilePrompt } from '@/lib/completeProfilePrompt';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
 import { isReturningUser, markReturningUser } from '@/lib/returningUser';
@@ -19,6 +20,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
+import { Loader } from '@/ui/Loader';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
@@ -134,6 +136,9 @@ export default function Otp() {
             logEvent(AppEvents.COMPLETED_REGISTRATION, {
               [AppEventParams.REGISTRATION_METHOD]: 'phone',
             });
+          }
+          if (consumeJustRegistered(phoneRaw) && user.id) {
+            markPendingCompleteProfilePrompt(user.id);
           }
           dispatch(setCredentials({ user, accessToken: token }));
           addSavedProfile({
@@ -288,8 +293,9 @@ export default function Otp() {
                 type="button"
                 onClick={handleResend}
                 disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
-                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-brand inline-flex items-center gap-1.5 font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
+                {isResendLoading ? <Loader size="xs" /> : null}
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isResendLoading ? 'Sending…' : 'Resend'}
               </button>
             </p>
@@ -300,7 +306,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
+          <Button type="submit" disabled={busy} loading={isLoading} variant="orange" className="mt-4 w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

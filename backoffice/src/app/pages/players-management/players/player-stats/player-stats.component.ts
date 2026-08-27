@@ -4,7 +4,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -24,6 +23,7 @@ import type {
 } from 'src/app/services/players.service';
 import type { User } from 'src/app/services/users.service';
 import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 interface StatRow {
@@ -40,11 +40,11 @@ interface StatRow {
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatProgressSpinnerModule,
     MatSelectModule,
     MatTabsModule,
     TablerIconsModule,
     EmptyDataMessageComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './player-stats.component.html',
 })
@@ -109,7 +109,10 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
 
     this.sub.add(
       this.enumsService.getEnums().subscribe((enums) => {
-        this.tournamentTypeOptions = [{ value: 'all', label: 'All' }, ...(enums['tournament_type'] ?? [])];
+        this.tournamentTypeOptions = [
+          { value: 'all', label: 'All' },
+          ...(enums['stats_bucket'] ?? enums['tournament_type'] ?? []),
+        ];
         this.cricketFormatOptions = [{ value: 'all', label: 'All' }, ...(enums['cricket_format'] ?? [])];
       })
     );

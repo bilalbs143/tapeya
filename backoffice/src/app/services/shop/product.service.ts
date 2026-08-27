@@ -27,6 +27,8 @@ export interface Product {
   brand?: { id: number; name: string; slug: string } | null;
   category_id: number | null;
   category?: { id: number; name: string; slug: string } | null;
+  vendor_id: number | null;
+  vendor?: { id: number; store_name: string; slug: string } | null;
   stock_quantity: number;
   low_stock_threshold: number;
   is_active: boolean;
@@ -55,6 +57,7 @@ export interface ProductSavePayload {
   price: number;
   brand_id: number;
   category_id: number;
+  vendor_id: number;
   stock_quantity: number;
   low_stock_threshold: number;
   is_active: boolean;

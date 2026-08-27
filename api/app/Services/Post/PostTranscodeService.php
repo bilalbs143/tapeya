@@ -207,8 +207,8 @@ class PostTranscodeService
 
             event(new PostProcessingUpdated($post->fresh(['video']) ?? $post));
 
-            // Original is only needed until HLS ABR finishes — drop it immediately.
-            CleanupPostOriginalJob::dispatch($post->id);
+            // Keep original ≥48h for re-encode / debugging; daily purge is the safety net.
+            CleanupPostOriginalJob::dispatch($post->id)->delay(now()->addHours(48));
 
             return $post->fresh(['video']);
         } catch (\Throwable $e) {
@@ -512,8 +512,11 @@ class PostTranscodeService
     {
         $masterBody = PostAbrLadder::masterPlaylist($hlsVariants);
         $masterKey = 'posts/videos/hls/'.$postId.'/'.$encodeId.'/master.m3u8';
+        // Same key is rewritten after each ABR rung; immutable Cache-Control would
+        // pin an early (single-rung) master at the CDN for up to a year.
         MediaDisk::put($masterKey, $masterBody, [
             'ContentType' => 'application/vnd.apple.mpegurl',
+            'CacheControl' => MediaDisk::HLS_MASTER_CACHE_CONTROL,
         ]);
 
         return $masterKey;

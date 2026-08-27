@@ -42,14 +42,12 @@ export function isHighlightDetailsPath(pathname) {
 }
 
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
-export function isNavbarOverlayPath(pathname, isDesktop = false) {
-  if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+export function isNavbarOverlayPath(pathname) {
   // Go-live camera is always overlay; watch-live padding is decided in useMainLayoutChrome
   // (self-serve immersive vs match classic) — do not force overlay for all /live/broadcast.
   return (
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
     isGoLiveBroadcastPath(pathname) ||
     isReelsFeedPath(pathname)
   );
@@ -72,13 +70,15 @@ export function isDialogReminderBlockedPath(pathname) {
 
 /**
  * Shared routes where auto-popup entry dialogs should not interrupt the user
- * (auth/splash, OBS overlay, live broadcast, live scoring).
+ * (auth/splash, OBS overlay, live broadcast, highlight playback, live scoring).
  */
 export function isGlobalEntryDialogBlockedPath(pathname) {
   return (
     isDialogReminderBlockedPath(pathname) ||
     pathname.startsWith('/overlay/') ||
     isLiveStreamImmersivePath(pathname) ||
+    isReelsImmersivePath(pathname) ||
+    isHighlightDetailsPath(pathname) ||
     ORGANIZER_SCORING_MATCH_PATH.test(pathname)
   );
 }
@@ -90,7 +90,7 @@ export function isWebDownloadAppBlockedPath(pathname) {
 
 /** Routes where the incomplete-profile reminder dialog must not appear. */
 export function isProfileStrengthReminderBlockedPath(pathname) {
-  return isGlobalEntryDialogBlockedPath(pathname) || pathname === '/profile';
+  return isGlobalEntryDialogBlockedPath(pathname) || pathname === '/profile' || isReelsCreatorProfilePath(pathname);
 }
 
 const INTEREST_FORM_PATH = /^\/interest\/[^/]+$/;
@@ -107,23 +107,15 @@ export function isInterestCampaignDialogBlockedPath(pathname) {
 /**
  * Pages where the navbar may start transparent over a hero image.
  * @param {string} pathname
- * @param {boolean} [isDesktop]
  * @param {boolean} [isLiveHero] - Self-serve watch-live in hero mode (status === 'live').
  */
-export function isHeroNavbarPath(pathname, isDesktop = false, isLiveHero = false) {
-  if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+export function isHeroNavbarPath(pathname, isLiveHero = false) {
   // Go-live owns its own header — never hero-transparent.
   if (isGoLiveBroadcastPath(pathname)) return false;
   // Watch-live: solid for match streams and before/after self-serve playback; transparent
   // only while a self-serve stream is actually live (hero mode).
   if (isLiveBroadcastPath(pathname)) return isLiveHero;
-  return (
-    pathname === '/home' ||
-    pathname === '/profile' ||
-    TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    isReelsFeedPath(pathname)
-  );
+  return pathname === '/home' || pathname === '/profile' || TOURNAMENT_DETAILS_PATH.test(pathname) || isReelsFeedPath(pathname);
 }
 
 /**

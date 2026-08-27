@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\User\AdditionalRunsController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
@@ -29,7 +30,6 @@ use App\Http\Controllers\User\MatchSubstituteController;
 use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\MatchWicketKeeperController;
 use App\Http\Controllers\User\NotificationController;
-use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
 use App\Http\Controllers\User\PlayingElevenController;
 use App\Http\Controllers\User\PostCommentController;
@@ -38,6 +38,7 @@ use App\Http\Controllers\User\PostInteractionController;
 use App\Http\Controllers\User\PostMultipartController;
 use App\Http\Controllers\User\PostViewController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\QuickMatchController;
 use App\Http\Controllers\User\RankingController;
 use App\Http\Controllers\User\ScorecardController;
 use App\Http\Controllers\User\Shop\BrandController;
@@ -45,8 +46,10 @@ use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
+use App\Http\Controllers\User\Shop\ShippingQuoteController;
+use App\Http\Controllers\User\Shop\VendorApplyController;
+use App\Http\Controllers\User\Shop\VendorController as UserVendorController;
 use App\Http\Controllers\User\SignedGraphicSessionController;
-use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
 use App\Http\Controllers\User\SystemSettingController;
@@ -59,9 +62,17 @@ use App\Http\Controllers\User\TournamentStatsController;
 use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
+use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
+use App\Http\Controllers\User\UserOwnedLiveStreamController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
+use App\Http\Controllers\Vendor\Shop\BrandController as VendorBrandController;
+use App\Http\Controllers\Vendor\Shop\CategoryController as VendorCategoryController;
+use App\Http\Controllers\Vendor\Shop\DashboardController as VendorDashboardController;
+use App\Http\Controllers\Vendor\Shop\OrderController as VendorOrderController;
+use App\Http\Controllers\Vendor\Shop\ProductController as VendorProductController;
+use App\Http\Controllers\Vendor\Shop\StoreController as VendorStoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('enums', [EnumController::class, 'index']);
@@ -72,6 +83,19 @@ Route::get('highlights', [HighlightController::class, 'index']);
 Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::class, 'showByToken'])->where('token', '\d+-\d+-[a-f0-9]{64}');
+
+// Public shop catalog (Phase 2) — cart/checkout/orders remain behind auth:api
+Route::prefix('shop')->group(function () {
+    Route::get('vendors', [UserVendorController::class, 'index']);
+    Route::get('vendors/{vendor:slug}', [UserVendorController::class, 'show']);
+    Route::get('vendors/{vendor:slug}/products/{product}', [ProductController::class, 'showForVendor']);
+    Route::get('products', [ProductController::class, 'index']);
+    Route::get('products/{product}', [ProductController::class, 'show']);
+    Route::get('brands', [BrandController::class, 'index']);
+    Route::get('brands/{brand}', [BrandController::class, 'show']);
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('categories/{category}', [CategoryController::class, 'show']);
+});
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register'])->middleware('throttle:5,1');
@@ -127,11 +151,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('reels/{post}/upload/abort', [PostMultipartController::class, 'abort']);
 
     Route::get('users/search', [UserFollowController::class, 'search'])->middleware('throttle:60,1');
+    Route::get('users/lookup', [UserLookupController::class, 'index'])->middleware('throttle:60,1');
     Route::get('users/suggestions', [UserFollowController::class, 'suggestions']);
     Route::get('users/{user}/profile', [UserProfileController::class, 'show']);
     Route::get('users/{user}/reels', [PostController::class, 'forUser']);
+    Route::get('users/{user}/posts', [PostController::class, 'forUserPosts']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
+    Route::get('users/{user}/recent-matches', [PlayerStatsController::class, 'recentMatches']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
     Route::post('users/{user}/follow', [UserFollowController::class, 'follow']);
     Route::delete('users/{user}/follow', [UserFollowController::class, 'unfollow']);
@@ -171,8 +198,19 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
 
+    Route::get('quick-matches', [QuickMatchController::class, 'index']);
+    Route::post('quick-matches', [QuickMatchController::class, 'store']);
+    Route::get('quick-matches/{quickMatch}', [QuickMatchController::class, 'show']);
+    Route::patch('quick-matches/{quickMatch}', [QuickMatchController::class, 'update']);
+    Route::post('quick-matches/{quickMatch}/teams/{team}/players', [QuickMatchController::class, 'addPlayer'])
+        ->middleware('throttle:30,1');
+    Route::delete('quick-matches/{quickMatch}/teams/{team}/players/{user}', [QuickMatchController::class, 'removePlayer']);
+
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+    Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
+    Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'upsert']);
+    Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedUrl']);
     Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
     Route::patch('matches/{match}/player-of-match', [MatchPlayerOfMatchController::class, 'update']);
@@ -222,13 +260,47 @@ Route::middleware('auth:api')->group(function () {
     Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
     Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
 
+    Route::get('live/my-streams', [UserOwnedLiveStreamController::class, 'index']);
+    Route::post('live/my-streams', [UserOwnedLiveStreamController::class, 'store']);
+    Route::get('live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'show']);
+    Route::match(['put', 'patch'], 'live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'update']);
+    Route::post('live/my-streams/{stream}/start', [UserOwnedLiveStreamController::class, 'start']);
+    Route::post('live/my-streams/{stream}/end', [UserOwnedLiveStreamController::class, 'end']);
+    Route::post('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'uploadThumbnail']);
+    Route::delete('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'deleteThumbnail']);
+
     Route::prefix('shop')->group(function () {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/{product:slug}', [ProductController::class, 'show']);
-        Route::get('brands', [BrandController::class, 'index']);
-        Route::get('brands/{brand}', [BrandController::class, 'show']);
-        Route::get('categories', [CategoryController::class, 'index']);
-        Route::get('categories/{category}', [CategoryController::class, 'show']);
+        Route::post('vendor/apply', [VendorApplyController::class, 'store']);
+
+        Route::prefix('vendor')->group(function () {
+            Route::middleware('vendor:read')->group(function () {
+                Route::get('dashboard', [VendorDashboardController::class, 'show']);
+                Route::get('store', [VendorStoreController::class, 'show']);
+                Route::get('products', [VendorProductController::class, 'index']);
+                Route::get('products/{product}', [VendorProductController::class, 'show']);
+                Route::get('orders', [VendorOrderController::class, 'index']);
+                Route::get('orders/{vendorOrder}', [VendorOrderController::class, 'show']);
+                Route::get('brands', [VendorBrandController::class, 'index']);
+                Route::get('brands/{brand}', [VendorBrandController::class, 'show']);
+                Route::get('categories', [VendorCategoryController::class, 'index']);
+                Route::get('categories/{category}', [VendorCategoryController::class, 'show']);
+            });
+
+            Route::middleware('vendor')->group(function () {
+                Route::patch('store', [VendorStoreController::class, 'update']);
+                Route::post('products', [VendorProductController::class, 'store']);
+                Route::match(['put', 'patch'], 'products/{product}', [VendorProductController::class, 'update']);
+                Route::delete('products/{product}', [VendorProductController::class, 'destroy']);
+                Route::post('orders/{vendorOrder}/status', [VendorOrderController::class, 'updateStatus']);
+                Route::post('orders/{vendorOrder}/payment', [VendorOrderController::class, 'updatePayment']);
+                Route::post('brands', [VendorBrandController::class, 'store']);
+                Route::match(['put', 'patch'], 'brands/{brand}', [VendorBrandController::class, 'update']);
+                Route::post('categories', [VendorCategoryController::class, 'store']);
+                Route::match(['put', 'patch'], 'categories/{category}', [VendorCategoryController::class, 'update']);
+            });
+        });
+
+        Route::get('shipping/quote', [ShippingQuoteController::class, 'show']);
         Route::get('cart', [CartController::class, 'show']);
         Route::post('cart/items', [CartController::class, 'addItem']);
         Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem']);
@@ -236,6 +308,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel']);
     });
 
     Route::post('support/messages', [SupportMessageController::class, 'store']);
@@ -246,8 +319,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
     Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
 
-    Route::get('sponsors', [SponsorController::class, 'index']);
-    Route::get('players', [PlayerController::class, 'index']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
 

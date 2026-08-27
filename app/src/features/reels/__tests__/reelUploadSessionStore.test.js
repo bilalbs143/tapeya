@@ -108,8 +108,9 @@ describe('reelUploadSessionStore', () => {
     const realClearTimeout = globalThis.clearTimeout;
     /** @type {Array<() => void>} */
     const autoClearCallbacks = [];
+    const { REEL_UPLOAD_SUCCESS_CLEAR_MS, startReelUpload, getReelUploadSession } = await import('../reelUploadSessionStore');
     vi.spyOn(globalThis, 'setTimeout').mockImplementation((fn, ms, ...args) => {
-      if (ms === 1500) {
+      if (ms === REEL_UPLOAD_SUCCESS_CLEAR_MS) {
         autoClearCallbacks.push(fn);
         return 1;
       }
@@ -118,18 +119,17 @@ describe('reelUploadSessionStore', () => {
     vi.spyOn(globalThis, 'clearTimeout').mockImplementation((id) => realClearTimeout(id));
 
     publishReel.mockResolvedValue({ id: 1 });
-
-    const { startReelUpload, getReelUploadSession } = await import('../reelUploadSessionStore');
     const file = new File(['x'], 'a.mp4', { type: 'video/mp4' });
 
     startReelUpload({ file, mutations: { createReel: vi.fn() }, previewUrl: null });
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(getReelUploadSession()).toMatchObject({ status: 'success', percent: 100, error: null });
+    expect(getReelUploadSession()).toMatchObject({ status: 'success', percent: 100, error: null, reelId: 1 });
     expect(invalidateTags).toHaveBeenCalledWith([
       { type: 'Reel', id: 'MINE' },
       { type: 'Reel', id: 'FEED' },
+      { type: 'Reel', id: 1 },
     ]);
     expect(dispatch).toHaveBeenCalled();
     expect(autoClearCallbacks).toHaveLength(1);

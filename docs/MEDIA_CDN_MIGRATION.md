@@ -1,13 +1,16 @@
 # Media CDN migration — S3 → B2 + Cloudflare
 
-**Status: production-ready write path** — all media uploads go through `App\Support\Media\MediaDisk` (no object ACLs). Public URLs use CDN via `MediaCdn` + `MEDIA_DISK=s3`.
+**Status: production-ready read + write path (local/staging cut over).**
+
+- **Writes:** `App\Support\Media\MediaDisk` → private B2 (`MEDIA_DISK=s3`, no object ACLs)
+- **Reads:** Cloudflare Worker `infra/cdn-tapeya` on `cdn.tapeya.com` → signed B2 GETs + Workers Cache
+- **Public URL base:** Admin `cdn_public_base_url` (falls back to `AWS_URL`)
 
 For **video/image delivery speed, ABR HLS, prefetch, immutable Cache-Control, and multi-layer caching**, see **[MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md)** (planning doc).
 
 One Backblaze B2 bucket (same object keys) + one Cloudflare public hostname.
-Admin setting `cdn_public_base_url` drives public URLs for uploaded media and static `/app` assets.
 
-Do **not** flip production origin (B2 cutover) until Phase 4. Local/staging may already use `MEDIA_DISK=s3` against AWS + CloudFront.
+**Production cutover** still needs Phase 4 (env + admin setting on prod, rclone delta if any objects remain on S3, soak). Do not decommission CloudFront/S3 until Phase 4 smoke passes on production.
 
 ---
 
@@ -35,7 +38,7 @@ Config: `api/config/filesystems.php` (`s3`), boot: `MediaDisk::configureFilesyst
 aws s3 ls s3://OLD_BUCKET/ --recursive | awk '{print $4}' | awk -F/ '{print $1}' | sort | uniq -c | sort -rn
 ```
 
-1. Confirm CloudFront (`d1nmw2vhka3zp0.cloudfront.net` or current) fronts that same bucket for `/app` + uploads.
+1. Confirm the CDN (`cdn.tapeya.com` or current) fronts that same bucket for `/app` + uploads.
 2. Create B2 bucket + application key (read/write on that bucket).
 3. Note B2 S3 endpoint + region (B2 → bucket → S3 Compatible API).
 
@@ -63,13 +66,16 @@ Before cutover, run a final delta sync.
 
 ---
 
-## Phase 2 — Cloudflare origin
+## Phase 2 — Cloudflare Worker origin (private B2)
 
-1. Add a custom hostname (e.g. `cdn.tapeya.com`) whose origin is the B2 bucket (friendly URL / Cloudflare proxy as per your CF↔B2 setup).
-2. Cache rules:
-  - Long TTL / immutable for UUID-keyed processed media and `/app/images/*`
-  - Respect `video/*` and HLS segments
-3. Clients must receive **Cloudflare** URLs only (never raw `*.backblazeb2.com` download URLs) so egress stays free via Bandwidth Alliance.
+Private B2 buckets need a signing Worker (not a naked CNAME to B2). Repo path: `infra/cdn-tapeya` (Backblaze `cloudflare-b2` template).
+
+1. Create a **read-only** B2 application key for the Worker (`cdn-tapeya-worker`).
+2. Configure `infra/cdn-tapeya/wrangler.toml`: `BUCKET_NAME=tapeya`, `B2_ENDPOINT=s3.us-east-005.backblazeb2.com`, route `cdn.tapeya.com/*`.
+3. `echo "<key>" | npx wrangler secret put B2_APPLICATION_KEY` then `npx wrangler deploy`.
+4. Workers Cache is enabled in `wrangler.toml` (`[cache] enabled = true`, `cross_version_cache = false` so deploys that change headers take effect). TTL comes from response `Cache-Control` (B2 Bucket Info / `MediaDisk` object metadata). Zone Cache Rules do **not** apply to Workers Cache; after header-changing deploys, purge `cdn.tapeya.com` in Cloudflare if edges still serve stale responses.
+5. Set B2 **Bucket Info** to `{"Cache-Control":"public, max-age=86400"}` (or longer / `immutable` for UUID keys) so Cloudflare can cache. The Worker also sets a 1-day fallback when upstream omits `Cache-Control`.
+6. Clients must receive **Cloudflare** URLs only (`https://cdn.tapeya.com/...`) — never raw `*.backblazeb2.com` — so egress stays free via Bandwidth Alliance.
 
 ---
 

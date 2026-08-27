@@ -43,6 +43,7 @@ class OrderPlacedUserNotification extends Notification
             'total' => (string) $this->order->total,
             'currency' => $this->order->currency,
             'customer_name' => $customerName,
+            'deep_link' => '/shop/orders/'.$this->order->id,
             'message' => 'Order '.$orderNumber.' confirmed: '.$totalStr,
         ];
     }

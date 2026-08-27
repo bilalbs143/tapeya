@@ -8,16 +8,17 @@ In code and config today, the word **“broadcaster”** often appears for **Lar
 
 **Related docs**
 
-- [Actors, roles & permissions](./actors_and_roles.md) — guards, `AppRoleEnum`, permissions.
+- [Actors, roles & permissions](./actors_and_roles.md) — admin-guard roles & permissions; app uses [APP_CAPABILITIES.md](./APP_CAPABILITIES.md).
 - [Match controllers (backoffice)](./MATCH_CONTROLLERS_BACKOFFICE.md) — controller session, theme, graphic commands (no video pipeline in Tapeya).
 - [Organizer scoring](./SCORING.md) — app scoring routes and API usage.
 
 **Current repo (snapshot)** — aligns with code as of the broadcaster slice (CSV UI, enums, tests). Still read §9 for remaining spec gaps.
 
-- **Roles & pivot:** **`AppRoleEnum::ORGANIZER`** on the app guard for staff who need the consumer app (via **`EnsuresTournamentStaffAppRoles`** when assigned on the pivot); **`AdminRoleEnum::BROADCASTER`** (and **`RoleSeeder`**) for backoffice. Staff ↔ tournament link is the **`tournament_broadcaster`** pivot: **`tournament_id`**, **`user_id`**, timestamps only (no sub-roles on the pivot). **At most one broadcaster per tournament** (unique `tournament_id` on the pivot; assigning another user replaces the previous). **`Tournament::broadcasters()`**; from a user, use e.g. **`Tournament::query()->whereHas('broadcasters', fn ($q) => $q->whereKey($user->id))`** (no `User::tournamentsAsBroadcaster()` helper on the model).
+- **Roles & pivot:** Tournament app power is **assignment-based** (`organizer_id` / `created_by` / `tournament_broadcaster`) — see [APP_CAPABILITIES.md](./APP_CAPABILITIES.md). **No app-guard roles.** **`AdminRoleEnum::BROADCASTER`** (and **`RoleSeeder`**) remains for backoffice. Staff ↔ tournament link is the **`tournament_broadcaster`** pivot: **`tournament_id`**, **`user_id`**, timestamps only. **At most one broadcaster per tournament**.
 - **Backoffice + admin API:** `User::canManageTournament()` / `canAccessBackofficeApi()` / `hasBroadcastBackofficeRole()`; **`admin.only`** on `routes/api/v1/admin.php`; optional **`EnsureAdminPermission`** (`admin.permission:…`) with slugs from **`PermissionSeeder`** when wired; **`type = administrator`** bypasses permission checks in that middleware. Global modules (users, shop, content, tournament-requests) rely on **`admin.only`** plus front-end guards until route-level permission splits exist. Tournament CRUD + graphics use **`AuthorizesTournamentManagement`**; singleton broadcast staff: **`GET|POST|DELETE …/tournaments/{id}/broadcaster`** (singular — at most one assignee). **`POST`** body: **`user_id`** only; **`TournamentBroadcasterUserResource`**: **`id`**, **`name`**, **`nickname`**, **`email`**. Angular: nav guard, sidebar, tournament detail (broadcast staff), **`manage-user-dialog`** **`admin_role_ids`**, **`UserResource`** admin roles.
-- **Admin enums:** **`GET v1/admin/enums`** includes **`admin_roles`** and **`app_roles`**. Spatie permission rows come from **`PermissionSeeder`**; route-level **`admin.permission:{slug}`** is optional until wired (see §8).
-- **Player CSV import:** **`POST v1/admin/players/import-csv`** — multipart **`file`**, optional **`dry_run`**: creates **app users** with the **Player** app role from a fixed header row (`name,nickname,phone,email,date_of_birth,playing_role,bowling_style,batting_style,country,city` — **no `roles` column**). Any account allowed by **`auth:api`** + **`admin.only`** may call it (platform administrators and broadcast operators). **Country/city optional**; if country is set it must be **Pakistan**, and with world PK data a non-empty city must match that list. Backoffice **Players → Import CSV** under **Users Management → Players Management**. Not tournament roster attach.
+- **Admin enums:** **`GET v1/admin/enums`** includes **`admin_roles`** (no `app_roles`). Permission rows from **`PermissionSeeder`**; route-level **`admin.permission:{slug}`** optional until wired (see §8).
+- **Player CSV import:** **`POST v1/admin/players/import-csv`** — multipart **`file`**, optional **`dry_run`**: creates **app users** (`type = user`, no role attach) from a fixed header row (`name,nickname,phone,email,date_of_birth,playing_role,bowling_style,batting_style,country,city` — **no `roles` column**). Any account allowed by **`auth:api`** + **`admin.only`** may call it (platform administrators and broadcast operators). **Country/city optional**; if country is set it must be **Pakistan**, and with world PK data a non-empty city must match that list. Backoffice **Players → Import CSV** under **Users Management → Players Management**. Not tournament roster attach.
+- **User typeahead (backoffice):** **`GET v1/admin/users/search?search=`** — one endpoint for organizer / team owner / squad / broadcast-staff pickers ([APP_CAPABILITIES.md](./APP_CAPABILITIES.md)). No `for_squad` or `context=broadcaster` modes.
 - **App (Sanctum) API — organizer parity for tournament staff:** **`User::isTournamentStaff()`** / **`canOperateTournamentInApp()`** / **`canManageTeamSquadAsTournamentStaff()`** / **`canScoreMatchInApp`** (scorecard read/write + ball mutations + admin break-glass); see **`docs/SCORING.md`**. **`TournamentController::index`** `organizer_tournaments=1` includes pivot.
 - **Tests:** **`TournamentBroadcastStaffAppTest`**, **`TournamentBackofficeImportAndBroadcastersTest`**, **`AdminBackofficePermissionMiddlewareTest`** (permissioned vs stripped broadcast operator). PHPUnit **`APP_URL`**, Sanctum **`actingAs(..., 'api')`**.
 - **`created_by` on tournaments:** nullable **`tournaments.created_by`** (who created the row in backoffice/API); set on **`POST …/admin/tournaments`**; **`User::isTournamentStaff`**, app **`organizer_tournaments`** list, admin **`baseQuery`**, and **`canManageTeamSquadAsTournamentStaff`** treat creator like staff for scope. **`TournamentResource`** exposes **`created_by`** + **`creator`** when loaded.
@@ -70,7 +71,7 @@ Heavy UI (controller, squads, imports) lives in the **backoffice once**. Broadca
 | Piece | Choice |
 |-------|--------|
 | **Account** | Same **`users` row** as today: `type = user` for broadcasters; super admins keep existing admin account model. |
-| **App identity** | **`AppRoleEnum::ORGANIZER`** on guard `app`, attached when the user is tournament broadcast staff (`EnsuresTournamentStaffAppRoles`); no separate app slug `broadcaster`. |
+| **App identity** | No app `ORGANIZER` role attach required. Tournament ops use assignment (`organizer_id` / pivot / `created_by`). See [APP_CAPABILITIES.md](./APP_CAPABILITIES.md). |
 | **Backoffice identity** | **`AdminRoleEnum::BROADCASTER`** (e.g. “Broadcast operator”) on guard `admin` with **narrow** permission slugs for **global** admin shell navigation (hide billing/users unless also super admin). **`super_admin`** retains full menu; both roles navigate into the **same** “Tournament / broadcast ops” routes. |
 | **HTTP** | **One canonical API surface** per feature (e.g. `PATCH /api/v1/admin/tournaments/{id}/teams/...` — paths illustrative). **Do not** maintain `Admin\SuperOnlyTournamentController` vs `Admin\BroadcasterTournamentController` that duplicate bodies; **one controller** (or one route group) calling **one service**, with **`authorize()`** using a **single policy** that encodes super_admin **OR** scoped tournament access. |
 | **Front-end** | **One** Angular/React (etc.) feature area for tournament ops + controller + import; **role/permission** only toggles **nav visibility** and **which tournaments appear in lists**, not duplicate pages for the same CRUD. |
@@ -121,7 +122,7 @@ For tournaments they are allowed to access, a **broadcaster** can do **everythin
 
 **Shipped (minimal) vs full spec**
 
-- **In repo today (players CSV):** **`POST /api/v1/admin/players/import-csv`** — any **`admin.only`** user; creates **Player** app users from CSV (see snapshot bullet). **Not** tournament roster attach.
+- **In repo today (players CSV):** **`POST /api/v1/admin/players/import-csv`** — any **`admin.only`** user; creates **app users** (`type = user`) from CSV (see snapshot bullet). **Not** tournament roster attach.
 - **Not yet:** tournament/squad bulk attach, column-mapping UI, async queue worker, per-row error file download, retention/TTL automation per the PII table below.
 
 **Bulk import (players)** — full product columns
@@ -218,7 +219,7 @@ Use **admin guard** for backoffice routes; **super_admin** typically satisfies �
 
 ## 9. Implementation checklist (engineering)
 
-1. **`AppRoleEnum::ORGANIZER`** (app) for pivot staff via **`EnsuresTournamentStaffAppRoles`**, **`AdminRoleEnum::BROADCASTER`**, `RoleSeeder`, permission seeder bundle.
+1. **Tournament staff assignment** (`organizer_id` / `created_by` / `tournament_broadcaster`) — app auth is assignment-based ([APP_CAPABILITIES.md](./APP_CAPABILITIES.md)); **`AdminRoleEnum::BROADCASTER`**, `RoleSeeder`, permission seeder bundle for backoffice.
 2. Migration **`tournament_broadcaster`** + Eloquent relations; optional indexes on `(tournament_id, user_id)`.
 3. **Tournament create** in backoffice: **one** flow for super admin + broadcaster; **`organizer_id`** picker (self / other user).
 4. **Admin UI**: assign/remove pivot rows; tournament list respects scope—**same components**, different query when `user.isSuperAdmin`.

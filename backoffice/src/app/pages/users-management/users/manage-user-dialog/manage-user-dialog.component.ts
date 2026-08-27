@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -71,7 +71,6 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly playingRoleOptions$ = this.enumsService.getOptions('playing_role');
   public readonly bowlingStyleOptions$ = this.enumsService.getOptions('bowling_style');
   public readonly battingStyleOptions$ = this.enumsService.getOptions('batting_style');
-  public readonly appRolesOptions$ = this.enumsService.getOptions('app_roles');
   public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
 
   public readonly broadcastOptions = [
@@ -111,9 +110,6 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     const user = this.data.user;
 
-    // When editing, the API returns full role objects (roles/admin_roles).
-    // Fall back to mapping those to IDs if the flat role_ids array is absent.
-    const roleIds = user?.role_ids?.length ? user.role_ids : (user?.roles?.map((r) => r.id) ?? []);
     const adminRoleIds = user?.admin_role_ids?.length ? user.admin_role_ids : (user?.admin_roles?.map((r) => r.id) ?? []);
 
     this.form = this.fb.group({
@@ -124,13 +120,6 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       phone: [user?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [user?.date_of_birth ?? null],
       status: [normalizeEnumValue(user?.status_enum, 'verification_pending'), [Validators.required]],
-      role_ids: [
-        roleIds,
-        [
-          Validators.required,
-          (c: AbstractControl) => (Array.isArray(c.value) && c.value.length >= 1 ? null : { atLeastOneRole: true }),
-        ],
-      ],
       admin_role_ids: [adminRoleIds],
       playing_role: [normalizeEnumValue(user?.playing_role_enum ?? undefined, '')],
       bowling_style: [normalizeEnumValue(user?.bowling_style_enum ?? undefined, '')],
@@ -235,7 +224,6 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       date_of_birth: raw.date_of_birth || null,
       type: 'user',
       status: raw.status,
-      role_ids: Array.isArray(raw.role_ids) ? raw.role_ids : [],
       admin_role_ids: Array.isArray(raw.admin_role_ids) ? raw.admin_role_ids : [],
       playing_role: raw.playing_role || null,
       bowling_style: raw.bowling_style || null,

@@ -76,7 +76,7 @@ export function ScoringTossDialog({ homeTeamName, awayTeamName, homeTeamLogo, aw
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton onClick={handleSave} disabled={!canSave}>
+      <DialogSaveButton onClick={handleSave} disabled={!canSave} loading={isSaving}>
         {isSaving ? 'Saving toss…' : 'Save Toss'}
       </DialogSaveButton>
     </>

@@ -3,8 +3,10 @@
 namespace App\Models\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Shop\VendorStatusEnum;
 use App\Models\BaseModel;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -14,6 +16,7 @@ class Product extends BaseModel
     protected $table = 'shop_products';
 
     protected $fillable = [
+        'vendor_id',
         'name',
         'slug',
         'description',
@@ -88,6 +91,11 @@ class Product extends BaseModel
         return $this->belongsTo(Brand::class, 'brand_id');
     }
 
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
@@ -106,6 +114,31 @@ class Product extends BaseModel
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'product_id');
+    }
+
+    public function scopeForVendor(Builder $query, int $vendorId): void
+    {
+        $query->where('vendor_id', $vendorId);
+    }
+
+    /**
+     * Buyer-visible / checkout-eligible catalog rows.
+     */
+    public function scopeSellable(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->whereHas('vendor', fn (Builder $q) => $q->where('status', VendorStatusEnum::APPROVED));
+    }
+
+    public function isSellable(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $vendor = $this->relationLoaded('vendor') ? $this->vendor : $this->vendor()->first();
+
+        return $vendor !== null && $vendor->status === VendorStatusEnum::APPROVED;
     }
 
     /**
@@ -158,6 +191,7 @@ class Product extends BaseModel
             'name',
             AllowedFilter::exact('brand_id'),
             AllowedFilter::exact('category_id'),
+            AllowedFilter::exact('vendor_id'),
             AllowedFilter::exact('is_active'),
             AllowedFilter::exact('is_featured'),
             AllowedFilter::exact('is_popular'),

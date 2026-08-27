@@ -22,7 +22,7 @@ class MatchWicketKeeperController extends Controller
     {
         $authUser = $request->user();
 
-        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+        if (! $authUser->canOperateMatchInApp($match)) {
             return $this->forbidden('You cannot manage this match.');
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Models\Shop\Product;
+use App\Models\Shop\Vendor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,7 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'vendor_id' => ['nullable', 'integer', 'exists:shop_vendors,id'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
@@ -37,7 +39,7 @@ class StoreProductRequest extends FormRequest
             'discount_value' => ['nullable', 'numeric', 'min:0', 'required_with:discount_type'],
             'discount_starts_at' => ['nullable', 'date', 'required_with:discount_type'],
             'discount_ends_at' => ['nullable', 'date', 'required_with:discount_type', 'after_or_equal:discount_starts_at'],
-            'images' => ['required', 'array', 'min:1'],
+            'images' => ['nullable', 'array', 'min:1'],
             'images.*' => ['image'],
         ];
     }
@@ -48,7 +50,9 @@ class StoreProductRequest extends FormRequest
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated($key, $default);
-        $data['slug'] = $this->uniqueSlug(Str::slug($data['slug']));
+        $vendorId = (int) ($data['vendor_id'] ?? Vendor::ensureHouse()->id);
+        $data['vendor_id'] = $vendorId;
+        $data['slug'] = $this->uniqueSlug(Str::slug($data['slug']), $vendorId);
         $data['sku'] = Product::generateIntelligentSku((int) $data['brand_id'], (int) $data['category_id']);
         if (array_key_exists('images', $data)) {
             unset($data['images']);
@@ -73,11 +77,16 @@ class StoreProductRequest extends FormRequest
         return $data;
     }
 
-    private function uniqueSlug(string $base): string
+    private function uniqueSlug(string $base, int $vendorId): string
     {
         $slug = $base;
         $c = 0;
-        while (Product::where('slug', $slug)->exists()) {
+        while (
+            Product::query()
+                ->where('slug', $slug)
+                ->where('vendor_id', $vendorId)
+                ->exists()
+        ) {
             $slug = $base.'-'.(++$c);
         }
 

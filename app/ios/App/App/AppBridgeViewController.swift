@@ -7,6 +7,8 @@ import Capacitor
  *
  * Capacitor webview transparency is toggled by YoutubeStreamOverlayPlugin when underlay
  * is active (portrait + landscape). Do not set it globally here.
+ *
+ * Inline media: Capacitor already sets allowsInlineMediaPlayback = true on the WKWebView.
  */
 class AppBridgeViewController: CAPBridgeViewController {
     override func viewDidLoad() {

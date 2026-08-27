@@ -1,0 +1,11 @@
+<span
+  class="inline-block shrink-0 animate-loader-spin rounded-full"
+  [class]="toneClass"
+  [style]="glowStyle"
+  [style.width.px]="diameter"
+  [style.height.px]="diameter"
+  [style.border-width.px]="borderWidth"
+  [attr.role]="label ? 'status' : null"
+  [attr.aria-label]="label"
+  [attr.aria-hidden]="label ? null : true"
+></span>

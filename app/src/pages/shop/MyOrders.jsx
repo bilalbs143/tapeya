@@ -5,28 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { formatPrice } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
+import { OrderStatusPill } from '@/pages/vendor/OrderStatusPill';
 import { useGetOrdersQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 
 const CURRENT_STATUSES = ['pending', 'processing'];
-
-const STATUS_PILL_STYLES = {
-  pending: 'border border-brand text-brand font-bold uppercase tracking-wide',
-  processing: 'border border-white text-white font-bold uppercase tracking-wide',
-  dispatched: 'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
-  delivered: 'border border-[#22C55E] text-[#22C55E] font-bold uppercase tracking-wide',
-  cancelled: 'border border-[#FF3B30] text-[#FF3B30] font-bold uppercase tracking-wide',
-  shipped: 'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
-};
-
-function OrderStatusPill({ status, statusLabel }) {
-  const value = (status ?? '').toLowerCase();
-  const display = (statusLabel ?? value) !== '' ? (statusLabel ?? value).toUpperCase() : '—';
-  const style =
-    STATUS_PILL_STYLES[value] ?? 'border border-[#6B7280] bg-transparent text-[#6B7280] font-bold uppercase tracking-wide';
-
-  return <span className={`inline-block rounded-full px-3 py-1 text-[11px] ${style}`}>{display}</span>;
-}
 
 const OrderCard = memo(function OrderCard({ order, onClick }) {
   const items = order.items ?? [];
@@ -92,50 +78,47 @@ export default function MyOrders() {
     <div className="bg-black">
       <AppSubpageHeader title="MY ORDERS" />
       <Container>
-        {isLoading && (
-          <div className="flex min-h-[30vh] items-center justify-center py-12">
-            <p className="text-muted text-[14px]">Loading orders…</p>
-          </div>
-        )}
+        {isLoading && <PageLoader label="Loading orders" className="min-h-[30vh] py-12" />}
 
-        {isError && !isLoading && (
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Could not load orders. Please try again.</p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+        {isError && !isLoading ? <ListError message="Could not load orders." onRetry={() => refetch()} /> : null}
 
-        {!isLoading && !isError && (
-          <div className="flex flex-col gap-8">
-            <section>
-              <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">CURRENT ORDERS</h2>
-              <div className="flex flex-col gap-3">
-                {currentOrders.length === 0 ? (
-                  <p className="text-muted text-[13px]">No current orders.</p>
-                ) : (
-                  currentOrders.map((order) => <OrderCard key={order.id} order={order} onClick={handleOrderClick} />)
-                )}
-              </div>
-            </section>
+        {!isLoading && !isError && orders.length === 0 ? (
+          <ListEmpty
+            title="No Orders Yet."
+            description="Items you buy in the shop will show up here."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
+                Browse Shop
+              </Button>
+            }
+          />
+        ) : null}
 
-            <section>
-              <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">PREVIOUS ORDERS</h2>
-              <div className="flex flex-col gap-3">
-                {previousOrders.length === 0 ? (
-                  <p className="text-muted text-[13px]">No previous orders.</p>
-                ) : (
-                  previousOrders.map((order) => <OrderCard key={order.id} order={order} onClick={handleOrderClick} />)
-                )}
-              </div>
-            </section>
+        {!isLoading && !isError && orders.length > 0 ? (
+          <div className="flex flex-col gap-8 pb-10">
+            {currentOrders.length > 0 ? (
+              <section>
+                <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">CURRENT ORDERS</h2>
+                <div className="flex flex-col gap-3">
+                  {currentOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} onClick={handleOrderClick} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {previousOrders.length > 0 ? (
+              <section>
+                <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">PREVIOUS ORDERS</h2>
+                <div className="flex flex-col gap-3">
+                  {previousOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} onClick={handleOrderClick} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
-        )}
+        ) : null}
       </Container>
     </div>
   );

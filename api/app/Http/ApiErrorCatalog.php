@@ -21,6 +21,9 @@ final class ApiErrorCatalog
     private const TYPE_STATUS = [
         'UNAUTHORIZED' => 401,
         'FORBIDDEN' => 403,
+        'VENDOR_PROFILE_REQUIRED' => 403,
+        'VENDOR_NOT_APPROVED' => 403,
+        'VENDOR_SUSPENDED' => 403,
         'NOT_FOUND' => 404,
         'CONFLICT' => 409,
         'GONE' => 410,
@@ -28,6 +31,7 @@ final class ApiErrorCatalog
         'TOO_MANY_REQUESTS' => 429,
         'SERVER_ERROR' => 500,
         'SERVICE_UNAVAILABLE' => 503,
+        'BAD_REQUEST' => 400,
     ];
 
     public static function typeForStatus(int $status): string

@@ -4,6 +4,7 @@ import {
   matchPlayerName,
   sortMatchStatRows,
 } from '@/lib/utils/matchPlayerStatsUtils';
+import { Loader } from '@/ui/Loader';
 
 const TABLE_HEAD = 'bg-surface px-3 py-2 text-[10px] font-bold tracking-wide text-brand uppercase lg:px-4 lg:py-3 lg:text-[12px]';
 const TABLE_CELL = 'border-t border-border-subtle px-3 py-2.5 text-[12px] text-white lg:px-4 lg:py-3 lg:text-[14px]';
@@ -60,8 +61,8 @@ function StatsTable({ title, headers, rows, emptyMessage }) {
 export function MatchPlayerStatsTables({ data, playerNameMap = {}, isLoading = false, isError = false }) {
   if (isLoading) {
     return (
-      <section className="bg-surface rounded-lg px-4 py-6 text-center" aria-label="Loading Match Player Stats">
-        <p className="text-muted text-[13px]">Loading player stats…</p>
+      <section className="bg-surface flex items-center justify-center rounded-lg px-4 py-6">
+        <Loader label="Loading player stats" />
       </section>
     );
   }

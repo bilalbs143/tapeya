@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
-import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
@@ -13,12 +12,14 @@ import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploa
 import { updateProfileSchema, userEditFormSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { usePlayerProfileEnums } from '@/store/api/enumApi';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 import { updateUser } from '@/store/slices/authSlice';
+import { Button } from '@/ui/Button';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
-import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FileUploadField } from '@/ui/FileUploadField';
+import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
@@ -35,8 +36,6 @@ import {
   SelectValue,
   selectViewportInputClass,
 } from '@/ui/Select';
-
-const USER_EDIT_FORM_ID = 'user-edit-form';
 
 const NICKNAME_MAX = 50;
 
@@ -59,7 +58,7 @@ function ProfileEnumSelect({ label, htmlFor, value, onChange, options }) {
   return (
     <FormField label={label} htmlFor={htmlFor}>
       <Select value={value || PROFILE_FIELD_NONE} onValueChange={(v) => onChange(v === PROFILE_FIELD_NONE ? '' : v)}>
-        <SelectTrigger id={htmlFor} className={`max-w-none ${selectTriggerInputClass}`}>
+        <SelectTrigger id={htmlFor} className={selectTriggerInputClass}>
           <SelectValue placeholder={`Select ${label}`} />
         </SelectTrigger>
         <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass}>
@@ -88,10 +87,14 @@ function ProfileEnumSelect({ label, htmlFor, value, onChange, options }) {
   );
 }
 
-export function UserEdit({ open, onOpenChange }) {
+/**
+ * Inline edit-profile form for `/profile` (no dialog).
+ */
+export function UserEdit() {
   const dispatch = useAppDispatch();
-  const { data: meData } = useGetMeQuery(undefined, { skip: !open });
-  const user = meData?.data ?? null;
+  const userFromStore = useAppSelector(selectUser);
+  const { data: meData } = useGetMeQuery(undefined, { skip: !userFromStore?.id });
+  const user = meData?.data ?? userFromStore ?? null;
   const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
   const toast = useToast();
   const [avatarUpload, setAvatarUpload] = useState(EMPTY_FILE_UPLOAD);
@@ -117,7 +120,7 @@ export function UserEdit({ open, onOpenChange }) {
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
   useEffect(() => {
-    if (!open || !user) return;
+    if (!user?.id) return;
 
     const countryFromProfile = user.country && String(user.country).trim();
 
@@ -133,10 +136,11 @@ export function UserEdit({ open, onOpenChange }) {
       email: user.email ?? '',
     });
     setAvatarUpload(fileUploadValueFromUrl(user.avatar_url));
-  }, [open, user, reset]);
+    // Hydrate once per user id so later /me or store updates do not wipe in-progress edits.
+  }, [user?.id, reset]);
 
   useEffect(() => {
-    if (!open || !user) return;
+    if (!user?.id) return;
 
     const batting = enumNameToValue(user.batting_style_enum) || user.batting_style;
     const bowling = enumNameToValue(user.bowling_style_enum) || user.bowling_style;
@@ -151,7 +155,7 @@ export function UserEdit({ open, onOpenChange }) {
     setValue('playingRole', playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '', {
       shouldValidate: false,
     });
-  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions, setValue]);
+  }, [user?.id, battingStyleOptions, bowlingStyleOptions, playingRoleOptions, setValue]);
 
   const onSubmit = async (data) => {
     const parsed = updateProfileSchema.safeParse({
@@ -184,7 +188,7 @@ export function UserEdit({ open, onOpenChange }) {
         dispatch(updateUser(updatedUser));
       }
       setAvatarUpload(fileUploadValueFromUrl(updatedUser?.avatar_url));
-      onOpenChange?.(false);
+      toast.success('Profile saved');
     } catch (err) {
       const apiErrors = err?.data?.errors;
       const nicknameMsg = Array.isArray(apiErrors?.nickname) ? apiErrors.nickname[0] : null;
@@ -202,132 +206,111 @@ export function UserEdit({ open, onOpenChange }) {
   };
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} height="!h-[min(90vh,600px)]">
-      <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>EDIT PROFILE</DialogTitle>
-      </DialogHeaderRow>
+    <FormStack as="form" density="default" onSubmit={handleSubmit(onSubmit)} aria-label="Edit profile">
+      <div className="flex flex-col items-center gap-2">
+        <FileUploadField
+          variant="avatar"
+          value={avatarUpload}
+          onChange={setAvatarUpload}
+          accept="image/jpeg,image/png,image/webp"
+          acceptLabel="JPG, PNG, WebP"
+          maxSizeMb={5}
+          avatarSize={96}
+        />
+        <p className="text-muted/80 max-w-[280px] text-center text-[12px] leading-snug">JPG, PNG or WebP, max 5 MB.</p>
+      </div>
 
-      <DialogScrollBody>
-        <FormStack as="form" id={USER_EDIT_FORM_ID} onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col items-center gap-2">
-            <FileUploadField
-              variant="avatar"
-              value={avatarUpload}
-              onChange={setAvatarUpload}
-              accept="image/jpeg,image/png,image/webp"
-              acceptLabel="JPG, PNG, WebP"
-              maxSizeMb={5}
-              avatarSize={96}
+      <FormField label="Name" htmlFor="name">
+        <Input id="name" type="text" placeholder="Full Name" error={errors.name?.message} {...register('name')} />
+      </FormField>
+
+      <FormField label="Nickname" htmlFor="nickname">
+        <Input
+          id="nickname"
+          type="text"
+          placeholder="Letters, Numbers, Underscores Only"
+          maxLength={NICKNAME_MAX}
+          error={errors.nickname?.message}
+          {...register('nickname')}
+        />
+      </FormField>
+
+      <FormField label="Email" htmlFor="email">
+        <Input id="email" type="email" placeholder="Enter Email" error={errors.email?.message} {...register('email')} />
+      </FormField>
+
+      <FormField label="Date of Birth" htmlFor="dob">
+        <Controller
+          name="dateOfBirth"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              id="dob"
+              placeholder="MM-DD-YYYY"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.dateOfBirth?.message}
             />
-            <p className="text-muted/80 max-w-[280px] text-center text-[12px] leading-snug">JPG, PNG or WebP, max 5 MB.</p>
-          </div>
+          )}
+        />
+      </FormField>
 
-          <FormField label="Name" htmlFor="name">
-            <Input
-              id="name"
-              type="text"
-              placeholder="Full Name"
-              className="max-w-none"
-              error={errors.name?.message}
-              {...register('name')}
-            />
-          </FormField>
-
-          <FormField label="Nickname" htmlFor="nickname">
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="Letters, Numbers, Underscores Only"
-              className="max-w-none"
-              maxLength={NICKNAME_MAX}
-              error={errors.nickname?.message}
-              {...register('nickname')}
-            />
-          </FormField>
-
-          <FormField label="Date Of Birth" htmlFor="dob">
-            <Controller
-              name="dateOfBirth"
-              control={control}
-              render={({ field }) => (
-                <DatePicker
-                  id="dob"
-                  placeholder="MM-DD-YYYY"
-                  value={field.value}
-                  onChange={field.onChange}
-                  className="max-w-none"
-                  error={errors.dateOfBirth?.message}
-                />
-              )}
-            />
-          </FormField>
-
-          <Controller
-            name="playingRole"
-            control={control}
-            render={({ field }) => (
-              <ProfileEnumSelect
-                htmlFor="playing-role"
-                label="Playing Role"
-                value={field.value}
-                onChange={field.onChange}
-                options={playingRoleOptions}
-              />
-            )}
+      <Controller
+        name="playingRole"
+        control={control}
+        render={({ field }) => (
+          <ProfileEnumSelect
+            htmlFor="playing-role"
+            label="Playing Role"
+            value={field.value}
+            onChange={field.onChange}
+            options={playingRoleOptions}
           />
+        )}
+      />
 
-          <Controller
-            name="battingStyle"
-            control={control}
-            render={({ field }) => (
-              <ProfileEnumSelect
-                htmlFor="batting-style"
-                label="Batting Style"
-                value={field.value}
-                onChange={field.onChange}
-                options={battingStyleOptions}
-              />
-            )}
+      <Controller
+        name="battingStyle"
+        control={control}
+        render={({ field }) => (
+          <ProfileEnumSelect
+            htmlFor="batting-style"
+            label="Batting Style"
+            value={field.value}
+            onChange={field.onChange}
+            options={battingStyleOptions}
           />
+        )}
+      />
 
-          <Controller
-            name="bowlingStyle"
-            control={control}
-            render={({ field }) => (
-              <ProfileEnumSelect
-                htmlFor="bowling-style"
-                label="Bowling Style"
-                value={field.value}
-                onChange={field.onChange}
-                options={bowlingStyleOptions}
-              />
-            )}
+      <Controller
+        name="bowlingStyle"
+        control={control}
+        render={({ field }) => (
+          <ProfileEnumSelect
+            htmlFor="bowling-style"
+            label="Bowling Style"
+            value={field.value}
+            onChange={field.onChange}
+            options={bowlingStyleOptions}
           />
+        )}
+      />
 
-          <FormField label="Email" htmlFor="email">
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter Email"
-              className="max-w-none"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-          </FormField>
+      <CountryCityFields
+        country={country ?? ''}
+        city={city ?? ''}
+        onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+        onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
+        enabled
+        layout="row"
+      />
 
-          <CountryCityFields
-            country={country ?? ''}
-            city={city ?? ''}
-            onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
-            onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
-            enabled={open}
-          />
-        </FormStack>
-      </DialogScrollBody>
-
-      <DialogSaveButton form={USER_EDIT_FORM_ID} type="submit" disabled={isSaving}>
-        {isSaving ? 'Saving…' : 'Save'}
-      </DialogSaveButton>
-    </BaseDialog>
+      <FormActions align="end">
+        <Button type="submit" variant="orange" size="dialog" className="sm:w-[180px]" disabled={isSaving} loading={isSaving}>
+          {isSaving ? 'Saving…' : 'Save'}
+        </Button>
+      </FormActions>
+    </FormStack>
   );
 }

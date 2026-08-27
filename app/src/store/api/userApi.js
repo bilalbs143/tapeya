@@ -54,6 +54,32 @@ export const userApi = baseApi.injectEndpoints({
     }),
 
     /**
+     * Team owner / squad / icon pickers — any non-blocked app user.
+     * Distinct from searchUsers (mentions). GET /users/lookup?search=...
+     * Pass `{ mine: true }` for users the actor created (Quick Match walk-ups).
+     */
+    lookupUsers: builder.query({
+      query: (arg = '') => {
+        if (arg && typeof arg === 'object') {
+          const params = {};
+          if (arg.search != null && String(arg.search).trim() !== '') {
+            params.search = String(arg.search).trim();
+          }
+          if (arg.mine) params.mine = 1;
+          return { url: '/users/lookup', params };
+        }
+        const search = typeof arg === 'string' ? arg : '';
+        return {
+          url: '/users/lookup',
+          params: search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {},
+        };
+      },
+      transformResponse: (response) => response?.data ?? response ?? [],
+      providesTags: (_result, _err, arg) =>
+        arg && typeof arg === 'object' && arg.mine ? [{ type: 'User', id: 'LOOKUP_MINE' }] : [],
+    }),
+
+    /**
      * Ranked who-to-follow for Explore feed widget.
      * @param {{ limit?: number }} [params]
      */
@@ -70,4 +96,4 @@ export const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useUpdateActivePlatformMutation, useSearchUsersQuery, useGetSuggestedUsersQuery } = userApi;
+export const { useUpdateActivePlatformMutation, useSearchUsersQuery, useLookupUsersQuery, useGetSuggestedUsersQuery } = userApi;

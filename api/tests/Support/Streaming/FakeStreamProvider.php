@@ -2,7 +2,7 @@
 
 namespace Tests\Support\Streaming;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\Contracts\StreamProviderContract;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
@@ -18,7 +18,7 @@ class FakeStreamProvider implements StreamProviderContract
     /** Captured for assertions — e.g. confirming self-serve always passes privacy: 'unlisted'. */
     public ?CreateStreamData $lastCreateData = null;
 
-    public function createStream(MatchStream $stream, CreateStreamData $data): void
+    public function createStream(LiveStream $stream, CreateStreamData $data): void
     {
         $this->lastCreateData = $data;
 
@@ -32,30 +32,30 @@ class FakeStreamProvider implements StreamProviderContract
         ]);
     }
 
-    public function syncStatus(MatchStream $stream): void
+    public function syncStatus(LiveStream $stream): void
     {
         $stream->update(['status' => 'live']);
     }
 
     /**
-     * @param  Collection<int, MatchStream>  $streams
+     * @param  Collection<int, LiveStream>  $streams
      */
     public function syncStatuses(Collection $streams): void
     {
-        $streams->each(fn (MatchStream $stream) => $this->syncStatus($stream));
+        $streams->each(fn (LiveStream $stream) => $this->syncStatus($stream));
     }
 
-    public function endStream(MatchStream $stream): void
+    public function endStream(LiveStream $stream): void
     {
         $stream->update(['status' => 'ended', 'ended_at' => now()]);
     }
 
-    public function deleteStream(MatchStream $stream): void
+    public function deleteStream(LiveStream $stream): void
     {
         // no-op — nothing to clean up remotely in tests
     }
 
-    public function playback(MatchStream $stream): StreamPlayback
+    public function playback(LiveStream $stream): StreamPlayback
     {
         return new StreamPlayback(
             mode: 'iframe',
@@ -65,7 +65,7 @@ class FakeStreamProvider implements StreamProviderContract
         );
     }
 
-    public function ingestConfig(MatchStream $stream): StreamIngestConfig
+    public function ingestConfig(LiveStream $stream): StreamIngestConfig
     {
         return new StreamIngestConfig(
             rtmpUrl: 'rtmp://fake.example.com/live',

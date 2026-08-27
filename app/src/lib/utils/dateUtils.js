@@ -91,6 +91,40 @@ export function formatIsoDateForDisplay(iso) {
   return '';
 }
 
+/**
+ * Converts an API ISO datetime to HH:mm for TimePicker (local time).
+ *
+ * @param {string} [iso]
+ * @returns {string}
+ */
+export function formatIsoTimeForDisplay(iso) {
+  if (!iso || typeof iso !== 'string') return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Combines DatePicker (MM-DD-YYYY / YYYY-MM-DD) + TimePicker (HH:mm) into API datetime
+ * `YYYY-MM-DDTHH:mm` (same shape as admin product discount fields).
+ *
+ * @param {string|Date|null|undefined} dateValue
+ * @param {string|null|undefined} timeValue
+ * @returns {string}
+ */
+export function toApiDateTime(dateValue, timeValue) {
+  const date = toApiDate(dateValue);
+  const time = typeof timeValue === 'string' ? timeValue.trim() : '';
+  if (!date || !/^\d{2}:\d{2}$/.test(time)) return '';
+
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  const local = new Date(year, month - 1, day, hours, minutes, 0, 0);
+  if (Number.isNaN(local.getTime())) return '';
+
+  return local.toISOString().slice(0, 16);
+}
+
 /** DatePicker → MM-DD-YYYY; API expects YYYY-MM-DD. Returns '' when unparseable. */
 export function toApiDate(value) {
   if (value == null || value === '') return '';
@@ -125,7 +159,7 @@ export function toApiDate(value) {
 }
 
 /**
- * Human-readable age from a YYYY-MM-DD date-of-birth. Returns '—' for missing/invalid.
+ * Compact age from a YYYY-MM-DD date-of-birth (e.g. "19y 2m 3d"). Returns '—' for missing/invalid.
  *
  * @param {string} [dateOfBirth] - YYYY-MM-DD
  * @returns {string}
@@ -149,9 +183,9 @@ export function formatAge(dateOfBirth) {
   }
   if (years <= 0 && months <= 0 && days <= 0) return '—';
   const parts = [];
-  if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
-  if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
-  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  if (years > 0) parts.push(`${years}y`);
+  if (months > 0) parts.push(`${months}m`);
+  if (days > 0) parts.push(`${days}d`);
   return parts.join(' ');
 }
 
@@ -167,6 +201,20 @@ export function formatDate(value, options = { day: '2-digit', month: 'short', ye
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-GB', options);
+}
+
+/**
+ * Format a full ISO datetime for display, e.g. "2026-08-16T15:46:03Z" → "16 Aug 2026, 3:46 PM".
+ *
+ * @param {string|Date|null|undefined} value
+ * @returns {string} Formatted string e.g. "16 Aug 2026, 3:46 PM" or ""
+ */
+export function formatDateTime(value) {
+  if (value == null || value === '') return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${formatDate(date)}, ${time}`;
 }
 
 /**

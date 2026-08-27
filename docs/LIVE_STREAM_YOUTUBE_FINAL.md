@@ -1335,7 +1335,7 @@ AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_DEFAULT_REGION=ap-south-1
 AWS_BUCKET=tapeya
-AWS_URL=https://d1nmw2vhka3zp0.cloudfront.net
+AWS_URL=https://cdn.tapeya.com
 ```
 
 **All streaming settings managed from Admin → System Settings → Live Streaming:**

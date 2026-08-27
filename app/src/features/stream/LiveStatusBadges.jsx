@@ -12,8 +12,8 @@ export function LiveStatusBadge({ status, label: labelOverride }) {
   if (!cfg && !labelOverride) return null;
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${cfg?.dot ?? 'animate-pulse bg-red-500'}`} aria-hidden />
+    <span className="inline-flex items-center gap-1 rounded-full bg-black/85 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg?.dot ?? 'animate-pulse bg-red-500'}`} aria-hidden />
       {labelOverride ?? cfg.label}
     </span>
   );
@@ -25,11 +25,11 @@ export function LiveViewerCountBadge({ viewerCount, format = true }) {
 
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
+      className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-black"
       aria-live="polite"
       aria-label={`${viewerCount} watching`}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path
           d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
           stroke="black"

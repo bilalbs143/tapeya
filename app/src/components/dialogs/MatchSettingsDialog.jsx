@@ -137,7 +137,7 @@ export function MatchSettingsDialog({ matchId, settings = {} }) {
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton form={MATCH_SETTINGS_FORM_ID} type="submit" disabled={isSaving || !isDirty}>
+      <DialogSaveButton form={MATCH_SETTINGS_FORM_ID} type="submit" disabled={isSaving || !isDirty} loading={isSaving}>
         {isSaving ? 'Saving…' : 'Save'}
       </DialogSaveButton>
     </>

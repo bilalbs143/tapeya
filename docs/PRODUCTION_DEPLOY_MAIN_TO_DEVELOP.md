@@ -1,38 +1,88 @@
-# Production deploy — `main` → `develop` (incl. staged work)
+# Production deploy — `main` → `develop`
 
-**Baseline (last production on `main`):** `bbc4ebd` — *Enhance layout and spacing in theme1 graphics components* (2026-07-15)
+Ship **local `develop` tip** (after push + merge to `main`) onto production.
 
-**Target:** current `develop` + all staged/uncommitted work (as of this doc).
+| | SHA | Message |
+|---|---|---|
+| **main** (prod today) | `ae2c4fd` | Rename `match_streams` table to `live_streams` and update related model and tests |
+| **develop** (release tip) | `f1734b2` | Unify list empty/error states and tighten button and shell UI consistency |
 
-**Scope of change (vs `main`):** ~650+ files across `api/`, `app/`, `backoffice/`, `docs/`, `nginx/`, `supervisor/`.
+**On develop, not on prod:** `ae2c4fd` → `f1734b2` (**7** commits).
 
-> Commit/push the staged work on `develop` before deploy. This doc assumes that tree is what you ship.
+| SHA | Summary |
+|---|---|
+| `ae57868` | Rename `MatchStream` model → `LiveStream` (table already `live_streams` on main) |
+| `495e253` | Drop unused import in shop carts migration file |
+| `252fd9c` | Hero slider CTAs (none / URL / dialog) + static assets base → `cdn.tapeya.com` |
+| `54ebdac` | Shared loaders in app + backoffice; seller empty states aligned |
+| `34b2f34` | Organizer broadcast graphics (OBS overlay) + user watch-URL live streams (YouTube/HLS) |
+| `57c89ed` | Highlight YouTube playback on iOS Capacitor (Error 153) |
+| `f1734b2` | Shared `ListEmpty`/`ListError`, Button size cleanup, safe-area hero offsets, profile/sidebar polish |
+
+**Branch note:** `origin/develop` may still lag this tip. Push `develop`, then merge `develop` → `main` before production checkout.
+
+No `composer.lock` / `package-lock.json` change. No CDN/Wrangler. Android unchanged (**1.1.6** / **17**). iOS bumped to marketing **1.1.5**, build **46**.
 
 ---
 
-## What is shipping
+## What this release does
 
-| Area | Summary |
-|------|---------|
-| **Feed + posts + reels** | Compose (text/image/video), feed, reels player, likes/comments/saves/shares/reposts, mentions, hashtags, views, reports, follow suggestions, official badge |
-| **Media** | `MediaDisk` / `MediaCdn` write path; permanent CDN URLs; poster + ABR transcode queues |
-| **Push / realtime** | `post_*` notification events; `user.post.engagement` broadcast |
-| **Admin** | Posts + post-reports moderation (preview/play); official user flag; CDN + reels system settings |
-| **Live** | Stream orientation (portrait/landscape) + related app/native |
-| **Graphics** | Theme2 overlay pack |
-| **Infra** | New supervisor queues; nginx `/.well-known` for app links; scheduled post jobs |
+### Live streaming & graphics
 
-**Not required for this release:** Sponsored brand posts (doc only / future).
+- **Watch-URL streams:** logged-in users can add a YouTube or HLS watch URL (`/live/streaming`) so viewers watch on the Live hub — same pattern as admin external streams. Not subject to the mobile Go Live 2h camera cap.
+- **Broadcast graphics:** scorers open **Broadcast graphics** on a match, save theme/config, copy a signed OBS overlay URL (1920×1080). Lifecycle: THIS_MATCH → TOSS_LT → LT_DEFAULT + existing scoring flashes. Destination RTMP stays outside Tapeya (manual encoder setup).
+
+### Hero sliders
+
+- Admin CTA types: **none** (banner only), **url** (internal/external), **dialog** (in-app dialog key + optional param).
+- Existing slides with a non-empty `cta_url` are backfilled to `cta_type=url`.
+- Hardcoded CloudFront app asset bases switched to **`cdn.tapeya.com`**.
+
+### Consumer / backoffice UI
+
+- Shared **`ListEmpty` / `ListError`** across lists; Button variants/sizes tightened (`md` = 45px; unused `lg` removed).
+- Safe-area-aware offsets under fixed navbar (tournament/highlight heroes, sticky tabs, profile header).
+- Shared loaders (`Loader` / `PageLoader`) in app + backoffice; seller catalog empties match My Matches / orders patterns.
+- Profile shell cleanup (dead role tabs removed); `/stats` page; sidebar My Tournaments icon from CDN; match notes delete icon; revise-target dialog in-body side-by-side actions.
+
+### Highlights (native)
+
+- iOS Capacitor highlight YouTube playback uses the live embed proxy / native overlay path to avoid Error 153; interactive controls for VOD.
 
 ---
 
-## Pre-deploy checklist
+## ⚠ Migrations
 
-1. [ ] All intended changes committed on `develop` and merged/tagged for production.
-2. [ ] Staging smoke: compose text/image/reel → like/comment → admin can open/play post → CDN host on media URLs.
-3. [ ] FFmpeg on API host with **libwebp** (`ffmpeg -hide_banner -encoders | grep libwebp`).
-4. [ ] Object storage ready (`MEDIA_DISK=s3`, B2/S3 creds, CDN host). See [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md).
-5. [ ] PHP upload limits high enough for reels (nginx `client_max_body_size` + FPM/`PHP_VALUE` — **not** only `public/.user.ini`).
+### Hero slider CTAs — additive
+
+`2026_08_19_100000_add_cta_fields_to_hero_sliders_table`:
+
+- `hero_sliders.cta_type` (string, default `none`)
+- `hero_sliders.cta_label` (nullable)
+- `hero_sliders.cta_url` (nullable)
+- `hero_sliders.cta_target_blank` (boolean, default true)
+- `hero_sliders.cta_dialog_key` (nullable)
+- `hero_sliders.cta_dialog_param` (nullable)
+
+Backfill: rows with a non-empty `cta_url` → `cta_type=url`. Safe on prod; `down()` drops the new columns.
+
+### Shop carts migration file — no schema change expected
+
+`2026_02_22_100019_create_shop_carts_table` only drops an unused import on develop. If prod already ran this migration under `ae2c4fd` / `27ef48d`, migrate will skip it. No data change.
+
+### Live streams table — already on main
+
+Table rename `match_streams` → `live_streams` is already on **main** (`ae2c4fd`). This release only finishes the Eloquent model rename (`LiveStream`). No new table migration for that.
+
+---
+
+## Pre-deploy
+
+1. [ ] Push local `develop` (`f1734b2`), merge `develop` → `main`, push `main`.
+2. [ ] DB dump (at least `hero_sliders`, `live_streams`, `matches`, `settings`).
+3. [ ] Confirm prod still on `ae2c4fd` (or note current SHA) so rollback is possible.
+4. [ ] Confirm graphics overlay host + signing secret in System Settings (graphics group) are correct for OBS.
+5. [ ] Confirm Laravel scheduler cron is running (existing live/broadcast commands unchanged in role).
 
 ---
 
@@ -42,153 +92,129 @@
 
 ```bash
 cd /var/www/tapeya/api   # adjust path
-git fetch && git checkout <release-ref>
+git fetch
+git checkout <release-ref>   # main after merge
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan db:seed --class=SystemSettingsSeeder --force
-php artisan db:seed --class=PushNotificationTemplateSeeder --force
-php artisan db:seed --class=GraphicThemeSeeder --force   # if theme2 needs DB seed
-php artisan settings:clear-cache
 php artisan config:clear
-php artisan route:clear
-php artisan cache:clear
 php artisan config:cache
-php artisan route:cache
+php artisan settings:clear-cache
+# optional: php artisan route:cache
 ```
 
-**Env / Admin settings to verify**
+No new `SystemSettingsSeeder` / `PermissionSeeder` requirement for this slice beyond existing graphics settings.
 
-| Key | Notes |
-|-----|--------|
-| `MEDIA_DISK=s3` | Production media disk |
-| `AWS_*` + `AWS_ENDPOINT` | B2/S3-compatible |
-| `AWS_URL` | CDN fallback hostname |
-| Admin → **Media & CDN** → `cdn_public_base_url` | Overrides `AWS_URL` at boot |
-| Admin → **Reels** | Upload MB, duration, multipart, view counters |
-| `FFMPEG_PATH` / `FFPROBE_PATH` | If not on PATH / need ffmpeg-full |
-
-### 2. Queue workers (Supervisor)
-
-Copy/update `supervisor/tapeya.conf` and reload:
+Restart PHP-FPM / queues so workers load new code:
 
 ```bash
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl status
+sudo supervisorctl restart all
+sudo systemctl reload php8.2-fpm   # adjust
 ```
 
-**Must be running**
-
-| Program | Queue |
-|---------|--------|
-| `artisan-queue` | `default` |
-| `artisan-queue-push` | `push-notifications` |
-| `artisan-queue-reels-poster` | `reels-poster` (×2) |
-| `artisan-queue-reels-transcode` | `reels-transcode` (×1, heavy) |
-| `artisan-queue-reels` | `reels` (cleanup) |
-
-Scheduler (already via cron `schedule:run`) picks up:
-
-- `posts:flush-view-counters` — every minute  
-- `posts:purge-expired-originals` — daily 04:30  
-
-### 3. Nginx
-
-- Deploy `nginx/app.conf` (adds `/.well-known/apple-app-site-association` + `assetlinks.json`).
-- Confirm API upload body size matches reel limits (raise if still 64M).
-- `sudo nginx -t && sudo systemctl reload nginx`
-
-### 4. Mobile web app (`app/`)
+### 2. Consumer app (`tapeya.com`)
 
 ```bash
-cd /var/www/tapeya/app   # or CI artifact
+cd /var/www/tapeya/app
 npm ci
-npm run build
-# deploy dist/ to app web root
+npm run build:production
+# deploy app/dist/
 ```
 
-CDN for in-app assets comes from public `cdn_public_base_url` at boot (`bootstrapCdn`). Favicon/`preconnect` in `index.html` may still use the legacy CloudFront fallback until cutover.
+Ships: Live Streaming UI, Broadcast graphics dialog, hero CTA taps, ListState/Button polish, CDN asset base, highlight iOS fix (web bundle; store build still needed for Capacitor installs).
 
-### 5. Backoffice
+Graphics overlay host: rebuild/deploy graphics if OBS loads from this tree:
+
+```bash
+npm run build:graphics:production
+# deploy graphics dist to graphics.tapeya.com (or your overlay host)
+```
+
+### 3. Backoffice (`admin.tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/backoffice
 npm ci
-npm run build
-# deploy dist to backoffice host
+npm run build:production
+# deploy dist/backoffice/browser
 ```
 
-Confirm nav: **Content → Posts**, **Post reports**.
+New / updated:
 
-### 6. Native / deep links (store builds)
+- Hero slider create/edit: CTA type, label, URL, target blank, dialog key/param
+- Shared loader components / seller empty-state alignment
+- Live stream admin surfaces tied to `LiveStream` naming (if present in this tree)
 
-Do this **after** mobile web + nginx are live (so `/.well-known/*` is reachable). Soft “Open in Tapeya” (`tapeya://`) still works without verification; auto-open from HTTPS needs this.
+### 4. Native (store) — only if you ship binaries
 
-**Android App Links**
+| Platform | Why |
+|----------|-----|
+| **iOS** | Highlight YouTube Error 153 fix needs a Capacitor build. Ship marketing **1.1.5**, build **46**. |
+| **Android** | Same webview/bundle benefits if you ship; no version bump in this range (**1.1.6** / **17**). |
 
-1. Confirm Play App Signing SHA-256 is in `app/public/.well-known/assetlinks.json` ([PLAY_APP_SIGNING_SHA256.md](./PLAY_APP_SIGNING_SHA256.md)).
-2. Confirm live:
-   ```bash
-   curl -sI https://tapeya.com/.well-known/assetlinks.json | head
-   curl -s https://tapeya.com/.well-known/assetlinks.json
-   ```
-3. Install a **Play-signed** release (internal/testing/production track — not a random local debug keystore).
-4. Verify association:
-   ```bash
-   adb shell pm get-app-links com.tapbytapeya.app
-   ```
-   Expect `tapeya.com` verified / approved for App Links. If not, fix SHA + redeploy JSON, then reinstall or wait for Android to re-check.
-
-**iOS Universal Links**
-
-1. Confirm AASA live (no redirect):  
-   `curl -sI https://tapeya.com/.well-known/apple-app-site-association | head`
-2. Ship a build with Associated Domains for `applinks:tapeya.com`.
-
-Details: [DEEP_LINKS.md](./DEEP_LINKS.md).
+Web-only production works without a store submit. Existing native installs keep old highlight embed behavior until updated.
 
 ---
 
-## Post-deploy smoke (10 minutes)
+## Post-deploy smoke
 
-- [ ] `GET /api/v1/...` health / login works  
-- [ ] Compose **text** + **image** post → appear in feed  
-- [ ] Upload **reel** → poster appears → processing finishes → HLS/original plays  
-- [ ] Like / comment / mention → in-app notification + (if enabled) push  
-- [ ] Follow user → notification  
-- [ ] Admin: open post → **video plays**; open post-report → post media loads  
-- [ ] Media URL host = CDN (`cdn_public_base_url`), not raw B2  
-- [ ] `supervisorctl status` — all reel queues UP  
-- [ ] Live go-live orientation still works  
-- [ ] Graphics theme2 selectable if expected in prod  
-- [ ] `https://tapeya.com/.well-known/assetlinks.json` + AASA return JSON (not SPA HTML)  
-- [ ] Play-signed install: `adb shell pm get-app-links com.tapbytapeya.app` shows domain verified  
+### Hero CTAs
+
+- [ ] Admin can create a slide with CTA **none**, **url**, and **dialog**.
+- [ ] App home: URL slide opens internal path or external link; dialog slide opens the mapped dialog.
+- [ ] Legacy slides with only `cta_url` still behave as URL after migrate backfill.
+
+### Live streaming (watch URL)
+
+- [ ] Logged-in user: `/live/streaming` → Add Live Stream with YouTube/HLS URL → appears on Live hub when live/listed as designed.
+- [ ] Manage stream (edit / status) works; viewer can open `/live/broadcast/:id`.
+- [ ] Mobile Go Live camera flow still works independently.
+
+### Broadcast graphics
+
+- [ ] Scorer: match → Broadcast graphics → save theme → signed URL copies.
+- [ ] OBS Browser Source loads overlay; toss / first ball advances lifecycle when a session exists.
+- [ ] Fan APIs do not expose overlay signing secrets.
+
+### Highlights (native, if shipping)
+
+- [ ] iOS: open a YouTube highlight — plays without Error 153; controls usable for VOD.
+
+### UI sanity
+
+- [ ] Empty lists show shared empty copy (e.g. My Matches / Tournaments / Live Streaming).
+- [ ] List errors show red message + brand text **Retry**.
+- [ ] Tournament detail back button clears the navbar logo on notched devices.
+- [ ] Fixture card actions use compact outline buttons; revise-target dialog has side-by-side actions and no huge empty footer.
+
+### CDN
+
+- [ ] App icons/logos load from `cdn.tapeya.com` (no stale CloudFront-only base for static app assets).
 
 ---
 
-## Rollback (short)
+## Rollback
 
-1. Redeploy previous API/app/backoffice git ref.  
-2. Do **not** reverse migrations unless data loss is acceptable (posts tables are new). Prefer feature-off via settings / app store hold.  
-3. CDN: point `cdn_public_base_url` / `AWS_URL` back if media host is wrong.  
-4. Restore previous `supervisor/tapeya.conf` + `supervisorctl update`.
-
----
-
-## Related deeper docs
-
-- [FEED_REELS_PRODUCTION_CLOSEOUT.md](./FEED_REELS_PRODUCTION_CLOSEOUT.md) — full gate checklist  
-- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — B2 + Cloudflare cutover  
-- [MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md) — edge cache  
-- [REELS_ARCHITECTURE.md](./REELS_ARCHITECTURE.md) — queues / ABR  
+1. Redeploy previous API/app/backoffice (`ae2c4fd`).
+2. If migrate already ran: restore the DB dump **or** roll back only the hero CTA migration if safe (`php artisan migrate:rollback --step=1` only when that migration is the latest batch — prefer dump restore if unsure).
+3. `php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache`
 
 ---
 
-## Committed on `develop` since `main` (already on branch)
+## Out of scope this release
 
-1. `2d3ac12` — Stream orientation enum + live broadcast  
-2. `a7c280b` — Build scripts / iOS deps  
-3. `63d6513` — Live broadcast orientation handling  
-4. `7012349` — Graphics theme2  
+- B2 / `cdn.tapeya.com` Worker cutover (already live; no Wrangler change).
+- New Composer / npm lockfile.
+- Android version bump / store metadata (iOS already bumped to **1.1.5** / **46**).
+- JazzCash / card gateway, RMA, seller payouts.
+- Enabling auto engagement (unchanged; leave as currently configured on prod).
 
-**Plus** the full staged feed/reels/media/admin tree (must be committed before release).
+---
+
+## Related
+
+- [LIVE_STREAM_USER_OWNED_BROADCAST.md](./LIVE_STREAM_USER_OWNED_BROADCAST.md) — organizer OBS overlay slice
+- [LIVE_STREAM_TABLE_RENAME.md](./LIVE_STREAM_TABLE_RENAME.md) — `live_streams` naming
+- [LIVE_STREAM_YOUTUBE_FINAL.md](./LIVE_STREAM_YOUTUBE_FINAL.md)
+- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — `cdn.tapeya.com`
+- [DEEP_LINKS.md](./DEEP_LINKS.md)
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands

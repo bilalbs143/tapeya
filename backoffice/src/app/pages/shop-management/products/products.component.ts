@@ -74,6 +74,7 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     'sale_price',
     'sale_percentage',
     'sale_type',
+    'vendor',
     'brand',
     'category',
     'stock_quantity',
@@ -93,7 +94,7 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   public brands: Brand[] = [];
   public categories: Category[] = [];
 
-  public statusOptions$: Observable<EnumOption[]> = this.enumsService
+  public activeOptions$: Observable<EnumOption[]> = this.enumsService
     .getOptions('status')
     .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
 

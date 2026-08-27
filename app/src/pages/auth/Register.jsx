@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { markJustRegistered } from '@/lib/completeProfilePrompt';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
 import { registerSchema } from '@/lib/validations/auth';
@@ -52,6 +53,7 @@ export default function Register() {
 
       const otp = extractOtpFromAuthResponse(result);
       if (otp) setOtpPreview(data.phone, otp);
+      markJustRegistered(data.phone);
       // otp is intentionally excluded from nav state; setOtpPreview handles the preview.
       navigate('/otp', { state: { phone: data.phone }, replace: true });
     } catch (err) {
@@ -161,8 +163,8 @@ export default function Register() {
           )}
 
           <FormActions align="stack" className="pt-0">
-            <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
-              {busy ? 'Signing up…' : 'Sign up'}
+            <Button type="submit" disabled={busy} loading={busy} variant="orange" className="lg:w-full">
+              Sign Up
             </Button>
           </FormActions>
 

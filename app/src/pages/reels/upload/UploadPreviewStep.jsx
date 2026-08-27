@@ -79,7 +79,7 @@ export function UploadPreviewStep({
             {error}
           </p>
         ) : null}
-        <Button type="button" variant="auth" onClick={onNext} disabled={isBusy} className="w-full! max-w-sm rounded-full!">
+        <Button type="button" variant="orange" onClick={onNext} disabled={isBusy} className="w-full! max-w-sm rounded-full!">
           Next
         </Button>
       </div>

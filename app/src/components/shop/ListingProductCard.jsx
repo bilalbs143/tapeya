@@ -4,75 +4,86 @@ import { Link } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
+import { buildShopProductPath, buildShopVendorPath } from '@/lib/shopPaths';
 
 const productCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/product-cart-icon.svg`;
 
-function ListingProductCardInner({ product, brandSlug }) {
-  const detailPath = brandSlug && product.slug ? `/shop/${brandSlug}/product/${product.slug}` : null;
+function ListingProductCardInner({ product }) {
+  const detailPath = buildShopProductPath(product);
   const imageUrl = product.images?.[0]?.path;
   const hasDiscount = product.sale_price != null && product.sale_price < product.price;
   const discountPercent = hasDiscount && product.price > 0 ? Math.round((1 - product.sale_price / product.price) * 100) : 0;
+  const vendorSlug = product.vendor?.slug;
+  const vendorStoreName = product.vendor?.store_name;
 
-  const content = (
-    <>
-      <div className="relative h-[138px] bg-white">
-        {imageUrl ? (
-          <img src={imageUrl} alt={product.images?.[0]?.alt ?? product.name} className="h-full w-full object-contain p-2" />
-        ) : (
-          <div className="bg-surface h-full w-full" aria-hidden />
-        )}
-        {product.is_featured && (
-          <span className="bg-brand absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-black uppercase">
-            Featured
-          </span>
-        )}
-        {hasDiscount && discountPercent > 0 && (
-          <span className="absolute top-2 right-2 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[11px] font-bold text-white">
-            -{discountPercent}%
-          </span>
-        )}
-      </div>
-      <div className="flex h-[110px] flex-col p-3">
-        <p className="line-clamp-2 shrink-0 text-[13px] leading-snug font-medium text-white">{product.name}</p>
-        <div className="mt-auto flex min-h-[2.75rem] shrink-0 items-end justify-between gap-2">
-          <div className="flex min-w-0 flex-col justify-end gap-0.5">
-            {hasDiscount ? (
-              <>
-                <span className="text-muted text-[11px] line-through">{formatPrice(product.price)}</span>
-                <span className="text-brand text-base font-bold">{formatPrice(product.sale_price)}</span>
-              </>
-            ) : (
-              <span className="text-brand text-base font-bold">{formatPrice(product.price)}</span>
-            )}
-          </div>
-          {detailPath && (
-            <span className="flex shrink-0 items-center gap-0.5 rounded p-1" aria-hidden>
-              <svg className="text-brand h-3 w-3 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" />
+  return (
+    <article className="bg-surface-elevated relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px]">
+      {detailPath ? (
+        <Link
+          to={detailPath}
+          className="absolute inset-0 z-0 transition-opacity active:opacity-90"
+          aria-label={`View ${product.name}`}
+        />
+      ) : null}
+      <div className={`relative z-[1] flex flex-1 flex-col ${detailPath ? 'pointer-events-none' : ''}`}>
+        <div className="relative h-[138px] bg-white">
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.images?.[0]?.alt ?? product.name} className="h-full w-full object-contain p-2" />
+          ) : (
+            <div className="bg-surface h-full w-full" aria-hidden />
+          )}
+          {product.is_featured && (
+            <span className="bg-brand absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-black uppercase">
+              Featured
+            </span>
+          )}
+          {hasDiscount && discountPercent > 0 && (
+            <span className="absolute top-2 right-2 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[11px] font-bold text-white">
+              -{discountPercent}%
             </span>
           )}
         </div>
+        <div className="flex min-h-[110px] flex-col p-3">
+          <p className="line-clamp-2 shrink-0 text-[13px] leading-snug font-medium text-white">{product.name}</p>
+          {vendorStoreName && vendorSlug ? (
+            <span className={detailPath ? 'pointer-events-auto mt-1' : 'mt-1'}>
+              <Link
+                to={buildShopVendorPath(vendorSlug)}
+                onClick={(e) => e.stopPropagation()}
+                className="text-muted hover:text-brand relative z-10 line-clamp-1 text-[11px] transition-colors"
+              >
+                Sold by {vendorStoreName}
+              </Link>
+            </span>
+          ) : null}
+          <div className="mt-auto flex min-h-[2.75rem] shrink-0 items-end justify-between gap-2">
+            <div className="flex min-w-0 flex-col justify-end gap-0.5">
+              {hasDiscount ? (
+                <>
+                  <span className="text-muted text-[11px] line-through">{formatPrice(product.price)}</span>
+                  <span className="text-brand text-base font-bold">{formatPrice(product.sale_price)}</span>
+                </>
+              ) : (
+                <span className="text-brand text-base font-bold">{formatPrice(product.price)}</span>
+              )}
+            </div>
+            {detailPath ? (
+              <span className="flex shrink-0 items-center gap-0.5 rounded p-1" aria-hidden>
+                <svg
+                  className="text-brand h-3 w-3 font-bold"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" />
+              </span>
+            ) : null}
+          </div>
+        </div>
       </div>
-    </>
-  );
-
-  if (detailPath) {
-    return (
-      <Link
-        to={detailPath}
-        className="bg-surface-elevated flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] transition-opacity active:opacity-90"
-        aria-label={`View ${product.name}`}
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <article className="bg-surface-elevated flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px]">
-      {content}
     </article>
   );
 }
