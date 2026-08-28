@@ -8,6 +8,15 @@ import { TablerIconsModule } from 'angular-tabler-icons';
   standalone: true,
   templateUrl: './dialog-wrapper.component.html',
   imports: [MatDialogClose, MatDialogTitle, MatIconButton, TablerIconsModule],
+  styles: `
+    /* mat-dialog-title brings its own 6px/24px/13px padding on top of this
+       component's own px-5 pt-4 header row — strip it so the wrapper's
+       utility classes stay the single source of spacing truth. */
+    h3[mat-dialog-title] {
+      margin: 0;
+      padding: 0;
+    }
+  `,
 })
 export class DialogWrapperComponent {
   /**
