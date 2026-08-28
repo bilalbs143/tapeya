@@ -27,7 +27,7 @@
       }
 
       @if (showBreadcrumbs && resolvedBreadcrumbs.length) {
-        <ul class="hidden! sm:flex! breadcrumb items-center! m-0! mt-1!">
+        <ul class="breadcrumb items-center! m-0! mt-1!">
           @for (crumb of resolvedBreadcrumbs; track $index; let last = $last) {
             @if ($index === 0) {
               <li class="breadcrumb-item inline-flex items-center text-muted pe-1.5! text-[11px]!">
