@@ -1,3 +1,12 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content class="p-6">
+    <app-page-header
+      title="Cricket Dashboard"
+      [showFiltersToggle]="false"
+    />
+  </mat-card-content>
+</mat-card>
+
 @if (loading()) {
   <app-loader-block
     label="Loading dashboard"
@@ -66,7 +75,7 @@
             </div>
             <div class="col-span-12 flex justify-center md:col-span-4 md:justify-end">
               <div
-                class="flex size-20 shrink-0 items-center justify-center rounded-xl border border-border bg-white/60 text-primary shadow-sm"
+                class="flex size-20 shrink-0 items-center justify-center rounded-md border border-border bg-white/60 text-primary shadow-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -275,7 +284,7 @@
             <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="calendar-off"
-                class="mb-3 size-10 opacity-60"
+                class="mb-3 size-12 opacity-60"
                 aria-hidden="true"
               />
               <p class="m-0 text-sm">No tournament data yet.</p>
@@ -319,7 +328,7 @@
             <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="chart-donut-3"
-                class="mb-3 size-10 opacity-60"
+                class="mb-3 size-12 opacity-60"
                 aria-hidden="true"
               />
               <p class="m-0 text-sm">No matches yet.</p>
@@ -445,7 +454,7 @@
             <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="chart-area"
-                class="mb-3 size-10 opacity-60"
+                class="mb-3 size-12 opacity-60"
                 aria-hidden="true"
               />
               <p class="m-0 text-sm">No match activity in the last 30 days.</p>
@@ -540,7 +549,7 @@
             <div class="flex min-h-[240px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="devices"
-                class="mb-3 size-10 opacity-50"
+                class="mb-3 size-12 opacity-50"
                 aria-hidden="true"
               ></i-tabler>
               <p class="m-0 text-sm">No app users yet.</p>
@@ -750,7 +759,7 @@
             <div class="flex flex-1 flex-col items-center justify-center py-10 text-center text-muted">
               <i-tabler
                 name="cricket"
-                class="mb-3 size-10 opacity-50"
+                class="mb-3 size-12 opacity-50"
                 aria-hidden="true"
               />
               <p class="m-0 text-sm">No matches in progress right now.</p>

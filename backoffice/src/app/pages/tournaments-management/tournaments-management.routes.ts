@@ -40,6 +40,8 @@ export const TournamentsManagementRoutes: Routes = [
       import('./interest-campaigns/campaign-detail/campaign-detail-shell.component').then((m) => m.CampaignDetailShellComponent),
     data: {
       title: 'Interest Campaign',
+      icon: 'solar:hand-heart-line-duotone',
+      hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management' },
@@ -93,6 +95,8 @@ export const TournamentsManagementRoutes: Routes = [
       import('./tournament-detail/tournament-detail-shell.component').then((m) => m.TournamentDetailShellComponent),
     data: {
       title: 'Tournament',
+      icon: 'solar:cup-line-duotone',
+      hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management' },
@@ -155,6 +159,8 @@ export const TournamentsManagementRoutes: Routes = [
       import('./match-controller/match-controller-dashboard.component').then((m) => m.MatchControllerDashboardComponent),
     data: {
       title: 'Match Controller',
+      icon: 'solar:tv-line-duotone',
+      hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management', url: '/tournaments-management/tournaments' },

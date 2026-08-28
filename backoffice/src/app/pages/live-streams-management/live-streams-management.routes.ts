@@ -17,6 +17,8 @@ export const LiveStreamsManagementRoutes: Routes = [
       import('./live-stream-detail/live-stream-detail-shell.component').then((m) => m.LiveStreamDetailShellComponent),
     data: {
       title: 'Live Stream',
+      icon: 'solar:videocamera-record-line-duotone',
+      hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Live Streams', url: '/live-streams-management/live-streams' },

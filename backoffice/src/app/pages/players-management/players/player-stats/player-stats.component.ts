@@ -22,8 +22,8 @@ import type {
   PlayerFieldingStats,
 } from 'src/app/services/players.service';
 import type { User } from 'src/app/services/users.service';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 interface StatRow {
@@ -44,7 +44,7 @@ interface StatRow {
     MatTabsModule,
     TablerIconsModule,
     EmptyDataMessageComponent,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   templateUrl: './player-stats.component.html',
 })

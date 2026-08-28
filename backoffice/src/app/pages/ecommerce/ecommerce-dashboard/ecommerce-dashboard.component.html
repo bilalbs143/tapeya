@@ -1,3 +1,12 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content class="p-6">
+    <app-page-header
+      title="eCommerce Dashboard"
+      [showFiltersToggle]="false"
+    />
+  </mat-card-content>
+</mat-card>
+
 @if (loading()) {
   <app-loader-block
     label="Loading dashboard"
@@ -67,12 +76,12 @@
             </div>
             <div class="col-span-12 flex justify-center md:col-span-4 md:justify-end">
               <div
-                class="flex size-16 shrink-0 items-center justify-center rounded-xl border border-border bg-white/60 text-primary shadow-sm"
+                class="flex size-16 shrink-0 items-center justify-center rounded-md border border-border bg-white/60 text-primary shadow-sm"
                 aria-hidden="true"
               >
                 <i-tabler
                   name="shopping-cart"
-                  class="size-10"
+                  class="size-12"
                 />
               </div>
             </div>
@@ -277,7 +286,7 @@
             </div>
             <div class="flex flex-col gap-2">
               @for (p of lowStockProducts(); track p.id) {
-                <div class="flex items-center justify-between gap-4 rounded-lg bg-light-error px-4 py-2.5">
+                <div class="flex items-center justify-between gap-4 rounded-md bg-light-error px-4 py-2.5">
                   <span class="text-sm font-medium text-dark truncate">{{ p.name }}</span>
                   <div class="flex items-center gap-4 shrink-0">
                     <span class="text-xs text-muted">Threshold: {{ p.low_stock_threshold }}</span>

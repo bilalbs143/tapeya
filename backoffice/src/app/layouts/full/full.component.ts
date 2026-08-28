@@ -2,7 +2,8 @@ import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { Title } from '@angular/platform-browser';
+import { ActivatedRoute, Data, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { Subscription } from 'rxjs';
@@ -18,7 +19,6 @@ import { authUserDisplayName, authUserDisplayRole } from 'src/app/shared/functio
 
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
-import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { getVisibleNavItems } from './shared/nav/sidebar-data';
 import { HeaderComponent } from './vertical/header/header.component';
@@ -43,7 +43,6 @@ const BELOWMONITOR = 'screen and (max-width: 1023px)';
     HeaderComponent,
     AppHorizontalHeaderComponent,
     AppHorizontalSidebarComponent,
-    AppBreadcrumbComponent,
     CustomizerComponent,
   ],
   templateUrl: './full.component.html',
@@ -58,6 +57,7 @@ export class FullComponent implements OnDestroy {
   private readonly navService = inject(NavService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly auth = inject(AuthService);
+  private readonly titleService = inject(Title);
 
   public readonly visibleNavItems = computed(() => getVisibleNavItems(this.auth.currentUser()));
 
@@ -88,30 +88,6 @@ export class FullComponent implements OnDestroy {
     return this.resView;
   }
 
-  /** Hide breadcrumb on dashboard routes (cricket + ecommerce). */
-  /**
-   * Hide the global breadcrumb strip on dashboard/ecommerce, or when the active
-   * route opts out via `data: { hideBreadcrumb: true }` (pages that provide their
-   * own header via `app-page-header`).
-   */
-  public get showBreadcrumb(): boolean {
-    const path = this.router.url.split('?')[0];
-    if (path === '/dashboard' || path === '/ecommerce') return false;
-    return !this.routeDataFlag('hideBreadcrumb');
-  }
-
-  /** Walk the activated-route tree and return true if any segment sets `data[key] = true`. */
-  private routeDataFlag(key: string): boolean {
-    let route = this.router.routerState.root;
-    while (route.firstChild) route = route.firstChild;
-    let r: typeof route | null = route;
-    while (r) {
-      if (r.snapshot.data[key]) return true;
-      r = r.parent;
-    }
-    return false;
-  }
-
   constructor() {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -128,7 +104,38 @@ export class FullComponent implements OnDestroy {
     this.receiveOptions(this.options);
     this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe(() => {
       this.content.scrollTo({ top: 0 });
+      this.syncDocumentTitle();
     });
+    // First NavigationEnd may have already fired before this component existed.
+    queueMicrotask(() => this.syncDocumentTitle());
+  }
+
+  /**
+   * Sets the browser tab title from the active route's `data.title`, merged root → leaf so
+   * lazy-loaded child routes (which only declare their own slice of `data`) still resolve it.
+   * Previously a side effect of the now-removed global breadcrumb strip — kept as its own thing
+   * since removing the visual strip must not also stop the tab title from updating.
+   */
+  private syncDocumentTitle(): void {
+    let leaf = this.router.routerState.root;
+    while (leaf.firstChild) leaf = leaf.firstChild;
+    if (leaf.outlet !== 'primary') return;
+
+    const chain: ActivatedRoute[] = [];
+    let r: ActivatedRoute | null = leaf;
+    while (r) {
+      chain.unshift(r);
+      r = r.parent;
+    }
+    const merged: Data = {};
+    for (const node of chain) {
+      Object.assign(merged, node.snapshot.data);
+    }
+
+    const title = merged['title'];
+    if (title != null && title !== '') {
+      this.titleService.setTitle(String(title));
+    }
   }
 
   public isFilterNavOpen = false;

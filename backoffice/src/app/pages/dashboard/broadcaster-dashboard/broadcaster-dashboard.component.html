@@ -1,3 +1,12 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content class="p-6">
+    <app-page-header
+      title="Dashboard"
+      [showFiltersToggle]="false"
+    />
+  </mat-card-content>
+</mat-card>
+
 <section
   class="grid grid-cols-12 gap-6"
   aria-labelledby="broadcaster-dashboard-title"
@@ -42,12 +51,12 @@
           </div>
           <div class="col-span-12 flex justify-center lg:col-span-4 lg:justify-end">
             <div
-              class="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border bg-light-primary text-primary lg:size-[4.25rem]"
+              class="flex size-16 shrink-0 items-center justify-center rounded-md border border-border bg-light-primary text-primary lg:size-[4.25rem]"
               aria-hidden="true"
             >
               <i-tabler
                 name="chart-bar"
-                class="size-10"
+                class="size-12"
               />
             </div>
           </div>

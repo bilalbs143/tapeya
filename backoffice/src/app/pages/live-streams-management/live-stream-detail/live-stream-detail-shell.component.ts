@@ -23,8 +23,7 @@ import {
   type LiveStreamStatus,
 } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { LiveStreamDetailStateService } from './live-stream-detail-state.service';
@@ -50,8 +49,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     MatButtonModule,
     MatTabsModule,
     TablerIconsModule,
-    SubmitButtonComponent,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   providers: [LiveStreamDetailStateService],
   templateUrl: './live-stream-detail-shell.component.html',

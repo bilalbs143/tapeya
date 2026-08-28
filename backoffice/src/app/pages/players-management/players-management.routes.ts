@@ -16,6 +16,8 @@ export const playersManagementRoutes: Routes = [
     loadComponent: () => import('./players/player-stats/player-stats.component').then((m) => m.PlayerStatsComponent),
     data: {
       title: 'Player Stats',
+      icon: 'solar:chart-2-line-duotone',
+      hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Players Management', url: '/players-management/players' },

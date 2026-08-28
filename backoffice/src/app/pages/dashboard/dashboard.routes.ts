@@ -17,6 +17,8 @@ export const dashboardRoutes: Routes = [
       import('./broadcaster-dashboard/broadcaster-dashboard.component').then((m) => m.BroadcasterDashboardComponent),
     data: {
       title: 'Dashboard',
+      icon: 'solar:presentation-graph-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }],
     },
   },
@@ -25,6 +27,8 @@ export const dashboardRoutes: Routes = [
     loadComponent: () => import('./cricket-dashboard/cricket-dashboard.component').then((m) => m.CricketDashboardComponent),
     data: {
       title: 'Cricket Dashboard',
+      icon: 'solar:widget-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Cricket Dashboard' }],
     },
   },

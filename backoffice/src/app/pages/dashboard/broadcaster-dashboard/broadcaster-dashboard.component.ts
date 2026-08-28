@@ -11,7 +11,7 @@ import { catchError, mergeMap, reduce, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import {
   BROADCASTER_DASHBOARD_MATCH_MIX_TOURNAMENTS_PER_PAGE,
@@ -44,7 +44,7 @@ type MatchMix = {
     TablerIconsModule,
     NgApexchartsModule,
     LoaderComponent,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   templateUrl: './broadcaster-dashboard.component.html',
   styleUrl: './broadcaster-dashboard.component.scss',

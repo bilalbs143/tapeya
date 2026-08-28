@@ -8,6 +8,7 @@ export const PagesRoutes: Routes = [
     component: StarterComponent,
     data: {
       title: 'Starter Page',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboards/dashboard1' }, { title: 'Starter Page' }],
     },
   },

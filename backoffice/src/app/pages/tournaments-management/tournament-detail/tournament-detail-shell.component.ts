@@ -9,13 +9,13 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 @Component({
   selector: 'app-tournament-detail-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, LoaderBlockComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, CommonSharedModule],
   templateUrl: './tournament-detail-shell.component.html',
 })
 export class TournamentDetailShellComponent implements OnInit, OnDestroy {

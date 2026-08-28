@@ -9,7 +9,13 @@
     #fullscreenHost
   >
     <mat-card class="cardWithShadow mb-3!">
-      <mat-card-content class="controller-dashboard p-5 sm:p-6">
+      <mat-card-content class="p-5 pb-0 sm:p-6 sm:pb-0">
+        <app-page-header
+          [showTitle]="false"
+          [showFiltersToggle]="false"
+        />
+      </mat-card-content>
+      <mat-card-content class="controller-dashboard p-5 pt-2 sm:p-6 sm:pt-2">
         <div class="controller-dashboard__header flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 class="text-xl font-semibold m-0">Match Graphics Controller</h1>

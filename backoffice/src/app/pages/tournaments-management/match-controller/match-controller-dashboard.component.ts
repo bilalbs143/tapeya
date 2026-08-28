@@ -40,7 +40,7 @@ import {
 } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 import {
   ControllerSettingsDialogComponent,
@@ -81,7 +81,7 @@ export interface BatterCommandCardView {
     MatTooltipModule,
     LiveMatchStateComponent,
     LiveStreamHeaderStatusComponent,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',
