@@ -10,9 +10,18 @@
 // Table cell density. This is the single source of truth for cell padding — do not
 // duplicate this rule elsewhere (previously conflicted with an identical-selector rule
 // in custom.scss set to 16px, with load order silently deciding the winner).
+// 12px (not the original 8px) — a little more breathing room without going spacious;
+// rows stay close to their original height, just less cramped side-to-side.
 .table-responsive td,
 .table-responsive mat-cell,
 .mdc-data-table__cell,
 .mdc-data-table__header-cell {
-  padding: 0 8px !important;
+  padding: 0 12px !important;
+}
+
+// Row hover — a real affordance was missing entirely; rows gave no feedback that
+// they're part of an interactive table (sortable columns, clickable actions) until
+// the cursor was directly over a button.
+.mat-mdc-row:hover {
+  background-color: var(--mat-sys-surface-bright);
 }

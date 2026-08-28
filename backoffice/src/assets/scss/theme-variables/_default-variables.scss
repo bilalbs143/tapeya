@@ -1,4 +1,11 @@
 html {
+  // Cards/dialogs read as a level "above" buttons/inputs when they're
+  // noticeably softer-cornered — corner-small (7px, theme-variables)
+  // stays crisp for interactive controls, this stays reserved for
+  // containers, giving the UI a radius hierarchy instead of one flat
+  // value used for everything.
+  --mat-sys-corner-medium: 12px;
+
   --mat-sys-error-fixed-dim: rgba(247, 68, 86, 0.15);
   --mat-select-container-elevation-shadow: var(--mat-sys-level3);
   --mat-list-list-item-label-text-tracking: 0;
