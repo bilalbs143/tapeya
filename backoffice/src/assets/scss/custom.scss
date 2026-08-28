@@ -110,7 +110,15 @@
 .branding {
   padding-bottom: 0 !important;
   img {
-    width: 50%;
+    // Fixed width, not a %-of-parent — the parent's own width is
+    // context-dependent (mobile drawer flex row, horizontal topbar
+    // flex row, desktop sidenav) and a percentage here has repeatedly
+    // let the logo balloon to whatever the parent happened to resolve
+    // to (seen in both the mobile sidebar drawer and the horizontal
+    // topbar) instead of staying a consistent, sane size everywhere.
+    width: 140px;
+    max-width: 100%;
+    height: auto;
     object-fit: contain;
   }
 }
