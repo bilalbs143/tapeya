@@ -7,7 +7,12 @@
   )
 );
 
+// Table cell density. This is the single source of truth for cell padding — do not
+// duplicate this rule elsewhere (previously conflicted with an identical-selector rule
+// in custom.scss set to 16px, with load order silently deciding the winner).
+.table-responsive td,
+.table-responsive mat-cell,
 .mdc-data-table__cell,
 .mdc-data-table__header-cell {
-  padding: 16px 16px !important;
+  padding: 0 8px !important;
 }

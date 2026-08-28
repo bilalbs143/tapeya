@@ -44,14 +44,8 @@
   padding: 0 15px;
 }
 
-.table-responsive td,
-.table-responsive mat-cell,
-.mdc-data-table__cell,
-.mdc-data-table__header-cell {
-  padding: 0 8px !important;
-}
-
-// Table header: same bg as breadcrumb (bg-light-secondary). Override Material with higher specificity.
+// Table cell padding lives in override-component/_table.scss (Material's table-density home),
+// not here — see that file for the single source of truth.
 
 // Table card: relative so paginator’s no-data message can be centered in the card
 .table-header-theme > .mat-mdc-card-content {

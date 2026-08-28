@@ -29,11 +29,6 @@ export class CustomizerComponent {
     this.emitOptions();
   }
 
-  public setColor(color: string): void {
-    this.settings.setOptions({ activeTheme: color });
-    this.emitOptions();
-  }
-
   public setSidebarCollapsed(collapsed: boolean): void {
     this.settings.setOptions({ sidenavCollapsed: collapsed });
     this.emitOptions();
