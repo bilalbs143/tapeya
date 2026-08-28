@@ -63,7 +63,12 @@ html {
   }
 
   .mat-mdc-outlined-button:not(:disabled) {
-    border-color: inherit !important;
+    // `currentColor`, not `inherit` — this must match the button's own themed
+    // text color, not its parent's. `inherit` accidentally pulled from
+    // mat-dialog-actions, which sets `border-top: 1px solid transparent` as
+    // its own optional scroll-divider, making every dialog's Cancel/stroked
+    // button lose its top border specifically.
+    border-color: currentColor !important;
   }
 
   .mat-mdc-button-base.text-secondary:hover {
