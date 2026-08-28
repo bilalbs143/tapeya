@@ -109,6 +109,18 @@
 }
 .branding {
   padding-bottom: 0 !important;
+
+  // The 0 bottom-padding above is correct for the vertical sidebar (logo sits
+  // directly above the menu list, no gap wanted) but wrong for the horizontal
+  // topbar, where .branding is just one centered flex item — the top-heavy
+  // padding it inherits fights the toolbar's own align-items: center and
+  // pushes the logo down instead of centering it. Toolbar centering already
+  // does the job there, so branding needs no vertical padding of its own.
+  .horizontal-topbar & {
+    padding-top: 0;
+    padding-bottom: 0 !important;
+  }
+
   img {
     // Fixed width, not a %-of-parent — the parent's own width is
     // context-dependent (mobile drawer flex row, horizontal topbar
