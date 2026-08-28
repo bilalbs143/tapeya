@@ -31,12 +31,11 @@
               }
             </p>
           </div>
-          <span
-            class="rounded-sm font-semibold px-2 py-1 text-xs shrink-0"
-            [ngClass]="statusClass(tournament.status_enum ?? tournament.status)"
-          >
-            {{ tournament.status_label || tournament.status }}
-          </span>
+          <app-status-chip
+            [status]="tournament.status_enum ?? tournament.status"
+            [label]="tournament.status_label || tournament.status"
+            class="shrink-0"
+          />
         </div>
 
         <nav

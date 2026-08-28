@@ -24,7 +24,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 import { environment } from 'src/environments/environment';
 
 import { ManageCampaignDialogComponent } from './manage-campaign-dialog/manage-campaign-dialog.component';
@@ -75,7 +74,6 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   public searchForm: FormGroup;
   public dataSource = new MatTableDataSource<InterestCampaign>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly linkedOptions = LINKED_OPTIONS;
 
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('tournament_interest_campaign_status');

@@ -269,12 +269,10 @@
               class="whitespace-nowrap"
             >
               @if (row.schedule_phase_label) {
-                <span
-                  class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                  [ngClass]="statusClass(row.schedule_phase)"
-                >
-                  {{ row.schedule_phase_label }}
-                </span>
+                <app-status-chip
+                  [status]="row.schedule_phase"
+                  [label]="row.schedule_phase_label"
+                />
               } @else {
                 {{ emptyCell }}
               }
@@ -295,12 +293,10 @@
               *matCellDef="let row"
               class="whitespace-nowrap"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status_enum ?? row.status)"
-              >
-                {{ row.status_label || row.status }}
-              </span>
+              <app-status-chip
+                [status]="row.status_enum ?? row.status"
+                [label]="row.status_label || row.status"
+              />
             </td>
           </ng-container>
 

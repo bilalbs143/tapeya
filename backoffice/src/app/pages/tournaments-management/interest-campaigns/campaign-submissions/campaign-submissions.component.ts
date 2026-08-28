@@ -25,7 +25,6 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { birthdateAgeLine, cityCountryLine } from 'src/app/shared/functions/display.helper';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { SubmissionDetailDialogComponent } from './submission-detail-dialog/submission-detail-dialog.component';
 
@@ -67,7 +66,6 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
   public searchForm: FormGroup;
   public dataSource = new MatTableDataSource<InterestSubmission>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly displayedColumns = [
     'sr',
     'player',

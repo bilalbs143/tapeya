@@ -16,10 +16,10 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { type InterestSubmission, InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { birthdateAgeLine, cityCountryLine } from 'src/app/shared/functions/display.helper';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 export interface SubmissionDetailDialogData {
   submission: InterestSubmission;
@@ -40,6 +40,7 @@ export interface SubmissionDetailDialogData {
     TablerIconsModule,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    StatusChipComponent,
   ],
   templateUrl: './submission-detail-dialog.component.html',
 })
@@ -55,7 +56,6 @@ export class SubmissionDetailDialogComponent implements OnInit {
   public form!: FormGroup;
   public isSubmitting = false;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('tournament_interest_submission_status');
 
   public ngOnInit(): void {

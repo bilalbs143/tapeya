@@ -21,7 +21,6 @@ import { QuickMatchesService, type QuickMatchRow } from 'src/app/services/quick-
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { QuickMatchDetailDialogComponent } from './quick-match-detail-dialog/quick-match-detail-dialog.component';
 
@@ -66,7 +65,6 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
   public readonly displayedColumns: string[] = ['sr', 'when', 'teams', 'creator', 'venue', 'format', 'status', 'actions'];
   public dataSource = new MatTableDataSource<QuickMatchRow>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;

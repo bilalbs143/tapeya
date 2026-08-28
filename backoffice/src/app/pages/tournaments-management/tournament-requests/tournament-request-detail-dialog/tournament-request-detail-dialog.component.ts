@@ -11,8 +11,8 @@ import type { TournamentRequest } from 'src/app/services/tournament-request.serv
 import { TournamentRequestService } from 'src/app/services/tournament-request.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 export interface TournamentRequestDetailDialogData {
   tournamentRequest: TournamentRequest;
@@ -29,6 +29,7 @@ export interface TournamentRequestDetailDialogData {
     TablerIconsModule,
     DialogWrapperComponent,
     LoaderBlockComponent,
+    StatusChipComponent,
   ],
   templateUrl: './tournament-request-detail-dialog.component.html',
 })
@@ -40,7 +41,6 @@ export class TournamentRequestDetailDialogComponent implements OnInit {
   public tournamentRequest: TournamentRequest | null = null;
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public groupModeOptions: EnumOption[] = [];
 
   public get groupModeLabel(): string {

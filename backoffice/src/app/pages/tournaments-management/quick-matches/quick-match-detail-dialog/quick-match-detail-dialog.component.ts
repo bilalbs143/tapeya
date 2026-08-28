@@ -14,9 +14,9 @@ import {
 } from 'src/app/services/quick-matches.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 import { environment } from 'src/environments/environment';
 
 export interface QuickMatchDetailDialogData {
@@ -35,6 +35,7 @@ export interface QuickMatchDetailDialogData {
     DialogWrapperComponent,
     SubmitButtonComponent,
     LoaderBlockComponent,
+    StatusChipComponent,
   ],
   templateUrl: './quick-match-detail-dialog.component.html',
 })
@@ -47,7 +48,6 @@ export class QuickMatchDetailDialogComponent implements OnInit {
   public match: QuickMatchRow | null = null;
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
 
   public ngOnInit(): void {
     this.reload();

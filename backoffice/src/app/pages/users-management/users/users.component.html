@@ -355,12 +355,10 @@
               *matCellDef="let row"
               class="whitespace-nowrap"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status_enum)"
-              >
-                {{ row.status }}
-              </span>
+              <app-status-chip
+                [status]="row.status_enum"
+                [label]="row.status"
+              />
             </td>
           </ng-container>
 

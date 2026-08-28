@@ -49,19 +49,15 @@
               <p class="text-muted m-0 mb-1 text-xs font-medium">Order</p>
               <p class="m-0 truncate text-base font-semibold leading-snug">{{ order.order_number }}</p>
               <p class="m-0 mt-2 flex flex-wrap gap-1.5">
-                <span
-                  class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                  [ngClass]="statusClass(order.status)"
-                >
-                  {{ order.status | titlecase }}
-                </span>
+                <app-status-chip
+                  [status]="order.status"
+                  [label]="order.status | titlecase"
+                />
                 @if (order.payment_status) {
-                  <span
-                    class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                    [ngClass]="statusClass(order.payment_status)"
-                  >
-                    {{ order.payment_status_label || (order.payment_status | titlecase) }}
-                  </span>
+                  <app-status-chip
+                    [status]="order.payment_status"
+                    [label]="order.payment_status_label || (order.payment_status | titlecase)"
+                  />
                 }
               </p>
             </div>
@@ -188,12 +184,10 @@
           <div class="shrink-0 flex flex-wrap items-center gap-2">
             <h2 class="text-base font-semibold m-0">Payment</h2>
             @if (order.payment_status) {
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                [ngClass]="statusClass(order.payment_status)"
-              >
-                {{ order.payment_status_label || (order.payment_status | titlecase) }}
-              </span>
+              <app-status-chip
+                [status]="order.payment_status"
+                [label]="order.payment_status_label || (order.payment_status | titlecase)"
+              />
             }
           </div>
           <p class="text-muted m-0 text-xs">
@@ -306,12 +300,10 @@
                 <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span class="font-semibold">{{ vo.vendor_order_number }}</span>
                   <span class="flex items-center gap-2">
-                    <span
-                      class="rounded-sm font-semibold px-1.5 py-0.5 text-xs inline-block"
-                      [ngClass]="statusClass(vo.status)"
-                    >
-                      {{ vo.status_label || (vo.status | titlecase) }}
-                    </span>
+                    <app-status-chip
+                      [status]="vo.status"
+                      [label]="vo.status_label || (vo.status | titlecase)"
+                    />
                     <span class="text-muted text-xs"> {{ vo.total | number: '1.0-0' }} {{ order.currency }} </span>
                   </span>
                 </li>

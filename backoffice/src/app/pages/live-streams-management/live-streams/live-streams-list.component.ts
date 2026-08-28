@@ -25,7 +25,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import {
   LiveStreamCreateDialogComponent,
@@ -110,7 +109,6 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   public readonly statusOptions = STATUS_OPTIONS;
   public readonly selfServeOptions = SELF_SERVE_OPTIONS;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly matchControllerLink = matchControllerLink;
 
   public totalRecords = 0;

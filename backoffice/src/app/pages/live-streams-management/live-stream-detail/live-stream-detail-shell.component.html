@@ -63,12 +63,10 @@
               </button>
             </div>
             <div class="flex flex-wrap items-center justify-end gap-2">
-              <span
-                class="rounded-sm font-semibold px-2 py-1 text-xs"
-                [ngClass]="statusClass(stream.status)"
-              >
-                {{ statusLabel() }}
-              </span>
+              <app-status-chip
+                [status]="stream.status"
+                [label]="statusLabel()"
+              />
               @if (viewerCount > 0 || presenceEligible()) {
                 <span class="text-muted inline-flex items-center gap-1 text-xs tabular-nums">
                   <i-tabler

@@ -209,12 +209,10 @@
               mat-cell
               *matCellDef="let row"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status)"
-              >
-                {{ row.status_label }}
-              </span>
+              <app-status-chip
+                [status]="row.status"
+                [label]="row.status_label"
+              />
             </td>
           </ng-container>
           <ng-container matColumnDef="created_at">

@@ -21,7 +21,6 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManagePostDialogComponent } from './manage-post-dialog/manage-post-dialog.component';
 
@@ -125,7 +124,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   public dataSource = new MatTableDataSource<AdminPost>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly typeOptions = POST_TYPE_OPTIONS;
   public readonly statusOptions = POST_STATUS_OPTIONS;
   public readonly visibilityOptions = POST_VISIBILITY_OPTIONS;

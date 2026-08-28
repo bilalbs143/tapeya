@@ -21,7 +21,6 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageHeroSliderDialogComponent } from './manage-hero-slider-dialog/manage-hero-slider-dialog.component';
 
@@ -72,7 +71,6 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
     'actions',
   ];
   public dataSource = new MatTableDataSource<HeroSlider>([]);
-  public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
 
   public totalRecords = 0;

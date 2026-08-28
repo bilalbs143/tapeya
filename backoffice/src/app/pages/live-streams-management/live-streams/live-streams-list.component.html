@@ -203,12 +203,10 @@
               mat-cell
               *matCellDef="let row"
             >
-              <span
-                class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
-                [ngClass]="statusClass(row.status)"
-              >
-                {{ statusLabel(row.status) }}
-              </span>
+              <app-status-chip
+                [status]="row.status"
+                [label]="statusLabel(row.status)"
+              />
             </td>
           </ng-container>
 

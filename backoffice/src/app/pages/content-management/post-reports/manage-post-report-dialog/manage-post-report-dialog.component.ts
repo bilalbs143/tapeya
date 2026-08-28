@@ -15,9 +15,9 @@ import { PostService } from 'src/app/services/post.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 export interface ManagePostReportDialogData {
   report: PostReport;
@@ -51,6 +51,7 @@ const TYPE_LABELS: Record<string, string> = {
     PostContentPreviewComponent,
     SubmitButtonComponent,
     LoaderComponent,
+    StatusChipComponent,
   ],
   templateUrl: './manage-post-report-dialog.component.html',
 })
@@ -67,7 +68,6 @@ export class ManagePostReportDialogComponent {
   public postLoadFailed = false;
   public post: AdminPost | null = null;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly statusOptions = REPORT_STATUS_OPTIONS;
 
   public get report(): PostReport {

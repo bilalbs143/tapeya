@@ -20,7 +20,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageVendorDialogComponent } from './manage-vendor-dialog/manage-vendor-dialog.component';
 import { VendorReasonDialogComponent } from './vendor-reason-dialog/vendor-reason-dialog.component';
@@ -77,7 +76,6 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   public dataSource = new MatTableDataSource<Vendor>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly statusFilterOptions = STATUS_FILTER_OPTIONS;
   public totalRecords = 0;
   public currentPage = 0;

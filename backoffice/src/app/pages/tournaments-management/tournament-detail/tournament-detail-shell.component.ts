@@ -10,7 +10,6 @@ import { MessageService } from 'src/app/services/message.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 @Component({
   selector: 'app-tournament-detail-shell',
@@ -29,7 +28,6 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
   public tournament: Tournament | null = null;
   public activeTeamName: string | null = null;
   public isLoading = true;
-  public readonly statusClass = getStatusClass;
 
   public ngOnInit(): void {
     this.sub.add(

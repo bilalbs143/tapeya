@@ -180,12 +180,10 @@
               mat-cell
               *matCellDef="let row"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status)"
-              >
-                {{ statusLabel(row) }}
-              </span>
+              <app-status-chip
+                [status]="row.status"
+                [label]="statusLabel(row)"
+              />
             </td>
           </ng-container>
           <ng-container matColumnDef="commission_rate">

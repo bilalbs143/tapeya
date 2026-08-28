@@ -23,7 +23,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { SendNotificationDialogComponent } from './send-notification-dialog/send-notification-dialog.component';
 
@@ -149,10 +148,6 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
     }
 
     return format(new Date(value), 'dd MMM yyyy, HH:mm');
-  }
-
-  public statusClass(status: string): string {
-    return getStatusClass(status);
   }
 
   public deliverySummary(row: PushNotificationLog): string {

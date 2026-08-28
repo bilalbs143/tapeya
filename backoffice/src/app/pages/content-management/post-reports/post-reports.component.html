@@ -184,12 +184,10 @@
               *matCellDef="let row"
               class="whitespace-nowrap"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status)"
-              >
-                {{ statusLabel(row.status) }}
-              </span>
+              <app-status-chip
+                [status]="row.status"
+                [label]="statusLabel(row.status)"
+              />
             </td>
           </ng-container>
 

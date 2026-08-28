@@ -25,7 +25,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { TournamentRequestDetailDialogComponent } from './tournament-request-detail-dialog/tournament-request-detail-dialog.component';
 
@@ -80,7 +79,6 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
   ];
   public dataSource = new MatTableDataSource<TournamentRequest>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;

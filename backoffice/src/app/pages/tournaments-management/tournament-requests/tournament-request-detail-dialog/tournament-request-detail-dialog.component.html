@@ -46,12 +46,10 @@
                 <p class="text-muted m-0 mt-1 text-xs leading-relaxed">{{ tournamentRequest.short_name }}</p>
               }
               <p class="m-0 mt-2">
-                <span
-                  class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                  [ngClass]="statusClass(tournamentRequest.status)"
-                >
-                  {{ tournamentRequest.status_label }}
-                </span>
+                <app-status-chip
+                  [status]="tournamentRequest.status"
+                  [label]="tournamentRequest.status_label"
+                />
               </p>
             </div>
           </div>

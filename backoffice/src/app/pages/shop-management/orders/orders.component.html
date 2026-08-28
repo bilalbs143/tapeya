@@ -220,12 +220,10 @@
               mat-cell
               *matCellDef="let row"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status)"
-              >
-                {{ row.status_label ?? row.status }}
-              </span>
+              <app-status-chip
+                [status]="row.status"
+                [label]="row.status_label ?? row.status"
+              />
             </td>
           </ng-container>
           <ng-container matColumnDef="payment_status">
@@ -241,12 +239,10 @@
               *matCellDef="let row"
             >
               @if (row.payment_status) {
-                <span
-                  class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                  [ngClass]="statusClass(row.payment_status)"
-                >
-                  {{ row.payment_status_label ?? (row.payment_status | titlecase) }}
-                </span>
+                <app-status-chip
+                  [status]="row.payment_status"
+                  [label]="row.payment_status_label ?? (row.payment_status | titlecase)"
+                />
               } @else {
                 {{ emptyCell }}
               }

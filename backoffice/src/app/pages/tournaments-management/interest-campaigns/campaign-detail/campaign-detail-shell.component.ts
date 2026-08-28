@@ -8,7 +8,6 @@ import { Subscription } from 'rxjs';
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { CampaignDetailStateService } from './campaign-detail-state.service';
 
@@ -29,7 +28,6 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
 
   public campaign: InterestCampaign | null = null;
   public isLoading = true;
-  public readonly statusClass = getStatusClass;
 
   public ngOnInit(): void {
     this.sub.add(

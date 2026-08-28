@@ -27,12 +27,11 @@
           <div class="border-border border-b py-3">
             <p class="text-muted m-0 mb-1 text-xs">Current Status</p>
             <p class="m-0">
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block capitalize"
-                [ngClass]="statusClass(post.status)"
-              >
-                {{ post.status || emptyCell }}
-              </span>
+              <app-status-chip
+                [status]="post.status"
+                [label]="post.status || emptyCell"
+                class="capitalize"
+              />
             </p>
           </div>
           <div class="border-border border-b py-3">

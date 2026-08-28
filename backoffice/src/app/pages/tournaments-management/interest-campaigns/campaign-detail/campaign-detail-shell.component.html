@@ -20,12 +20,11 @@
               {{ campaign.is_linked ? 'Linked Tournament' : 'Custom Title' }}
             </p>
           </div>
-          <span
-            class="rounded-sm font-semibold px-2 py-1 text-xs shrink-0"
-            [ngClass]="statusClass(campaign.status)"
-          >
-            {{ campaign.status_label }}
-          </span>
+          <app-status-chip
+            [status]="campaign.status"
+            [label]="campaign.status_label"
+            class="shrink-0"
+          />
         </div>
 
         <nav

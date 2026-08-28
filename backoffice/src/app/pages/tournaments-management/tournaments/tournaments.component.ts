@@ -21,7 +21,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageTournamentDialogComponent } from './manage-tournament-dialog/manage-tournament-dialog.component';
 
@@ -81,7 +80,6 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
     'actions',
   ];
   public dataSource = new MatTableDataSource<Tournament>([]);
-  public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
 
   public totalRecords = 0;

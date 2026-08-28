@@ -20,7 +20,6 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManagePostReportDialogComponent } from './manage-post-report-dialog/manage-post-report-dialog.component';
 
@@ -93,7 +92,6 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   public dataSource = new MatTableDataSource<PostReport>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly statusOptions = REPORT_STATUS_OPTIONS;
 
   public totalRecords = 0;

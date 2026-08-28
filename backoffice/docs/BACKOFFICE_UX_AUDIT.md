@@ -31,7 +31,6 @@ Priority follows one rule:
 **What's actually still open, as of 2026-08-28:**
 - **Phase 4** (not started): shared list-page composable (§11.1, High — touches every list page's TypeScript, not just templates, so it's its own dedicated pass), skeleton loaders (§14.1), dedicated list-error state (§14.3), richer empty states (§14.2).
 - **Two High-priority findings never made it into any phase of §21's plan** and should get triaged into Phase 4 or their own pass: §5.2 (sticky table height's `69vh` magic number) and §8.1 (card-gap inconsistency below `mat-card`).
-- **Partial rollouts:** `app-status-chip` (§1.3) is live on 5 of the list pages that could use it, not all of them.
 - Everything else marked without a status suffix in its heading (mostly Medium/Low) is real but genuinely unscheduled backlog — batch into whichever page you're already touching, per each finding's own priority.
 
 **CSS placement rule for every fix below:** prefer `src/globals.css` (the real design-token source — Tailwind v4 `@theme` block, already wired to Material's `--mat-sys-*` tokens) or the specific Material override partial the concern belongs to (`override-component/_table.scss`, `_button.scss`, etc.). Avoid adding new rules to `src/assets/scss/custom.scss` — it's already a miscellaneous dumping ground with at least one real bug caused by that (§5.1), and the goal of this pass is to shrink it, not grow it.
@@ -58,12 +57,12 @@ The token layer is smaller and better than it looks — `src/globals.css` alread
 - **Standard:** Tight elements (chips, badges, buttons, inputs) → `--radius-sm`. Containers (cards, dialogs, image tiles) → `--radius-md`. Nothing custom-authored exceeds `--radius-md` unless it's a deliberate hero surface.
 - **Implement:** No new CSS needed — `globals.css`'s `@theme` block already exposes `--radius-sm`/`--radius-md` as Tailwind's `rounded-sm`/`rounded-md` utilities automatically. This is a template-only sweep: replace `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl` in custom components with `rounded-sm`/`rounded-md`.
 
-### 1.3 Status colors are re-derived per page instead of one status-chip pattern — **Medium** · 🟡 Component built, rolled out to 5 pages
+### 1.3 Status colors are re-derived per page instead of one status-chip pattern — **Medium** · ✅ Fixed
 
 - **Current:** `getStatusClass()` in `utils/status-class.util.ts` is the shared source, but several tables hand-roll their own `[ngClass]` maps directly in the template (e.g. `row.is_active ? 'bg-light-success text-success' : 'bg-light-error text-error'` appears verbatim in half a dozen list pages instead of calling the shared util).
 - **Issue:** Two sources of truth for the same "Active/Inactive" chip mean a future status-color change has to be hunted down page by page.
 - **Standard:** Every status/boolean chip in a table goes through one function.
-- **Implement:** Extend `getStatusClass()` to accept booleans directly; replace inline `[ngClass]` status maps. Consider a small `<app-status-chip [status]="row.status" />` component so the pill markup (padding, radius, font-size) is defined once — right now it already disagrees between pages (`rounded-sm font-semibold px-1.5 py-1 text-xs` vs. `rounded-full px-2.5 py-0.5 text-xs font-medium`).
+- **Implement:** ✅ Done — `<app-status-chip [status]="…" [label]="…" />` now backs every status badge app-wide (30 sites across 25 files: list-page tables, detail-shell hero badges, and standalone dialogs). Initially rolled out to only 5 pages (brands, categories, products, highlights, push-notification-templates); the remaining 25 were caught later when a live pixel-comparison across pages surfaced two real outliers still on the old inline pattern — `live-streams-list` and `push-notifications` were rendering `rounded-full px-2.5 py-0.5 font-medium` pill badges while every other page used `rounded-sm px-1.5 py-1 font-semibold` — plus several detail-shell hero badges at a slightly larger `px-2 py-1`. All now converge on the one component. `getStatusClass`/`statusClass` dead code (import + property, one per file) removed from every converted `.component.ts`.
 
 ### 1.4 Brand font isn't declared as a fallback stack anywhere but `globals.css` — **Low**
 
@@ -569,11 +568,11 @@ The shared-component library is real and, after this session's work, meaningfull
 | `file-upload` | ✅ Good | Single, correct usage |
 | `common.module` (`CommonSharedModule`) | ✅ Good | Bundles the 8 above |
 | `.row-action` (utility class) | ✅ Standard | New, swept across 27 files, §3.3 |
-| `status-chip` | 🟡 Built | Live on 5 pages (brands, categories, products, highlights, push-notification-templates) — not yet rolled out everywhere, §1.3 |
+| `status-chip` | ✅ Standard | Every status badge app-wide, §1.3 |
 | `table-skeleton` | ❌ Missing | Doesn't exist, §14.1 |
 | list-page base/composable | ❌ Missing | Doesn't exist — copy-pasted, §11.1 |
 
-**Standard:** Before building anything that looks like a status pill, an icon-only action button, a filter row, a confirmation, or a create/edit form — check this table first. Extend what's marked ✅/⚠/🟡; don't build a parallel version. Two real gaps remain (`table-skeleton`, a shared list-page base) — the highest-leverage remaining additions, since each one collapses N copy-pasted implementations into one. `status-chip` exists now; the remaining work is rollout, not design.
+**Standard:** Before building anything that looks like a status pill, an icon-only action button, a filter row, a confirmation, or a create/edit form — check this table first. Extend what's marked ✅/⚠/🟡; don't build a parallel version. Two real gaps remain (`table-skeleton`, a shared list-page base) — the highest-leverage remaining additions, since each one collapses N copy-pasted implementations into one.
 
 ---
 

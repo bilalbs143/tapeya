@@ -24,7 +24,6 @@ import {
 } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { LiveStreamDetailStateService } from './live-stream-detail-state.service';
 
@@ -68,7 +67,6 @@ export class LiveStreamDetailShellComponent implements OnInit, OnDestroy {
   public isLoading = true;
   public viewerCount = 0;
   public activeAction: StreamHeaderAction | null = null;
-  public readonly statusClass = getStatusClass;
 
   private streamChannelCleanup: (() => void) | null = null;
   private presenceChannelCleanup: (() => void) | null = null;

@@ -13,9 +13,9 @@ import type { PostType, AdminPost, PostStatus, PostVisibility } from 'src/app/se
 import { PostService } from 'src/app/services/post.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 export interface ManagePostDialogData {
   post: AdminPost;
@@ -58,6 +58,7 @@ const TYPE_LABELS: Record<PostType, string> = {
     DialogWrapperComponent,
     PostContentPreviewComponent,
     SubmitButtonComponent,
+    StatusChipComponent,
   ],
   templateUrl: './manage-post-dialog.component.html',
 })
@@ -70,7 +71,6 @@ export class ManagePostDialogComponent {
   public form!: FormGroup;
   public isSubmitting = false;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public readonly statusOptions = POST_STATUS_OPTIONS;
   public readonly visibilityOptions = POST_VISIBILITY_OPTIONS;
 

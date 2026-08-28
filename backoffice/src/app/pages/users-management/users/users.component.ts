@@ -24,7 +24,6 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageUserDialogComponent, type ManageUserDialogResult } from './manage-user-dialog/manage-user-dialog.component';
 
@@ -88,7 +87,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'actions',
   ];
   public dataSource = new MatTableDataSource<User>([]);
-  public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
 
   public formatRoleNames(roles: UserRole[] | undefined): string {

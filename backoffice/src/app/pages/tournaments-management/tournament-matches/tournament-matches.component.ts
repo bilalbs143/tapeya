@@ -25,7 +25,6 @@ import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/servi
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 const DEFAULT_FILTERS = {
   q: '',
@@ -93,7 +92,6 @@ export class TournamentMatchesComponent implements OnInit {
   });
 
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
 
   public tournamentId!: number;
   /** Full list from API (before client filters). */

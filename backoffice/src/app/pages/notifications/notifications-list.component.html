@@ -193,16 +193,10 @@
               mat-cell
               *matCellDef="let row"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="readStatusClass(row.read_at)"
-              >
-                @if (row.read_at) {
-                  {{ row.read_at | date: 'yyyy-MM-dd HH:mm' }}
-                } @else {
-                  Unread
-                }
-              </span>
+              <app-status-chip
+                [status]="row.read_at ? 'read' : 'unread'"
+                [label]="row.read_at ? (row.read_at | date: 'yyyy-MM-dd HH:mm') : 'Unread'"
+              />
             </td>
           </ng-container>
           <ng-container matColumnDef="created_at">

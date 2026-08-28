@@ -50,12 +50,10 @@
             </span>
             <div class="min-w-0 flex-1">
               <p class="text-muted m-0 mb-1 text-xs font-medium">Status</p>
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-                [ngClass]="statusClass(submission.status)"
-              >
-                {{ submission.status_label }}
-              </span>
+              <app-status-chip
+                [status]="submission.status"
+                [label]="submission.status_label"
+              />
               @if (submission.withdrawn_at) {
                 <p class="text-muted m-0 mt-2 text-xs leading-relaxed">
                   Withdrawn At {{ submission.withdrawn_at | date: 'yyyy-MM-dd HH:mm' }}

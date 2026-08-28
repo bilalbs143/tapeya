@@ -27,7 +27,6 @@ import {
   AdminNotificationType,
 } from 'src/app/shared/constants/notification.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 const DEFAULT_FILTERS = {
   type: '',
@@ -77,7 +76,6 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
 
   public readonly AdminNotificationType = AdminNotificationType;
   public readonly typeOptions = ADMIN_NOTIFICATION_TYPE_OPTIONS;
-  public readonly statusClass = getStatusClass;
 
   public readonly readOptions = [
     { value: '', label: 'All' },
@@ -159,10 +157,6 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
         this.messageService.error('Failed to load notifications.');
       },
     });
-  }
-
-  public readStatusClass(readAt: string | null | undefined): string {
-    return this.statusClass(readAt ? 'read' : 'unread');
   }
 
   public typeLabel(type: string | null): string {

@@ -19,9 +19,9 @@ import type { Order, OrderItem, VendorOrderSummary } from 'src/app/services/shop
 import { OrderService } from 'src/app/services/shop/order.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 export interface OrderDetailDialogData {
   order: Order;
@@ -47,6 +47,7 @@ const REFUND_STATUS_VALUES = [{ value: 'refunded', label: 'Refunded' }] as const
     DialogWrapperComponent,
     SubmitButtonComponent,
     LoaderBlockComponent,
+    StatusChipComponent,
   ],
   templateUrl: './order-detail-dialog.component.html',
 })
@@ -69,7 +70,6 @@ export class OrderDetailDialogComponent implements OnInit {
   public isLoading = true;
   public paymentUpdated = false;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('order_status');
   public paymentStatusOptions$: Observable<EnumOption[]> = this.enumsService
     .getOptions('payment_status')
