@@ -23,7 +23,6 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageBrandDialogComponent } from './manage-brand-dialog/manage-brand-dialog.component';
 
@@ -63,7 +62,6 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   public readonly displayedColumns: string[] = ['sr', 'name', 'slug', 'logo', 'sort_order', 'status', 'created_at', 'actions'];
   public dataSource = new MatTableDataSource<Brand>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;
@@ -170,7 +168,12 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(brand: Brand): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Brand?', `Are you sure you want to delete "${brand.name}"?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete Brand?',
+          `Delete "${brand.name}"? Products using this brand will keep selling, just without a brand tag.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

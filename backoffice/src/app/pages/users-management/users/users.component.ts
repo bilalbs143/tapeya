@@ -178,7 +178,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -190,7 +190,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -199,7 +199,12 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(user: User): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete User?', `Are you sure you want to delete ${user.name}?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete User?',
+          `Delete ${user.name}? Their orders, posts, comments, and other activity will be permanently deleted too. This cannot be undone.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

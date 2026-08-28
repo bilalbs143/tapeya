@@ -23,7 +23,6 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
-import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageCategoryDialogComponent } from './manage-category-dialog/manage-category-dialog.component';
 
@@ -73,7 +72,6 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   public dataSource = new MatTableDataSource<Category>([]);
   public readonly emptyCell = EMPTY_CELL;
-  public readonly statusClass = getStatusClass;
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;
@@ -180,7 +178,12 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(category: Category): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Category?', `Are you sure you want to delete "${category.name}"?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete Category?',
+          `Delete "${category.name}"? Products in this category will keep selling, just without a category tag.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

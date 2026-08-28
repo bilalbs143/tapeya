@@ -100,20 +100,19 @@
             <table
               mat-table
               [dataSource]="items"
-              class="min-w-full bg-transparent"
+              class="min-w-full bg-transparent text-sm"
             >
               <ng-container matColumnDef="product">
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary text-sm font-semibold"
+                  class="bg-light-secondary font-semibold"
                 >
                   Product
                 </th>
                 <td
                   mat-cell
                   *matCellDef="let item"
-                  class="text-sm"
                 >
                   {{ productName(item) }}
                 </td>
@@ -122,14 +121,14 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary text-sm font-semibold"
+                  class="bg-light-secondary font-semibold text-right"
                 >
                   Qty
                 </th>
                 <td
                   mat-cell
                   *matCellDef="let item"
-                  class="text-sm"
+                  class="text-right tabular-nums"
                 >
                   {{ item.quantity }}
                 </td>
@@ -138,14 +137,14 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary text-sm font-semibold"
+                  class="bg-light-secondary font-semibold text-right"
                 >
                   Unit Price
                 </th>
                 <td
                   mat-cell
                   *matCellDef="let item"
-                  class="text-sm"
+                  class="text-right tabular-nums"
                 >
                   {{ item.unit_price | number: '1.0-0' }}
                 </td>
@@ -154,14 +153,14 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary text-sm font-semibold"
+                  class="bg-light-secondary font-semibold text-right"
                 >
                   Total
                 </th>
                 <td
                   mat-cell
                   *matCellDef="let item"
-                  class="text-sm"
+                  class="text-right tabular-nums"
                 >
                   {{ item.total_price | number: '1.0-0' }}
                 </td>
@@ -356,7 +355,6 @@
       <button
         type="button"
         mat-stroked-button
-        class="border border-error! text-error"
         [mat-dialog-close]="paymentUpdated"
       >
         Close

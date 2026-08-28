@@ -87,20 +87,19 @@
           matSortStart="asc"
           matSortDirection="asc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -110,14 +109,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Name
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.name }}
             </td>
@@ -127,14 +126,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Slug
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.slug ?? emptyCell }}
             </td>
@@ -144,14 +143,13 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Sort Order
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.sort_order }}
             </td>
@@ -160,14 +158,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Logo
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               @if (row.logo) {
                 <app-table-image
@@ -183,21 +180,15 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.is_active ? 'active' : 'inactive')"
-              >
-                {{ row.is_active ? 'Active' : 'Inactive' }}
-              </span>
+              <app-status-chip [status]="row.is_active" />
             </td>
           </ng-container>
           <ng-container matColumnDef="created_at">
@@ -205,14 +196,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
@@ -221,18 +212,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Edit Brand"
                 (click)="openEditDialog(row)"
               >
@@ -243,7 +234,7 @@
               </button>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Delete Brand"
                 (click)="openDeleteDialog(row)"
               >
@@ -269,7 +260,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

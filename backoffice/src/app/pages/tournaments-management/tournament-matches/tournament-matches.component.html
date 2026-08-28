@@ -118,7 +118,7 @@
             matSortStart="asc"
             matSortDirection="asc"
             [dataSource]="dataSource"
-            class="min-w-full"
+            class="min-w-full text-sm"
             aria-label="Tournament Matches"
           >
             <ng-container matColumnDef="when">
@@ -126,14 +126,14 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Date / Time
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="text-sm whitespace-nowrap"
+                class="whitespace-nowrap"
               >
                 {{ row.match_date }} {{ row.match_time }}
               </td>
@@ -144,14 +144,13 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Fixture
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="text-sm"
               >
                 {{ row.home_team?.name || emptyCell }}
                 <span class="text-muted mx-1">v</span>
@@ -164,14 +163,13 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Venue
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="text-sm"
               >
                 {{ row.venue_name }}
               </td>
@@ -182,14 +180,14 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Status
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="text-sm whitespace-nowrap"
+                class="whitespace-nowrap"
               >
                 <span
                   class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -205,14 +203,14 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Result
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="text-sm max-w-[20rem]"
+                class="max-w-[20rem]"
               >
                 {{ row.result_summary || emptyCell }}
               </td>
@@ -222,18 +220,18 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Action
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="action-link text-sm whitespace-nowrap"
+                class="action-link whitespace-nowrap"
               >
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Edit match"
                   matTooltip="Edit match"
                   (click)="openEditDialog(row)"
@@ -244,7 +242,7 @@
                   ></i-tabler>
                 </button>
                 <a
-                  class="me-2.5 inline-flex cursor-pointer border-0 bg-transparent p-0 align-middle no-underline"
+                  class="me-2.5 inline-flex row-action no-underline"
                   [routerLink]="['/tournaments-management/match-controller', row.id]"
                   matTooltip="Match Controller"
                   aria-label="Open match controller"

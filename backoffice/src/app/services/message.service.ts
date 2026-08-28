@@ -14,6 +14,14 @@ export interface MessageOptions {
   durationMs?: number;
 }
 
+/**
+ * Which width tier to pick, by form complexity (see docs/BACKOFFICE_UX_AUDIT.md §9.1):
+ *   xs (400px)  — confirmations only
+ *   sm (500px)  — single-purpose, 1–3 fields
+ *   md (850px)  — standard create/edit forms (the default)
+ *   lg (1150px) — rich-text editor, image gallery, or 8+ fields
+ *   xl (1300px) — dashboard-in-a-dialog only
+ */
 export type DialogWidth = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export interface DialogConfig extends MatDialogConfig {

@@ -113,20 +113,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -136,14 +135,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Preview
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               @if (previewUrl(row); as src) {
                 <app-table-image
@@ -162,14 +160,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Type
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap capitalize"
+              class="whitespace-nowrap capitalize"
             >
               {{ typeLabel(row.type) }}
             </td>
@@ -179,14 +177,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Body
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm max-w-[260px]"
+              class="max-w-[260px]"
             >
               <span
                 class="line-clamp-2 leading-snug"
@@ -201,14 +199,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Creator
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ creatorLabel(row) }}
             </td>
@@ -218,14 +216,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -240,14 +238,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Visibility
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ visibilityLabel(row.visibility) }}
             </td>
@@ -258,14 +256,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="views_count"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Views
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap text-right tabular-nums"
             >
               {{ row.counts?.views | number }}
             </td>
@@ -276,14 +274,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="likes_count"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Likes
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap text-right tabular-nums"
             >
               {{ row.counts?.likes | number }}
             </td>
@@ -293,14 +291,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Reports
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap text-right tabular-nums"
             >
               {{ row.counts?.reports | number }}
             </td>
@@ -311,14 +309,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd') : emptyCell }}
             </td>
@@ -328,18 +326,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="View or edit post"
                 (click)="openManageDialog(row)"
               >
@@ -351,7 +349,7 @@
               @if (canReprocess(row)) {
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Reprocess video"
                   (click)="openReprocessDialog(row)"
                 >
@@ -363,7 +361,7 @@
               }
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Remove post"
                 (click)="openDeleteDialog(row)"
               >
@@ -391,7 +389,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

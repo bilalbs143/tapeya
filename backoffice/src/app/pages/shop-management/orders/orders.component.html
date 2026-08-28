@@ -109,20 +109,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -132,14 +131,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Order #
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm font-medium"
+              class="font-medium"
             >
               {{ row.order_number }}
             </td>
@@ -148,14 +147,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Customer
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.user?.name ?? emptyCell }}
             </td>
@@ -164,14 +162,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold hidden lg:table-cell"
             >
               Phone
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="hidden lg:table-cell"
             >
               {{ row.user?.phone ?? emptyCell }}
             </td>
@@ -181,14 +179,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Total
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums"
             >
               {{ row.total | number: '1.0-0' }} {{ row.currency }}
             </td>
@@ -197,14 +195,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold hidden lg:table-cell"
             >
               Currency
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="hidden lg:table-cell"
             >
               {{ row.currency }}
             </td>
@@ -214,14 +212,13 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -235,14 +232,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Payment
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               @if (row.payment_status) {
                 <span
@@ -260,14 +256,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Address
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm max-w-[200px] truncate"
+              class="max-w-[200px] truncate"
               [title]="row.address + ', ' + row.city + ', ' + row.country"
             >
               {{ row.address }}, {{ row.city }}, {{ row.country }}
@@ -278,14 +274,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
@@ -294,18 +290,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="View Order"
                 (click)="openDetailDialog(row)"
               >
@@ -331,7 +327,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

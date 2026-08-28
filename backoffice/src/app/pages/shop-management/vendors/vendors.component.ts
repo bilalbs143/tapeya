@@ -173,7 +173,7 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -185,7 +185,7 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', vendor },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -251,7 +251,12 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.sub.add(
       this.messageService
-        .prompt('Delete Vendor?', `Are you sure you want to delete "${vendor.store_name}"?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete Vendor?',
+          `Delete "${vendor.store_name}"? Vendors with existing products can't be deleted — remove or reassign their products first.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

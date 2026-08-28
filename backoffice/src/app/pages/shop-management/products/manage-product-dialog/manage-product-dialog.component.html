@@ -342,7 +342,6 @@
       <button
         type="button"
         mat-stroked-button
-        class="border border-error! text-error"
         [mat-dialog-close]="false"
       >
         Cancel
@@ -350,7 +349,7 @@
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"
-        text="Submit"
+        [text]="data.mode === 'edit' ? 'Save Product' : 'Add Product'"
         color="primary"
       />
     </mat-dialog-actions>

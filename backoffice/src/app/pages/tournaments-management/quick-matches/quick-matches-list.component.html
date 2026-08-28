@@ -117,19 +117,19 @@
           mat-table
           [dataSource]="dataSource"
           matSort
+          class="text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ currentPage * pageSize + i + 1 }}
             </td>
@@ -138,14 +138,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               When
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.match_date || emptyCell }}
               @if (row.match_time) {
@@ -157,14 +157,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Match
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ teamsLabel(row) }}
             </td>
@@ -173,14 +172,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Creator
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.created_by?.name || emptyCell }}
             </td>
@@ -189,14 +187,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Venue
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.venue_name || emptyCell }}
             </td>
@@ -205,14 +202,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Format
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.cricket_format_label || emptyCell }}
               @if (row.overs) {
@@ -224,14 +220,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -245,18 +240,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="View quick match"
                 (click)="openDetail(row)"
               >
@@ -268,7 +263,7 @@
               @if (row.status !== 'completed' && row.status !== 'cancelled') {
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Cancel quick match"
                   (click)="cancelMatch(row)"
                 >
@@ -295,7 +290,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

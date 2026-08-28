@@ -97,20 +97,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -120,14 +119,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Tournament Name
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm font-medium"
+              class="font-medium"
             >
               {{ row.tournament_name }}
             </td>
@@ -136,14 +135,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Contact Person
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.contact_person_name ?? emptyCell }}
             </td>
@@ -152,14 +150,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Phone
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.contact_phone ?? emptyCell }}
             </td>
@@ -169,14 +166,13 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Tournament Type
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.tournament_type_label ?? row.tournament_type ?? emptyCell }}
             </td>
@@ -185,14 +181,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Venue
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm max-w-[180px] truncate"
+              class="max-w-[180px] truncate"
               [title]="row.venue_name"
             >
               {{ row.venue_name ?? emptyCell }}
@@ -202,14 +198,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Prize
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm max-w-[140px] truncate"
+              class="max-w-[140px] truncate"
               [title]="row.prize ?? ''"
             >
               {{ row.prize ?? emptyCell }}
@@ -219,14 +215,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Country
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.country ?? emptyCell }}
             </td>
@@ -235,14 +230,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               City
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.city ?? emptyCell }}
             </td>
@@ -252,14 +246,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Start Date
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.start_date ? (row.start_date | date: 'yyyy-MM-dd') : emptyCell }}
             </td>
@@ -268,14 +262,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               End Date
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.end_date ? (row.end_date | date: 'yyyy-MM-dd') : emptyCell }}
             </td>
@@ -285,14 +279,13 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -307,14 +300,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
@@ -323,18 +316,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="View tournament request"
                 (click)="openDetailDialog(row)"
               >
@@ -345,7 +338,7 @@
               </button>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Create tournament from request"
                 (click)="openCreateTournamentDialog(row)"
               >
@@ -371,7 +364,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

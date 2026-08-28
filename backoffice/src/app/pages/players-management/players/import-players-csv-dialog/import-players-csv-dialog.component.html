@@ -2,7 +2,7 @@
   <mat-dialog-content class="max-h-[70vh] overflow-y-auto">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
       <div
-        class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-light-primary text-primary"
+        class="flex size-12 shrink-0 items-center justify-center rounded-md bg-light-primary text-primary"
         aria-hidden="true"
       >
         <i-tabler
@@ -81,7 +81,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Value
               </th>
@@ -97,7 +97,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Label
               </th>
@@ -144,7 +144,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Value
               </th>
@@ -160,7 +160,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Label
               </th>
@@ -207,7 +207,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Value
               </th>
@@ -223,7 +223,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary text-sm font-semibold"
+                class="bg-light-secondary font-semibold"
               >
                 Label
               </th>
@@ -309,7 +309,7 @@
 
     @if (lastDryRun) {
       <section
-        class="mt-6 rounded-lg border border-border bg-light-secondary p-4"
+        class="mt-6 rounded-md border border-border bg-light-secondary p-4"
         aria-live="polite"
       >
         <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -351,7 +351,7 @@
 
     @if (dryRunRequestError) {
       <section
-        class="mt-6 rounded-lg border border-error/40 bg-error/5 p-4"
+        class="mt-6 rounded-md border border-error/40 bg-error/5 p-4"
         aria-live="assertive"
       >
         <div class="mb-2 flex flex-wrap items-start justify-between gap-2">
@@ -378,7 +378,6 @@
     <button
       type="button"
       mat-stroked-button
-      class="border border-error! text-error"
       [mat-dialog-close]="false"
     >
       Cancel

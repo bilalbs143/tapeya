@@ -151,7 +151,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -163,7 +163,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', heroSlider: item },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );

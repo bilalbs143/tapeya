@@ -165,7 +165,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -177,7 +177,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', tournament: item },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -186,7 +186,12 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(item: Tournament): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Tournament?', `Are you sure you want to delete "${item.tournament_name}"?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete Tournament?',
+          `Delete "${item.tournament_name}"? Its matches, interest campaigns, and submissions will be deleted too. This cannot be undone.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

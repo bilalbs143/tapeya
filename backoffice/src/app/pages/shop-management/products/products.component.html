@@ -121,20 +121,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -144,14 +143,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Name
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.name }}
             </td>
@@ -160,14 +159,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               SKU
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.sku ?? emptyCell }}
             </td>
@@ -177,14 +175,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Price
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums"
             >
               {{ row.price | number: '1.0-0' }}
             </td>
@@ -193,14 +191,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Sale Price
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums"
             >
               {{ row.sale_price !== null ? (row.sale_price | number: '1.0-0') : emptyCell }}
             </td>
@@ -209,14 +207,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right hidden lg:table-cell"
             >
               Sale %
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums hidden lg:table-cell"
             >
               {{ row.sale_percentage !== null ? row.sale_percentage + '%' : emptyCell }}
             </td>
@@ -225,14 +223,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold hidden lg:table-cell"
             >
               Sale Type
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="hidden lg:table-cell"
             >
               @if (row.discount_type) {
                 {{ row.discount_type === 'percentage' ? 'Percentage' : 'Fixed Amount' }}
@@ -245,14 +243,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Vendor
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.vendor?.store_name ?? emptyCell }}
             </td>
@@ -261,14 +259,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Brand
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.brand?.name ?? emptyCell }}
             </td>
@@ -277,14 +274,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Category
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.category?.name ?? emptyCell }}
             </td>
@@ -294,14 +290,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Stock
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums"
             >
               {{ row.stock_quantity }}
             </td>
@@ -310,21 +306,15 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.is_active ? 'active' : 'inactive')"
-              >
-                {{ row.is_active ? 'Active' : 'Inactive' }}
-              </span>
+              <app-status-chip [status]="row.is_active" />
             </td>
           </ng-container>
           <ng-container matColumnDef="created_at">
@@ -332,14 +322,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
@@ -348,18 +338,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Edit Product"
                 (click)="openEditDialog(row)"
               >
@@ -370,7 +360,7 @@
               </button>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Delete Product"
                 (click)="openDeleteDialog(row)"
               >
@@ -396,7 +386,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

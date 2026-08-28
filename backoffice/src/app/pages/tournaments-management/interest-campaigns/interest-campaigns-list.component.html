@@ -156,20 +156,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -179,14 +178,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="tournament_name"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Tournament
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="max-w-[280px] text-sm font-medium"
+              class="max-w-[280px] font-medium"
               [title]="row.tournament_name"
             >
               <div class="flex items-center gap-2">
@@ -207,14 +206,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Type
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-0.5 text-[10px] inline-block"
@@ -228,25 +226,25 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Public Link
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="whitespace-nowrap text-sm"
+              class="whitespace-nowrap"
             >
               <code class="text-xs">/interest/{{ row.slug }}</code>
               <button
                 type="button"
-                class="ms-2 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="ms-2 row-action"
                 aria-label="Copy Public Link"
                 (click)="copyLink(row)"
               >
                 <i-tabler
                   name="copy"
-                  class="size-4!"
+                  class="size-4.5!"
                 ></i-tabler>
               </button>
             </td>
@@ -256,14 +254,13 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -277,14 +274,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Submissions
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm font-medium"
+              class="font-medium"
             >
               <a
                 class="me-2.5 inline-flex align-middle text-primary"
@@ -301,14 +298,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="whitespace-nowrap text-sm"
+              class="whitespace-nowrap"
             >
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
@@ -317,14 +314,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <a
                 class="me-2.5 inline-flex align-middle text-primary"
@@ -339,7 +336,7 @@
               </a>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Edit Campaign"
                 (click)="openEditDialog(row)"
               >
@@ -350,7 +347,7 @@
               </button>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Delete Campaign"
                 (click)="openDeleteDialog(row)"
               >
@@ -376,7 +373,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

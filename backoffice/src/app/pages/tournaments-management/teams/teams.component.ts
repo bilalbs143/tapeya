@@ -169,7 +169,12 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(team: TeamRow): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Team?', `Are you sure you want to delete "${team.name}"?`, 'Delete', 'Cancel')
+        .prompt(
+          'Delete Team?',
+          `Delete "${team.name}"? Teams that appear in any match can't be deleted — remove or reassign those matches first.`,
+          'Delete',
+          'Cancel'
+        )
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

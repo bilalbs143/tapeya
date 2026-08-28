@@ -185,7 +185,7 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
         lockedTournamentName: this.tournamentName,
       },
       (saved) => saved && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      { widthSize: 'lg', disableClose: true }
     );
   }
 
@@ -195,7 +195,7 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
       { mode: 'edit', campaign },
       (saved) => saved && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );

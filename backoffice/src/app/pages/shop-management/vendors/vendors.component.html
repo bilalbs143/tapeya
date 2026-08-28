@@ -85,20 +85,19 @@
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
-          class="min-w-full"
+          class="min-w-full text-sm"
         >
           <ng-container matColumnDef="sr">
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               #
             </th>
             <td
               mat-cell
               *matCellDef="let row; let i = index"
-              class="text-sm"
             >
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
@@ -108,14 +107,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Store Name
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.store_name }}
             </td>
@@ -125,14 +124,14 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Slug
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.slug ?? emptyCell }}
             </td>
@@ -141,14 +140,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               User
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.user?.name ?? emptyCell }}
             </td>
@@ -157,14 +156,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Phone
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
+              class="whitespace-nowrap"
             >
               {{ row.phone ?? row.user?.phone ?? emptyCell }}
             </td>
@@ -173,14 +172,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Status
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
@@ -194,14 +192,14 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold text-right"
             >
               Commission
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-right tabular-nums"
             >
               {{ row.commission_rate !== null ? row.commission_rate + '%' : emptyCell }}
             </td>
@@ -210,14 +208,13 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Platform
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
             >
               {{ row.is_platform ? 'Yes' : 'No' }}
             </td>
@@ -226,18 +223,18 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Action
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="action-link text-sm whitespace-nowrap"
+              class="action-link whitespace-nowrap"
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Edit Vendor"
                 (click)="openEditDialog(row)"
               >
@@ -249,7 +246,7 @@
               @if (canApprove(row)) {
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Approve Vendor"
                   matTooltip="Approve"
                   (click)="approveVendor(row)"
@@ -263,7 +260,7 @@
               @if (canReject(row)) {
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Reject Vendor"
                   matTooltip="Reject"
                   (click)="rejectVendor(row)"
@@ -277,7 +274,7 @@
               @if (canSuspend(row)) {
                 <button
                   type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  class="me-2.5 row-action"
                   aria-label="Suspend Vendor"
                   matTooltip="Suspend"
                   (click)="suspendVendor(row)"
@@ -290,7 +287,7 @@
               }
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Delete Vendor"
                 [disabled]="row.is_platform"
                 [class.opacity-40]="row.is_platform"
@@ -319,7 +316,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>

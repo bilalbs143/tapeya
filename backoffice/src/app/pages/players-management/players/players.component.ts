@@ -164,7 +164,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );
@@ -185,7 +185,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'md',
+        widthSize: 'lg',
         disableClose: true,
       }
     );

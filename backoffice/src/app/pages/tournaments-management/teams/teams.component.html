@@ -88,7 +88,7 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold w-12"
+              class="bg-light-secondary font-semibold w-12"
             >
               #
             </th>
@@ -103,7 +103,7 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold w-16"
+              class="bg-light-secondary font-semibold w-16"
             ></th>
             <td
               mat-cell
@@ -125,7 +125,7 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="name"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Name
             </th>
@@ -142,7 +142,7 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="code"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Code
             </th>
@@ -158,7 +158,7 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="country"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Country
             </th>
@@ -174,7 +174,7 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="city"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               City
             </th>
@@ -189,7 +189,7 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Sponsor
             </th>
@@ -204,7 +204,7 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Icons
             </th>
@@ -220,7 +220,7 @@
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header="created_at"
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
               Created
             </th>
@@ -235,9 +235,9 @@
             <th
               mat-header-cell
               *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
+              class="bg-light-secondary font-semibold"
             >
-              Actions
+              Action
             </th>
             <td
               mat-cell
@@ -246,7 +246,7 @@
             >
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Edit team"
                 (click)="openEditDialog(row)"
               >
@@ -257,7 +257,7 @@
               </button>
               <button
                 type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                class="me-2.5 row-action"
                 aria-label="Delete team"
                 (click)="openDeleteDialog(row)"
               >
@@ -283,7 +283,6 @@
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [loading]="isLoading"
       (page)="onPaginationChange($event)"
     ></app-paginator>
   </mat-card-content>
