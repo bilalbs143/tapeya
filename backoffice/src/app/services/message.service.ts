@@ -67,8 +67,7 @@ export class MessageService implements OnDestroy {
     const config: MatDialogConfig = {
       disableClose,
       width,
-      minWidth: width,
-      maxWidth: width,
+      maxWidth: `min(${width}, 95vw)`,
       height: 'auto',
       data: dialogData ?? {},
     };
@@ -120,8 +119,7 @@ export class MessageService implements OnDestroy {
       data,
       height: 'auto',
       width,
-      minWidth: width,
-      maxWidth: width,
+      maxWidth: `min(${width}, 95vw)`,
       disableClose: true,
     };
     return this.matDialog.open(PromptDialogComponent, config);
