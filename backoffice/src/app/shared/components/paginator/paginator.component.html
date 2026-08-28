@@ -1,6 +1,4 @@
-@if (loading) {
-  <app-empty-data-message [message]="loadingMessage" />
-} @else if ((length === 0 || length === undefined) && showNoRecMessage) {
+@if ((length === 0 || length === undefined) && showNoRecMessage) {
   <app-empty-data-message [message]="noRecMessage" />
 }
 

@@ -1,13 +1,13 @@
 import { Component, Input } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
-import { MatDialogClose } from '@angular/material/dialog';
+import { MatDialogClose, MatDialogTitle } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
   selector: 'app-dialog-wrapper',
   standalone: true,
   templateUrl: './dialog-wrapper.component.html',
-  imports: [MatDialogClose, MatIconButton, TablerIconsModule],
+  imports: [MatDialogClose, MatDialogTitle, MatIconButton, TablerIconsModule],
 })
 export class DialogWrapperComponent {
   /**

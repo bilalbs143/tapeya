@@ -18,7 +18,7 @@
     tabindex="0"
     [attr.aria-label]="'Upload ' + (label || 'file')"
     [attr.aria-disabled]="isDisabled || null"
-    class="relative flex flex-col items-center justify-center gap-2 w-full rounded-xl border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors duration-150 select-none focus-visible:outline-2 focus-visible:outline-primary"
+    class="relative flex flex-col items-center justify-center gap-2 w-full rounded-md border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors duration-150 select-none focus-visible:outline-2 focus-visible:outline-primary"
     [class.border-primary]="isDragging"
     [class.bg-primary\/5]="isDragging"
     [class.border-default-border]="!isDragging"
@@ -36,7 +36,7 @@
     <!-- Icon -->
     <i-tabler
       [name]="isDragging ? 'file-download' : 'cloud-upload'"
-      class="size-10 transition-colors"
+      class="size-12 transition-colors"
       [class.text-primary]="isDragging"
       [class.text-muted]="!isDragging"
     ></i-tabler>
@@ -79,7 +79,7 @@
     [class.lg\:grid-cols-4]="multiple"
   >
     @for (entry of entries; track entry.id) {
-      <div class="group relative flex flex-col rounded-xl border border-default-border bg-white overflow-hidden shadow-sm">
+      <div class="group relative flex flex-col rounded-md border border-default-border bg-white overflow-hidden shadow-sm">
         @if (entry.isImage) {
           <!-- Image preview -->
           <div
@@ -113,7 +113,7 @@
           <div class="flex items-center justify-center bg-gray-50 py-6">
             <i-tabler
               name="file-text"
-              class="size-10 text-muted"
+              class="size-12 text-muted"
             ></i-tabler>
           </div>
         }

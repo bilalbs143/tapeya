@@ -25,6 +25,12 @@ export class PageHeaderComponent {
   @Input() public showBreadcrumbs = true;
   @Input() public showFiltersToggle = true;
   @Input() public filtersOpen = false;
+  /**
+   * Hides the icon square + title/subtitle/badge row, leaving only the breadcrumb (left) and
+   * pageActions/filters-toggle (right). For detail-shell pages that already show their own
+   * dynamic title in a richer hero card — the breadcrumb is the only thing page-header adds there.
+   */
+  @Input() public showTitle = true;
 
   @Output() public readonly filtersToggled = new EventEmitter<void>();
 

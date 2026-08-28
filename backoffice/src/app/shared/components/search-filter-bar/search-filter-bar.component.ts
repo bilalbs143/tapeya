@@ -32,6 +32,13 @@ import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/
         margin-bottom: 0;
       }
 
+      /* Every field in a filter bar hides its hint/error subscript row — filter fields never
+         show validation, and this keeps every field's height identical regardless of whether
+         its author remembered the \`hide-hint\` class. */
+      app-search-filter-bar .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+
       /* Desktop: 1–3 filters stay compact */
       app-search-filter-bar > * {
         flex: 0 1 22rem;

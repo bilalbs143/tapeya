@@ -5,6 +5,7 @@ import { LoaderBlockComponent } from './components/loader/loader-block.component
 import { PageHeaderComponent } from './components/page-header/page-header.component';
 import { PaginatorComponent } from './components/paginator/paginator.component';
 import { SearchFilterBarComponent } from './components/search-filter-bar/search-filter-bar.component';
+import { StatusChipComponent } from './components/status-chip/status-chip.component';
 import { SubmitButtonComponent } from './components/submit-button/submit-button.component';
 import { TableWrapperComponent } from './components/table-wrapper/table-wrapper.component';
 
@@ -26,6 +27,7 @@ const SHARED_COMPONENTS = [
   DialogWrapperComponent,
   SubmitButtonComponent,
   LoaderBlockComponent,
+  StatusChipComponent,
 ];
 
 @NgModule({

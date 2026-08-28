@@ -1,7 +1,7 @@
 <div class="flex flex-wrap items-center justify-between gap-3">
   <div class="flex items-center gap-3 min-w-0">
-    @if (resolvedIcon) {
-      <div class="size-10 rounded-lg bg-light-primary text-primary flex items-center justify-center shrink-0">
+    @if (showTitle && resolvedIcon) {
+      <div class="size-10 rounded-md bg-light-primary text-primary flex items-center justify-center shrink-0">
         <span
           class="iconify text-[20px]"
           [attr.data-icon]="resolvedIcon"
@@ -9,18 +9,20 @@
       </div>
     }
     <div class="min-w-0">
-      <div class="flex items-center gap-2 flex-wrap">
-        <h1 class="text-[19px] font-semibold m-0 leading-tight tracking-tight">{{ title }}</h1>
-        @if (subtitle) {
-          <span class="text-muted select-none leading-none">|</span>
-          <span class="text-[13px] text-muted leading-tight">{{ subtitle }}</span>
-        }
-        @if (badge !== null) {
-          <span class="bg-light-secondary text-secondary text-[11px] font-medium px-2 py-0.5 rounded-full leading-tight">
-            {{ badge }} Records
-          </span>
-        }
-      </div>
+      @if (showTitle) {
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-[19px] font-semibold m-0 leading-tight tracking-tight">{{ title }}</h1>
+          @if (subtitle) {
+            <span class="text-muted select-none leading-none">|</span>
+            <span class="text-[13px] text-muted leading-tight">{{ subtitle }}</span>
+          }
+          @if (badge !== null) {
+            <span class="bg-light-secondary text-secondary text-[11px] font-medium px-2 py-0.5 rounded-full leading-tight">
+              {{ badge }} Records
+            </span>
+          }
+        </div>
+      }
 
       @if (showBreadcrumbs && resolvedBreadcrumbs.length) {
         <ul class="breadcrumb items-center! m-0! mt-1!">
@@ -84,7 +86,7 @@
       >
         <i-tabler
           name="filter"
-          class="size-4!"
+          class="size-5!"
         ></i-tabler>
         {{ filtersOpen ? 'Hide Filters' : 'Filters' }}
       </button>

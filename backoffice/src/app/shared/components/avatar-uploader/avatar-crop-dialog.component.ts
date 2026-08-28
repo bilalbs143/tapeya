@@ -90,7 +90,7 @@ const ZOOM_MAX = 4;
 
       <mat-divider></mat-divider>
       <mat-dialog-actions class="!px-5 !pb-4 !pt-3 gap-2">
-        <button mat-stroked-button class="border border-error! text-error" mat-dialog-close>Cancel</button>
+        <button mat-stroked-button mat-dialog-close>Cancel</button>
         <button mat-flat-button color="primary" [disabled]="!croppedBlob" (click)="apply()">Apply</button>
       </mat-dialog-actions>
     </app-dialog-wrapper>

@@ -12,7 +12,8 @@ import { LoaderComponent } from 'src/app/shared/components/loader/loader.compone
 export class SubmitButtonComponent {
   @Input() public isSubmitting = false;
   @Input() public disabled = false;
-  @Input() public text = 'Submit';
+  /** No default — every call site must say what the button actually does ("Save Brand", not "Submit"). */
+  @Input({ required: true }) public text!: string;
   @Input() public className = 'ml-4';
   @Input() public color: 'primary' | 'accent' | 'warn' = 'primary';
   @Input() public focusInitial = false;
