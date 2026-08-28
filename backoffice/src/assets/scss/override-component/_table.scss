@@ -4,6 +4,10 @@
 @include mat.table-overrides(
   (
     background-color: var(--mat-card-elevated-container-color),
+    // Material's default is 56px header / 52px row — a 4px mismatch that
+    // reads as an inconsistency once you're looking for it. Header matches
+    // the row height exactly instead.
+    header-container-height: 52px,
   )
 );
 
