@@ -1,6 +1,6 @@
 import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Data, NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -55,7 +55,6 @@ export class FullComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly navService = inject(NavService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly auth = inject(AuthService);
   private readonly titleService = inject(Title);
 
@@ -136,13 +135,6 @@ export class FullComponent implements OnDestroy {
     if (title != null && title !== '') {
       this.titleService.setTitle(String(title));
     }
-  }
-
-  public isFilterNavOpen = false;
-
-  public toggleFilterNav() {
-    this.isFilterNavOpen = !this.isFilterNavOpen;
-    this.cdr.detectChanges();
   }
 
   public ngOnDestroy() {

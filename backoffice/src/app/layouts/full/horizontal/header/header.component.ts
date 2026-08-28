@@ -36,7 +36,6 @@ export class AppHorizontalHeaderComponent implements OnInit {
   @Input() public showToggle = true;
   @Input() public toggleChecked = false;
   @Output() public readonly toggleMobileNav = new EventEmitter<void>();
-  @Output() public readonly toggleMobileFilterNav = new EventEmitter<void>();
   @Output() public readonly toggleCollapsed = new EventEmitter<void>();
   @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
 
