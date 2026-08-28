@@ -54,11 +54,13 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+        <div
+          class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-start sm:justify-end gap-2"
+        >
           <mat-slide-toggle
             formControlName="live_today"
             color="primary"
-            class="me-1 shrink-0"
+            class="w-full sm:w-auto me-1 shrink-0"
             matTooltip="Fixture date is today (local time), including scheduled matches that have not started."
             matTooltipShowDelay="300"
             (change)="applyFilters()"
@@ -68,6 +70,7 @@
           <button
             mat-stroked-button
             type="button"
+            class="w-full sm:w-auto"
             (click)="resetSearchForm()"
           >
             Clear Search
@@ -76,6 +79,7 @@
             mat-flat-button
             color="primary"
             type="submit"
+            class="w-full sm:w-auto"
           >
             Search
           </button>
@@ -83,6 +87,7 @@
             mat-flat-button
             color="primary"
             type="button"
+            class="w-full sm:w-auto"
             (click)="openScheduleDialog()"
           >
             Schedule Match
