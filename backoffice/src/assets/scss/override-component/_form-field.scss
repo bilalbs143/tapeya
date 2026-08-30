@@ -1,15 +1,283 @@
-@use 'sass:map';
-@use '@angular/material' as mat;
+/*
+ * Field pattern — colors read from tokens so html.dark-theme (theme.css)
+ * remaps them.
+ *
+ *   label above (12px / 600) → 5px gap →
+ *   34px control, 8px radius → helper below
+ *   Focus: accent border + soft ring; label stays body-colored
+ *   NO floating-in-notch labels. NO MDC notched outline.
+ */
 
-@include mat.form-field-overrides(
-  (
-    container-height: 37px,
-    outlined-container-shape: var(--mat-sys-corner-small),
-    container-vertical-padding: 6px,
-  )
-);
+$field-height: 34px;
+$field-label-gap: 5px; // label → control
+$field-radius: 8px;
+$field-padding-x: 10px;
 
-// forms
+.mat-mdc-form-field {
+  --mat-form-field-container-height: #{$field-height};
+  --mat-form-field-container-vertical-padding: 0;
+  display: inline-flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding-top: calc(12px + #{$field-label-gap});
+  overflow: visible;
+  font-size: 13px;
+  letter-spacing: 0;
+
+  // NOT display:none — Material's default MDC structure puts the actual
+  // floating label inside .mdc-notched-outline__notch (that's how the stock
+  // outline "cuts a notch" around it). Hiding the whole outline subtree hid
+  // the label along with the border it draws. Strip the border pieces
+  // individually instead, and keep this (absolutely-positioned, non-flow —
+  // it doesn't affect layout) overlay non-interactive.
+  .mdc-notched-outline {
+    pointer-events: none;
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border: none !important;
+    }
+
+    /* Leading notch width indents the label — labels align to the control edge. */
+    .mdc-notched-outline__leading {
+      width: 0 !important;
+      padding: 0 !important;
+      flex: 0 0 0 !important;
+    }
+
+    .mdc-notched-outline__notch {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+  }
+
+  .mat-mdc-text-field-wrapper {
+    position: relative;
+    height: $field-height;
+    border: 1px solid var(--n-30);
+    border-radius: $field-radius;
+    background: var(--n-00);
+    box-shadow: 0 1px 1px color-mix(in srgb, var(--n-90) 4%, transparent);
+    // Material outlined fields inject ~16px side padding; this app uses 10px only.
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    // NOT overflow:hidden — the label (nested inside, via the notch — see
+    // above) sits almost entirely ABOVE this wrapper's own box by design
+    // (that's the whole point of the translateY transform). Hidden overflow
+    // here clipped it to nothing. Nothing in this field's own content needs
+    // clipping to the rounded corners; border-radius alone draws those.
+    overflow: visible;
+    transition:
+      border-color 120ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    display: none;
+  }
+
+  .mat-mdc-form-field-flex {
+    height: $field-height;
+    align-items: center;
+    /* Inputs: padding 0 10px. */
+    padding: 0 $field-padding-x !important;
+    gap: 6px;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: $field-height !important;
+    height: $field-height;
+    padding: 0 !important;
+    border: 0 !important;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .mat-mdc-input-element,
+  .mat-mdc-form-field-input-control {
+    padding: 0 !important;
+  }
+
+  .mat-mdc-form-field-type-mat-native-select .mat-mdc-form-field-input-control {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /*
+   * Label stack: above the control, 5px gap, flush to the control’s left
+   * edge (not Material’s notch indent / left: 4px).
+   */
+  .mdc-floating-label,
+  .mat-mdc-floating-label,
+  .mdc-floating-label--float-above,
+  .mat-mdc-form-field-label {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    max-width: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: translateY(calc(-100% - #{$field-label-gap})) scale(1) !important;
+    transform-origin: left top !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1 !important;
+    color: var(--n-60) !important;
+    pointer-events: none;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap;
+  }
+
+  .mdc-text-field--outlined .mdc-floating-label,
+  .mdc-text-field--outlined .mat-mdc-floating-label {
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  .mat-mdc-form-field-required-marker {
+    color: var(--danger) !important;
+  }
+
+  .mat-mdc-input-element,
+  .mat-mdc-select-value,
+  .mat-mdc-select-value-text {
+    font-size: 13px !important;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--n-90) !important;
+    letter-spacing: 0;
+  }
+
+  .mat-mdc-select-placeholder,
+  .mat-mdc-input-element::placeholder {
+    color: var(--n-45) !important;
+    -webkit-text-fill-color: var(--n-45);
+    opacity: 1;
+  }
+
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-icon-suffix,
+  .mat-mdc-form-field-text-prefix,
+  .mat-mdc-form-field-text-suffix {
+    color: var(--n-60);
+    padding: 0 !important;
+    align-self: center;
+  }
+
+  .mat-datepicker-toggle {
+    .mat-mdc-icon-button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      --mdc-icon-button-state-layer-size: 28px;
+    }
+  }
+
+  .mat-mdc-select-arrow-wrapper {
+    height: auto !important;
+    transform: none !important;
+  }
+
+  .mat-mdc-select-arrow {
+    color: var(--n-45);
+  }
+
+  &.mat-focused {
+    .mat-mdc-text-field-wrapper {
+      border-color: var(--accent);
+      box-shadow: var(--ring);
+    }
+
+    .mdc-floating-label,
+    .mat-mdc-floating-label,
+    .mdc-floating-label--float-above {
+      color: var(--n-60) !important;
+    }
+  }
+
+  &.mat-form-field-invalid {
+    .mat-mdc-text-field-wrapper {
+      border-color: color-mix(in srgb, var(--danger) 72%, var(--n-30));
+    }
+
+    &.mat-focused .mat-mdc-text-field-wrapper {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent);
+    }
+
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      color: var(--n-60) !important;
+    }
+
+    .mat-mdc-form-field-error {
+      color: var(--danger);
+      font-size: 11.5px;
+      letter-spacing: 0;
+    }
+  }
+
+  &.mat-form-field-disabled {
+    .mat-mdc-text-field-wrapper {
+      background: var(--n-10);
+      border-color: var(--n-20);
+      box-shadow: none;
+    }
+
+    .mat-mdc-input-element,
+    .mat-mdc-select-value {
+      color: var(--n-45) !important;
+      -webkit-text-fill-color: var(--n-45);
+    }
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    margin-top: $field-label-gap;
+    padding: 0;
+    font-size: 11.5px;
+    letter-spacing: 0;
+    line-height: 1.35;
+    color: var(--n-60);
+    box-sizing: border-box;
+  }
+
+  .mat-mdc-form-field-hint {
+    color: var(--n-60);
+    font-size: 11.5px;
+  }
+
+  .mdc-line-ripple {
+    display: none !important;
+  }
+}
+
+.mat-mdc-form-field:has(textarea) {
+  .mat-mdc-text-field-wrapper,
+  .mat-mdc-form-field-flex,
+  .mat-mdc-form-field-infix {
+    height: auto;
+    min-height: 88px;
+  }
+
+  .mat-mdc-form-field-infix {
+    align-items: stretch;
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+  }
+
+  textarea.mat-mdc-input-element {
+    resize: vertical;
+    line-height: 1.55;
+  }
+}
+
 html {
   .hide-hint {
     .mat-mdc-form-field-subscript-wrapper {
@@ -17,16 +285,39 @@ html {
     }
   }
 
-  .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
-    top: calc(var(--mat-form-field-container-height) / 2.15);
-  }
+  app-search-filter-bar {
+    align-items: flex-end;
 
-  .demo-inline-calendar-card {
-    width: 300px;
+    .mat-mdc-form-field {
+      margin-bottom: 0;
+    }
   }
+}
 
-  .mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field
-    .mdc-notched-outline__notch {
-    border-right: 0;
-  }
+/* Fieldset wrapper for radio / checkbox / flag groups (reset browser chrome). */
+.field-group-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+/* Group labels for radios / toggles / editors / uploads (not mat-form-field).
+ * Must match mat-form-field labels above: 12px / 600 / --n-60 / 0.03em tracking. */
+.field-group-label {
+  display: block;
+  margin: 0 0 #{$field-label-gap};
+  padding: 0;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1 !important;
+  color: var(--n-60) !important;
+}
+
+legend.field-group-label {
+  float: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }

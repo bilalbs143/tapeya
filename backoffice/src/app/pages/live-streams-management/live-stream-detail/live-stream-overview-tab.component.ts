@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
@@ -23,7 +23,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-live-stream-overview-tab',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, TablerIconsModule],
+  imports: [CommonModule, RouterLink, MatDividerModule, TablerIconsModule],
   templateUrl: './live-stream-overview-tab.component.html',
 })
 export class LiveStreamOverviewTabComponent {

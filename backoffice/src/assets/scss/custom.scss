@@ -1,90 +1,37 @@
-// Breadcrumb (overrides from layouts/_breacrumb.scss)
-.breadcrumb {
-  align-items: baseline;
-  flex-wrap: wrap;
-}
-
-.breadcrumb-item {
-  font-size: 14px;
-  line-height: 1.5;
-
-  &.active {
-    font-size: 14px;
-  }
-
-  a {
-    font-size: 14px;
-  }
-}
-
-.page-title {
-  transform: scaleY(2);
-  opacity: 0.2;
-  letter-spacing: 10px;
-}
-
 .mat-mdc-dialog-actions {
   padding: 8px 24px !important;
 }
 
-.mat-mdc-card > .mat-mdc-card-content {
-  padding: 10px !important;
+@media (max-width: 767px) {
+  .mat-mdc-dialog-actions {
+    padding: 8px 16px !important;
+  }
+
+  .sticky-header-table-container,
+  app-table-skeleton {
+    height: min(var(--table-viewport), 70dvh);
+  }
 }
 
-// Dialog cards: keep comfortable padding (matches theme cards); the rule above is for compact list pages.
-.mat-mdc-dialog-container .mat-mdc-card > .mat-mdc-card-content {
-  padding: 24px !important;
+.sticky-header-table-container,
+app-table-skeleton {
+  height: var(--table-viewport);
 }
 
-.pageWrapper {
-  padding-top: 10px;
-}
-
-.sidebar-list.mdc-list {
-  padding: 0 15px;
-}
-
-// Table cell padding lives in override-component/_table.scss (Material's table-density home),
-// not here — see that file for the single source of truth.
-
-// Table card: relative so paginator’s no-data message can be centered in the card
-.table-header-theme > .mat-mdc-card-content {
-  position: relative;
-}
-
-// Sticky header + full available height (same approach as angular agents table)
-// Scroll container uses viewport height; header stays sticky via *matHeaderRowDef="...; sticky: true"
 .sticky-header-table-container {
-  height: 69vh;
   overflow: auto;
   width: 100%;
 
   .mat-mdc-header-row {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
   }
 }
 
-// Hide element visually (paginator when no data); use !important to override Material
-.visually-hidden {
-  display: none !important;
-}
-
-// No records message (generic, used by app-paginator when length is 0)
-.table-not-found-msg {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  margin: 0;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface-variant, #666);
+.pageWrapper > * > .cardWithShadow:has(.sticky-header-table-container),
+.pageWrapper > * > .cardWithShadow:has(app-table-skeleton) {
+  margin-bottom: 0;
 }
 
 // Snackbar: show multiple validation errors on separate lines
@@ -107,33 +54,9 @@
   color: var(--mat-sys-on-background, #000);
   min-height: 200px;
 }
-.branding {
-  padding-bottom: 0 !important;
 
-  // The 0 bottom-padding above is correct for the vertical sidebar (logo sits
-  // directly above the menu list, no gap wanted) but wrong for the horizontal
-  // topbar, where .branding is just one centered flex item — the top-heavy
-  // padding it inherits fights the toolbar's own align-items: center and
-  // pushes the logo down instead of centering it. Toolbar centering already
-  // does the job there, so branding needs no vertical padding of its own.
-  .horizontal-topbar & {
-    padding-top: 0;
-    padding-bottom: 0 !important;
+.auth-branding {
+  .branding-logo {
+    width: 160px;
   }
-
-  img {
-    // Fixed width, not a %-of-parent — the parent's own width is
-    // context-dependent (mobile drawer flex row, horizontal topbar
-    // flex row, desktop sidenav) and a percentage here has repeatedly
-    // let the logo balloon to whatever the parent happened to resolve
-    // to (seen in both the mobile sidebar drawer and the horizontal
-    // topbar) instead of staying a consistent, sane size everywhere.
-    width: 140px;
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
-  }
-}
-.auth-branding img {
-  width: 10%;
 }

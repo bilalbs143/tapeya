@@ -1,22 +1,73 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 
+/*
+ * Checkbox:
+ *   16×16 · radius 4 · 1px border (--n-30 / --mat-sys-outline)
+ *   checked fill --accent · white check · label gap ~9px
+ *
+ * Density already shrinks the state layer to 32px at -2; the design wants
+ * the control itself to read as 16×16 next to the label, so pin state-layer
+ * to 16 and size the MDC background + checkmark SVG to match.
+ */
 @include mat.checkbox-overrides(
   (
-    unselected-focus-icon-color: var(--mat-checkbox-unselected-hover-state-layer-color),
+    state-layer-size: 16px,
+    touch-target-display: none,
+    unselected-icon-color: var(--mat-sys-outline),
+    unselected-hover-icon-color: var(--n-60),
+    unselected-focus-icon-color: var(--n-60),
+    unselected-focus-state-layer-color: var(--n-20),
+    unselected-hover-state-layer-color: var(--n-20),
+    selected-icon-color: var(--accent),
+    selected-hover-icon-color: var(--accent-hover),
+    selected-focus-icon-color: var(--accent),
+    selected-checkmark-color: var(--accent-on),
+    label-text-size: 13px,
+    label-text-color: var(--n-80),
   )
 );
 
-//   styles
 html {
+  .mdc-checkbox {
+    flex: none;
+    width: 16px !important;
+    height: 16px !important;
+    padding: 0 !important;
+  }
+
   .mdc-checkbox__background {
+    top: 0 !important;
+    left: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
     border-radius: 4px;
-    width: 21px;
-    height: 21px;
-    border: 1px solid var(--mat-sys-outline);
+    border-width: 1px;
+  }
+
+  .mdc-checkbox__checkmark {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .mdc-checkbox__checkmark-path {
+    stroke-width: 2.4px;
+  }
+
+  .mdc-checkbox__mixedmark {
+    width: 8px;
+    height: 2px;
+    border-radius: 1px;
   }
 
   .mdc-checkbox .mdc-checkbox__native-control:focus ~ .mdc-checkbox__ripple {
     background-color: var(--mat-checkbox-unselected-hover-state-layer-color);
+  }
+
+  .mat-mdc-checkbox .mat-internal-form-field {
+    gap: 9px;
+  }
+
+  .mat-mdc-checkbox .mdc-form-field > label {
+    padding-left: 0;
   }
 }

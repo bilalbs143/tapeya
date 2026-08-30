@@ -2,16 +2,16 @@
   <form
     [formGroup]="form"
     (ngSubmit)="save()"
-    aria-label="Edit tournament team group"
+    aria-label="Edit Tournament Team Group"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Group</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Group</mat-label>
             <mat-select
               formControlName="group_index"
               placeholder="Select Group"
@@ -25,14 +25,14 @@
       </div>
     </mat-dialog-content>
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

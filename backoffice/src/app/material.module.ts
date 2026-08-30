@@ -4,7 +4,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
@@ -29,12 +28,10 @@ import { MatSliderModule } from '@angular/material/slider';
 // Material Navigation
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
-import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatTreeModule } from '@angular/material/tree';
 
 @NgModule({
   declarations: [],
@@ -57,11 +54,8 @@ import { MatTreeModule } from '@angular/material/tree';
     MatExpansionModule,
     MatGridListModule,
     MatListModule,
-    MatStepperModule,
     MatTabsModule,
-    MatTreeModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatBadgeModule,
     MatChipsModule,
     MatIconModule,

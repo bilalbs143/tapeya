@@ -16,11 +16,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Title</mat-label>
             <input
               matInput
               formControlName="title"
@@ -34,11 +34,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Description <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Description</mat-label>
             <textarea
               matInput
               formControlName="description"
@@ -54,25 +54,25 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       @if (data.caption) {
-        <button
+        <app-ui-button
+          variant="secondary"
           type="button"
-          mat-stroked-button
           class="border border-error! text-error"
           [disabled]="saving"
           (click)="deleteCaption()"
         >
           Delete
-        </button>
+        </app-ui-button>
       }
 
       <app-submit-button

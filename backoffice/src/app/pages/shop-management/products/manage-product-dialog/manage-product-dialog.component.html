@@ -7,11 +7,11 @@
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Name</mat-label>
             <input
               matInput
               formControlName="name"
@@ -23,11 +23,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Slug</mat-label>
             <input
               matInput
               formControlName="slug"
@@ -40,11 +40,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Price <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Price</mat-label>
             <input
               matInput
               type="number"
@@ -58,11 +58,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Vendor <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Vendor</mat-label>
             <mat-select
               formControlName="vendor_id"
               placeholder="Select Vendor"
@@ -77,11 +77,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Brand <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Brand</mat-label>
             <mat-select
               formControlName="brand_id"
               placeholder="Select Brand"
@@ -96,11 +96,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Category <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Category</mat-label>
             <mat-select
               formControlName="category_id"
               placeholder="Select Category"
@@ -115,11 +115,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Stock Quantity <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Stock Quantity</mat-label>
             <input
               matInput
               type="number"
@@ -132,11 +132,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Low Stock Threshold <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Low Stock Threshold</mat-label>
             <input
               matInput
               type="number"
@@ -149,54 +149,58 @@
           </mat-form-field>
         </div>
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold w-full block mb-2">Flags</mat-label>
-          <div class="flex flex-wrap justify-between gap-4 w-full">
-            <mat-slide-toggle
-              formControlName="is_active"
-              color="primary"
-              >Active</mat-slide-toggle
-            >
-            <mat-slide-toggle
-              formControlName="is_featured"
-              color="primary"
-              >Featured</mat-slide-toggle
-            >
-            <mat-slide-toggle
-              formControlName="is_popular"
-              color="primary"
-              >Popular</mat-slide-toggle
-            >
-            <mat-slide-toggle
-              formControlName="is_special_offer"
-              color="primary"
-              >Special Offer</mat-slide-toggle
-            >
-          </div>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Flags</legend>
+            <div class="flex flex-wrap justify-between gap-4 w-full">
+              <mat-slide-toggle
+                formControlName="is_active"
+                color="primary"
+                >Active</mat-slide-toggle
+              >
+              <mat-slide-toggle
+                formControlName="is_featured"
+                color="primary"
+                >Featured</mat-slide-toggle
+              >
+              <mat-slide-toggle
+                formControlName="is_popular"
+                color="primary"
+                >Popular</mat-slide-toggle
+              >
+              <mat-slide-toggle
+                formControlName="is_special_offer"
+                color="primary"
+                >Special Offer</mat-slide-toggle
+              >
+            </div>
+          </fieldset>
         </div>
         <div class="col-span-12 my-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Description <span class="text-error">*</span></mat-label>
-          <div class="NgxEditor__Wrapper">
-            <ngx-editor-menu
-              [editor]="editor"
-              [toolbar]="toolbar"
-            ></ngx-editor-menu>
-            <ngx-editor
-              [editor]="editor"
-              formControlName="description"
-              placeholder="Type Here..."
-              class="border-t"
-            ></ngx-editor>
-          </div>
-          @if (form.get('description')?.invalid && form.get('description')?.touched) {
-            <p class="text-error text-xs my-0 mt-[5px] px-4">Description is required</p>
-          }
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Description <span class="text-error">*</span></legend>
+            <div class="NgxEditor__Wrapper">
+              <ngx-editor-menu
+                [editor]="editor"
+                [toolbar]="toolbar"
+              ></ngx-editor-menu>
+              <ngx-editor
+                [editor]="editor"
+                formControlName="description"
+                placeholder="Type Here..."
+                class="border-t"
+              ></ngx-editor>
+            </div>
+            @if (form.get('description')?.invalid && form.get('description')?.touched) {
+              <p class="text-error text-xs my-0 mt-[5px] px-4">Description is required</p>
+            }
+          </fieldset>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Discount Type</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Discount Type</mat-label>
             <mat-select
               formControlName="discount_type"
               placeholder="None"
@@ -211,16 +215,16 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Discount Value
-            @if (hasDiscountTypeSelected) {
-              <span class="text-error">*</span>
-            }
-          </mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label
+              >Discount Value
+              @if (hasDiscountTypeSelected) {
+                <span class="text-error">*</span>
+              }
+            </mat-label>
             <input
               matInput
               type="number"
@@ -235,17 +239,17 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Discount Start
-            @if (hasDiscountTypeSelected) {
-              <span class="text-error">*</span>
-            }
-          </mat-label>
           <div class="flex flex-wrap gap-2 items-start">
             <mat-form-field
               appearance="outline"
               class="flex-1 min-w-[120px]"
             >
+              <mat-label
+                >Discount Start
+                @if (hasDiscountTypeSelected) {
+                  <span class="text-error">*</span>
+                }
+              </mat-label>
               <input
                 matInput
                 [matDatepicker]="discountStartPicker"
@@ -269,6 +273,7 @@
               appearance="outline"
               class="w-24"
             >
+              <mat-label>Time</mat-label>
               <input
                 matInput
                 type="time"
@@ -278,17 +283,17 @@
           </div>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Discount End
-            @if (hasDiscountTypeSelected) {
-              <span class="text-error">*</span>
-            }
-          </mat-label>
           <div class="flex flex-wrap gap-2 items-start">
             <mat-form-field
               appearance="outline"
               class="flex-1 min-w-[120px]"
             >
+              <mat-label
+                >Discount End
+                @if (hasDiscountTypeSelected) {
+                  <span class="text-error">*</span>
+                }
+              </mat-label>
               <input
                 matInput
                 [matDatepicker]="discountEndPicker"
@@ -312,6 +317,7 @@
               appearance="outline"
               class="w-24"
             >
+              <mat-label>Time</mat-label>
               <input
                 matInput
                 type="time"
@@ -338,14 +344,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

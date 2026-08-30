@@ -1,19 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Editor, NgxEditorComponent, NgxEditorMenuComponent, type Toolbar } from 'ngx-editor';
 import { Observable } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { MediaService } from 'src/app/services/media.service';
@@ -25,13 +19,12 @@ import type { Product, ProductSavePayload } from 'src/app/services/shop/product.
 import { ProductService } from 'src/app/services/shop/product.service';
 import type { Vendor } from 'src/app/services/shop/vendor.service';
 import { VendorService } from 'src/app/services/shop/vendor.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import {
   FileUploadComponent,
   fileUploadRequired,
   type FileUploadValue,
 } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { NGX_EDITOR_TOOLBAR } from 'src/app/shared/constants/editor.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
@@ -46,20 +39,12 @@ export interface ManageProductDialogData {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatDatepickerModule,
+    MaterialModule,
+    CommonSharedModule,
     TablerIconsModule,
     NgxEditorComponent,
     NgxEditorMenuComponent,
     FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
   ],
   templateUrl: './manage-product-dialog.component.html',
 })

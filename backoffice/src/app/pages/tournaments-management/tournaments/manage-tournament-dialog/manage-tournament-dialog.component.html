@@ -2,16 +2,16 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Tournament form"
+    aria-label="Tournament Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Organizer <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Organizer</mat-label>
             <input
               matInput
               formControlName="organizer"
@@ -40,11 +40,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Tournament Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Tournament Name</mat-label>
             <input
               matInput
               formControlName="tournament_name"
@@ -64,11 +64,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Short Name</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Short Name</mat-label>
             <input
               matInput
               formControlName="short_name"
@@ -81,11 +81,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Tournament Type <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Tournament Type</mat-label>
             <mat-select
               formControlName="tournament_type"
               placeholder="Select Type"
@@ -105,11 +105,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Cricket Format <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Cricket Format</mat-label>
             <mat-select
               formControlName="cricket_format"
               placeholder="Select Format"
@@ -129,11 +129,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Prize</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Prize</mat-label>
             <input
               matInput
               formControlName="prize"
@@ -146,11 +146,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Start Date <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Start Date</mat-label>
             <input
               matInput
               formControlName="start_date"
@@ -174,11 +174,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">End Date <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>End Date</mat-label>
             <input
               matInput
               formControlName="end_date"
@@ -205,11 +205,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Match Timings <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Match Timings</mat-label>
             <mat-select
               formControlName="match_timings"
               placeholder="Select Timings"
@@ -226,11 +226,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Status</mat-label>
             <mat-select
               formControlName="status"
               placeholder="Status"
@@ -248,11 +248,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Number of Teams <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Number of Teams</mat-label>
             <input
               matInput
               type="number"
@@ -278,11 +278,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Country <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Country</mat-label>
             <mat-select
               formControlName="country"
               placeholder="Select Country"
@@ -304,11 +304,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">City <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>City</mat-label>
             <mat-select
               formControlName="city"
               placeholder="Select City"
@@ -330,11 +330,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Venue Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Venue Name</mat-label>
             <input
               matInput
               formControlName="venue_name"
@@ -353,23 +353,25 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Group mode <span class="text-error">*</span></mat-label>
-          <mat-radio-group
-            formControlName="group_mode"
-            class="flex flex-wrap gap-4"
-          >
-            @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
-              <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
-            }
-          </mat-radio-group>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Group Mode <span class="text-error">*</span></legend>
+            <mat-radio-group
+              formControlName="group_mode"
+              class="flex flex-wrap gap-4"
+            >
+              @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
+                <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </fieldset>
         </div>
         @if (isGroupWise) {
           <div class="col-span-12 lg:col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Number of groups <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Number of Groups</mat-label>
               <input
                 matInput
                 type="number"
@@ -419,14 +421,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="isSubmitting"
         [isSubmitting]="isSubmitting"

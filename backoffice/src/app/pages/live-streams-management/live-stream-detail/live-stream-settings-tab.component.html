@@ -1,19 +1,17 @@
 @if (stream) {
-  <mat-card class="cardWithShadow mb-0!">
-    <mat-card-content class="p-4 sm:p-6">
-      <div class="mb-4">
-        <h2 class="text-base font-semibold m-0">Live Monitor</h2>
-        <p class="text-muted m-0 mt-1 text-xs">
-          Watch the broadcast here. To edit title, RTMP credentials, or thumbnail, use Manage in the header or from the list.
-        </p>
-      </div>
+  <section class="px-5 py-5">
+    <header class="mb-3.5">
+      <h2 class="m-0 text-[15px] font-semibold leading-snug">Live Monitor</h2>
+      <p class="m-0 mt-1 text-xs text-muted">
+        Watch the broadcast here. To edit title, RTMP credentials, or thumbnail, use Manage in the header or from the list.
+      </p>
+    </header>
 
-      <app-live-stream-monitor-player
-        [status]="stream.status"
-        [playback]="payload?.playback"
-        [streamingUrl]="stream.streaming_url"
-        [thumbnailUrl]="payload?.thumbnail_url"
-      />
-    </mat-card-content>
-  </mat-card>
+    <app-live-stream-monitor-player
+      [status]="stream.status"
+      [playback]="payload?.playback"
+      [streamingUrl]="stream.streaming_url"
+      [thumbnailUrl]="payload?.thumbnail_url"
+    />
+  </section>
 }

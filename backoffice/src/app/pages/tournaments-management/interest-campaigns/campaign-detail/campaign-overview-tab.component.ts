@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable, catchError, forkJoin, map, of, Subscription } from 'rxjs';
@@ -9,7 +9,7 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { DEFAULT_INTEREST_FORM_FIELDS } from 'src/app/shared/constants/interest-form-field.constants';
 
@@ -25,7 +25,7 @@ interface SubmissionStats {
 @Component({
   selector: 'app-campaign-overview-tab',
   standalone: true,
-  imports: [CommonModule, MatCardModule, TablerIconsModule, RouterLink, LoaderBlockComponent],
+  imports: [CommonModule, MatDividerModule, TablerIconsModule, RouterLink, CommonSharedModule],
   templateUrl: './campaign-overview-tab.component.html',
 })
 export class CampaignOverviewTabComponent implements OnInit, OnDestroy {

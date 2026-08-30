@@ -1,0 +1,77 @@
+/*
+ * Switch:
+ *   track 34×20 · pill · OFF --switch-off (#D5D9D9) · ON --accent
+ *   knob 16×16 white, 2px inset both sides, shadow 0 1px 2px rgba(23,26,23,.25)
+ *   no M3 on/off glyph · no grow-on-press
+ *
+ * Material M3 defaults fight this hard:
+ *   selected knob is 24px with huge margins (sized for a 52×32 track)
+ *   unselected knob is outline-colored, not white
+ *   handle-track travel is `100% − handle-width` with no inset model
+ * So we set every size/margin token to 16px / 0, then pin the handle-track
+ * to a 2px inset so OFF lands at left:2 and ON at left:16 exactly.
+ */
+html {
+  --mat-slide-toggle-track-width: 34px;
+  --mat-slide-toggle-track-height: 20px;
+  --mat-slide-toggle-track-outline-width: 0;
+  --mat-slide-toggle-selected-track-outline-width: 0;
+  --mat-slide-toggle-disabled-unselected-track-outline-width: 0;
+
+  --mat-slide-toggle-handle-width: 16px;
+  --mat-slide-toggle-handle-height: 16px;
+  --mat-slide-toggle-unselected-handle-size: 16px;
+  --mat-slide-toggle-selected-handle-size: 16px;
+  --mat-slide-toggle-with-icon-handle-size: 16px;
+  --mat-slide-toggle-pressed-handle-size: 16px;
+
+  --mat-slide-toggle-unselected-handle-horizontal-margin: 0;
+  --mat-slide-toggle-selected-handle-horizontal-margin: 0;
+  --mat-slide-toggle-unselected-with-icon-handle-horizontal-margin: 0;
+  --mat-slide-toggle-selected-with-icon-handle-horizontal-margin: 0;
+  --mat-slide-toggle-unselected-pressed-handle-horizontal-margin: 0;
+  --mat-slide-toggle-selected-pressed-handle-horizontal-margin: 0;
+
+  --mat-slide-toggle-unselected-track-color: var(--switch-off);
+  --mat-slide-toggle-unselected-hover-track-color: var(--switch-off);
+  --mat-slide-toggle-unselected-focus-track-color: var(--switch-off);
+  --mat-slide-toggle-unselected-pressed-track-color: var(--switch-off);
+  --mat-slide-toggle-selected-track-color: var(--accent);
+  --mat-slide-toggle-selected-hover-track-color: var(--accent);
+  --mat-slide-toggle-selected-focus-track-color: var(--accent);
+  --mat-slide-toggle-selected-pressed-track-color: var(--accent-press);
+
+  /* Knob is always white — never M3 outline / primary-container. */
+  --mat-slide-toggle-unselected-handle-color: var(--n-00);
+  --mat-slide-toggle-unselected-hover-handle-color: var(--n-00);
+  --mat-slide-toggle-unselected-focus-handle-color: var(--n-00);
+  --mat-slide-toggle-unselected-pressed-handle-color: var(--n-00);
+  --mat-slide-toggle-selected-handle-color: var(--n-00);
+  --mat-slide-toggle-selected-hover-handle-color: var(--n-00);
+  --mat-slide-toggle-selected-focus-handle-color: var(--n-00);
+  --mat-slide-toggle-selected-pressed-handle-color: var(--n-00);
+  --mat-slide-toggle-disabled-unselected-handle-color: var(--n-00);
+  --mat-slide-toggle-disabled-selected-handle-color: var(--n-00);
+
+  --mat-slide-toggle-handle-elevation-shadow: 0 1px 2px rgba(23, 26, 23, 0.25);
+  --mat-slide-toggle-disabled-handle-elevation-shadow: 0 1px 2px rgba(23, 26, 23, 0.18);
+
+  --mat-slide-toggle-state-layer-size: 28px;
+  --mat-slide-toggle-touch-target-display: none;
+  --mat-slide-toggle-disabled-track-opacity: 1;
+
+  /* 2px inset both sides: travel = 34 − 16 − 4 = 14 */
+  .mdc-switch__handle-track {
+    left: 2px !important;
+    width: calc(100% - 20px) !important; // 16 knob + 4 inset
+  }
+
+  [dir='rtl'] .mdc-switch__handle-track {
+    left: auto !important;
+    right: 2px !important;
+  }
+
+  .mdc-switch--disabled {
+    opacity: 0.55;
+  }
+}

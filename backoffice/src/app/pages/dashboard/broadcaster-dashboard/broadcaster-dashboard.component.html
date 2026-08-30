@@ -1,16 +1,16 @@
 <section
-  class="grid grid-cols-12 gap-6"
+  class="grid grid-cols-12 gap-4"
   aria-labelledby="broadcaster-dashboard-title"
 >
-  <!-- Hero — same building blocks as angular-theme dashboard2 welcome-card (mat-card-content + grid gap-6) -->
+  <!-- Hero — same building blocks as angular-theme dashboard2 welcome-card -->
   <div class="col-span-12">
     <mat-card
-      class="cardWithShadow broadcaster-dashboard-hero shadow-none! mb-0! overflow-hidden"
+      class="cardWithShadow shadow-none! bg-light-primary overflow-hidden mb-0!"
       role="region"
-      aria-label="Broadcast overview"
+      aria-label="Broadcast Overview"
     >
       <mat-card-content>
-        <div class="grid grid-cols-12 gap-6 items-start lg:items-center">
+        <div class="grid grid-cols-12 gap-4 items-start lg:items-center">
           <div class="col-span-12 lg:col-span-8">
             <p class="m-0 mb-2 text-xs font-semibold tracking-wide text-primary">Broadcast Operations</p>
             <mat-card-title
@@ -24,25 +24,23 @@
               squads, scheduling, and the match controller.
             </mat-card-subtitle>
             <div class="mt-6 flex flex-wrap gap-2">
-              <a
-                mat-flat-button
-                color="primary"
+              <app-ui-button
+                variant="primary"
                 routerLink="/tournaments-management/tournaments"
               >
                 All Tournaments
-              </a>
-              <a
-                mat-stroked-button
-                color="primary"
+              </app-ui-button>
+              <app-ui-button
+                variant="secondary"
                 routerLink="/players-management/players"
               >
                 Player Management
-              </a>
+              </app-ui-button>
             </div>
           </div>
           <div class="col-span-12 flex justify-center lg:col-span-4 lg:justify-end">
             <div
-              class="flex size-16 shrink-0 items-center justify-center rounded-md border border-border bg-light-primary text-primary lg:size-[4.25rem]"
+              class="flex size-16 shrink-0 items-center justify-center rounded-md border border-border bg-white/60 text-primary shadow-sm"
               aria-hidden="true"
             >
               <i-tabler
@@ -58,15 +56,15 @@
 
   <!-- KPI strip — angular-theme style: mat-card-content only (see dashboard1 customers / top-cards) -->
   <div class="col-span-12">
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-12 gap-4">
       <div
         class="col-span-12 sm:col-span-6 xl:col-span-3"
         role="region"
-        aria-label="Upcoming tournaments count"
+        aria-label="Upcoming Tournaments Count"
       >
         <mat-card class="cardWithShadow mb-0! h-full">
           <mat-card-content>
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start justify-between gap-3">
               <div class="flex min-w-0 flex-col">
                 @if (loadingPhaseCounts()) {
                   <app-loader label="Loading upcoming count" />
@@ -77,7 +75,7 @@
                 <span class="mt-1 block text-xs leading-snug text-muted">Starts After Today</span>
               </div>
               <span
-                class="bg-light-primary text-primary flex size-10! shrink-0 items-center justify-center rounded-sm"
+                class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -92,11 +90,11 @@
       <div
         class="col-span-12 sm:col-span-6 xl:col-span-3"
         role="region"
-        aria-label="Live window tournament count"
+        aria-label="Live Window Tournament Count"
       >
         <mat-card class="cardWithShadow mb-0! h-full">
           <mat-card-content>
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start justify-between gap-3">
               <div class="flex min-w-0 flex-col">
                 @if (loadingPhaseCounts()) {
                   <app-loader label="Loading live window count" />
@@ -107,7 +105,7 @@
                 <span class="mt-1 block text-xs leading-snug text-muted">In Season Today</span>
               </div>
               <span
-                class="bg-light-secondary text-secondary flex size-10! shrink-0 items-center justify-center rounded-sm"
+                class="bg-light-secondary text-secondary flex size-9! shrink-0 items-center justify-center rounded-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -122,11 +120,11 @@
       <div
         class="col-span-12 sm:col-span-6 xl:col-span-3"
         role="region"
-        aria-label="Completed tournaments count"
+        aria-label="Completed Tournaments Count"
       >
         <mat-card class="cardWithShadow mb-0! h-full">
           <mat-card-content>
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start justify-between gap-3">
               <div class="flex min-w-0 flex-col">
                 @if (loadingPhaseCounts()) {
                   <app-loader label="Loading completed count" />
@@ -137,7 +135,7 @@
                 <span class="mt-1 block text-xs leading-snug text-muted">Ended Before Today</span>
               </div>
               <span
-                class="bg-light-success text-success flex size-10! shrink-0 items-center justify-center rounded-sm"
+                class="bg-light-success text-success flex size-9! shrink-0 items-center justify-center rounded-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -152,11 +150,11 @@
       <div
         class="col-span-12 sm:col-span-6 xl:col-span-3"
         role="region"
-        aria-label="Match count sample"
+        aria-label="Match Count Sample"
       >
         <mat-card class="cardWithShadow mb-0! h-full">
           <mat-card-content>
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start justify-between gap-3">
               <div class="flex min-w-0 flex-col">
                 @if (loadingMatchMix()) {
                   <app-loader label="Loading match count" />
@@ -169,7 +167,7 @@
                 >
               </div>
               <span
-                class="bg-light-warning text-warning flex size-10! shrink-0 items-center justify-center rounded-sm"
+                class="bg-light-warning text-warning flex size-9! shrink-0 items-center justify-center rounded-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -288,7 +286,7 @@
           <div
             class="flex min-h-[240px] min-w-0 flex-1 flex-col"
             role="img"
-            aria-label="Donut chart of match counts by status"
+            aria-label="Donut Chart of Match Counts by Status"
           >
             <apx-chart
               [series]="matchDonutSeries()"
@@ -316,7 +314,7 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div class="flex min-w-0 items-start gap-4">
             <span
-              class="bg-light-primary text-primary flex size-10! shrink-0 items-center justify-center rounded-sm"
+              class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
               aria-hidden="true"
             >
               <i-tabler
@@ -337,20 +335,18 @@
             </div>
           </div>
           <div class="flex shrink-0 flex-wrap gap-2 md:justify-end">
-            <a
-              mat-stroked-button
-              color="primary"
+            <app-ui-button
+              variant="secondary"
               routerLink="/tournaments-management/teams"
             >
               Teams
-            </a>
-            <a
-              mat-flat-button
-              color="primary"
+            </app-ui-button>
+            <app-ui-button
+              variant="primary"
               routerLink="/tournaments-management/tournaments"
             >
               Browse Tournaments
-            </a>
+            </app-ui-button>
           </div>
         </div>
       </mat-card-content>
@@ -391,7 +387,7 @@
         } @else {
           <ul
             class="m-0 mt-6 max-h-[min(24rem,50vh)] flex-1 list-none divide-y divide-border overflow-y-auto p-0"
-            aria-label="Tournaments in live window"
+            aria-label="Tournaments in Live Window"
           >
             @for (t of liveTournaments(); track t.id) {
               <li class="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -413,14 +409,13 @@
                     }
                   </p>
                 </div>
-                <a
-                  mat-stroked-button
-                  color="primary"
+                <app-ui-button
+                  variant="secondary"
                   class="shrink-0"
                   [routerLink]="['/tournaments-management/tournaments', t.id, 'matches']"
                 >
                   Matches
-                </a>
+                </app-ui-button>
               </li>
             }
           </ul>
@@ -462,7 +457,7 @@
         } @else {
           <ul
             class="m-0 mt-6 max-h-[min(24rem,50vh)] flex-1 list-none divide-y divide-border overflow-y-auto p-0"
-            aria-label="Upcoming tournaments"
+            aria-label="Upcoming Tournaments"
           >
             @for (t of upcomingTournaments(); track t.id) {
               <li class="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -484,14 +479,13 @@
                     }
                   </p>
                 </div>
-                <a
-                  mat-stroked-button
-                  color="primary"
+                <app-ui-button
+                  variant="secondary"
                   class="shrink-0"
                   [routerLink]="['/tournaments-management/tournaments', t.id, 'matches']"
                 >
                   Matches
-                </a>
+                </app-ui-button>
               </li>
             }
           </ul>

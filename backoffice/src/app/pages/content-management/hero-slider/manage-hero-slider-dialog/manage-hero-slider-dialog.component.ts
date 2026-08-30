@@ -3,24 +3,17 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import type { HeroSlider, HeroSliderCtaType } from 'src/app/services/hero-slider.service';
 import { HeroSliderService } from 'src/app/services/hero-slider.service';
 import { MediaService } from 'src/app/services/media.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
 export interface ManageHeroSliderDialogData {
@@ -81,21 +74,7 @@ function ctaTypeValidator(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-manage-hero-slider-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    MatSelectModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-hero-slider-dialog.component.html',
 })
 export class ManageHeroSliderDialogComponent {

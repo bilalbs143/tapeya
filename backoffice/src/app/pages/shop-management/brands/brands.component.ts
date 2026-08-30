@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -22,6 +21,11 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageBrandDialogComponent } from './manage-brand-dialog/manage-brand-dialog.component';
@@ -40,7 +44,6 @@ const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     TableImageComponent,
@@ -66,7 +69,6 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   public statusOptions$: Observable<EnumOption[]> = this.enumsService
     .getOptions('status')
     .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
@@ -81,12 +83,7 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -101,18 +98,11 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {

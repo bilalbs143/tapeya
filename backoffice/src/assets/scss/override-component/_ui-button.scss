@@ -1,0 +1,140 @@
+/* <app-ui-button> — global so styles exist at boot (no encapsulated FOUC /
+ * UA black-border flash on route change). */
+
+app-ui-button {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin: 0;
+  /* Full border shorthand resets UA button chrome (avoids black flash). */
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 0;
+  font-size: var(--fs-body);
+  line-height: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0 var(--sp-5);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
+  outline: none;
+  color: var(--n-80);
+  background: transparent;
+  /* Only background — border/color transitions animate from UA black → themed. */
+  transition: background-color var(--d-fast) var(--ease-out);
+}
+
+.ui-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ui-btn--sm {
+  height: var(--h-sm);
+  padding: 0 var(--sp-4);
+  font-size: var(--fs-meta);
+  border-radius: 7px;
+}
+
+.ui-btn--md {
+  height: var(--h-md);
+}
+
+/* Primary — solid accent */
+.ui-btn--primary {
+  border-color: var(--accent-hover);
+  background: var(--accent);
+  color: var(--accent-on);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.ui-btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-press);
+}
+
+.ui-btn--primary:active:not(:disabled) {
+  background: var(--accent-press);
+}
+
+/* Secondary — surface + neutral border */
+.ui-btn--secondary {
+  border-color: var(--n-30);
+  background: var(--n-00);
+  color: var(--n-80);
+  box-shadow: 0 1px 1.5px color-mix(in srgb, var(--n-90) 4%, transparent);
+}
+
+.ui-btn--secondary:hover:not(:disabled) {
+  background: var(--n-05);
+  border-color: color-mix(in srgb, var(--n-30) 70%, var(--n-45));
+}
+
+/* Ghost — transparent */
+.ui-btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--n-80);
+  box-shadow: none;
+}
+
+.ui-btn--ghost:hover:not(:disabled) {
+  background: var(--n-10);
+}
+
+/* Danger quiet — outlined */
+.ui-btn--danger {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--n-20));
+  background: var(--n-00);
+  color: var(--danger);
+  box-shadow: none;
+}
+
+.ui-btn--danger:hover:not(:disabled) {
+  background: var(--danger-tint);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--n-20));
+}
+
+/* Danger solid — confirmation dialogs only */
+.ui-btn--danger-solid {
+  border-color: color-mix(in srgb, var(--danger) 85%, #000);
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+.ui-btn--danger-solid:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 88%, #000);
+}
+
+.ui-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.ui-btn__spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: ui-btn-spin 640ms linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ui-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

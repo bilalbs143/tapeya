@@ -20,17 +20,17 @@
           <div
             class="col-span-12 flex items-center gap-3 py-1"
             role="status"
-            aria-label="Loading stream"
+            aria-label="Loading Stream"
           >
             <app-loader [label]="null" />
           </div>
         } @else {
           <div class="col-span-12">
-            <mat-label class="mb-2 block text-sm font-semibold">Provider</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Provider</mat-label>
               <input
                 matInput
                 readonly
@@ -40,11 +40,11 @@
           </div>
 
           <div class="col-span-12">
-            <mat-label class="mb-2 block text-sm font-semibold">Title <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Title</mat-label>
               <input
                 matInput
                 formControlName="title"
@@ -58,11 +58,11 @@
           </div>
 
           <div class="col-span-12">
-            <mat-label class="mb-2 block text-sm font-semibold">Description</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Description</mat-label>
               <textarea
                 matInput
                 rows="3"
@@ -86,14 +86,11 @@
 
           @if (isExternal) {
             <div class="col-span-12">
-              <mat-label class="mb-2 block text-sm font-semibold">
-                Streaming URL
-                <span class="text-error">*</span>
-              </mat-label>
               <mat-form-field
                 appearance="outline"
                 class="w-full"
               >
+                <mat-label>Streaming URL <span class="text-error">*</span></mat-label>
                 <input
                   matInput
                   formControlName="streaming_url"
@@ -109,16 +106,16 @@
 
           @if (isYoutube && stream?.provider_playback_id) {
             <div class="col-span-12">
-              <mat-label class="mb-2 block text-sm font-semibold">Broadcast ID</mat-label>
               <mat-form-field
                 appearance="outline"
                 class="w-full"
               >
+                <mat-label>Broadcast ID</mat-label>
                 <input
                   matInput
                   readonly
                   [value]="stream!.provider_playback_id"
-                  class="font-mono text-xs"
+                  class="text-xs"
                 />
               </mat-form-field>
             </div>
@@ -127,16 +124,16 @@
           @if (isYoutube) {
             @for (row of copyFields; track row.field) {
               <div class="col-span-12">
-                <mat-label class="mb-2 block text-sm font-semibold">{{ row.label }}</mat-label>
                 <mat-form-field
                   appearance="outline"
                   class="w-full"
                 >
+                  <mat-label>{{ row.label }}</mat-label>
                   <input
                     matInput
                     readonly
                     [value]="row.value"
-                    class="font-mono text-xs"
+                    class="text-xs"
                   />
                   <button
                     mat-icon-button
@@ -157,14 +154,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="mutated"
+        variant="secondary"
       >
         Close
-      </button>
+      </app-ui-button>
 
       @if (!loading) {
         <app-submit-button
@@ -223,8 +220,8 @@
         }
 
         @if (status !== 'live' && status !== 'starting') {
-          <button
-            mat-stroked-button
+          <app-ui-button
+            variant="secondary"
             class="border border-error! text-error"
             type="button"
             [disabled]="!!activeAction"
@@ -238,7 +235,7 @@
             } @else {
               Delete Stream
             }
-          </button>
+          </app-ui-button>
         }
       }
     </mat-dialog-actions>

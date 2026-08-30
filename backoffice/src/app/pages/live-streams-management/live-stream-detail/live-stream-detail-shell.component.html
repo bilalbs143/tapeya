@@ -4,113 +4,114 @@
     class="py-16"
   />
 } @else if (stream) {
-  <div class="flex flex-col">
-    <mat-card class="cardWithShadow mb-3!">
-      <mat-card-content class="p-4 pb-0 sm:p-6 sm:pb-0">
-        <app-page-header
-          [showTitle]="false"
-          [showFiltersToggle]="false"
-        />
-      </mat-card-content>
-      <mat-card-content class="p-4 pt-2 sm:p-6 sm:pt-2">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="min-w-0 flex-1">
-            <p class="text-muted m-0 mb-1 text-xs font-medium uppercase tracking-wide">Live Stream #{{ stream.id }}</p>
-            <h1 class="text-xl font-semibold m-0 truncate">{{ stream.title || 'Untitled Stream' }}</h1>
-            <p class="text-sm text-muted m-0 mt-1">
-              {{ providerLabel() }}
+  <app-detail-page>
+    <div
+      detailHeader
+      class="flex flex-col gap-3"
+    >
+      <app-page-header
+        [showTitle]="false"
+        [showFiltersToggle]="false"
+      />
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <p class="text-muted m-0 mb-1 text-xs font-medium uppercase tracking-wide">Live Stream #{{ stream.id }}</p>
+          <h1 class="text-xl font-semibold m-0 truncate">{{ stream.title || 'Untitled Stream' }}</h1>
+          <p class="text-sm text-muted m-0 mt-1">
+            {{ providerLabel() }}
+            <span class="text-muted"> · </span>
+            {{ kindLabel() }}
+            @if (stream.started_at) {
               <span class="text-muted"> · </span>
-              {{ kindLabel() }}
-              @if (stream.started_at) {
-                <span class="text-muted"> · </span>
-                Started {{ stream.started_at | date: 'medium' }}
-              }
-            </p>
-          </div>
-          <div class="flex shrink-0 flex-col items-end gap-2">
-            <div class="flex flex-wrap items-center justify-end gap-2">
-              @if (isYoutube) {
-                <app-submit-button
-                  buttonType="button"
-                  className="!m-0"
-                  color="primary"
-                  text="Sync Status"
-                  [disabled]="!!activeAction"
-                  [isSubmitting]="activeAction === 'sync'"
-                  (action)="syncStatus()"
-                />
-              }
-              @if (canEndStream()) {
-                <app-submit-button
-                  buttonType="button"
-                  className="!m-0"
-                  color="warn"
-                  text="End Stream"
-                  [disabled]="!!activeAction"
-                  [isSubmitting]="activeAction === 'end'"
-                  (action)="endStream()"
-                />
-              }
-              <button
-                mat-flat-button
+              Started {{ stream.started_at | date: 'medium' }}
+            }
+          </p>
+        </div>
+        <div class="flex shrink-0 flex-col items-end gap-2">
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            @if (isYoutube) {
+              <app-submit-button
+                buttonType="button"
+                className="!m-0"
                 color="primary"
-                type="button"
-                class="!min-w-0"
+                text="Sync Status"
                 [disabled]="!!activeAction"
-                (click)="openManageDialog()"
-              >
-                Manage
-              </button>
-            </div>
-            <div class="flex flex-wrap items-center justify-end gap-2">
-              <app-status-chip
-                [status]="stream.status"
-                [label]="statusLabel()"
+                [isSubmitting]="activeAction === 'sync'"
+                (action)="syncStatus()"
               />
-              @if (viewerCount > 0 || presenceEligible()) {
-                <span class="text-muted inline-flex items-center gap-1 text-xs tabular-nums">
-                  <i-tabler
-                    name="eye"
-                    class="size-3.5"
-                  />
-                  {{ watchingDisplay() }} watching
-                </span>
-              }
-            </div>
+            }
+            @if (canEndStream()) {
+              <app-submit-button
+                buttonType="button"
+                className="!m-0"
+                color="warn"
+                text="End Stream"
+                [disabled]="!!activeAction"
+                [isSubmitting]="activeAction === 'end'"
+                (action)="endStream()"
+              />
+            }
+            <app-ui-button
+              variant="primary"
+              type="button"
+              class="!min-w-0"
+              [disabled]="!!activeAction"
+              (click)="openManageDialog()"
+            >
+              Manage
+            </app-ui-button>
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <app-status-chip
+              [status]="stream.status"
+              [label]="statusLabel()"
+            />
+            @if (viewerCount > 0 || presenceEligible()) {
+              <span class="text-muted inline-flex items-center gap-1 text-xs tabular-nums">
+                <i-tabler
+                  name="eye"
+                  class="size-3.5"
+                />
+                {{ watchingDisplay() }} watching
+              </span>
+            }
           </div>
         </div>
+      </div>
+    </div>
 
-        <nav
-          mat-tab-nav-bar
-          [tabPanel]="tabPanel"
-          mat-stretch-tabs="false"
-          mat-align-tabs="start"
-          class="mt-4 border-t border-border pt-1"
-        >
-          <a
-            mat-tab-link
-            routerLink="overview"
-            routerLinkActive
-            #rlaO="routerLinkActive"
-            [active]="rlaO.isActive"
-          >
-            Overview
-          </a>
-          <a
-            mat-tab-link
-            routerLink="settings"
-            routerLinkActive
-            #rlaS="routerLinkActive"
-            [active]="rlaS.isActive"
-          >
-            Settings
-          </a>
-        </nav>
-      </mat-card-content>
-    </mat-card>
+    <nav
+      detailTabs
+      mat-tab-nav-bar
+      [tabPanel]="tabPanel"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+    >
+      <a
+        mat-tab-link
+        routerLink="overview"
+        routerLinkActive
+        #rlaO="routerLinkActive"
+        [active]="rlaO.isActive"
+      >
+        Overview
+      </a>
+      <a
+        mat-tab-link
+        routerLink="settings"
+        routerLinkActive
+        #rlaS="routerLinkActive"
+        [active]="rlaS.isActive"
+      >
+        Settings
+      </a>
+    </nav>
 
-    <mat-tab-nav-panel #tabPanel>
+    <mat-tab-nav-panel
+      detailBody
+      #tabPanel
+    >
       <router-outlet />
     </mat-tab-nav-panel>
-  </div>
+  </app-detail-page>
 }

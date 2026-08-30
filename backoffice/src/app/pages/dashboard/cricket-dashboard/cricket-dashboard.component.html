@@ -5,7 +5,7 @@
   />
 } @else if (error()) {
   <mat-card class="cardWithShadow">
-    <mat-card-content class="p-6">
+    <mat-card-content>
       <p
         class="text-error m-0"
         role="alert"
@@ -16,7 +16,7 @@
   </mat-card>
 } @else {
   <section
-    class="grid grid-cols-12 gap-5 items-stretch"
+    class="grid grid-cols-12 gap-4 items-stretch"
     aria-labelledby="cricket-dashboard-title"
   >
     <!-- ── Hero Welcome Card ── -->
@@ -24,9 +24,9 @@
       <mat-card
         class="cardWithShadow shadow-none! bg-light-primary overflow-hidden mb-0!"
         role="region"
-        aria-label="Cricket overview"
+        aria-label="Cricket Overview"
       >
-        <mat-card-content class="py-5">
+        <mat-card-content>
           <div class="grid grid-cols-12 gap-4 items-center">
             <div class="col-span-12 md:col-span-8">
               <p class="m-0 mb-2 text-xs font-semibold tracking-wide text-primary">Cricket Operations</p>
@@ -40,33 +40,30 @@
                 Full picture of every tournament, match, team, and player on the platform. Live matches update in real-time — open
                 a tournament to schedule fixtures, manage squads, or launch the match controller.
               </mat-card-subtitle>
-              <div class="mt-5 flex flex-wrap gap-2">
-                <a
-                  mat-flat-button
-                  color="primary"
+              <div class="mt-6 flex flex-wrap gap-2">
+                <app-ui-button
+                  variant="primary"
                   routerLink="/tournaments-management/tournaments"
                 >
                   All Tournaments
-                </a>
-                <a
-                  mat-stroked-button
-                  color="primary"
+                </app-ui-button>
+                <app-ui-button
+                  variant="secondary"
                   routerLink="/tournaments-management/tournament-requests"
                 >
                   Tournament Requests
-                </a>
-                <a
-                  mat-stroked-button
-                  color="primary"
+                </app-ui-button>
+                <app-ui-button
+                  variant="secondary"
                   routerLink="/players-management/players"
                 >
                   Players
-                </a>
+                </app-ui-button>
               </div>
             </div>
             <div class="col-span-12 flex justify-center md:col-span-4 md:justify-end">
               <div
-                class="flex size-20 shrink-0 items-center justify-center rounded-md border border-border bg-white/60 text-primary shadow-sm"
+                class="flex size-16 shrink-0 items-center justify-center rounded-md border border-border bg-white/60 text-primary shadow-sm"
                 aria-hidden="true"
               >
                 <i-tabler
@@ -88,7 +85,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Total tournaments"
+            aria-label="Total Tournaments"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -116,7 +113,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Total matches"
+            aria-label="Total Matches"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -144,7 +141,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Total teams"
+            aria-label="Total Teams"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -172,7 +169,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Registered players"
+            aria-label="Registered Players"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -200,7 +197,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Pending tournament requests"
+            aria-label="Pending Tournament Requests"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -230,7 +227,7 @@
           <mat-card
             class="cardWithShadow mb-0! h-full"
             role="region"
-            aria-label="Matches in progress"
+            aria-label="Matches in Progress"
           >
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
@@ -283,7 +280,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Bar chart of tournament counts by schedule phase"
+              aria-label="Bar Chart of Tournament Counts by Schedule Phase"
             >
               <apx-chart
                 [series]="phaseSeries()"
@@ -327,7 +324,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Donut chart of match counts by status"
+              aria-label="Donut Chart of Match Counts by Status"
             >
               <apx-chart
                 [series]="matchStatusSeries()"
@@ -365,7 +362,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Horizontal bar chart of tournament counts by cricket format"
+              aria-label="Horizontal Bar Chart of Tournament Counts by Cricket Format"
             >
               <apx-chart
                 [series]="formatBarSeries()"
@@ -406,7 +403,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Horizontal bar chart of match counts by cricket format"
+              aria-label="Horizontal Bar Chart of Match Counts by Cricket Format"
             >
               <apx-chart
                 [series]="matchFormatSeries()"
@@ -501,7 +498,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Bar chart of new player registrations per month"
+              aria-label="Bar Chart of New Player Registrations Per Month"
             >
               <apx-chart
                 [series]="playerGrowthSeries()"
@@ -548,7 +545,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Donut chart of app users by active platform including untracked"
+              aria-label="Donut Chart of App Users by Active Platform Including Untracked"
             >
               <apx-chart
                 [series]="platformSeries()"
@@ -586,7 +583,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Line chart of monthly tournament requests"
+              aria-label="Line Chart of Monthly Tournament Requests"
             >
               <apx-chart
                 [series]="requestsSeries()"
@@ -643,7 +640,7 @@
           } @else {
             <div
               role="img"
-              aria-label="Donut chart of tournament request pipeline by status"
+              aria-label="Donut Chart of Tournament Request Pipeline by Status"
             >
               <apx-chart
                 [series]="pipelineSeries()"
@@ -758,14 +755,17 @@
           } @else {
             <ul
               class="m-0 flex-1 list-none divide-y divide-border overflow-y-auto p-0"
-              aria-label="Live matches"
+              aria-label="Live Matches"
             >
               @for (m of liveMatches(); track m.id) {
                 @let subtitle = liveMatchSubtitle(m);
                 <li class="py-3">
                   <div class="flex items-center justify-between gap-2 mb-1">
                     <span class="text-xs text-muted truncate">{{ m.tournament_name ?? '—' }}</span>
-                    <span class="text-xs font-semibold text-error bg-light-error rounded px-1.5 py-0.5 shrink-0">LIVE</span>
+                    <app-status-chip
+                      status="live"
+                      label="LIVE"
+                    />
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-dark truncate flex-1">{{ m.home_team ?? '—' }}</span>
@@ -805,7 +805,7 @@
           } @else {
             <ul
               class="m-0 flex-1 max-h-[min(28rem,55vh)] list-none divide-y divide-border overflow-y-auto p-0"
-              aria-label="Recent completed matches"
+              aria-label="Recent Completed Matches"
             >
               @for (m of recentMatches(); track m.id) {
                 <li class="py-3">
@@ -849,14 +849,13 @@
                 Latest 8 requests across all organizers
               </mat-card-subtitle>
             </div>
-            <a
-              mat-stroked-button
-              color="primary"
+            <app-ui-button
+              variant="secondary"
               routerLink="/tournaments-management/tournament-requests"
               class="shrink-0"
             >
               View All
-            </a>
+            </app-ui-button>
           </div>
 
           @if (recentRequests().length === 0) {
@@ -865,7 +864,7 @@
             <div class="overflow-x-auto">
               <table
                 class="w-full min-w-[520px] text-sm border-collapse"
-                aria-label="Recent tournament requests"
+                aria-label="Recent Tournament Requests"
               >
                 <thead>
                   <tr class="border-b border-border">

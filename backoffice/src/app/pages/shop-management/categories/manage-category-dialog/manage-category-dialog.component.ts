@@ -1,21 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MediaService } from 'src/app/services/media.service';
 import type { Category, SaveCategoryPayload } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
 export interface ManageCategoryDialogData {
@@ -26,20 +20,7 @@ export interface ManageCategoryDialogData {
 @Component({
   selector: 'app-manage-category-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-category-dialog.component.html',
 })
 export class ManageCategoryDialogComponent implements OnInit {

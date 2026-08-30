@@ -1,259 +1,253 @@
 @if (stream) {
-  <div class="grid grid-cols-12 gap-4 mb-4">
-    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
-      <mat-card class="cardWithShadow h-full mb-0!">
-        <mat-card-content class="p-4 sm:p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <p class="text-sm text-muted m-0 mb-1">Watching</p>
-              <p class="text-2xl font-semibold m-0 tabular-nums">{{ watchingDisplay() }}</p>
-              <p class="text-xs text-muted m-0 mt-1">Authenticated viewers on the presence channel</p>
-            </div>
-            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
-              <i-tabler
-                name="eye"
-                class="size-5"
-              />
-            </span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+  <div>
+    <section
+      class="grid grid-cols-1 lg:grid-cols-3"
+      aria-label="Stream Totals"
+    >
+      <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 lg:border-b-0 lg:border-r">
+        <div class="min-w-0 flex flex-col gap-0.5">
+          <span class="text-xs font-medium text-muted">Watching</span>
+          <span class="text-[28px] font-semibold leading-tight tracking-tight tabular-nums">{{ watchingDisplay() }}</span>
+          <span class="mt-0.5 text-[11.5px] leading-snug text-muted">Authenticated viewers on the presence channel</span>
+        </div>
+        <span
+          class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
+          aria-hidden="true"
+        >
+          <i-tabler
+            name="eye"
+            class="size-5"
+          />
+        </span>
+      </div>
 
-    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
-      <mat-card class="cardWithShadow h-full mb-0!">
-        <mat-card-content class="p-4 sm:p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <p class="text-sm text-muted m-0 mb-1">Provider</p>
-              <p class="text-2xl font-semibold m-0 text-lg leading-snug">{{ providerLabel() }}</p>
-              <p class="text-xs text-muted m-0 mt-1">{{ kindLabel() }}</p>
-            </div>
-            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
-              <i-tabler
-                name="brand-youtube"
-                class="size-5"
-              />
-            </span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 lg:border-b-0 lg:border-r">
+        <div class="min-w-0 flex flex-col gap-0.5">
+          <span class="text-xs font-medium text-muted">Provider</span>
+          <span class="text-lg font-semibold leading-snug">{{ providerLabel() }}</span>
+          <span class="mt-0.5 text-[11.5px] leading-snug text-muted">{{ kindLabel() }}</span>
+        </div>
+        <span
+          class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
+          aria-hidden="true"
+        >
+          <i-tabler
+            name="brand-youtube"
+            class="size-5"
+          />
+        </span>
+      </div>
 
-    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
-      <mat-card
-        class="cardWithShadow h-full mb-0! cursor-pointer transition-shadow hover:shadow-md"
+      <a
+        class="flex items-start justify-between gap-3 px-5 py-4 text-inherit no-underline transition-colors hover:bg-light-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2"
         routerLink="../settings"
-        role="link"
-        tabindex="0"
       >
-        <mat-card-content class="p-4 sm:p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <p class="text-sm text-muted m-0 mb-1">Live Monitor</p>
-              <p class="text-2xl font-semibold m-0 text-lg leading-snug">Watch Stream</p>
-              <p class="text-xs text-muted m-0 mt-1">Open Settings tab for embedded playback</p>
-            </div>
-            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
-              <i-tabler
-                name="live-view"
-                class="size-5"
-              />
-            </span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
+        <div class="min-w-0 flex flex-col gap-0.5">
+          <span class="text-xs font-medium text-muted">Live Monitor</span>
+          <span class="text-lg font-semibold leading-snug">Watch Stream</span>
+          <span class="mt-0.5 text-[11.5px] leading-snug text-muted">Open Settings tab for embedded playback</span>
+        </div>
+        <span
+          class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
+          aria-hidden="true"
+        >
+          <i-tabler
+            name="live-view"
+            class="size-5"
+          />
+        </span>
+      </a>
+    </section>
 
-  <div class="grid grid-cols-12 items-stretch gap-4 mb-4">
-    <div class="col-span-12 flex min-h-0 flex-col lg:col-span-6">
-      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-1 flex-col border border-border shadow-none">
-        <mat-card-content class="flex min-h-0 flex-1 flex-col gap-2 p-4 sm:p-6">
-          <div class="shrink-0">
-            <h2 class="text-base font-semibold m-0">Stream Details</h2>
-            <p class="text-muted m-0 mt-1 text-xs">Title, schedule, match link, and description for this broadcast.</p>
-          </div>
+    <mat-divider></mat-divider>
 
-          @if (payload?.owner) {
-            <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
-              <div class="flex min-w-0 items-start gap-4">
-                <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
-                  <i-tabler
-                    name="user"
-                    class="size-5"
-                  />
-                </span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-muted m-0 mb-1 text-xs font-medium">Broadcaster</p>
-                  <p class="m-0 truncate text-base font-semibold leading-snug">
-                    {{ payload!.owner!.nickname || payload!.owner!.name || emptyCell }}
-                  </p>
-                  @if (payload!.owner!.email || payload!.owner!.phone) {
-                    <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
-                      {{ payload!.owner!.email || '' }}
-                      {{ payload!.owner!.email && payload!.owner!.phone ? ' · ' : '' }}
-                      {{ payload!.owner!.phone || '' }}
-                    </p>
-                  }
-                </div>
-              </div>
-              <div class="flex min-w-0 items-start gap-4">
-                <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
-                  <i-tabler
-                    name="antenna"
-                    class="size-5"
-                  />
-                </span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-muted m-0 mb-1 text-xs font-medium">Status</p>
-                  <p class="m-0 truncate text-base font-semibold leading-snug">{{ statusLabel() }}</p>
-                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">Updates in real time on this page</p>
-                </div>
-              </div>
-            </div>
-          }
+    <section class="grid grid-cols-1 items-stretch lg:grid-cols-2">
+      <div class="min-w-0 px-5 py-5">
+        <header class="mb-3.5">
+          <h2 class="m-0 text-[15px] font-semibold leading-snug">Stream Details</h2>
+          <p class="m-0 mt-1 text-xs text-muted">Title, schedule, match link, and description for this broadcast.</p>
+        </header>
 
-          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Title</p>
-              <p class="m-0 text-sm font-semibold leading-snug">{{ stream.title || emptyCell }}</p>
-            </div>
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Stream ID</p>
-              <p class="m-0 text-sm font-semibold leading-snug">#{{ stream.id }}</p>
-            </div>
-            <div class="border-border border-b py-3 sm:col-span-2">
-              <p class="text-muted m-0 mb-1 text-xs">Description</p>
-              <p class="m-0 text-sm font-semibold leading-snug">{{ stream.description || emptyCell }}</p>
-            </div>
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Created</p>
-              <p class="m-0 text-sm font-semibold leading-snug">
-                {{ stream.created_at ? (stream.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-              </p>
-            </div>
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Started</p>
-              <p class="m-0 text-sm font-semibold leading-snug">
-                {{ stream.started_at ? (stream.started_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-              </p>
-            </div>
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Ended</p>
-              <p class="m-0 text-sm font-semibold leading-snug">
-                {{ stream.ended_at ? (stream.ended_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-              </p>
-            </div>
-            <div class="border-border border-b py-3">
-              <p class="text-muted m-0 mb-1 text-xs">Match</p>
-              <p class="m-0 text-sm font-semibold leading-snug">
-                @if (matchLink()) {
-                  <a
-                    [routerLink]="matchLink()!"
-                    class="text-primary hover:underline"
-                  >
-                    Match #{{ stream.match_id }}
-                  </a>
-                } @else {
-                  {{ emptyCell }}
-                }
-              </p>
-            </div>
-          </div>
-
-          @if (payload?.thumbnail_url) {
-            <div class="bg-light-secondary mt-6 rounded-sm border border-border p-4">
-              <p class="text-muted m-0 mb-3 text-xs font-medium">Stream Thumbnail</p>
-              <img
-                [src]="payload!.thumbnail_url!"
-                alt="Stream thumbnail"
-                class="max-h-48 w-full rounded-sm border border-default-border object-contain"
-              />
-            </div>
-          }
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <div class="col-span-12 flex min-h-0 flex-col lg:col-span-6">
-      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-1 flex-col border border-border shadow-none">
-        <mat-card-content class="flex min-h-0 flex-1 flex-col gap-2 p-4 sm:p-6">
-          <div class="shrink-0">
-            <h2 class="text-base font-semibold m-0">Provider &amp; Links</h2>
-            <p class="text-muted m-0 mt-1 text-xs">YouTube IDs, playback URLs, and external stream links.</p>
-          </div>
-
-          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
-            <div class="border-border border-b py-3 sm:col-span-2">
-              <p class="text-muted m-0 mb-1 text-xs">Status</p>
-              <p class="m-0 text-sm font-semibold leading-snug">{{ statusLabel() }}</p>
-            </div>
-            @if (stream.provider_playback_id) {
-              <div class="border-border border-b py-3 sm:col-span-2">
-                <p class="text-muted m-0 mb-1 text-xs">YouTube Video ID</p>
-                <p class="m-0 font-mono text-sm font-semibold leading-snug break-all">{{ stream.provider_playback_id }}</p>
-              </div>
-            }
-            @if (stream.provider_stream_id) {
-              <div class="border-border border-b py-3 sm:col-span-2">
-                <p class="text-muted m-0 mb-1 text-xs">Provider Stream ID</p>
-                <p class="m-0 font-mono text-sm font-semibold leading-snug break-all">{{ stream.provider_stream_id }}</p>
-              </div>
-            }
-            @if (stream.streaming_url) {
-              <div class="border-border border-b py-3 sm:col-span-2">
-                <p class="text-muted m-0 mb-1 text-xs">Streaming URL</p>
-                <p class="m-0 text-sm font-semibold leading-snug break-all">
-                  <a
-                    [href]="stream.streaming_url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary"
-                  >
-                    {{ stream.streaming_url }}
-                  </a>
-                </p>
-              </div>
-            }
-            @if (stream.embed_url) {
-              <div class="border-border border-b py-3 sm:col-span-2">
-                <p class="text-muted m-0 mb-1 text-xs">Embed URL</p>
-                <p class="m-0 text-sm font-semibold leading-snug break-all">
-                  <a
-                    [href]="stream.embed_url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary"
-                  >
-                    {{ stream.embed_url }}
-                  </a>
-                </p>
-              </div>
-            }
-            @if (payload?.ingest?.rtmp_url) {
-              <div class="border-border border-b py-3 sm:col-span-2">
-                <p class="text-muted m-0 mb-1 text-xs">RTMP URL</p>
-                <p class="m-0 font-mono text-xs font-semibold leading-snug break-all">{{ payload!.ingest!.rtmp_url }}</p>
-                <p class="text-muted m-0 mt-1 text-xs">Full credentials in Manage dialog</p>
-              </div>
-            }
-          </div>
-
-          @if (openStreamUrl()) {
-            <div class="mt-6">
-              <a
-                class="text-primary text-sm font-semibold hover:underline"
-                [href]="openStreamUrl()!"
-                target="_blank"
-                rel="noopener noreferrer"
+        @if (payload?.owner) {
+          <div class="mb-1 grid grid-cols-1 gap-4 border-b border-border pb-4 sm:grid-cols-2">
+            <div class="flex min-w-0 items-start gap-3">
+              <span
+                class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
               >
-                Open playback in new tab
-              </a>
+                <i-tabler
+                  name="user"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0">
+                <p class="m-0 mb-0.5 text-[11.5px] font-semibold text-muted">Broadcaster</p>
+                <p class="m-0 truncate text-sm font-semibold leading-snug">
+                  {{ payload!.owner!.nickname || payload!.owner!.name || emptyCell }}
+                </p>
+                @if (payload!.owner!.email || payload!.owner!.phone) {
+                  <p class="m-0 mt-1 truncate text-[11.5px] leading-snug text-muted">
+                    {{ payload!.owner!.email || '' }}
+                    {{ payload!.owner!.email && payload!.owner!.phone ? ' · ' : '' }}
+                    {{ payload!.owner!.phone || '' }}
+                  </p>
+                }
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-3">
+              <span
+                class="bg-light-primary text-primary flex size-9! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
+              >
+                <i-tabler
+                  name="antenna"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0">
+                <p class="m-0 mb-0.5 text-[11.5px] font-semibold text-muted">Status</p>
+                <p class="m-0 truncate text-sm font-semibold leading-snug">{{ statusLabel() }}</p>
+                <p class="m-0 mt-1 text-[11.5px] leading-snug text-muted">Updates in real time on this page</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <dl class="m-0 grid grid-cols-1 sm:grid-cols-2">
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Title</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">{{ stream.title || emptyCell }}</dd>
+          </div>
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Stream ID</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">#{{ stream.id }}</dd>
+          </div>
+          <div class="border-b border-border py-2.5 sm:col-span-2">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Description</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">{{ stream.description || emptyCell }}</dd>
+          </div>
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Created</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">
+              {{ stream.created_at ? (stream.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+            </dd>
+          </div>
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Started</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">
+              {{ stream.started_at ? (stream.started_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+            </dd>
+          </div>
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Ended</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">
+              {{ stream.ended_at ? (stream.ended_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+            </dd>
+          </div>
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Match</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">
+              @if (matchLink()) {
+                <a
+                  [routerLink]="matchLink()!"
+                  class="text-primary hover:underline"
+                >
+                  Match #{{ stream.match_id }}
+                </a>
+              } @else {
+                {{ emptyCell }}
+              }
+            </dd>
+          </div>
+        </dl>
+
+        @if (payload?.thumbnail_url) {
+          <div class="mt-4 rounded-md border border-border bg-light-secondary p-3.5">
+            <p class="m-0 mb-3 text-[11.5px] font-semibold text-muted">Stream Thumbnail</p>
+            <img
+              [src]="payload!.thumbnail_url!"
+              alt="Stream thumbnail"
+              class="block max-h-44 w-full rounded-sm border border-border object-contain bg-white"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="min-w-0 border-t border-border px-5 py-5 lg:border-l lg:border-t-0">
+        <header class="mb-3.5">
+          <h2 class="m-0 text-[15px] font-semibold leading-snug">Provider &amp; Links</h2>
+          <p class="m-0 mt-1 text-xs text-muted">YouTube IDs, playback URLs, and external stream links.</p>
+        </header>
+
+        <dl class="m-0 grid grid-cols-1">
+          <div class="border-b border-border py-2.5">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Status</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">{{ statusLabel() }}</dd>
+          </div>
+          @if (stream.provider_playback_id) {
+            <div class="border-b border-border py-2.5">
+              <dt class="m-0 mb-0.5 text-[11.5px] text-muted">YouTube Video ID</dt>
+              <dd class="m-0 break-all text-sm font-semibold leading-snug">{{ stream.provider_playback_id }}</dd>
             </div>
           }
-        </mat-card-content>
-      </mat-card>
-    </div>
+          @if (stream.provider_stream_id) {
+            <div class="border-b border-border py-2.5">
+              <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Provider Stream ID</dt>
+              <dd class="m-0 break-all text-sm font-semibold leading-snug">{{ stream.provider_stream_id }}</dd>
+            </div>
+          }
+          @if (stream.streaming_url) {
+            <div class="border-b border-border py-2.5">
+              <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Streaming URL</dt>
+              <dd class="m-0 break-all text-sm font-semibold leading-snug">
+                <a
+                  [href]="stream.streaming_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary"
+                >
+                  {{ stream.streaming_url }}
+                </a>
+              </dd>
+            </div>
+          }
+          @if (stream.embed_url) {
+            <div class="border-b border-border py-2.5">
+              <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Embed URL</dt>
+              <dd class="m-0 break-all text-sm font-semibold leading-snug">
+                <a
+                  [href]="stream.embed_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary"
+                >
+                  {{ stream.embed_url }}
+                </a>
+              </dd>
+            </div>
+          }
+          @if (payload?.ingest?.rtmp_url) {
+            <div class="border-b border-border py-2.5">
+              <dt class="m-0 mb-0.5 text-[11.5px] text-muted">RTMP URL</dt>
+              <dd class="m-0 break-all text-xs font-semibold leading-snug">{{ payload!.ingest!.rtmp_url }}</dd>
+              <p class="m-0 mt-1 text-[11.5px] text-muted">Full credentials in Manage dialog</p>
+            </div>
+          }
+        </dl>
+
+        @if (openStreamUrl()) {
+          <div class="mt-4">
+            <a
+              class="text-sm font-semibold text-primary hover:underline"
+              [href]="openStreamUrl()!"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open Playback in New Tab
+            </a>
+          </div>
+        }
+      </div>
+    </section>
   </div>
 }

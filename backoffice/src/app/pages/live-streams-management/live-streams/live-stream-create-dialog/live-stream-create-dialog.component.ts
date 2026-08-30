@@ -1,21 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
+import { MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { LiveStreamService, type LiveStreamProvider } from 'src/app/services/live-stream.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { LIVE_STREAM_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface LiveStreamCreateDialogResult {
@@ -27,19 +22,7 @@ export interface LiveStreamCreateDialogResult {
 @Component({
   selector: 'app-live-stream-create-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDivider,
-    DialogWrapperComponent,
-    FileUploadComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './live-stream-create-dialog.component.html',
 })
 export class LiveStreamCreateDialogComponent {

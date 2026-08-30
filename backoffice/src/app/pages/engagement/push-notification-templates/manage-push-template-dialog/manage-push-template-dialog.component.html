@@ -2,16 +2,16 @@
   <form
     [formGroup]="form"
     (ngSubmit)="submit()"
-    aria-label="Edit push template form"
+    aria-label="Edit Push Template Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         @if (availableVariables.length) {
           <div class="col-span-12 mb-4">
-            <mat-label class="text-sm font-semibold mb-2 block">Available Variables</mat-label>
+            <p class="field-group-label">Available Variables</p>
             <div class="flex flex-wrap gap-1.5">
               @for (variable of availableVariables; track variable) {
-                <code class="font-mono text-xs text-muted">{{ formatVariable(variable) }}</code>
+                <code class="text-xs text-muted">{{ formatVariable(variable) }}</code>
               }
             </div>
           </div>
@@ -19,11 +19,11 @@
 
         <!-- Title Template -->
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Title Template <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Title Template</mat-label>
             <input
               matInput
               formControlName="title_template"
@@ -39,11 +39,11 @@
 
         <!-- Body Template -->
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Body Template <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Body Template</mat-label>
             <textarea
               matInput
               rows="4"
@@ -81,14 +81,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

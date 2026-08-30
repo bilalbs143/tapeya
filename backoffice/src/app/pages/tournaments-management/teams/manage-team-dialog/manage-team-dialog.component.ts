@@ -2,26 +2,20 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { Country, LocationService } from 'src/app/services/location.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import { type TeamRow, type TeamSavePayload, type TeamUserCandidate, TeamsService } from 'src/app/services/teams.service';
 import { UsersService } from 'src/app/services/users.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ManageTeamDialogData {
   mode: 'create' | 'edit';
@@ -31,22 +25,7 @@ export interface ManageTeamDialogData {
 @Component({
   selector: 'app-manage-team-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatIconModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-team-dialog.component.html',
 })
 export class ManageTeamDialogComponent implements OnInit, OnDestroy {

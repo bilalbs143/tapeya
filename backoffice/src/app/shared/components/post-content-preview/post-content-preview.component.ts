@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 
 import type { AdminPost, PostPlayback } from 'src/app/services/post.service';
+import { UiButtonComponent } from 'src/app/shared/components/ui-button/ui-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 /**
@@ -12,13 +12,17 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 @Component({
   selector: 'app-post-content-preview',
   standalone: true,
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, UiButtonComponent],
   templateUrl: './post-content-preview.component.html',
 })
 export class PostContentPreviewComponent {
   @Input({ required: true }) public post!: AdminPost;
 
   public readonly emptyCell = EMPTY_CELL;
+
+  public openExternal(url: string): void {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 
   public get playback(): PostPlayback | null | undefined {
     return this.post?.playback;

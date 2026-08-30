@@ -2,11 +2,12 @@ import type { AuthUser } from 'src/app/models/auth.models';
 
 import { NavItem } from './nav-item.model';
 
-/** Shared nav/sidebar menu data for both vertical and horizontal layouts. */
+/**
+ * Section grouping (Overview / Operations / Workspace)
+ * with the original Tapeya menu labels and routes.
+ */
 export const navItems: NavItem[] = [
-  {
-    navCap: 'Main Menu',
-  },
+  { navCap: 'Overview' },
   {
     displayName: 'Cricket Dashboard',
     iconName: 'solar:home-angle-line-duotone',
@@ -17,33 +18,30 @@ export const navItems: NavItem[] = [
     iconName: 'solar:cart-large-2-line-duotone',
     route: '/ecommerce',
   },
+
+  { navCap: 'Operations' },
   {
     displayName: 'Tournaments Management',
     iconName: 'solar:calendar-date-line-duotone',
     children: [
       {
         displayName: 'Tournaments',
-        iconName: 'tabler:point',
         route: '/tournaments-management/tournaments',
       },
       {
         displayName: 'Tournament Requests',
-        iconName: 'tabler:point',
         route: '/tournaments-management/tournament-requests',
       },
       {
         displayName: 'Quick Matches',
-        iconName: 'tabler:point',
         route: '/tournaments-management/quick-matches',
       },
       {
         displayName: 'Teams',
-        iconName: 'tabler:point',
         route: '/tournaments-management/teams',
       },
       {
         displayName: 'Interest Campaigns',
-        iconName: 'tabler:point',
         route: '/tournaments-management/interest-campaigns',
       },
     ],
@@ -54,27 +52,22 @@ export const navItems: NavItem[] = [
     children: [
       {
         displayName: 'Hero Slider',
-        iconName: 'tabler:point',
         route: '/content-management/hero-slider',
       },
       {
         displayName: 'Static Pages',
-        iconName: 'tabler:point',
         route: '/content-management/static-pages',
       },
       {
         displayName: 'Highlights',
-        iconName: 'tabler:point',
         route: '/content-management/highlights',
       },
       {
         displayName: 'Posts',
-        iconName: 'tabler:point',
         route: '/content-management/posts',
       },
       {
         displayName: 'Post Reports',
-        iconName: 'tabler:point',
         route: '/content-management/post-reports',
       },
     ],
@@ -85,12 +78,10 @@ export const navItems: NavItem[] = [
     children: [
       {
         displayName: 'Users',
-        iconName: 'tabler:point',
         route: '/users-management/users',
       },
       {
         displayName: 'Players Management',
-        iconName: 'tabler:point',
         route: '/players-management/players',
       },
     ],
@@ -100,6 +91,34 @@ export const navItems: NavItem[] = [
     iconName: 'solar:videocamera-record-line-duotone',
     route: '/live-streams-management/live-streams',
   },
+  {
+    displayName: 'Shop',
+    iconName: 'solar:cart-large-2-line-duotone',
+    children: [
+      {
+        displayName: 'Brands',
+        route: '/shop-management/brands',
+      },
+      {
+        displayName: 'Categories',
+        route: '/shop-management/categories',
+      },
+      {
+        displayName: 'Vendors',
+        route: '/shop-management/vendors',
+      },
+      {
+        displayName: 'Products',
+        route: '/shop-management/products',
+      },
+      {
+        displayName: 'Orders',
+        route: '/shop-management/orders',
+      },
+    ],
+  },
+
+  { navCap: 'Workspace' },
   {
     displayName: 'Notifications',
     iconName: 'solar:bell-line-duotone',
@@ -116,44 +135,11 @@ export const navItems: NavItem[] = [
     children: [
       {
         displayName: 'Push Notifications',
-        iconName: 'tabler:point',
         route: '/engagement/push-notifications',
       },
       {
         displayName: 'Push Templates',
-        iconName: 'tabler:point',
         route: '/engagement/push-notification-templates',
-      },
-    ],
-  },
-  {
-    displayName: 'Shop',
-    iconName: 'solar:cart-large-2-line-duotone',
-    children: [
-      {
-        displayName: 'Brands',
-        iconName: 'tabler:point',
-        route: '/shop-management/brands',
-      },
-      {
-        displayName: 'Categories',
-        iconName: 'tabler:point',
-        route: '/shop-management/categories',
-      },
-      {
-        displayName: 'Vendors',
-        iconName: 'tabler:point',
-        route: '/shop-management/vendors',
-      },
-      {
-        displayName: 'Products',
-        iconName: 'tabler:point',
-        route: '/shop-management/products',
-      },
-      {
-        displayName: 'Orders',
-        iconName: 'tabler:point',
-        route: '/shop-management/orders',
       },
     ],
   },
@@ -163,7 +149,6 @@ export const navItems: NavItem[] = [
     children: [
       {
         displayName: 'System Settings',
-        iconName: 'tabler:point',
         route: '/settings/system-settings',
       },
     ],
@@ -172,18 +157,17 @@ export const navItems: NavItem[] = [
 
 /** Sidebar for Broadcast Operator staff — flat top-level links (small menu). */
 export const broadcastStaffNavItems: NavItem[] = [
-  {
-    navCap: 'Main Menu',
-  },
+  { navCap: 'Overview' },
   {
     displayName: 'Dashboard',
     iconName: 'solar:home-angle-line-duotone',
     route: '/dashboard',
   },
+  { navCap: 'Operations' },
   {
-    displayName: 'Players Management',
-    iconName: 'solar:user-id-line-duotone',
-    route: '/players-management/players',
+    displayName: 'Tournaments Management',
+    iconName: 'solar:calendar-date-line-duotone',
+    route: '/tournaments-management/tournaments',
   },
   {
     displayName: 'Teams Management',
@@ -191,14 +175,14 @@ export const broadcastStaffNavItems: NavItem[] = [
     route: '/tournaments-management/teams',
   },
   {
+    displayName: 'Players Management',
+    iconName: 'solar:user-id-line-duotone',
+    route: '/players-management/players',
+  },
+  {
     displayName: 'Live Streams',
     iconName: 'solar:videocamera-record-line-duotone',
     route: '/live-streams-management/live-streams',
-  },
-  {
-    displayName: 'Tournaments Management',
-    iconName: 'solar:calendar-date-line-duotone',
-    route: '/tournaments-management/tournaments',
   },
 ];
 

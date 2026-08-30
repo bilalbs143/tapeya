@@ -1,19 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { forkJoin, Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import { type Country, LocationService } from 'src/app/services/location.service';
 import { MediaService } from 'src/app/services/media.service';
@@ -22,9 +16,8 @@ import type { TournamentRequest } from 'src/app/services/tournament-request.serv
 import type { Tournament, TournamentUpdatePayload } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
 function tournamentDateOrderValidator(group: AbstractControl): ValidationErrors | null {
@@ -63,23 +56,7 @@ export interface ManageTournamentDialogData {
 @Component({
   selector: 'app-manage-tournament-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatAutocompleteModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    TablerIconsModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    MatDivider,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, TablerIconsModule, FileUploadComponent],
   templateUrl: './manage-tournament-dialog.component.html',
 })
 export class ManageTournamentDialogComponent implements OnInit, OnDestroy {

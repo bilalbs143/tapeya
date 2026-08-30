@@ -1,26 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable } from 'rxjs';
 import { finalize, map } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { Order, OrderItem, VendorOrderSummary } from 'src/app/services/shop/order.service';
 import { OrderService } from 'src/app/services/shop/order.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 export interface OrderDetailDialogData {
@@ -33,22 +25,7 @@ const REFUND_STATUS_VALUES = [{ value: 'refunded', label: 'Refunded' }] as const
 @Component({
   selector: 'app-order-detail-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTableModule,
-    MatDivider,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    LoaderBlockComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, TablerIconsModule],
   templateUrl: './order-detail-dialog.component.html',
 })
 export class OrderDetailDialogComponent implements OnInit {

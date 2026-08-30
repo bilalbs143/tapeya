@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Push Notifications"
       subtitle="View sent notifications and delivery status"
@@ -7,40 +7,38 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
           type="button"
           (click)="openSendDialog()"
         >
           Send Notification
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter push notifications"
+      aria-label="Filter Push Notifications"
     >
       <app-search-filter-bar>
         <div>
@@ -121,174 +119,182 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Push notifications list"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Push Notifications"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Push Notifications List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="title">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="title"
-              class="bg-light-secondary font-semibold"
-            >
-              Title
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-xs truncate whitespace-nowrap"
-              [title]="row.title"
-            >
-              {{ row.title || emptyCell }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="title">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="title"
+                class="font-semibold"
+              >
+                Title
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-xs truncate whitespace-nowrap"
+                [title]="row.title"
+              >
+                {{ row.title || emptyCell }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="target_type">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Target
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.target_type_label || emptyCell }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="target_type">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Target
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.target_type_label || emptyCell }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="triggered_by">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="triggered_by"
-              class="bg-light-secondary font-semibold"
-            >
-              Triggered By
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.triggered_by_label || emptyCell }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="triggered_by">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="triggered_by"
+                class="font-semibold"
+              >
+                Triggered By
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.triggered_by_label || emptyCell }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="status"
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="row.status_label || row.status"
-              />
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="status"
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="row.status_label || row.status"
+                />
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="delivery">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Success / Failure
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ deliverySummary(row) }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="delivery">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Success / Failure
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ deliverySummary(row) }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="sent_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="sent_at"
-              class="bg-light-secondary font-semibold"
-            >
-              Sent At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ formatDate(row.sent_at) }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="sent_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="sent_at"
+                class="font-semibold"
+              >
+                Sent At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.sent_at) }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="created_at"
-              class="bg-light-secondary font-semibold"
-            >
-              Created At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ formatDate(row.created_at) }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="created_at"
+                class="font-semibold"
+              >
+                Created At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.created_at) }}
+              </td>
+            </ng-container>
 
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
 
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

@@ -1,12 +1,12 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="applyFilters()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
-      <div class="grid grid-cols-12 gap-4 items-end">
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+      <app-search-filter-bar>
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -21,7 +21,7 @@
             />
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -31,7 +31,7 @@
               matInput
               formControlName="from_date"
               [matDatepicker]="fromDatePicker"
-              placeholder="Select date"
+              placeholder="Select Date"
             />
             <mat-datepicker-toggle
               matIconSuffix
@@ -40,7 +40,7 @@
             <mat-datepicker #fromDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -54,46 +54,19 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div
-          class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-start sm:justify-end gap-2"
-        >
+        <div class="flex items-center min-h-[40px]">
           <mat-slide-toggle
             formControlName="live_today"
             color="primary"
-            class="w-full sm:w-auto me-1 shrink-0"
+            class="shrink-0"
             matTooltip="Fixture date is today (local time), including scheduled matches that have not started."
             matTooltipShowDelay="300"
             (change)="applyFilters()"
           >
-            Live today
+            Live Today
           </mat-slide-toggle>
-          <button
-            mat-stroked-button
-            type="button"
-            class="w-full sm:w-auto"
-            (click)="resetSearchForm()"
-          >
-            Clear Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            class="w-full sm:w-auto"
-          >
-            Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="w-full sm:w-auto"
-            (click)="openScheduleDialog()"
-          >
-            Schedule Match
-          </button>
         </div>
-      </div>
+      </app-search-filter-bar>
     </form>
   </mat-card-content>
 
@@ -101,21 +74,32 @@
 
   <mat-card-content class="p-0 relative">
     @if (isLoading) {
-      <app-loader-block
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
         label="Loading matches"
-        class="min-h-[18rem] w-full px-4 py-10"
       />
     } @else if (hasNoMatches) {
-      <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
-        <p class="m-0 max-w-md text-sm">No matches scheduled for this tournament yet.</p>
+      <div class="min-h-[18rem] w-full">
+        <app-empty-data-message
+          variant="inline"
+          icon="calendar-off"
+          message="No Matches Scheduled"
+          description="Matches for this tournament haven't been scheduled yet."
+        />
       </div>
     } @else if (hasFilterEmpty) {
-      <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
-        <p class="m-0 max-w-md text-sm">No matches match your filters. Try adjusting search, date, status, or Live today.</p>
+      <div class="min-h-[18rem] w-full">
+        <app-empty-data-message
+          variant="inline"
+          message="No Matches Match Your Filters"
+          description="Try adjusting search, date, status, or Live Today."
+          actionLabel="Clear Search"
+          (action)="resetSearchForm()"
+        />
       </div>
     } @else {
       <div class="sticky-header-table-container relative overflow-auto">
-        <app-table-wrapper [loading]="false">
+        <app-table-wrapper>
           <table
             mat-table
             matSort
@@ -131,7 +115,7 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Date / Time
               </th>
@@ -149,7 +133,7 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Fixture
               </th>
@@ -168,7 +152,7 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Venue
               </th>
@@ -185,7 +169,7 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Status
               </th>
@@ -206,7 +190,7 @@
                 mat-header-cell
                 *matHeaderCellDef
                 mat-sort-header
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Result
               </th>
@@ -223,7 +207,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Action
               </th>
@@ -234,9 +218,9 @@
               >
                 <button
                   type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Edit match"
-                  matTooltip="Edit match"
+                  class="row-action"
+                  aria-label="Edit Match"
+                  matTooltip="Edit Match"
                   (click)="openEditDialog(row)"
                 >
                   <i-tabler
@@ -245,10 +229,10 @@
                   ></i-tabler>
                 </button>
                 <a
-                  class="me-2.5 inline-flex row-action no-underline"
+                  class="row-action"
                   [routerLink]="['/tournaments-management/match-controller', row.id]"
                   matTooltip="Match Controller"
-                  aria-label="Open match controller"
+                  aria-label="Open Match Controller"
                 >
                   <i-tabler
                     name="settings"
@@ -269,13 +253,17 @@
           </table>
         </app-table-wrapper>
       </div>
-
-      <mat-paginator
-        [pageSize]="defaultPageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        [showFirstLastButtons]="true"
-        aria-label="Select Page of Matches"
-      />
     }
+
+    <app-paginator
+      [loading]="isLoading"
+      [length]="dataSource.data.length"
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      [showNoRecMessage]="false"
+      ariaLabel="Select page of matches"
+      (page)="onPage($event)"
+    />
   </mat-card-content>
 </mat-card>

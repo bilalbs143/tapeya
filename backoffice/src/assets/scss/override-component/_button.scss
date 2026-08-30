@@ -1,4 +1,3 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 @use '../variables' as *;
 
@@ -9,10 +8,6 @@
     outlined-horizontal-padding: 15px,
     protected-horizontal-padding: 15px,
     text-horizontal-padding: 15px,
-    filled-container-shape: var(--mat-sys-corner-small),
-    outlined-container-shape: var(--mat-sys-corner-small),
-    protected-container-shape: var(--mat-sys-corner-small),
-    text-container-shape: var(--mat-sys-corner-small),
   )
 );
 
@@ -22,125 +17,10 @@
   )
 );
 
-// styles
+// Text/filled Material buttons are unused — button chrome is <app-ui-button>
+// (styles in _ui-button.scss). Icon buttons and menu items stay Material.
 html {
-  .mat-mdc-button-base.bg-light-primary:hover,
-  .mat-mdc-button-base.bg-light-secondary:hover,
-  .mat-mdc-button-base.bg-light-error:hover,
-  .mat-mdc-button-base.bg-light-warning:hover,
-  .mat-mdc-button-base.bg-light-success:hover {
-    color: $white !important;
-  }
-
-  .mat-mdc-button-base.bg-light-primary {
-    &:hover {
-      background-color: var(--mat-sys-primary) !important;
-    }
-  }
-
-  .mat-mdc-button-base.bg-light-secondary {
-    &:hover {
-      background-color: var(--mat-sys-secondary) !important;
-    }
-  }
-
-  .mat-mdc-button-base.bg-light-error {
-    &:hover {
-      background-color: var(--mat-sys-error) !important;
-    }
-  }
-
-  .mat-mdc-button-base.bg-light-warning {
-    &:hover {
-      background-color: $warning !important;
-    }
-  }
-
-  .mat-mdc-button-base.bg-light-success {
-    &:hover {
-      background-color: $success !important;
-    }
-  }
-
-  .mat-mdc-outlined-button:not(:disabled) {
-    // `currentColor`, not `inherit` — this must match the button's own themed
-    // text color, not its parent's. `inherit` accidentally pulled from
-    // mat-dialog-actions, which sets `border-top: 1px solid transparent` as
-    // its own optional scroll-divider, making every dialog's Cancel/stroked
-    // button lose its top border specifically.
-    border-color: currentColor !important;
-  }
-
-  .mat-mdc-button-base.text-secondary:hover {
-    .mat-mdc-button-persistent-ripple::before {
-      background-color: var(--mat-sys-secondary);
-    }
-  }
-
-  .mat-mdc-button-base.text-error:hover {
-    .mat-mdc-button-persistent-ripple::before {
-      background-color: var(--mat-sys-error);
-    }
-  }
-
-  .mat-mdc-button-base.text-warning:hover {
-    .mat-mdc-button-persistent-ripple::before {
-      background-color: $warning;
-    }
-  }
-
-  .mat-mdc-button-base.text-success:hover {
-    .mat-mdc-button-persistent-ripple::before {
-      background-color: $success;
-    }
-  }
-
-  .mat-mdc-outlined-button:not(:disabled).mat-secondary {
-    color: var(--mat-sys-secondary);
-    border-color: var(--mat-sys-secondary);
-
-    &:hover {
-      .mat-mdc-button-persistent-ripple::before {
-        background-color: var(--mat-sys-secondary);
-      }
-    }
-  }
-
-  .mat-mdc-outlined-button:not(:disabled).mat-success {
-    color: $success;
-    border-color: $success;
-
-    &:hover {
-      .mat-mdc-button-persistent-ripple::before {
-        background-color: $success;
-      }
-    }
-  }
-
-  .mat-mdc-outlined-button:not(:disabled).mat-error {
-    color: var(--mat-sys-error);
-    border-color: var(--mat-sys-error);
-
-    &:hover {
-      .mat-mdc-button-persistent-ripple::before {
-        background-color: var(--mat-sys-error);
-      }
-    }
-  }
-
-  .mat-mdc-outlined-button:not(:disabled).mat-warning {
-    color: $warning;
-    border-color: $warning;
-
-    &:hover {
-      .mat-mdc-button-persistent-ripple::before {
-        background-color: $warning;
-      }
-    }
-  }
-
-  &.dark-theme .mat-mdc-icon-button:hover,
-  &.light-theme .mat-mdc-icon-button:hover {
+  .mat-mdc-icon-button:hover {
     color: var(--mat-sys-primary);
 
     .mat-mdc-button-persistent-ripple::before {
@@ -150,13 +30,5 @@ html {
 
   .mat-mdc-menu-item:not([disabled]):hover {
     color: var(--mat-sys-primary);
-  }
-
-  .mat-mdc-nav-list .mat-mdc-list-item:hover {
-    color: var(--mat-sys-primary) !important;
-
-    .mdc-list-item__primary-text {
-      color: var(--mat-sys-primary) !important;
-    }
   }
 }

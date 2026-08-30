@@ -1,22 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { PostReport, PostReportStatus } from 'src/app/services/post-report.service';
 import { PostReportService } from 'src/app/services/post-report.service';
 import type { AdminPost } from 'src/app/services/post.service';
 import { PostService } from 'src/app/services/post.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 export interface ManagePostReportDialogData {
@@ -39,20 +33,7 @@ const TYPE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-manage-post-report-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatSelectModule,
-    DialogWrapperComponent,
-    PostContentPreviewComponent,
-    SubmitButtonComponent,
-    LoaderComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, PostContentPreviewComponent],
   templateUrl: './manage-post-report-dialog.component.html',
 })
 export class ManagePostReportDialogComponent {

@@ -21,7 +21,7 @@
             [href]="sampleCsvHref"
             [download]="sampleCsvDownloadName"
           >
-            Download sample CSV
+            Download Sample CSV
           </a>
         </p>
       </div>
@@ -34,7 +34,7 @@
             <mat-card-content>
               <span class="text-xs font-semibold text-error">Mandatory</span>
               <p class="m-0 mb-2 mt-1 text-xs text-muted">Every Data Row Needs a Value:</p>
-              <p class="m-0 break-all font-mono text-xs leading-relaxed">name, nickname, phone</p>
+              <p class="m-0 break-all text-xs leading-relaxed">name, nickname, phone</p>
             </mat-card-content>
           </mat-card>
         </div>
@@ -43,12 +43,12 @@
             <mat-card-content>
               <span class="text-xs font-semibold text-primary">Optional</span>
               <p class="m-0 mb-2 mt-1 text-xs text-muted">Header Column Required; Cell May Be Empty:</p>
-              <p class="m-0 break-all font-mono text-xs leading-relaxed">
+              <p class="m-0 break-all text-xs leading-relaxed">
                 email, date_of_birth, playing_role, bowling_style, batting_style, country, city
               </p>
               <p class="m-0 mt-2 text-xs leading-relaxed text-muted">
-                If <span class="font-mono">country</span> is set → <strong>Pakistan</strong> only. With Pakistan + DB cities,
-                <span class="font-mono">city</span> must match “Pakistan cities”.
+                If <span class="">country</span> is set → <strong>Pakistan</strong> only. With Pakistan + DB cities,
+                <span class="">city</span> must match “Pakistan cities”.
               </p>
             </mat-card-content>
           </mat-card>
@@ -61,7 +61,7 @@
         <mat-expansion-panel-header>
           <mat-panel-title class="font-semibold">Playing Role (CSV Value)</mat-panel-title>
           <mat-panel-description class="text-sm">
-            Value ↔ label reference for the <span class="font-mono">playing_role</span> column
+            Value ↔ label reference for the <span class="">playing_role</span> column
             <mat-icon class="ml-auto me-2">
               <i-tabler
                 name="list"
@@ -81,14 +81,14 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Value
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="font-mono text-xs"
+                class="text-xs"
               >
                 {{ row.value }}
               </td>
@@ -97,7 +97,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Label
               </th>
@@ -124,7 +124,7 @@
         <mat-expansion-panel-header>
           <mat-panel-title class="font-semibold">Bowling Style</mat-panel-title>
           <mat-panel-description class="text-sm">
-            Value ↔ label reference for the <span class="font-mono">bowling_style</span> column
+            Value ↔ label reference for the <span class="">bowling_style</span> column
             <mat-icon class="ml-auto me-2">
               <i-tabler
                 name="list"
@@ -144,14 +144,14 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Value
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="font-mono text-xs"
+                class="text-xs"
               >
                 {{ row.value }}
               </td>
@@ -160,7 +160,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Label
               </th>
@@ -187,7 +187,7 @@
         <mat-expansion-panel-header>
           <mat-panel-title class="font-semibold">Batting Style</mat-panel-title>
           <mat-panel-description class="text-sm">
-            Value ↔ label reference for the <span class="font-mono">batting_style</span> column
+            Value ↔ label reference for the <span class="">batting_style</span> column
             <mat-icon class="ml-auto me-2">
               <i-tabler
                 name="list"
@@ -207,14 +207,14 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Value
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
-                class="font-mono text-xs"
+                class="text-xs"
               >
                 {{ row.value }}
               </td>
@@ -223,7 +223,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="bg-light-secondary font-semibold"
+                class="font-semibold"
               >
                 Label
               </th>
@@ -264,15 +264,15 @@
           <p class="m-0 text-sm text-error">Could not load cities. Check the API or world data.</p>
         } @else if (pakistanCities.length === 0) {
           <p class="m-0 text-sm leading-relaxed text-muted">
-            No cities returned for Pakistan (<span class="font-mono">PK</span>). You may leave country/city blank, or set
-            <span class="font-mono">Pakistan</span> with any city text until world data is seeded.
+            No cities returned for Pakistan (<span class="">PK</span>). You may leave country/city blank, or set
+            <span class="">Pakistan</span> with any city text until world data is seeded.
           </p>
         } @else {
           <p class="m-0 text-sm leading-relaxed text-muted">
-            Use when <span class="font-mono">country</span> is <strong>Pakistan</strong> and
-            <span class="font-mono">city</span> is set — copy an <strong>exact</strong> name (case-insensitive).
+            Use when <span class="">country</span> is <strong>Pakistan</strong> and <span class="">city</span> is set — copy an
+            <strong>exact</strong> name (case-insensitive).
           </p>
-          <div class="max-h-48 columns-2 gap-x-4 overflow-y-auto font-mono text-xs">
+          <div class="max-h-48 columns-2 gap-x-4 overflow-y-auto text-xs">
             @for (c of pakistanCities; track c.id) {
               <div class="break-inside-avoid py-0.5">{{ c.name }}</div>
             }
@@ -314,19 +314,19 @@
       >
         <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h3 class="m-0 text-sm font-semibold">Dry run result</h3>
+            <h3 class="m-0 text-sm font-semibold">Dry Run Result</h3>
             <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
               Nothing was saved. You can fix the CSV and run another preview, or turn off Preview Only to import.
             </p>
           </div>
-          <button
+          <app-ui-button
             type="button"
-            mat-stroked-button
             class="shrink-0 text-xs"
             (click)="clearDryRunFeedback()"
+            variant="secondary"
           >
             Dismiss
-          </button>
+          </app-ui-button>
         </div>
         <dl class="m-0 grid grid-cols-2 gap-2 text-sm sm:max-w-md">
           <dt class="text-muted m-0">Valid rows</dt>
@@ -335,9 +335,9 @@
           <dd class="m-0 font-semibold">{{ lastDryRun.rows_skipped }}</dd>
         </dl>
         @if (lastDryRun.errors.length) {
-          <p class="m-0 mb-2 mt-4 text-xs font-semibold text-error">Row / validation messages</p>
+          <p class="m-0 mb-2 mt-4 text-xs font-semibold text-error">Row / Validation Messages</p>
           <ul
-            class="m-0 max-h-52 list-none space-y-1.5 overflow-y-auto rounded border border-default-border bg-white p-3 font-mono text-xs leading-relaxed dark:bg-gray-900"
+            class="m-0 max-h-52 list-none space-y-1.5 overflow-y-auto rounded border border-default-border bg-white p-3 text-xs leading-relaxed dark:bg-gray-900"
           >
             @for (line of lastDryRun.errors; track $index) {
               <li class="break-words">{{ line }}</li>
@@ -355,18 +355,18 @@
         aria-live="assertive"
       >
         <div class="mb-2 flex flex-wrap items-start justify-between gap-2">
-          <h3 class="m-0 text-sm font-semibold text-error">Request failed</h3>
-          <button
+          <h3 class="m-0 text-sm font-semibold text-error">Request Failed</h3>
+          <app-ui-button
             type="button"
-            mat-stroked-button
             class="shrink-0 text-xs"
             (click)="clearDryRunFeedback()"
+            variant="secondary"
           >
             Dismiss
-          </button>
+          </app-ui-button>
         </div>
         <pre
-          class="m-0 max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded border border-error/30 bg-white p-3 font-mono text-xs leading-relaxed dark:bg-gray-900"
+          class="m-0 max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded border border-error/30 bg-white p-3 text-xs leading-relaxed dark:bg-gray-900"
           >{{ dryRunRequestError }}</pre
         >
       </section>
@@ -374,13 +374,13 @@
   </mat-dialog-content>
 
   <mat-divider></mat-divider>
-  <mat-dialog-actions>
-    <button
+  <mat-dialog-actions class="dialog-actions">
+    <app-ui-button
       type="button"
-      mat-stroked-button
       [mat-dialog-close]="false"
+      variant="secondary"
     >
       Cancel
-    </button>
+    </app-ui-button>
   </mat-dialog-actions>
 </app-dialog-wrapper>

@@ -51,4 +51,16 @@ export class TournamentInterestCampaignsTabComponent implements OnInit, OnDestro
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
+
+  public openCreateCampaign(): void {
+    this.listComponent?.openCreateDialog();
+  }
+
+  public clearSearch(): void {
+    this.listComponent?.resetSearchForm();
+  }
+
+  public search(): void {
+    this.listComponent?.loadHttpData();
+  }
 }

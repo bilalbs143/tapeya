@@ -93,7 +93,7 @@
         <div
           class="flex items-center gap-3 px-6 py-4"
           role="status"
-          aria-label="Loading notifications"
+          aria-label="Loading Notifications"
         >
           <app-loader
             [diameter]="20"
@@ -127,14 +127,13 @@
         }
       }
       <div class="py-3 px-6">
-        <a
-          mat-stroked-button
-          color="primary"
+        <app-ui-button
+          variant="secondary"
           class="w-full"
           routerLink="/notifications"
         >
-          See all notifications
-        </a>
+          See All Notifications
+        </app-ui-button>
       </div>
     </mat-menu>
   }
@@ -142,7 +141,7 @@
   <!-- profile Dropdown -->
   <!-- --------------------------------------------------------------- -->
   <button
-    class="p-0! flex! items-center! justify-center!"
+    class="flex justify-center"
     mat-icon-button
     [matMenuTriggerFor]="profilemenu"
     aria-label="Profile"
@@ -150,8 +149,8 @@
     <img
       src="/assets/images/profile/user-1.jpg"
       alt="User profile"
-      class="rounded-full object-cover size-9!"
-      width="36"
+      class="rounded-full object-cover size-6!"
+      width="24"
     />
   </button>
   <mat-menu
@@ -183,43 +182,15 @@
           </div>
         </div>
       </div>
-      <div class="px-6">
-        @for (profile of profiledd; track profile.title) {
-          <a
-            class="py-3 no-underline block text-hover-primary"
-            [routerLink]="[profile.link]"
-          >
-            <div class="flex items-center">
-              <button
-                mat-mini-fab
-                class="text-primary bg-light shadow-none rounded"
-              >
-                <img
-                  [src]="profile.img"
-                  [alt]="profile.title"
-                  width="20"
-                />
-              </button>
-              <div class="ms-4">
-                <h5 class="text-sm font-semibold m-0 textprimary hover-text">
-                  {{ profile.title }}
-                </h5>
-                <span class="text-sm text-body">{{ profile.subtitle }}</span>
-              </div>
-            </div>
-          </a>
-        }
-      </div>
       <div class="py-3 px-6">
-        <button
+        <app-ui-button
+          variant="secondary"
           type="button"
           (click)="logout()"
-          mat-stroked-button
-          color="primary"
           class="w-full"
         >
           Logout
-        </button>
+        </app-ui-button>
       </div>
     </ng-scrollbar>
   </mat-menu>

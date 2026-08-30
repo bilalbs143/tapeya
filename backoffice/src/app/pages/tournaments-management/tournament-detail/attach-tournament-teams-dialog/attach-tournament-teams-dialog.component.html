@@ -1,7 +1,7 @@
 <app-dialog-wrapper [title]="title">
   <form
     (submit)="onSubmit($event)"
-    aria-label="Attach teams to tournament"
+    aria-label="Attach Teams to Tournament"
   >
     <mat-dialog-content>
       <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
@@ -28,11 +28,11 @@
             class="col-span-12"
             [formGroup]="groupForm"
           >
-            <mat-label class="text-sm font-semibold mb-2 block">Group <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Group <span class="text-error">*</span></mat-label>
               <mat-select
                 formControlName="group_index"
                 placeholder="Select Group"
@@ -71,7 +71,7 @@
           <div class="col-span-12">
             <mat-chip-set
               class="team-roster-chips w-full max-w-full mb-2"
-              aria-label="Teams selected to attach"
+              aria-label="Teams Selected to Attach"
             >
               @for (t of selected; track t.id) {
                 <mat-chip
@@ -97,11 +97,11 @@
           </div>
         }
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Add Team</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Add Team</mat-label>
             <input
               matInput
               [formControl]="searchControl"
@@ -121,14 +121,14 @@
       </div>
     </mat-dialog-content>
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="attachPrimaryDisabled"
         [isSubmitting]="isSubmitting"

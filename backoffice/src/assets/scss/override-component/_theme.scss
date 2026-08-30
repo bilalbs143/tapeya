@@ -1,24 +1,35 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 @use '../variables' as *;
 
 html {
+  // spring-green is the closest built-in M3 hue family to this app's teal
+  // accent (#0D6A57) — used as the structural base so tokens we don't
+  // explicitly pin below (containers, tonal state layers) land teal-ish
+  // rather than leaking the old azure/blue hue.
   @include mat.theme(
     (
-      color: mat.$azure-palette,
+      color: mat.$spring-green-palette,
       typography: $font-family,
+      density: -2,
     )
   );
 
   @include mat.theme-overrides(
     (
-      primary: rgb(93, 135, 255),
-      error: rgb(250, 137, 107),
-      body-medium-size: 14px,
-      body-large-size: 14px,
-      outline-variant: #d7dde2,
-      level1: '#919eab4d 0px 0px 2px 0px, #919eab1f 0px 12px 24px -4px',
-      level2: rgba(145, 158, 171, 0.12) 0px 1px 16px,
+      primary: var(--accent),
+      error: var(--danger),
+      body-medium-size: var(--fs-body),
+      body-large-size: var(--fs-body),
+      outline-variant: var(--n-20),
+      level1: var(--e-card),
+      level2: var(--e-popover),
+      // Radius cap intentionally NOT pinned here — this app has an existing
+      // 2-tier corner-small(7px)/corner-medium(12px) hierarchy
+      // (theme-variables/_default-variables.scss) plus five component files
+      // independently setting shape via corner-small. Moving to a 3-tier
+      // 6/8/12 radius system is shape work — Phase B territory
+      // (per-component, alongside height/density), not a blind global pin
+       // here. See Phase B checklist.
     )
   );
 }

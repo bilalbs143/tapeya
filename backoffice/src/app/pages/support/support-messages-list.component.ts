@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { PageEvent } from '@angular/material/paginator';
@@ -20,6 +19,11 @@ import { SupportMessageService } from 'src/app/services/support-message.service'
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageSupportMessageDialogComponent } from './manage-support-message-dialog/manage-support-message-dialog.component';
@@ -39,7 +43,6 @@ const DEFAULT_FILTERS = {
     MatSortModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     CommonSharedModule,
@@ -75,7 +78,6 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.searchForm = this.fb.group({ status: [DEFAULT_FILTERS.status] });
     this.pageSize = this.paginatorConfig.pageSize;
@@ -86,12 +88,7 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -99,18 +96,11 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
@@ -146,7 +136,7 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
       ManageSupportMessageDialogComponent,
       { message: item },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 }

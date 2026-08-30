@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
+
+import { CampaignSubmissionsComponent } from '../campaign-submissions/campaign-submissions.component';
 
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { MessageService } from 'src/app/services/message.service';
@@ -14,7 +15,7 @@ import { CampaignDetailStateService } from './campaign-detail-state.service';
 @Component({
   selector: 'app-campaign-detail-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, CommonSharedModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatTabsModule, CommonSharedModule],
   providers: [CampaignDetailStateService],
   templateUrl: './campaign-detail-shell.component.html',
 })
@@ -28,6 +29,11 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
 
   public campaign: InterestCampaign | null = null;
   public isLoading = true;
+  public activeChild: unknown = null;
+
+  public get showSubmissionSearch(): boolean {
+    return this.activeChild instanceof CampaignSubmissionsComponent;
+  }
 
   public ngOnInit(): void {
     this.sub.add(
@@ -44,6 +50,26 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+  }
+
+  public onOutletActivate(component: unknown): void {
+    this.activeChild = component;
+  }
+
+  public onOutletDeactivate(): void {
+    this.activeChild = null;
+  }
+
+  public runClearSubmissionSearch(): void {
+    if (this.activeChild instanceof CampaignSubmissionsComponent) {
+      this.activeChild.resetSearchForm();
+    }
+  }
+
+  public runSearchSubmissions(): void {
+    if (this.activeChild instanceof CampaignSubmissionsComponent) {
+      this.activeChild.loadHttpData();
+    }
   }
 
   private loadCampaign(id: number): void {

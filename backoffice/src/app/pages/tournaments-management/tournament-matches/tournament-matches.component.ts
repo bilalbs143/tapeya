@@ -2,13 +2,12 @@ import { CommonModule, formatDate } from '@angular/common';
 import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -23,6 +22,8 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
+import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
+import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
@@ -44,16 +45,15 @@ const DEFAULT_FILTERS = {
     MatDividerModule,
     MatTableModule,
     MatSortModule,
-    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatPaginatorModule,
     MatTooltipModule,
     TablerIconsModule,
     CommonSharedModule,
+    EmptyDataMessageComponent,
   ],
   templateUrl: './tournament-matches.component.html',
 })
@@ -76,11 +76,14 @@ export class TournamentMatchesComponent implements OnInit {
     }
   }
 
-  @ViewChild(MatPaginator)
-  public set matPaginator(paginator: MatPaginator | undefined) {
-    if (paginator) {
-      this.dataSource.paginator = paginator;
-    }
+  @ViewChild(PaginatorComponent)
+  public set appPaginator(paginator: PaginatorComponent | undefined) {
+    queueMicrotask(() => {
+      const mat = paginator?.matPaginator;
+      if (mat && this.dataSource.paginator !== mat) {
+        this.dataSource.paginator = mat;
+      }
+    });
   }
 
   public readonly matchStatusOptions$ = this.enumsService.getOptions('match_status');
@@ -98,6 +101,9 @@ export class TournamentMatchesComponent implements OnInit {
   public allMatches: TournamentMatchRow[] = [];
   public dataSource = new MatTableDataSource<TournamentMatchRow>([]);
   public displayedColumns: string[] = ['when', 'teams', 'venue', 'status', 'result', 'actions'];
+  public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
+  public pageSize = this.paginatorConfig.pageSize;
+  public pageIndex = 0;
   public isLoading = false;
 
   constructor() {
@@ -211,7 +217,13 @@ export class TournamentMatchesComponent implements OnInit {
     if (this.dataSource.sort) {
       this.dataSource.data = [...rows];
     }
+    this.pageIndex = 0;
     this.dataSource.paginator?.firstPage();
+  }
+
+  public onPage(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
   }
 
   public resetSearchForm(): void {
@@ -231,7 +243,4 @@ export class TournamentMatchesComponent implements OnInit {
   public get hasFilterEmpty(): boolean {
     return !this.isLoading && this.allMatches.length > 0 && this.dataSource.data.length === 0;
   }
-
-  public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
-  public readonly defaultPageSize = this.paginatorConfig.pageSize;
 }

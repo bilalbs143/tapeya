@@ -1,20 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { PostType, AdminPost, PostStatus, PostVisibility } from 'src/app/services/post.service';
 import { PostService } from 'src/app/services/post.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 export interface ManagePostDialogData {
@@ -46,20 +40,7 @@ const TYPE_LABELS: Record<PostType, string> = {
 @Component({
   selector: 'app-manage-post-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    DialogWrapperComponent,
-    PostContentPreviewComponent,
-    SubmitButtonComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, PostContentPreviewComponent],
   templateUrl: './manage-post-dialog.component.html',
 })
 export class ManagePostDialogComponent {

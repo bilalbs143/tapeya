@@ -1,32 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
+import { MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { PushNotificationService } from 'src/app/services/push-notification.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 @Component({
   selector: 'app-send-notification-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDivider,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './send-notification-dialog.component.html',
 })
 export class SendNotificationDialogComponent {

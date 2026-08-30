@@ -1,19 +1,19 @@
 <div class="flex flex-col">
   <mat-card class="cardWithShadow overflow-hidden">
-    <mat-card-content class="p-6">
+    <mat-card-content>
       <app-page-header
         title="System Settings"
         subtitle="Values apply immediately after save. Secrets are stored encrypted on the server."
         [showFiltersToggle]="false"
       >
         <ng-container pageActions>
-          <button
-            mat-stroked-button
+          <app-ui-button
+            variant="secondary"
             type="button"
             (click)="load()"
           >
             Refresh
-          </button>
+          </app-ui-button>
         </ng-container>
       </app-page-header>
     </mat-card-content>
@@ -21,7 +21,7 @@
     <mat-divider></mat-divider>
 
     @if (isLoading) {
-      <mat-card-content class="p-6 flex justify-center">
+      <mat-card-content class="flex justify-center">
         <app-loader-block label="Loading settings" />
       </mat-card-content>
     } @else {
@@ -29,113 +29,113 @@
         @if (!first) {
           <mat-divider></mat-divider>
         }
-        <mat-card-content class="p-6">
+        <mat-card-content>
           <div class="font-semibold text-dark leading-tight mb-4">{{ groupTitle(group) }}</div>
 
           <div class="flex flex-col gap-6">
             @for (s of settingsForGroup(group); track s.key) {
-              <div
-                class="grid items-start gap-y-2 gap-x-4 md:grid-cols-[minmax(180px,260px)_1fr_auto] md:items-center md:gap-y-4 md:gap-x-6"
-              >
-                <div class="pt-0.5 md:pt-0">
-                  <div class="text-sm font-medium text-dark">{{ s.label }}</div>
-                  @if (s.description) {
-                    <div class="text-xs text-muted mt-1 leading-relaxed">{{ s.description }}</div>
-                  }
-                </div>
-
-                <div class="w-full">
-                  @if (s.field_type === 'dropdown') {
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-full hide-hint"
-                    >
-                      <mat-select
-                        [(ngModel)]="drafts[s.key]"
-                        [name]="'d-' + s.key"
-                        [placeholder]="dropdownPlaceholder"
+              <div class="flex flex-col gap-1.5">
+                <div class="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
+                  <div class="min-w-0 w-full flex-1">
+                    @if (s.field_type === 'dropdown') {
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full hide-hint"
                       >
-                        @for (opt of s.values ?? []; track opt) {
-                          <mat-option [value]="opt">{{ opt }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  } @else if (s.field_type === 'textarea') {
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-full hide-hint"
-                    >
-                      <textarea
-                        matInput
-                        rows="3"
-                        [(ngModel)]="drafts[s.key]"
-                        [name]="'v-' + s.key"
-                      ></textarea>
-                    </mat-form-field>
-                  } @else if (s.field_type === 'number') {
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-full hide-hint"
-                    >
-                      <input
-                        matInput
-                        type="number"
-                        [(ngModel)]="drafts[s.key]"
-                        [name]="'n-' + s.key"
-                      />
-                    </mat-form-field>
-                  } @else if (isSecretField(s)) {
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-full hide-hint"
-                    >
-                      <input
-                        matInput
-                        [type]="secretInputType(s)"
-                        [(ngModel)]="drafts[s.key]"
-                        [name]="'t-' + s.key"
-                        autocomplete="off"
-                        spellcheck="false"
-                      />
-                      <button
-                        matSuffix
-                        type="button"
-                        class="me-2.5 row-action"
-                        [attr.aria-label]="secretShown[s.key] ? 'Hide value' : 'Show value'"
-                        (click)="toggleSecretVisibility(s.key)"
+                        <mat-label>{{ s.label }}</mat-label>
+                        <mat-select
+                          [(ngModel)]="drafts[s.key]"
+                          [name]="'d-' + s.key"
+                          [placeholder]="dropdownPlaceholder"
+                        >
+                          @for (opt of s.values ?? []; track opt) {
+                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    } @else if (s.field_type === 'textarea') {
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full hide-hint"
                       >
-                        <i-tabler
-                          [name]="secretShown[s.key] ? 'eye-off' : 'eye'"
-                          class="size-4.5!"
-                        ></i-tabler>
-                      </button>
-                    </mat-form-field>
-                  } @else {
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-full hide-hint"
-                    >
-                      <input
-                        matInput
-                        type="text"
-                        [(ngModel)]="drafts[s.key]"
-                        [name]="'t-' + s.key"
-                      />
-                    </mat-form-field>
-                  }
-                </div>
+                        <mat-label>{{ s.label }}</mat-label>
+                        <textarea
+                          matInput
+                          rows="3"
+                          [(ngModel)]="drafts[s.key]"
+                          [name]="'v-' + s.key"
+                        ></textarea>
+                      </mat-form-field>
+                    } @else if (s.field_type === 'number') {
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full hide-hint"
+                      >
+                        <mat-label>{{ s.label }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          [(ngModel)]="drafts[s.key]"
+                          [name]="'n-' + s.key"
+                        />
+                      </mat-form-field>
+                    } @else if (isSecretField(s)) {
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full hide-hint"
+                      >
+                        <mat-label>{{ s.label }}</mat-label>
+                        <input
+                          matInput
+                          [type]="secretInputType(s)"
+                          [(ngModel)]="drafts[s.key]"
+                          [name]="'t-' + s.key"
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                        <button
+                          matSuffix
+                          type="button"
+                          class="row-action"
+                          [attr.aria-label]="secretShown[s.key] ? 'Hide value' : 'Show value'"
+                          (click)="toggleSecretVisibility(s.key)"
+                        >
+                          <i-tabler
+                            [name]="secretShown[s.key] ? 'eye-off' : 'eye'"
+                            class="size-4.5!"
+                          ></i-tabler>
+                        </button>
+                      </mat-form-field>
+                    } @else {
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full hide-hint"
+                      >
+                        <mat-label>{{ s.label }}</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          [(ngModel)]="drafts[s.key]"
+                          [name]="'t-' + s.key"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
 
-                <div class="md:self-center">
-                  <button
-                    mat-flat-button
-                    color="primary"
+                  <app-ui-button
+                    class="shrink-0 self-stretch md:self-auto"
+                    variant="primary"
                     type="button"
                     [disabled]="!isDirty(s) || saving[s.key]"
                     (click)="save(s)"
                   >
                     {{ saving[s.key] ? 'Saving…' : 'Save' }}
-                  </button>
+                  </app-ui-button>
                 </div>
+
+                @if (s.description) {
+                  <p class="text-xs text-muted m-0 leading-relaxed">{{ s.description }}</p>
+                }
               </div>
             }
           </div>

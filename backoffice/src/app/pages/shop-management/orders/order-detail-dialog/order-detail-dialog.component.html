@@ -102,7 +102,7 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary font-semibold"
+                  class="font-semibold"
                 >
                   Product
                 </th>
@@ -117,7 +117,7 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary font-semibold text-right"
+                  class="font-semibold text-right"
                 >
                   Qty
                 </th>
@@ -133,7 +133,7 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary font-semibold text-right"
+                  class="font-semibold text-right"
                 >
                   Unit Price
                 </th>
@@ -149,7 +149,7 @@
                 <th
                   mat-header-cell
                   *matHeaderCellDef
-                  class="bg-light-secondary font-semibold text-right"
+                  class="font-semibold text-right"
                 >
                   Total
                 </th>
@@ -343,14 +343,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="paymentUpdated"
+        variant="secondary"
       >
         Close
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

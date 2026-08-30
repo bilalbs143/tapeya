@@ -1,24 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { finalize, type Observable } from 'rxjs';
 
 import { liveStreamStatusLabel } from '../live-stream.utils';
 
+import { MaterialModule } from 'src/app/material.module';
 import { LiveStreamService, type LiveStreamPayload } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface LiveStreamDialogData {
   matchId: number;
@@ -33,21 +25,7 @@ type CopyField = 'rtmp' | 'key' | 'backup';
 @Component({
   selector: 'app-live-stream-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTooltipModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    LoaderComponent,
-  ],
+  imports: [CommonModule, FormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './live-stream-dialog.component.html',
 })
 export class LiveStreamDialogComponent implements OnInit {

@@ -4,60 +4,74 @@
     class="py-16"
   />
 } @else if (campaign) {
-  <div class="flex flex-col">
-    <mat-card class="cardWithShadow mb-3!">
-      <mat-card-content class="p-4 pb-0 sm:p-6 sm:pb-0">
-        <app-page-header
-          [showTitle]="false"
-          [showFiltersToggle]="false"
+  <app-detail-page>
+    <ng-container detailHeader>
+      <app-page-header
+        [title]="campaign.tournament_name"
+        [subtitle]="campaign.is_linked ? 'Linked Tournament' : 'Custom Title'"
+        [showFiltersToggle]="false"
+      >
+        <app-status-chip
+          titleBadge
+          [status]="campaign.status"
+          [label]="campaign.status_label"
         />
-      </mat-card-content>
-      <mat-card-content class="p-4 pt-2 sm:p-6 sm:pt-2">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="min-w-0">
-            <h1 class="text-xl font-semibold m-0 truncate">{{ campaign.tournament_name }}</h1>
-            <p class="text-sm text-muted m-0 mt-1">
-              {{ campaign.is_linked ? 'Linked Tournament' : 'Custom Title' }}
-            </p>
-          </div>
-          <app-status-chip
-            [status]="campaign.status"
-            [label]="campaign.status_label"
-            class="shrink-0"
-          />
-        </div>
+        <ng-container pageActions>
+          @if (showSubmissionSearch) {
+            <app-ui-button
+              type="button"
+              variant="ghost"
+              (click)="runClearSubmissionSearch()"
+            >
+              Clear Search
+            </app-ui-button>
+            <app-ui-button
+              type="button"
+              variant="secondary"
+              (click)="runSearchSubmissions()"
+            >
+              Search
+            </app-ui-button>
+          }
+        </ng-container>
+      </app-page-header>
+    </ng-container>
 
-        <nav
-          mat-tab-nav-bar
-          [tabPanel]="tabPanel"
-          mat-stretch-tabs="false"
-          mat-align-tabs="start"
-          class="mt-4 border-t border-border pt-1"
-        >
-          <a
-            mat-tab-link
-            routerLink="overview"
-            routerLinkActive
-            #rlaO="routerLinkActive"
-            [active]="rlaO.isActive"
-          >
-            Overview
-          </a>
-          <a
-            mat-tab-link
-            routerLink="submissions"
-            routerLinkActive
-            #rlaS="routerLinkActive"
-            [active]="rlaS.isActive"
-          >
-            Submissions
-          </a>
-        </nav>
-      </mat-card-content>
-    </mat-card>
+    <nav
+      detailTabs
+      mat-tab-nav-bar
+      [tabPanel]="tabPanel"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+    >
+      <a
+        mat-tab-link
+        routerLink="overview"
+        routerLinkActive
+        #rlaO="routerLinkActive"
+        [active]="rlaO.isActive"
+      >
+        Overview
+      </a>
+      <a
+        mat-tab-link
+        routerLink="submissions"
+        routerLinkActive
+        #rlaS="routerLinkActive"
+        [active]="rlaS.isActive"
+      >
+        Submissions
+      </a>
+    </nav>
 
-    <mat-tab-nav-panel #tabPanel>
-      <router-outlet />
+    <mat-tab-nav-panel
+      detailBody
+      #tabPanel
+    >
+      <router-outlet
+        (activate)="onOutletActivate($event)"
+        (deactivate)="onOutletDeactivate()"
+      />
     </mat-tab-nav-panel>
-  </div>
+  </app-detail-page>
 }

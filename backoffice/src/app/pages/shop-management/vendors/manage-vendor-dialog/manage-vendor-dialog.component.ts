@@ -2,25 +2,19 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { Country } from 'src/app/services/location.service';
 import { LocationService } from 'src/app/services/location.service';
 import type { Vendor, VendorSavePayload } from 'src/app/services/shop/vendor.service';
 import { VendorService } from 'src/app/services/shop/vendor.service';
 import { type UserSearchRow, UsersService } from 'src/app/services/users.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
 export interface ManageVendorDialogData {
@@ -31,21 +25,7 @@ export interface ManageVendorDialogData {
 @Component({
   selector: 'app-manage-vendor-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatIconModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './manage-vendor-dialog.component.html',
 })
 export class ManageVendorDialogComponent implements OnInit, OnDestroy {

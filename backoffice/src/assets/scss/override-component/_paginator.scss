@@ -1,8 +1,157 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 
+/*
+ * Table footer density:
+ *   bar: 9px 20px · bg --table-header · hairline top
+ *   controls: 30px page-size select + 30px nav
+ *
+ * Material defaults: container min-height 56px, form-field 40px —
+ * those fight this density. Also global _form-field.scss reserves
+ * label-above padding on every mat-form-field; the paginator select has no
+ * label.
+ */
 @include mat.paginator-overrides(
   (
-    container-background-color: var(--mat-card-elevated-container-color),
+    container-background-color: transparent,
+    container-size: 30px,
+    container-text-size: 12.5px,
+    container-text-line-height: 1.2,
+    form-field-container-height: 30px,
+    form-field-container-vertical-padding: 0,
+    select-trigger-text-size: 12.5px,
+    page-size-select-width: 88px,
+    page-size-select-touch-target-height: 30px,
+    touch-target-display: none,
   )
 );
+
+.list-paginator {
+  .mat-mdc-paginator {
+    background: transparent;
+    --mat-paginator-container-size: 30px;
+    --mat-paginator-form-field-container-height: 30px;
+    --mat-paginator-form-field-container-vertical-padding: 0;
+    --mat-form-field-container-height: 30px;
+    --mat-form-field-container-vertical-padding: 0;
+  }
+
+  .mat-mdc-paginator-container {
+    padding: 0 !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .mat-mdc-paginator-page-size {
+    margin: 0 8px 0 0 !important;
+    height: 30px;
+    align-items: center !important; // Material defaults to baseline → misaligned
+  }
+
+  .mat-mdc-paginator-page-size-label {
+    margin: 0 8px 0 0 !important;
+    font-size: 12.5px;
+    line-height: 30px;
+    height: 30px;
+    color: var(--n-60);
+  }
+
+  .mat-mdc-paginator-page-size-select,
+  .mat-mdc-paginator-page-size .mat-mdc-form-field {
+    width: 88px !important;
+    min-width: 88px !important;
+    margin: 0 !important;
+    padding-top: 0 !important; // cancel the label-above reserved space
+    height: 30px !important;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-text-field-wrapper {
+    height: 30px !important;
+    border-radius: 7px;
+    box-shadow: none;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-form-field-flex {
+    height: 30px !important;
+    padding: 0 8px !important;
+    gap: 2px;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-form-field-infix {
+    min-height: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    width: auto !important;
+  }
+
+  .mat-mdc-paginator-page-size .mdc-floating-label,
+  .mat-mdc-paginator-page-size .mat-mdc-floating-label,
+  .mat-mdc-paginator-page-size .mat-mdc-form-field-label {
+    display: none !important;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-select {
+    line-height: 30px !important;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-select-value,
+  .mat-mdc-paginator-page-size .mat-mdc-select-value-text {
+    font-size: 12.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .mat-mdc-paginator-page-size .mat-mdc-select-arrow-wrapper {
+    transform: none !important;
+    height: 30px;
+    display: flex;
+    align-items: center;
+  }
+
+  .mat-mdc-paginator-touch-target {
+    display: none !important;
+  }
+
+  .mat-mdc-paginator-range-actions {
+    margin: 0 !important;
+    height: 30px;
+    align-items: center;
+  }
+
+  /*
+   * Nav icons: Material centers via padding = (state-layer − icon-size) / 2.
+   * We forced padding:0 for density, which left the SVG top-start while the
+   * hover ripple still filled the 30×30 box — hover looked off-center.
+   * Grid + place-items restores a true center for icon and state layer.
+   */
+  .mat-mdc-paginator-range-actions .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center;
+    line-height: 0;
+    --mat-icon-button-state-layer-size: 30px;
+    --mat-icon-button-icon-size: 14px;
+    --mdc-icon-button-state-layer-size: 30px;
+  }
+
+  .mat-mdc-paginator-range-actions .mat-mdc-icon-button .mat-mdc-button-touch-target {
+    width: 30px;
+    height: 30px;
+  }
+
+  .mat-mdc-paginator-range-actions .mat-mdc-icon-button .mat-mdc-button-persistent-ripple,
+  .mat-mdc-paginator-range-actions .mat-mdc-icon-button .mat-mdc-button-persistent-ripple::before,
+  .mat-mdc-paginator-range-actions .mat-mdc-icon-button .mat-mdc-button-ripple {
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .mat-mdc-paginator-icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+    margin: 0;
+  }
+}

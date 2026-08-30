@@ -13,14 +13,14 @@
       </p>
     </mat-dialog-content>
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
     </mat-dialog-actions>
   } @else {
     <form
@@ -31,22 +31,23 @@
         <div class="grid grid-cols-12 gap-x-6">
           @if (showMatchGroupMode) {
             <div class="col-span-12">
-              <mat-label class="text-sm font-semibold mb-2 block">Match Type <span class="text-error">*</span></mat-label>
-              <mat-radio-group
-                formControlName="match_group_mode"
-                class="flex flex-wrap gap-4"
-              >
-                @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
-                  <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
-                }
-              </mat-radio-group>
-              <p class="text-xs text-muted m-0 mt-2 leading-relaxed">
-                Group-wise limits team picks to one group; open group allows any tournament teams (e.g. knockout).
-              </p>
+              <fieldset class="field-group-fieldset">
+                <legend class="field-group-label">Match Type <span class="text-error">*</span></legend>
+                <mat-radio-group
+                  formControlName="match_group_mode"
+                  class="flex flex-wrap gap-4"
+                >
+                  @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
+                    <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+                  }
+                </mat-radio-group>
+                <p class="text-xs text-muted m-0 mt-2 leading-relaxed">
+                  Group-wise limits team picks to one group; open group allows any tournament teams (e.g. knockout).
+                </p>
+              </fieldset>
             </div>
             @if (form.controls.match_group_mode.value === 'group_wise') {
               <div class="col-span-12 sm:col-span-6">
-                <mat-label class="text-sm font-semibold mb-2 block">Group <span class="text-error">*</span></mat-label>
                 <mat-form-field
                   appearance="outline"
                   class="w-full"
@@ -72,7 +73,6 @@
           }
 
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Home Team <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
@@ -96,7 +96,6 @@
             </mat-form-field>
           </div>
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Away Team <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
@@ -121,11 +120,11 @@
           </div>
 
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Match Date <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Match Date</mat-label>
               <input
                 matInput
                 formControlName="match_date"
@@ -149,12 +148,11 @@
             </mat-form-field>
           </div>
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Match Time <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
-              <mat-label>Time</mat-label>
+              <mat-label>Match Time</mat-label>
               <input
                 matInput
                 type="time"
@@ -167,11 +165,11 @@
           </div>
 
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Venue <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Venue</mat-label>
               <input
                 matInput
                 formControlName="venue_name"
@@ -191,11 +189,11 @@
           </div>
 
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Players Per Side <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Players Per Side</mat-label>
               <input
                 matInput
                 type="number"
@@ -218,11 +216,11 @@
             </mat-form-field>
           </div>
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Overs <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Overs</mat-label>
               <input
                 matInput
                 type="number"
@@ -256,14 +254,14 @@
         </div>
       </mat-dialog-content>
       <mat-divider></mat-divider>
-      <mat-dialog-actions>
-        <button
+      <mat-dialog-actions class="dialog-actions">
+        <app-ui-button
           type="button"
-          mat-stroked-button
           [mat-dialog-close]="false"
+          variant="secondary"
         >
           Cancel
-        </button>
+        </app-ui-button>
 
         <app-submit-button
           [disabled]="form.invalid"

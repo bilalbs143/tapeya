@@ -33,11 +33,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Status</mat-label>
             <mat-select
               formControlName="status"
               placeholder="Select Status"
@@ -52,17 +52,19 @@
         </div>
 
         <div class="col-span-12 mb-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Slide Action <span class="text-error">*</span></mat-label>
-          <mat-radio-group
-            formControlName="cta_type"
-            class="flex flex-wrap items-center gap-4"
-          >
-            @if (ctaTypeOptions$ | async; as ctaTypeOptions) {
-              @for (opt of ctaTypeOptions; track opt.value) {
-                <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Slide Action <span class="text-error">*</span></legend>
+            <mat-radio-group
+              formControlName="cta_type"
+              class="flex flex-wrap items-center gap-4"
+            >
+              @if (ctaTypeOptions$ | async; as ctaTypeOptions) {
+                @for (opt of ctaTypeOptions; track opt.value) {
+                  <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+                }
               }
-            }
-          </mat-radio-group>
+            </mat-radio-group>
+          </fieldset>
           <p class="text-muted text-xs mt-1 m-0">
             Image Only Is A Banner. Link Opens A URL. Open Dialog Shows An In-App Dialog On Tap.
           </p>
@@ -70,11 +72,11 @@
 
         @if (ctaType === 'url') {
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">CTA Label</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>CTA Label</mat-label>
               <input
                 matInput
                 formControlName="cta_label"
@@ -85,11 +87,11 @@
           </div>
 
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">CTA URL <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>CTA URL <span class="text-error">*</span></mat-label>
               <input
                 matInput
                 formControlName="cta_url"
@@ -111,7 +113,7 @@
           </div>
 
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Open In External Browser</mat-label>
+            <p class="field-group-label">Open In External Browser</p>
             <mat-checkbox
               formControlName="cta_target_blank"
               color="primary"
@@ -126,11 +128,11 @@
 
         @if (ctaType === 'dialog') {
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">CTA Label</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>CTA Label</mat-label>
               <input
                 matInput
                 formControlName="cta_label"
@@ -141,11 +143,11 @@
           </div>
 
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Dialog Key <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Dialog Key <span class="text-error">*</span></mat-label>
               <input
                 matInput
                 formControlName="cta_dialog_key"
@@ -158,11 +160,11 @@
 
           @if (isInterestCampaign) {
             <div class="col-span-12 lg:col-span-6">
-              <mat-label class="text-sm font-semibold mb-2 block">Campaign Slug <span class="text-error">*</span></mat-label>
               <mat-form-field
                 appearance="outline"
                 class="w-full"
               >
+                <mat-label>Campaign Slug <span class="text-error">*</span></mat-label>
                 <input
                   matInput
                   formControlName="cta_dialog_param"
@@ -178,14 +180,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

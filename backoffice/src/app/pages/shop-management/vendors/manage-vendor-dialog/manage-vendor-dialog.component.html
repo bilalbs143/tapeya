@@ -7,11 +7,11 @@
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">User <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>User <span class="text-error">*</span></mat-label>
             <mat-chip-grid
               #userChipGrid
               aria-label="Vendor User"
@@ -62,11 +62,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Store Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Store Name</mat-label>
             <input
               matInput
               formControlName="store_name"
@@ -78,11 +78,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Slug</mat-label>
             <input
               matInput
               formControlName="slug"
@@ -96,11 +96,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Description</mat-label>
             <textarea
               matInput
               formControlName="description"
@@ -111,11 +111,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Phone</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Phone</mat-label>
             <input
               matInput
               formControlName="phone"
@@ -124,11 +124,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Email</mat-label>
             <input
               matInput
               type="email"
@@ -142,11 +142,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Address</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Address</mat-label>
             <input
               matInput
               formControlName="address"
@@ -155,11 +155,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Country</mat-label>
             <mat-select
               formControlName="country"
               placeholder="Select Country"
@@ -172,11 +172,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">City</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>City</mat-label>
             <mat-select
               formControlName="city"
               placeholder="Select City"
@@ -190,11 +190,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Commission Rate (%)</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Commission Rate (%)</mat-label>
             <input
               matInput
               type="number"
@@ -210,11 +210,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Default Shipping (PKR)</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Default Shipping (PKR)</mat-label>
             <input
               matInput
               type="number"
@@ -230,11 +230,11 @@
         </div>
         @if (!isEdit) {
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Status</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Status</mat-label>
               <mat-select formControlName="status">
                 <mat-option value="pending">Pending</mat-option>
                 <mat-option value="approved">Approved</mat-option>
@@ -246,14 +246,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

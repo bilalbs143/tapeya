@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Post Reports"
       subtitle="Review posts reported by users"
@@ -7,32 +7,31 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
-          Clear
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+          Clear Search
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
       <app-search-filter-bar>
         <div>
@@ -55,200 +54,210 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Post reports list"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="preview">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Preview
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              @if (previewUrl(row); as src) {
-                <app-table-image
-                  [src]="src"
-                  alt="Post preview"
-                />
-              } @else if (row.post?.type === 'text') {
-                <span class="text-xs text-secondary">Text</span>
-              } @else {
-                {{ emptyCell }}
-              }
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="caption">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Post
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[260px]"
-            >
-              <div class="flex flex-col gap-0.5">
-                @if (row.post?.type) {
-                  <span class="text-xs text-secondary capitalize">{{ row.post.type }}</span>
-                }
-                <span
-                  class="line-clamp-2 leading-snug"
-                  [title]="row.post?.caption || row.post?.body || ''"
-                >
-                  {{ row.post?.caption || row.post?.body || emptyCell }}
-                </span>
-              </div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="reason">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="reason"
-              class="bg-light-secondary font-semibold"
-            >
-              Reason
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ reasonLabel(row.reason) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="reporter">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Reporter
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ reporterLabel(row) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="status"
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="statusLabel(row.status)"
-              />
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Created At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd') : emptyCell }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Update report status"
-                (click)="openUpdateDialog(row)"
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Post Reports"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Post Reports List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                <i-tabler
-                  name="edit"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
 
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+            <ng-container matColumnDef="preview">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Preview
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                @if (previewUrl(row); as src) {
+                  <app-table-image
+                    [src]="src"
+                    alt="Post preview"
+                  />
+                } @else if (row.post?.type === 'text') {
+                  <span class="text-xs text-secondary">Text</span>
+                } @else {
+                  {{ emptyCell }}
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="caption">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Post
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[260px]"
+              >
+                <div class="flex flex-col gap-0.5">
+                  @if (row.post?.type) {
+                    <span class="text-xs text-secondary capitalize">{{ row.post.type }}</span>
+                  }
+                  <span
+                    class="line-clamp-2 leading-snug"
+                    [title]="row.post?.caption || row.post?.body || ''"
+                  >
+                    {{ row.post?.caption || row.post?.body || emptyCell }}
+                  </span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="reason">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="reason"
+                class="font-semibold"
+              >
+                Reason
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ reasonLabel(row.reason) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="reporter">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Reporter
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ reporterLabel(row) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="status"
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="statusLabel(row.status)"
+                />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Created At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd') : emptyCell }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Update Report Status"
+                    (click)="openUpdateDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
 
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

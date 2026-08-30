@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import {
   QuickMatchesService,
@@ -12,10 +11,7 @@ import {
   type QuickMatchRow,
   type QuickMatchSide,
 } from 'src/app/services/quick-matches.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { environment } from 'src/environments/environment';
 
@@ -26,17 +22,7 @@ export interface QuickMatchDetailDialogData {
 @Component({
   selector: 'app-quick-match-detail-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    LoaderBlockComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, MaterialModule, CommonSharedModule, TablerIconsModule],
   templateUrl: './quick-match-detail-dialog.component.html',
 })
 export class QuickMatchDetailDialogComponent implements OnInit {

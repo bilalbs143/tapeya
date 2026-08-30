@@ -7,11 +7,11 @@
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Name</mat-label>
             <input
               matInput
               formControlName="name"
@@ -23,11 +23,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Slug</mat-label>
             <input
               matInput
               formControlName="slug"
@@ -40,11 +40,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Parent Category</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Parent Category</mat-label>
             <mat-select
               formControlName="parent_id"
               placeholder="None"
@@ -57,11 +57,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Sort Order</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Sort Order</mat-label>
             <input
               matInput
               type="number"
@@ -74,10 +74,16 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6 mb-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Active</mat-label>
+          <p
+            id="category-active-label"
+            class="field-group-label"
+          >
+            Active
+          </p>
           <mat-slide-toggle
             formControlName="is_active"
             color="primary"
+            aria-labelledby="category-active-label"
           ></mat-slide-toggle>
         </div>
         <div class="col-span-12">
@@ -93,14 +99,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

@@ -18,62 +18,6 @@ import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/
   template: `<ng-content></ng-content>`,
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styles: [
-    `
-      app-search-filter-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      app-search-filter-bar .mat-mdc-form-field {
-        width: 100%;
-        margin-bottom: 0;
-      }
-
-      /* Every field in a filter bar hides its hint/error subscript row — filter fields never
-         show validation, and this keeps every field's height identical regardless of whether
-         its author remembered the \`hide-hint\` class. */
-      app-search-filter-bar .mat-mdc-form-field-subscript-wrapper {
-        display: none;
-      }
-
-      /* Desktop: 1–3 filters stay compact */
-      app-search-filter-bar > * {
-        flex: 0 1 22rem;
-        min-width: 10rem;
-        max-width: 22rem;
-      }
-
-      /* Desktop: 4+ filters fill the row with equal columns */
-      app-search-filter-bar:has(> :nth-child(4)) > * {
-        flex: 1 1 0%;
-        max-width: none;
-        min-width: 10rem;
-      }
-
-      @media (min-width: 768px) and (max-width: 1023px) {
-        app-search-filter-bar > * {
-          flex: 1 1 calc(50% - 0.5rem);
-          max-width: none;
-          min-width: 0;
-        }
-
-        app-search-filter-bar:not(:has(> :nth-child(4))) > * {
-          flex: 0 1 calc(50% - 0.5rem);
-          max-width: 22rem;
-        }
-      }
-
-      @media (max-width: 767px) {
-        app-search-filter-bar > * {
-          flex: 1 1 100%;
-          max-width: none;
-          min-width: 0;
-        }
-      }
-    `,
-  ],
+  styleUrl: './search-filter-bar.component.scss',
 })
 export class SearchFilterBarComponent {}

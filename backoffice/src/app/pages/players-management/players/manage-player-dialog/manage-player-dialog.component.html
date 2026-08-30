@@ -2,7 +2,7 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Player form"
+    aria-label="Player Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
@@ -17,11 +17,11 @@
 
         <!-- Row 1: Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Name</mat-label>
             <input
               matInput
               formControlName="name"
@@ -33,11 +33,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Nickname <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Nickname</mat-label>
             <input
               matInput
               formControlName="nickname"
@@ -51,11 +51,11 @@
 
         <!-- Row 2: Email | Phone | Date of Birth -->
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Email</mat-label>
             <input
               matInput
               type="email"
@@ -65,11 +65,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Phone</mat-label>
             <input
               matInput
               formControlName="phone"
@@ -82,11 +82,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Date of Birth</mat-label>
             <input
               matInput
               formControlName="date_of_birth"
@@ -102,11 +102,11 @@
         </div>
         <!-- Row 3: Playing Role | Bowling Style | Batting Style -->
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Playing Role</mat-label>
             <mat-select
               formControlName="playing_role"
               placeholder="Select Playing Role"
@@ -121,11 +121,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Bowling Style</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Bowling Style</mat-label>
             <mat-select
               formControlName="bowling_style"
               placeholder="Select Bowling Style"
@@ -140,11 +140,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Batting Style</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Batting Style</mat-label>
             <mat-select
               formControlName="batting_style"
               placeholder="Select Batting Style"
@@ -161,11 +161,11 @@
 
         <!-- Row 5: Country | City -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Country</mat-label>
             <mat-select
               formControlName="country"
               placeholder="Select Country"
@@ -178,11 +178,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">City</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>City</mat-label>
             <mat-select
               formControlName="city"
               placeholder="Select City"
@@ -198,14 +198,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

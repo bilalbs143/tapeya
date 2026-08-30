@@ -6,16 +6,16 @@
   >
     <mat-dialog-content>
       <p class="text-sm text-secondary m-0 mb-4">{{ data.message }}</p>
-      <mat-label class="text-sm font-semibold mb-2 block">
-        {{ data.reasonLabel ?? 'Reason' }}
-        @if (data.reasonRequired) {
-          <span class="text-error">*</span>
-        }
-      </mat-label>
       <mat-form-field
         appearance="outline"
         class="w-full"
       >
+        <mat-label
+          >{{ data.reasonLabel ?? 'Reason' }}
+          @if (data.reasonRequired) {
+            <span class="text-error">*</span>
+          }
+        </mat-label>
         <textarea
           matInput
           formControlName="reason"
@@ -29,14 +29,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="null"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [text]="data.confirmText"
         color="primary"

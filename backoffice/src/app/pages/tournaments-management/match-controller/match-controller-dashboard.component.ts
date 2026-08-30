@@ -2,7 +2,6 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, NgZone, OnInit, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
@@ -67,6 +66,19 @@ export interface BatterCommandCardView {
   pick: MatchGraphicPlayerPick | null;
 }
 
+/** Controller catalog layout bands (order matches GraphicCommandTypeEnum). */
+const CATALOG_LAYOUT_BANDS: ReadonlyArray<{ id: string; groupIds: readonly string[] }> = [
+  { id: 'lower-third', groupIds: ['LOWER_THIRD'] },
+  { id: 'full-screen', groupIds: ['FULL_SCREEN'] },
+  {
+    id: 'features',
+    groupIds: ['TOUR_HITS', 'FULL_SCREEN_TRANSITION', 'BREAK', 'TOURNAMENT', 'CHART'],
+  },
+  { id: 'players', groupIds: ['BATSMAN_STATS', 'BOWLER_STATS', 'CAPTION'] },
+];
+
+type CatalogLayoutBand = { id: string; groups: GraphicCatalogGroup[] };
+
 @Component({
   selector: 'app-match-controller-dashboard',
   standalone: true,
@@ -74,7 +86,6 @@ export interface BatterCommandCardView {
     CommonModule,
     FormsModule,
     MatCardModule,
-    MatButtonModule,
     MatChipsModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -163,6 +174,16 @@ export class MatchControllerDashboardComponent implements OnInit {
       return fromCtx;
     }
     return 'This match is complete.';
+  }
+
+  public get headerSubtitle(): string {
+    if (!this.match) {
+      return '';
+    }
+    const home = this.match.home_team?.name ?? 'Home';
+    const away = this.match.away_team?.name ?? 'Away';
+    const when = [this.match.match_date, this.match.match_time].filter(Boolean).join(' ');
+    return when ? `${home} · vs · ${away} — ${when}` : `${home} · vs · ${away}`;
   }
 
   public ngOnInit(): void {
@@ -501,9 +522,9 @@ export class MatchControllerDashboardComponent implements OnInit {
   public confirmClearRecentCommands(): void {
     this.messageService
       .prompt(
-        'Clear recent commands',
+        'Clear Recent Commands',
         'Remove all command history for this match? The active on-air graphic will be cleared.',
-        'Clear all',
+        'Clear All',
         'Cancel'
       )
       .afterClosed()
@@ -576,9 +597,29 @@ export class MatchControllerDashboardComponent implements OnInit {
     return graphicActionTooltip(a, this.dispatchContext());
   }
 
-  /** Groups with many actions span the full catalog row so buttons use horizontal space. */
-  public isWideCatalogGroup(group: GraphicCatalogGroup): boolean {
-    return group.actions.length > 12;
+  /** Catalog panels grouped into fixed layout bands for the controller grid. */
+  public get catalogBands(): CatalogLayoutBand[] {
+    const byId = new Map(this.catalogGroups.map((group) => [group.id, group]));
+    const used = new Set<string>();
+    const bands: CatalogLayoutBand[] = [];
+
+    for (const band of CATALOG_LAYOUT_BANDS) {
+      const groups = band.groupIds.map((id) => byId.get(id)).filter((group): group is GraphicCatalogGroup => group != null);
+      if (groups.length === 0) {
+        continue;
+      }
+      for (const group of groups) {
+        used.add(group.id);
+      }
+      bands.push({ id: band.id, groups });
+    }
+
+    const rest = this.catalogGroups.filter((group) => !used.has(group.id));
+    if (rest.length > 0) {
+      bands.push({ id: 'other', groups: rest });
+    }
+
+    return bands;
   }
 
   /** Firing a graphic command for a player-controller card with an explicit pick. */

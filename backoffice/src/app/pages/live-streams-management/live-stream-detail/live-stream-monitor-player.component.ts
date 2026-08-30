@@ -1,17 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { liveStreamMonitorMessage, liveStreamOpenUrl } from '../live-stream-playback.utils';
 
 import type { LiveStreamPlayback, LiveStreamStatus } from 'src/app/services/live-stream.service';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 @Component({
   selector: 'app-live-stream-monitor-player',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, CommonSharedModule],
   templateUrl: './live-stream-monitor-player.component.html',
 })
 export class LiveStreamMonitorPlayerComponent implements OnChanges {
@@ -43,6 +43,10 @@ export class LiveStreamMonitorPlayerComponent implements OnChanges {
 
   public get showThumbnailFallback(): boolean {
     return !this.showIframe && !this.showHls && !!this.thumbnailUrl;
+  }
+
+  public openExternal(url: string): void {
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   private recompute(): void {

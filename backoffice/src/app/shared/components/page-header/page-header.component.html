@@ -1,36 +1,28 @@
-<div class="flex flex-wrap items-center justify-between gap-3">
-  <div class="flex items-center gap-3 min-w-0">
-    @if (showTitle && resolvedIcon) {
-      <div class="size-10 rounded-md bg-light-primary text-primary flex items-center justify-center shrink-0">
-        <span
-          class="iconify text-[20px]"
-          [attr.data-icon]="resolvedIcon"
-        ></span>
-      </div>
-    }
-    <div class="min-w-0">
+<div class="page-header">
+  <div class="page-header__main">
+    <div class="page-header__titles min-w-0">
       @if (showTitle) {
-        <div class="flex items-center gap-2 flex-wrap">
-          <h1 class="text-[19px] font-semibold m-0 leading-tight tracking-tight">{{ title }}</h1>
+        <div class="page-header__identity">
+          <h1 class="page-header__title">{{ title }}</h1>
           @if (subtitle) {
-            <span class="hidden sm:inline text-muted select-none leading-none">|</span>
-            <span class="hidden sm:inline text-[13px] text-muted leading-tight">{{ subtitle }}</span>
+            <span
+              class="page-header__rule"
+              aria-hidden="true"
+            ></span>
+            <p class="page-header__subtitle">{{ subtitle }}</p>
           }
           @if (badge !== null) {
-            <span
-              class="hidden sm:inline bg-light-secondary text-secondary rounded-sm px-1.5 py-1 text-xs font-semibold leading-tight"
-            >
-              {{ badge }} Records
-            </span>
+            <span class="page-header__badge">{{ badge }} Records</span>
           }
+          <ng-content select="[titleBadge]"></ng-content>
         </div>
       }
 
       @if (showBreadcrumbs && resolvedBreadcrumbs.length) {
-        <ul class="breadcrumb items-center! m-0! mt-1!">
+        <ul class="breadcrumb items-center! m-0!">
           @for (crumb of resolvedBreadcrumbs; track $index; let last = $last) {
             @if ($index === 0) {
-              <li class="breadcrumb-item inline-flex items-center text-muted pe-1.5! text-[11px]!">
+              <li class="breadcrumb-item inline-flex items-center text-muted pe-1.5! text-[length:var(--fs-meta)]!">
                 @if (crumb.url) {
                   <a
                     [routerLink]="crumb.url"
@@ -49,21 +41,21 @@
                 }
               </li>
             } @else {
-              <li class="breadcrumb-item inline-flex items-center text-muted pe-1.5! text-[11px]!">
+              <li class="breadcrumb-item inline-flex items-center text-muted pe-1.5! text-[length:var(--fs-meta)]!">
                 <i-tabler
                   name="chevron-right"
                   class="size-3!"
                 ></i-tabler>
               </li>
               <li
-                class="breadcrumb-item inline-flex items-center pe-1.5! text-[11px]!"
+                class="breadcrumb-item inline-flex items-center pe-1.5! text-[length:var(--fs-meta)]!"
                 [class.text-muted]="!last"
                 [class.active]="last"
               >
                 @if (crumb.url && !last) {
                   <a
                     [routerLink]="crumb.url"
-                    class="text-[11px]!"
+                    class="text-[length:var(--fs-meta)]!"
                     >{{ crumb.title }}</a
                   >
                 } @else {
@@ -75,24 +67,22 @@
         </ul>
       }
     </div>
-  </div>
 
-  <div class="flex flex-col sm:flex-row items-stretch sm:items-center flex-wrap gap-2 shrink-0 min-w-0 max-w-full w-full sm:w-auto">
-    @if (showFiltersToggle) {
-      <button
-        mat-stroked-button
-        type="button"
-        (click)="filtersToggled.emit()"
-        [class.text-primary]="filtersOpen"
-        [class.border-primary]="filtersOpen"
-      >
-        <i-tabler
-          name="filter"
-          class="size-5!"
-        ></i-tabler>
-        {{ filtersOpen ? 'Hide Filters' : 'Filters' }}
-      </button>
-    }
-    <ng-content select="[pageActions]"></ng-content>
+    <div class="page-header__actions">
+      @if (showFiltersToggle) {
+        <app-ui-button
+          variant="secondary"
+          type="button"
+          (click)="filtersToggled.emit()"
+        >
+          <i-tabler
+            name="filter"
+            class="size-5!"
+          ></i-tabler>
+          {{ filtersOpen ? 'Hide Filters' : 'Filters' }}
+        </app-ui-button>
+      }
+      <ng-content select="[pageActions]"></ng-content>
+    </div>
   </div>
 </div>

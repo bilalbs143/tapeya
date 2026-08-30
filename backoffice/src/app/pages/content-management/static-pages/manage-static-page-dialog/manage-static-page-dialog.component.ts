@@ -2,18 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Editor, NgxEditorComponent, NgxEditorMenuComponent, type Toolbar } from 'ngx-editor';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { StaticPage } from 'src/app/services/static-page.service';
 import { StaticPageService } from 'src/app/services/static-page.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { NGX_EDITOR_TOOLBAR } from 'src/app/shared/constants/editor.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
@@ -25,19 +21,7 @@ export interface ManageStaticPageDialogData {
 @Component({
   selector: 'app-manage-static-page-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    NgxEditorComponent,
-    NgxEditorMenuComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, NgxEditorComponent, NgxEditorMenuComponent],
   templateUrl: './manage-static-page-dialog.component.html',
 })
 export class ManageStaticPageDialogComponent implements OnInit, OnDestroy {

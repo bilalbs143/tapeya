@@ -4,14 +4,14 @@
   </mat-dialog-content>
 
   <mat-divider></mat-divider>
-  <mat-dialog-actions>
+  <mat-dialog-actions class="dialog-actions">
     @if (data.rejectBtn) {
-      <button
-        mat-stroked-button
+      <app-ui-button
+        variant="secondary"
         mat-dialog-close
       >
         {{ data.rejectBtnText ?? 'Cancel' }}
-      </button>
+      </app-ui-button>
     }
 
     @if (!data.onlyCancel) {

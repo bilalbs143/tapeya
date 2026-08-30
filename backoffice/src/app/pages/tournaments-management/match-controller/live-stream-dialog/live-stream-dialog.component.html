@@ -11,17 +11,17 @@
         <div
           class="col-span-12 flex items-center gap-3 py-1"
           role="status"
-          aria-label="Loading stream"
+          aria-label="Loading Stream"
         >
           <app-loader [label]="null" />
         </div>
       } @else if (!hasStream) {
         <div class="col-span-12 sm:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Broadcast Privacy</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Broadcast Privacy</mat-label>
             <mat-select
               [(ngModel)]="privacy"
               [disabled]="!!activeAction"
@@ -34,11 +34,11 @@
         </div>
       } @else {
         <div class="col-span-12 sm:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Provider</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Provider</mat-label>
             <input
               matInput
               readonly
@@ -49,16 +49,16 @@
 
         @if (stream!.provider_playback_id) {
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Broadcast ID</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Broadcast ID</mat-label>
               <input
                 matInput
                 readonly
                 [value]="stream!.provider_playback_id"
-                class="text-xs font-mono"
+                class="text-xs"
               />
             </mat-form-field>
           </div>
@@ -66,16 +66,16 @@
 
         @for (row of copyFields; track row.field) {
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">{{ row.label }}</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>{{ row.label }}</mat-label>
               <input
                 matInput
                 readonly
                 [value]="row.value"
-                class="text-xs font-mono"
+                class="text-xs"
               />
               <button
                 mat-icon-button
@@ -95,14 +95,14 @@
   </mat-dialog-content>
 
   <mat-divider></mat-divider>
-  <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
-    <button
+  <mat-dialog-actions class="dialog-actions">
+    <app-ui-button
       type="button"
-      mat-stroked-button
       (click)="close()"
+      variant="secondary"
     >
       Close
-    </button>
+    </app-ui-button>
 
     @if (!loading && !hasStream) {
       <app-submit-button
@@ -118,8 +118,8 @@
 
     @if (!loading && hasStream) {
       @if (!isLive) {
-        <button
-          mat-stroked-button
+        <app-ui-button
+          variant="secondary"
           class="border border-error! text-error"
           type="button"
           [disabled]="!!activeAction"
@@ -133,7 +133,7 @@
           } @else {
             Delete Stream
           }
-        </button>
+        </app-ui-button>
       }
       <app-submit-button
         buttonType="button"

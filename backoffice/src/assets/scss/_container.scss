@@ -8,9 +8,11 @@
 
 body {
   font-family: $font-family;
-  line-height: 1.334rem;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   overflow-x: hidden;
-  color: var(--mat-sys-on-background);
+  color: var(--n-90);
+  background: var(--n-05);
 }
 
 .mainWrapper {
@@ -26,23 +28,21 @@ body {
   padding-left: 24px;
   padding-right: 24px;
   margin: 0 auto;
-
-  &.full-width {
-    display: flex;
-    align-items: center;
-    width: 100%;
-  }
 }
 
 .pageWrapper {
-  padding: 24px;
-  min-height: calc(100vh - 70px);
-
+  padding: var(--sp-6);
+  min-height: calc(100vh - #{$header-height});
   margin: 0 auto;
+  background: var(--n-05);
 
-  &.maxWidth {
-    max-width: $boxedWidth;
+  @media (max-width: 767px) {
+    padding: var(--sp-4);
   }
+}
+
+.contentWrapper {
+  background: var(--n-05);
 }
 
 .img-fluid {
@@ -51,24 +51,40 @@ body {
 }
 
 .text-muted {
-  color: var(--mat-sys-surface-container-lowest);
+  color: var(--n-60);
 }
 
 a {
-  color: var(--mat-sys-on-background);
+  color: var(--accent);
 
   &:hover {
-    color: var(--mat-sys-primary);
+    color: var(--accent-hover);
+  }
+
+  /* Icon action links (table row actions) read as neutral icon buttons, not
+     accent-colored links — .row-action lives in a Tailwind @layer, which
+     always loses to this unlayered `a` rule on specificity alone, so the
+     override has to live here too (color + hover well, same as <button>). */
+  &.row-action {
+    color: var(--n-70);
+    background: transparent;
+    text-decoration: none;
+
+    &:hover {
+      background: var(--n-10);
+      color: var(--n-90);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
   }
 }
 
 pre {
   margin: 0;
   white-space: nowrap;
-}
-
-td.hljs-ln-line.hljs-ln-numbers {
-  padding-right: 10px;
 }
 
 .mat-drawer[style*='visibility: hidden'] {

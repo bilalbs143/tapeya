@@ -4,7 +4,7 @@
       <iframe
         [src]="safeEmbedUrl"
         class="absolute inset-0 h-full w-full border-0"
-        title="Live stream monitor"
+        title="Live Stream Monitor"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen
         referrerpolicy="strict-origin-when-cross-origin"
@@ -40,30 +40,26 @@
       <mat-icon class="text-muted! size-12! text-[48px]!">live_tv</mat-icon>
       <p class="text-muted m-0 max-w-md text-sm leading-relaxed">{{ emptyMessage }}</p>
       @if (openUrl) {
-        <a
-          mat-stroked-button
-          color="primary"
-          [href]="openUrl"
-          target="_blank"
-          rel="noopener noreferrer"
+        <app-ui-button
+          variant="secondary"
+          type="button"
+          (click)="openExternal(openUrl!)"
         >
           Open Stream URL
-        </a>
+        </app-ui-button>
       }
     </div>
   }
 
   @if ((showIframe || showHls) && openUrl) {
     <div class="flex justify-end border-t border-border bg-[var(--mat-sys-surface)] px-3 py-2">
-      <a
-        mat-button
-        color="primary"
-        [href]="openUrl"
-        target="_blank"
-        rel="noopener noreferrer"
+      <app-ui-button
+        variant="ghost"
+        type="button"
+        (click)="openExternal(openUrl!)"
       >
-        Open in new tab
-      </a>
+        Open in New Tab
+      </app-ui-button>
     </div>
   }
 </div>

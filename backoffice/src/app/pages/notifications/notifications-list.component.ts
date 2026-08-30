@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,6 +25,11 @@ import {
   ADMIN_NOTIFICATION_TYPE_OPTIONS,
   AdminNotificationType,
 } from 'src/app/shared/constants/notification.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 const DEFAULT_FILTERS = {
@@ -49,7 +53,6 @@ const DEFAULT_FILTERS = {
     MatInputModule,
     MatDatepickerModule,
     MatSelectModule,
-    MatButtonModule,
     TablerIconsModule,
     CommonSharedModule,
   ],
@@ -98,12 +101,7 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -111,18 +109,11 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {

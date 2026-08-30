@@ -1,7 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -39,17 +37,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-live-stream-detail-shell',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatCardModule,
-    MatButtonModule,
-    MatTabsModule,
-    TablerIconsModule,
-    CommonSharedModule,
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatTabsModule, TablerIconsModule, CommonSharedModule],
   providers: [LiveStreamDetailStateService],
   templateUrl: './live-stream-detail-shell.component.html',
 })

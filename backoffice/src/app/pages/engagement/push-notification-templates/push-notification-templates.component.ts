@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +20,11 @@ import { type PushNotificationTemplate, PushNotificationService } from 'src/app/
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManagePushTemplateDialogComponent } from './manage-push-template-dialog/manage-push-template-dialog.component';
@@ -38,7 +42,6 @@ const DEFAULT_FILTERS = {
     MaterialModule,
     MatTableModule,
     MatSortModule,
-    MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
@@ -70,7 +73,6 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.pageSize = this.paginatorConfig.pageSize;
     this.searchForm = this.fb.group({
@@ -83,12 +85,7 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -96,9 +93,7 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset(DEFAULT_FILTERS);
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   private mapStatusToIsActive(value: string | undefined): string | null {
@@ -108,12 +103,7 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public formatDate(value: string | null | undefined): string {
@@ -134,7 +124,7 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
       ManagePushTemplateDialogComponent,
       { template },
       (saved) => saved && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 

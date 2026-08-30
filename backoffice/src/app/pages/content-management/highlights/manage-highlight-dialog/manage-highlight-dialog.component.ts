@@ -1,26 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { Highlight, HighlightVideoSource } from 'src/app/services/highlight.service';
 import { HighlightService } from 'src/app/services/highlight.service';
 import { MediaService } from 'src/app/services/media.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import {
   FileUploadComponent,
   type FileUploadValue,
   fileUploadRequired,
 } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ManageHighlightDialogData {
   mode: 'create' | 'edit';
@@ -40,20 +34,7 @@ function youtubeUrlValidator(control: { value: string | null | undefined }) {
 @Component({
   selector: 'app-manage-highlight-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    MatSlideToggleModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-highlight-dialog.component.html',
 })
 export class ManageHighlightDialogComponent {

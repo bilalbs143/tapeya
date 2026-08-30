@@ -23,31 +23,22 @@ import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.serv
 import { CoreService } from 'src/app/services/core.service';
 import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
 import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
-
-interface profiledd {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-  link: string;
-}
+import { applyDocumentTheme } from 'src/app/shared/functions/theme-swap.function';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterModule, NgScrollbarModule, TablerIconsModule, MaterialModule, LoaderComponent],
+  imports: [RouterModule, NgScrollbarModule, TablerIconsModule, MaterialModule, CommonSharedModule],
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None,
 })
 export class HeaderComponent implements OnInit {
   @Input() public showToggle = true;
-  @Input() public toggleChecked = false;
   @Output() public readonly toggleMobileNav = new EventEmitter<void>();
   @Output() public readonly toggleCollapsed = new EventEmitter<void>();
-  @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
 
   private readonly settings = inject(CoreService);
   private readonly auth = inject(AuthService);
@@ -81,13 +72,9 @@ export class HeaderComponent implements OnInit {
 
   public readonly isAdmin = computed(() => authUserIsAdmin(this.currentUser()));
 
-  private emitOptions(): void {
-    this.optionsChange.emit(this.settings.getOptions());
-  }
-
   public setlightDark(theme: 'light' | 'dark'): void {
     this.settings.setOptions({ theme });
-    this.emitOptions();
+    applyDocumentTheme(theme);
   }
 
   public logout() {
@@ -133,21 +120,4 @@ export class HeaderComponent implements OnInit {
     if (type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED) return 'headset';
     return 'user';
   }
-
-  public profiledd: profiledd[] = [
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-account.svg',
-      title: 'My Profile',
-      subtitle: 'Account Settings',
-      link: '/',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-inbox.svg',
-      title: 'My Inbox',
-      subtitle: 'Messages & Email',
-      link: '/',
-    },
-  ];
 }

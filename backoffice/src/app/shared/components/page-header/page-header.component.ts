@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { UiButtonComponent } from 'src/app/shared/components/ui-button/ui-button.component';
 
 export interface PageHeaderBreadcrumb {
   title: string;
@@ -11,13 +12,15 @@ export interface PageHeaderBreadcrumb {
 @Component({
   selector: 'app-page-header',
   standalone: true,
-  imports: [MatButtonModule, TablerIconsModule, RouterLink],
+  imports: [TablerIconsModule, RouterLink, UiButtonComponent],
   templateUrl: './page-header.component.html',
+  styleUrl: './page-header.component.scss',
 })
 export class PageHeaderComponent {
   private readonly route = inject(ActivatedRoute);
 
   @Input() public title = '';
+  /** @deprecated Icon tile removed from page headers; kept for call-site compat. */
   @Input() public icon = '';
   @Input() public subtitle = '';
   @Input() public badge: number | null = null;
@@ -26,18 +29,12 @@ export class PageHeaderComponent {
   @Input() public showFiltersToggle = true;
   @Input() public filtersOpen = false;
   /**
-   * Hides the icon square + title/subtitle/badge row, leaving only the breadcrumb (left) and
-   * pageActions/filters-toggle (right). For detail-shell pages that already show their own
-   * dynamic title in a richer hero card — the breadcrumb is the only thing page-header adds there.
+   * Hides the title/subtitle/badge row, leaving breadcrumbs + pageActions.
+   * For detail shells that already show a richer hero title.
    */
   @Input() public showTitle = true;
 
   @Output() public readonly filtersToggled = new EventEmitter<void>();
-
-  public get resolvedIcon(): string {
-    if (this.icon) return this.icon;
-    return (this.route.snapshot.data['icon'] as string | undefined) ?? '';
-  }
 
   public get resolvedBreadcrumbs(): PageHeaderBreadcrumb[] {
     if (this.breadcrumbs.length > 0) return this.breadcrumbs;

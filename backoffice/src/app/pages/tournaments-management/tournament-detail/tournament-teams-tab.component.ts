@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -18,6 +17,8 @@ import { type TeamRow } from 'src/app/services/teams.service';
 import { TournamentTeamsService, type TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
+import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
+import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 import { AttachTournamentTeamsDialogComponent } from './attach-tournament-teams-dialog/attach-tournament-teams-dialog.component';
@@ -26,17 +27,7 @@ import { EditTournamentTeamGroupDialogComponent } from './edit-tournament-team-g
 @Component({
   selector: 'app-tournament-teams-tab',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatTableModule,
-    MatSortModule,
-    MatTooltipModule,
-    TablerIconsModule,
-    CommonSharedModule,
-  ],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatSortModule, MatTooltipModule, TablerIconsModule, CommonSharedModule],
   templateUrl: './tournament-teams-tab.component.html',
 })
 export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
@@ -45,6 +36,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   private readonly teamsService = inject(TournamentTeamsService);
   private readonly tournamentsService = inject(TournamentsService);
   private readonly messageService = inject(MessageService);
+  private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly sub = new Subscription();
 
   @ViewChild(MatSort)
@@ -55,11 +47,24 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     }
   }
 
+  @ViewChild(PaginatorComponent)
+  public set appPaginator(paginator: PaginatorComponent | undefined) {
+    queueMicrotask(() => {
+      const mat = paginator?.matPaginator;
+      if (mat && this.dataSource.paginator !== mat) {
+        this.dataSource.paginator = mat;
+      }
+    });
+  }
+
   public dataSource = new MatTableDataSource<TournamentTeamRow>([]);
   public tournament: Tournament | null = null;
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
   public readonly columns = ['name', 'sponsor', 'group', 'actions'] as const;
+  public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
+  public pageSize = this.paginatorConfig.pageSize;
+  public pageIndex = 0;
 
   public tournamentId = 0;
 
@@ -116,6 +121,8 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
         .subscribe(({ tournament, teams }) => {
           this.tournament = tournament.data ?? null;
           this.dataSource.data = teams.data ?? [];
+          this.pageIndex = 0;
+          this.dataSource.paginator?.firstPage();
           this.isLoading = false;
         })
     );
@@ -134,6 +141,8 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       next: ({ tournament, teams }) => {
         this.tournament = tournament.data ?? null;
         this.dataSource.data = teams.data ?? [];
+        this.pageIndex = 0;
+        this.dataSource.paginator?.firstPage();
         this.isLoading = false;
       },
       error: () => {
@@ -180,7 +189,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       ManageTeamDialogComponent,
       { mode: 'edit', team: this.toTeamRow(team) },
       (saved) => saved && this.load(),
-      { widthSize: 'lg', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 
@@ -203,7 +212,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     this.sub.add(
       this.messageService
         .prompt(
-          'Remove team from tournament?',
+          'Remove Team from Tournament?',
           `Detach "${team.name}" from this tournament? Scheduled or started matches involving this team must be cleared first.`,
           'Remove',
           'Cancel'
@@ -221,5 +230,10 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
           }
         })
     );
+  }
+
+  public onPage(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
   }
 }

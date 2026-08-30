@@ -15,13 +15,14 @@ import { getStatusClass } from 'src/app/utils/status-class.util';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span
-      class="rounded-sm px-1.5 py-1 text-xs font-semibold"
-      [ngClass]="statusClass"
-    >
+    <span class="status-chip rounded-sm px-1.5 font-semibold" [ngClass]="statusClass">
+      @if (showPulse) {
+        <span class="status-chip__pulse" aria-hidden="true"></span>
+      }
       {{ resolvedLabel }}
     </span>
   `,
+  styleUrl: './status-chip.component.scss',
 })
 export class StatusChipComponent {
   /** A status string (e.g. `row.status`) or a boolean (e.g. `row.is_active`). */
@@ -35,6 +36,16 @@ export class StatusChipComponent {
 
   /** Display label when `status` is `false`. */
   @Input() public falseLabel = 'Inactive';
+
+  /** Live pulse dot for in-progress/streaming statuses. Auto-on for "live"; override to force either way. */
+  @Input() public pulse: boolean | null = null;
+
+  public get showPulse(): boolean {
+    if (this.pulse !== null) return this.pulse;
+    if (typeof this.status !== 'string') return false;
+    const key = this.status.toLowerCase();
+    return key === 'live' || key === 'streaming' || key === 'broadcasting';
+  }
 
   public get statusClass(): string {
     if (typeof this.status === 'boolean') {

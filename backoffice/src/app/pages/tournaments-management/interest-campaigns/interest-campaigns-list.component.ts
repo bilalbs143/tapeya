@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +22,11 @@ import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { environment } from 'src/environments/environment';
 
@@ -49,7 +53,6 @@ const DEFAULT_FILTERS = { status: '', linked: '', search: '' } as const;
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     MatTooltipModule,
     TablerIconsModule,
@@ -82,7 +85,6 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   public get displayedColumns(): string[] {
     const cols = ['sr', 'title', 'kind', 'slug', 'status', 'submissions', 'created_at', 'actions'];
     if (this.tournamentId !== null) {
@@ -117,12 +119,7 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -130,18 +127,11 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(): void {
@@ -183,7 +173,7 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
         lockedTournamentName: this.tournamentName,
       },
       (saved) => saved && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 
@@ -193,7 +183,7 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
       { mode: 'edit', campaign },
       (saved) => saved && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );

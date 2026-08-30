@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,6 +21,11 @@ import { type PushNotificationLog, PushNotificationService } from 'src/app/servi
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { SendNotificationDialogComponent } from './send-notification-dialog/send-notification-dialog.component';
@@ -45,7 +49,6 @@ const DEFAULT_FILTERS = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     MatDatepickerModule,
     TablerIconsModule,
@@ -84,7 +87,6 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.searchForm = this.fb.group({
       status: [DEFAULT_FILTERS.status],
@@ -100,12 +102,7 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -113,18 +110,11 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset(DEFAULT_FILTERS);
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public openSendDialog(): void {

@@ -1,26 +1,27 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 @use '../variables' as *;
 
 @include mat.card-overrides(
   (
-    elevated-container-color: $white,
-    title-text-size: 1.125rem,
-    subtitle-text-size: 14px,
-    subtitle-text-color: var(--mat-sys-surface-container-lowest),
-    title-text-line-height: 1.6rem,
+    elevated-container-color: var(--n-00),
+    title-text-size: var(--fs-section),
+    subtitle-text-size: var(--fs-meta),
+    subtitle-text-color: var(--n-60),
+    title-text-line-height: var(--lh-section),
     title-text-weight: 600,
     subtitle-text-weight: 400,
-    elevated-container-shape: var(--mat-sys-corner-medium),
-    outlined-container-shape: var(--mat-sys-corner-medium),
-    elevated-container-elevation: var(--mat-sys-level1),
+    elevated-container-shape: var(--r-lg),
+    outlined-container-shape: var(--r-lg),
+    elevated-container-elevation: var(--e-card),
   )
 );
 
-// styles
 html {
   .mat-mdc-card {
-    margin-bottom: 24px;
+    margin-bottom: var(--sp-6);
+    border: 1px solid var(--n-25);
+    box-shadow: var(--e-card) !important;
+    background: var(--n-00);
 
     .mat-mdc-card-header {
       padding: $card-spacer $card-spacer 0 !important;
@@ -32,30 +33,14 @@ html {
 
     > .mat-mdc-card-content {
       padding: $card-spacer;
+
+      &.p-0 {
+        padding: 0 !important;
+      }
     }
 
     .mdc-card__actions {
       padding: $card-spacer !important;
-    }
-  }
-
-  .card-hover {
-    transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-
-    &:hover {
-      scale: 1.01;
-      transition: all 0.1s ease-in 0s;
-    }
-  }
-
-  .cardBorder {
-    .mdc-card {
-      box-shadow: none !important;
-      border: 1px solid $borderColor !important;
-
-      &.shadow-none {
-        border: 0 !important;
-      }
     }
   }
 }

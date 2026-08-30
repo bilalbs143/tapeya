@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.list-paginator {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 9px 20px;
+  border-top: 1px solid var(--n-20);
+  background: var(--table-header);
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.list-paginator__range {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 30px;
+  height: 30px;
+  color: var(--n-60);
+  font-variant-numeric: tabular-nums;
+}
+
+:host ::ng-deep .mat-mdc-paginator-range-label {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .list-paginator {
+    justify-content: center;
+    padding: 9px 12px;
+  }
+
+  .list-paginator__range {
+    display: none;
+  }
+
+  :host ::ng-deep .mat-mdc-paginator-container {
+    justify-content: center !important;
+    width: 100%;
+  }
+
+  :host ::ng-deep .mat-mdc-paginator-page-size-label {
+    display: none !important;
+  }
+
+  :host ::ng-deep .mat-mdc-paginator-navigation-first,
+  :host ::ng-deep .mat-mdc-paginator-navigation-last {
+    display: none !important;
+  }
+}

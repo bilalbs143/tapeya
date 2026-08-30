@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Notifications"
       subtitle="Admin notifications and alerts"
@@ -7,46 +7,43 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
           type="button"
           (click)="markAllAsRead()"
           [disabled]="unreadCount === 0"
         >
-          Read all
-        </button>
-        <button
-          mat-flat-button
-          class="bg-error text-white!"
+          Read All
+        </app-ui-button>
+        <app-ui-button
+          variant="danger"
           type="button"
           (click)="deleteAll()"
           [disabled]="totalRecords === 0"
         >
-          Delete all
-        </button>
+          Delete All
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
@@ -122,224 +119,237 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Notifications List"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="type">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Type
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ typeLabel(row.type) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="message">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Message
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[320px]"
-            >
-              {{ messageText(row) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="read_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Read
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.read_at ? 'read' : 'unread'"
-                [label]="row.read_at ? (row.read_at | date: 'yyyy-MM-dd HH:mm') : 'Unread'"
-              />
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Created
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              @if (!row.read_at) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Mark As Read"
-                  (click)="markAsRead(row)"
-                >
-                  <i-tabler
-                    name="check"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              @if (row.type === AdminNotificationType.ORDER_PLACED && row.data?.order_id !== null) {
-                <a
-                  [routerLink]="['/shop-management/orders']"
-                  aria-label="View Order"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="shopping-cart"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.USER_REGISTERED && row.data?.user_id !== null) {
-                <a
-                  [routerLink]="['/users-management/users']"
-                  aria-label="View Users"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="user"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED && row.data?.tournament_request_id !== null) {
-                <a
-                  [routerLink]="['/tournaments-management/tournament-requests']"
-                  aria-label="View Tournament Requests"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="file-text"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED && row.data?.vendor_id !== null) {
-                <a
-                  [routerLink]="['/shop-management/vendors']"
-                  aria-label="View Vendors"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="building-store"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) {
-                <a
-                  [routerLink]="['/live-streams-management/live-streams']"
-                  aria-label="View Live Streams"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="broadcast"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) {
-                <a
-                  [routerLink]="['/live-streams-management/live-streams']"
-                  aria-label="View Live Streams"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="gauge"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-              @if (row.type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED && row.data?.support_message_id !== null) {
-                <a
-                  [routerLink]="['/support']"
-                  aria-label="View Support Messages"
-                  class="align-middle"
-                >
-                  <i-tabler
-                    name="headset"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </a>
-              }
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Notifications"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Notifications List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="type">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Type
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ typeLabel(row.type) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="message">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Message
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[320px]"
+              >
+                {{ messageText(row) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="read_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Read
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.read_at ? 'read' : 'unread'"
+                  [label]="row.read_at ? (row.read_at | date: 'yyyy-MM-dd HH:mm') : 'Unread'"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Created
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  @if (!row.read_at) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Mark As Read"
+                      (click)="markAsRead(row)"
+                    >
+                      <i-tabler
+                        name="check"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  @if (row.type === AdminNotificationType.ORDER_PLACED && row.data?.order_id !== null) {
+                    <a
+                      [routerLink]="['/shop-management/orders']"
+                      aria-label="View Order"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="shopping-cart"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (row.type === AdminNotificationType.USER_REGISTERED && row.data?.user_id !== null) {
+                    <a
+                      [routerLink]="['/users-management/users']"
+                      aria-label="View Users"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="user"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (
+                    row.type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED && row.data?.tournament_request_id !== null
+                  ) {
+                    <a
+                      [routerLink]="['/tournaments-management/tournament-requests']"
+                      aria-label="View Tournament Requests"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="file-text"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (row.type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED && row.data?.vendor_id !== null) {
+                    <a
+                      [routerLink]="['/shop-management/vendors']"
+                      aria-label="View Vendors"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="building-store"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (row.type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) {
+                    <a
+                      [routerLink]="['/live-streams-management/live-streams']"
+                      aria-label="View Live Streams"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="broadcast"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (row.type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) {
+                    <a
+                      [routerLink]="['/live-streams-management/live-streams']"
+                      aria-label="View Live Streams"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="gauge"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                  @if (row.type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED && row.data?.support_message_id !== null) {
+                    <a
+                      [routerLink]="['/support']"
+                      aria-label="View Support Messages"
+                      class="align-middle"
+                    >
+                      <i-tabler
+                        name="headset"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </a>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

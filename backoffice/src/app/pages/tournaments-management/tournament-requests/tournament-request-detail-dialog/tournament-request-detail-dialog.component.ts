@@ -1,17 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import { TournamentRequestService } from 'src/app/services/tournament-request.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 export interface TournamentRequestDetailDialogData {
@@ -21,16 +18,7 @@ export interface TournamentRequestDetailDialogData {
 @Component({
   selector: 'app-tournament-request-detail-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    LoaderBlockComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, MaterialModule, CommonSharedModule, TablerIconsModule],
   templateUrl: './tournament-request-detail-dialog.component.html',
 })
 export class TournamentRequestDetailDialogComponent implements OnInit {

@@ -1,7 +1,6 @@
 import { CommonModule, formatDate } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,6 +20,11 @@ import { QuickMatchesService, type QuickMatchRow } from 'src/app/services/quick-
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 
 import { QuickMatchDetailDialogComponent } from './quick-match-detail-dialog/quick-match-detail-dialog.component';
 
@@ -44,7 +48,6 @@ const DEFAULT_FILTERS = {
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     CommonSharedModule,
@@ -86,12 +89,7 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -99,18 +97,11 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(): void {

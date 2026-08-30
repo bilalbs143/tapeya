@@ -1,17 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface EditTournamentTeamGroupDialogData {
   tournamentId: number;
@@ -24,17 +20,7 @@ export interface EditTournamentTeamGroupDialogData {
 @Component({
   selector: 'app-edit-tournament-team-group-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './edit-tournament-team-group-dialog.component.html',
 })
 export class EditTournamentTeamGroupDialogComponent implements OnInit {

@@ -2,17 +2,17 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Highlight form"
+    aria-label="Highlight Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <!-- Title -->
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Title</mat-label>
             <input
               matInput
               formControlName="title"
@@ -26,11 +26,11 @@
 
         <!-- Description -->
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Description</mat-label>
             <textarea
               matInput
               formControlName="description"
@@ -42,24 +42,26 @@
 
         <!-- Video source -->
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Video Source <span class="text-error">*</span></mat-label>
-          <mat-radio-group
-            formControlName="video_source"
-            class="flex flex-wrap items-center gap-4"
-          >
-            <mat-radio-button value="youtube">YouTube</mat-radio-button>
-            <mat-radio-button value="upload">Upload Video</mat-radio-button>
-          </mat-radio-group>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Video Source <span class="text-error">*</span></legend>
+            <mat-radio-group
+              formControlName="video_source"
+              class="flex flex-wrap items-center gap-4"
+            >
+              <mat-radio-button value="youtube">YouTube</mat-radio-button>
+              <mat-radio-button value="upload">Upload Video</mat-radio-button>
+            </mat-radio-group>
+          </fieldset>
         </div>
 
         @if (isYouTubeSource) {
           <!-- YouTube URL -->
           <div class="col-span-12 lg:col-span-8">
-            <mat-label class="text-sm font-semibold mb-2 block">YouTube URL <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>YouTube URL <span class="text-error">*</span></mat-label>
               <input
                 matInput
                 formControlName="video_url"
@@ -98,11 +100,11 @@
 
         <!-- Duration -->
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Duration</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Duration</mat-label>
             <input
               matInput
               formControlName="duration"
@@ -136,14 +138,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

@@ -1,45 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialogClose, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDivider } from '@angular/material/list';
-import { MatTableModule } from '@angular/material/table';
+import { MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription, take } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
 import type { City } from 'src/app/services/location.service';
 import { LocationService } from 'src/app/services/location.service';
 import { MessageService } from 'src/app/services/message.service';
 import { PlayersService, type PlayerCsvImportResult } from 'src/app/services/players.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 @Component({
   selector: 'app-import-players-csv-dialog',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatDialogClose,
-    MatButtonModule,
-    MatCardModule,
-    MatCheckboxModule,
-    MatDivider,
-    MatExpansionModule,
-    MatIconModule,
-    MatTableModule,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    LoaderComponent,
-  ],
+  imports: [ReactiveFormsModule, MaterialModule, CommonSharedModule, TablerIconsModule],
   templateUrl: './import-players-csv-dialog.component.html',
 })
 export class ImportPlayersCsvDialogComponent implements OnInit, OnDestroy {

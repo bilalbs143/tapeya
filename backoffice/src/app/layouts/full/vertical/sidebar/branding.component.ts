@@ -1,21 +1,15 @@
-import { Component, inject } from '@angular/core';
-
-import { CoreService } from 'src/app/services/core.service';
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-branding',
-  imports: [],
+  imports: [RouterLink],
   template: `
-    <a href="/" class="logodark">
-      <img src="./assets/images/logos/tapeya-logo-light-theme.png" class="align-middle m-2" alt="logo" />
-    </a>
-
-    <a href="/" class="logolight">
-      <img src="./assets/images/logos/tapeya-logo-dark-theme.png" class="align-middle m-2" alt="logo" />
+    <a routerLink="/" class="branding-link" aria-label="Tapeya">
+      <img class="logodark branding-logo" src="./assets/images/logos/tapeya-logo-light-theme.png" alt="Tapeya" />
+      <img class="logolight branding-logo" src="./assets/images/logos/tapeya-logo-dark-theme.png" alt="Tapeya" />
     </a>
   `,
+  styleUrl: './branding.component.scss',
 })
-export class BrandingComponent {
-  private readonly settings = inject(CoreService);
-  public options = this.settings.getOptions();
-}
+export class BrandingComponent {}

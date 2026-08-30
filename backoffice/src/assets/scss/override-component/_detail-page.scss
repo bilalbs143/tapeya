@@ -1,0 +1,41 @@
+/*
+ * Shared detail-page chrome (tournament / campaign / live-stream / player-stats).
+ * Structure lives in app-detail-page; this file only owns tab density + nested-card flatten.
+ *
+ * Overview tabs are card-free bands, so every mat-card under .detail-page__body is a
+ * nested list surface (Teams / Matches / Submissions / squad) — flatten all of them,
+ * including empty states that lack a table/skeleton.
+ */
+
+.detail-page.mat-mdc-card {
+  margin-bottom: 0;
+}
+
+.detail-page [mat-tab-nav-bar],
+.detail-page .mat-mdc-tab-nav-bar {
+  --mat-tab-header-divider-color: var(--n-20);
+  padding: 0 8px;
+  background: var(--n-00);
+}
+
+.detail-page [mat-tab-nav-bar] .mdc-tab,
+.detail-page .mat-mdc-tab-nav-bar .mdc-tab {
+  min-height: 44px;
+  padding: 0 14px;
+  letter-spacing: 0;
+  font-size: var(--fs-body);
+  font-weight: 500;
+}
+
+.detail-page [mat-tab-nav-bar] .mdc-tab--active,
+.detail-page .mat-mdc-tab-nav-bar .mdc-tab--active {
+  font-weight: 600;
+}
+
+.detail-page__body .mat-mdc-card.cardWithShadow {
+  margin-bottom: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent;
+}

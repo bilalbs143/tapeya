@@ -2,16 +2,16 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Static page form"
+    aria-label="Static Page Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Title</mat-label>
             <input
               matInput
               formControlName="title"
@@ -23,11 +23,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Slug</mat-label>
             <input
               matInput
               formControlName="slug"
@@ -39,32 +39,34 @@
           </mat-form-field>
         </div>
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Content (HTML)</mat-label>
-          <div class="NgxEditor__Wrapper">
-            <ngx-editor-menu
-              [editor]="editor"
-              [toolbar]="toolbar"
-            ></ngx-editor-menu>
-            <ngx-editor
-              [editor]="editor"
-              formControlName="content"
-              placeholder="Page body…"
-              class="border-t"
-            ></ngx-editor>
-          </div>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Content (HTML)</legend>
+            <div class="NgxEditor__Wrapper">
+              <ngx-editor-menu
+                [editor]="editor"
+                [toolbar]="toolbar"
+              ></ngx-editor-menu>
+              <ngx-editor
+                [editor]="editor"
+                formControlName="content"
+                placeholder="Page body…"
+                class="border-t"
+              ></ngx-editor>
+            </div>
+          </fieldset>
         </div>
       </div>
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

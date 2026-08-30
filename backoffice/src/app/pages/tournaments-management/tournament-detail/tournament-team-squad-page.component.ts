@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -30,91 +30,75 @@ import {
 import { UsersService } from 'src/app/services/users.service';
 import type { User } from 'src/app/services/users.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
+import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
+import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
+import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 @Component({
   selector: 'app-tournament-team-squad-page',
-
   standalone: true,
-
   imports: [
     CommonModule,
-
     ReactiveFormsModule,
-
     MatCardModule,
-
     MatDividerModule,
-
-    MatButtonModule,
-
     MatFormFieldModule,
-
     MatInputModule,
-
     MatAutocompleteModule,
-
     MatTableModule,
-
     MatSortModule,
-
     MatTooltipModule,
-
     TablerIconsModule,
-
     CommonSharedModule,
+    EmptyDataMessageComponent,
   ],
-
   templateUrl: './tournament-team-squad-page.component.html',
 })
 export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
-
   private readonly router = inject(Router);
-
   private readonly teamsService = inject(TournamentTeamsService);
-
   private readonly usersService = inject(UsersService);
-
   private readonly playersService = inject(PlayersService);
-
   private readonly messageService = inject(MessageService);
-
+  private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly sub = new Subscription();
 
   @ViewChild(MatSort)
   public set matSort(sort: MatSort | undefined) {
     if (sort) {
       this.dataSource.sort = sort;
-
       this.dataSource.data = [...this.dataSource.data];
     }
   }
 
+  @ViewChild(PaginatorComponent)
+  public set appPaginator(paginator: PaginatorComponent | undefined) {
+    queueMicrotask(() => {
+      const mat = paginator?.matPaginator;
+      if (mat && this.dataSource.paginator !== mat) {
+        this.dataSource.paginator = mat;
+      }
+    });
+  }
+
   public tournamentId = 0;
-
   public teamId = 0;
-
   public team: TournamentTeamRow | null = null;
-
   public selected: SquadUser[] = [];
-
   public dataSource = new MatTableDataSource<SquadUser>([]);
-
   public readonly searchControl = new FormControl('', { nonNullable: true });
-
   public candidates: SquadUser[] = [];
-
   public isLoading = true;
-
   public isSaving = false;
-
   public readonly emptyCell = EMPTY_CELL;
-
   public readonly columns = ['name', 'nickname', 'email', 'phone', 'actions'] as const;
+  public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
+  public pageSize = this.paginatorConfig.pageSize;
+  public pageIndex = 0;
 
   private occupiedByPlayerId = new Map<number, SquadOccupancyRow>();
-
   private saveQueued = false;
 
   constructor() {
@@ -122,16 +106,12 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
       switch (column) {
         case 'name':
           return row.name ?? '';
-
         case 'nickname':
           return row.nickname ?? '';
-
         case 'email':
           return row.email ?? '';
-
         case 'phone':
           return row.phone ?? '';
-
         default:
           return '';
       }
@@ -149,9 +129,7 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
     if (!parentRoute) {
       this.isLoading = false;
-
       this.navigateToTeams();
-
       return;
     }
 
@@ -160,93 +138,68 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
         .pipe(
           switchMap(([parentParams, params]) => {
             const tournamentIdRaw = parentParams.get('tournamentId');
-
             const teamIdRaw = params.get('teamId');
 
             if (!tournamentIdRaw || !teamIdRaw) {
               this.isLoading = false;
-
               this.navigateToTeams();
-
               return EMPTY;
             }
 
             const tournamentId = Number(tournamentIdRaw);
-
             const teamId = Number(teamIdRaw);
 
             if (!Number.isFinite(tournamentId) || tournamentId <= 0 || !Number.isFinite(teamId) || teamId <= 0) {
               this.isLoading = false;
-
               this.navigateToTeams();
-
               return EMPTY;
             }
 
             this.tournamentId = tournamentId;
-
             this.teamId = teamId;
-
             this.isLoading = true;
-
             this.team = null;
 
             return forkJoin({
               teams: this.teamsService.listTeams(tournamentId),
-
               squad: this.teamsService.getTeamSquad(tournamentId, teamId),
-
               occupancy: this.teamsService
-
                 .getSquadOccupancy(tournamentId, teamId)
-
                 .pipe(catchError(() => of({ data: [] as SquadOccupancyRow[] }))),
             }).pipe(
               catchError(() => {
                 this.isLoading = false;
-
                 this.navigateToTeams();
-
                 return EMPTY;
               })
             );
           })
         )
-
         .subscribe(({ teams, squad, occupancy }) => {
           this.team = (teams.data ?? []).find((row) => row.id === this.teamId) ?? null;
 
           if (!this.team) {
             this.isLoading = false;
-
             this.messageService.error('Team not found on this tournament.');
-
             this.navigateToTeams();
-
             return;
           }
 
           this.setSquadPlayers(squad.data ?? []);
-
           this.occupiedByPlayerId = new Map((occupancy.data ?? []).map((row) => [row.player_id, row]));
-
           this.isLoading = false;
         })
     );
 
     this.sub.add(
       this.searchControl.valueChanges
-
         .pipe(
           debounceTime(250),
-
           distinctUntilChanged(),
-
           switchMap((term) =>
             this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as SquadUser[] })))
           )
         )
-
         .subscribe((res) => {
           this.candidates = res.data ?? [];
         })
@@ -261,17 +214,15 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
     this.sub.add(
       forkJoin({
         squad: this.teamsService.getTeamSquad(this.tournamentId, this.teamId),
-
         occupancy: this.teamsService
-
           .getSquadOccupancy(this.tournamentId, this.teamId)
-
           .pipe(catchError(() => of({ data: [] as SquadOccupancyRow[] }))),
       }).subscribe({
         next: ({ squad, occupancy }) => {
           this.setSquadPlayers(squad.data ?? []);
-
           this.occupiedByPlayerId = new Map((occupancy.data ?? []).map((row) => [row.player_id, row]));
+          this.pageIndex = 0;
+          this.dataSource.paginator?.firstPage();
         },
       })
     );
@@ -279,14 +230,12 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
   private setSquadPlayers(players: SquadUser[]): void {
     this.selected = [...players];
-
     this.dataSource.data = this.selected;
   }
 
   private saveSquad(): void {
     if (this.isSaving) {
       this.saveQueued = true;
-
       return;
     }
 
@@ -297,30 +246,22 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
     this.isSaving = true;
 
     this.teamsService
-
       .saveTeamSquad(
         this.tournamentId,
-
         this.teamId,
-
         this.selected.map((u) => u.id)
       )
-
       .pipe(
         finalize(() => {
           this.isSaving = false;
-
           if (this.saveQueued) {
             this.saveQueued = false;
-
             this.runSaveSquad();
           }
         })
       )
-
       .subscribe({
         next: () => this.syncFromServer(),
-
         error: () => this.syncFromServer(),
       });
   }
@@ -330,7 +271,6 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
     if (tournamentId) {
       void this.router.navigate(['/tournaments-management/tournaments', tournamentId, 'teams']);
-
       return;
     }
 
@@ -343,31 +283,18 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
     }
 
     const playerName = user.name || user.nickname || `Player #${user.id}`;
-
     const teamName = this.team?.name ?? 'this team';
 
     this.sub.add(
       this.messageService
-
-        .prompt(
-          'Remove from squad?',
-
-          `Remove "${playerName}" from ${teamName}'s squad?`,
-
-          'Remove',
-
-          'Cancel'
-        )
-
+        .prompt('Remove from Squad?', `Remove "${playerName}" from ${teamName}'s squad?`, 'Remove', 'Cancel')
         .afterClosed()
-
         .subscribe((confirmed) => {
           if (!confirmed || this.isSaving) {
             return;
           }
 
           this.setSquadPlayers(this.selected.filter((u) => u.id !== user.id));
-
           this.saveSquad();
         })
     );
@@ -376,13 +303,9 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
   private toSquadUser(user: User): SquadUser {
     return {
       id: user.id,
-
       name: user.name,
-
       nickname: user.nickname,
-
       email: user.email,
-
       phone: user.phone,
     };
   }
@@ -400,29 +323,23 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
     if (occupied) {
       const playerName = user.name || user.nickname || occupied.player_name;
-
       this.messageService.error(
         `${playerName} is already on ${occupied.team_name} in this tournament. A player can only be on one team per tournament.`
       );
-
       return false;
     }
 
     this.setSquadPlayers([...this.selected, user]);
-
     this.saveSquad();
-
     return true;
   }
 
   public onCandidateSelected(event: MatAutocompleteSelectedEvent): void {
     const user = event.option.value as SquadUser;
-
     const added = this.addPlayerToSquad(user);
 
     if (added || this.occupiedByPlayerId.has(user.id)) {
       this.searchControl.setValue('', { emitEvent: false });
-
       this.candidates = [];
     }
   }
@@ -434,9 +351,7 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
     this.messageService.openDialog<ManagePlayerDialogComponent, ManagePlayerDialogResult>(
       ManagePlayerDialogComponent,
-
       { mode: 'create' },
-
       (player) => {
         if (!player) {
           return;
@@ -444,7 +359,6 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
 
         this.addPlayerToSquad(this.toSquadUser(player));
       },
-
       { widthSize: 'md', disableClose: true }
     );
   }
@@ -459,21 +373,22 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
         next: (res) => {
           if (!res.data) {
             this.messageService.error('Could not load player details.');
-
             return;
           }
 
           this.messageService.openDialog<ManagePlayerDialogComponent, ManagePlayerDialogResult>(
             ManagePlayerDialogComponent,
-
             { mode: 'edit', user: res.data },
-
             (saved) => saved && this.syncFromServer(),
-
             { widthSize: 'md', disableClose: true }
           );
         },
       })
     );
+  }
+
+  public onPage(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
   }
 }

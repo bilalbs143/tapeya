@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Orders"
       subtitle="Track and manage shop orders"
@@ -7,28 +7,27 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
@@ -99,227 +98,238 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Orders List"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="order_number">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Order #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="font-medium"
-            >
-              {{ row.order_number }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="user">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Customer
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.user?.name ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="phone">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold hidden lg:table-cell"
-            >
-              Phone
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="hidden lg:table-cell"
-            >
-              {{ row.user?.phone ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="total">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold text-right"
-            >
-              Total
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-right tabular-nums"
-            >
-              {{ row.total | number: '1.0-0' }} {{ row.currency }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="currency">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold hidden lg:table-cell"
-            >
-              Currency
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="hidden lg:table-cell"
-            >
-              {{ row.currency }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="row.status_label ?? row.status"
-              />
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="payment_status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Payment
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              @if (row.payment_status) {
-                <app-status-chip
-                  [status]="row.payment_status"
-                  [label]="row.payment_status_label ?? (row.payment_status | titlecase)"
-                />
-              } @else {
-                {{ emptyCell }}
-              }
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="address">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Address
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[200px] truncate"
-              [title]="row.address + ', ' + row.city + ', ' + row.country"
-            >
-              {{ row.address }}, {{ row.city }}, {{ row.country }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Created At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="View Order"
-                (click)="openDetailDialog(row)"
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Orders"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Orders List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                <i-tabler
-                  name="eye"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="order_number">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Order #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-medium"
+              >
+                {{ row.order_number }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Customer
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.user?.name ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="phone">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold hidden lg:table-cell"
+              >
+                Phone
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="hidden lg:table-cell"
+              >
+                {{ row.user?.phone ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="total">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold text-right"
+              >
+                Total
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-right tabular-nums"
+              >
+                {{ row.total | number: '1.0-0' }} {{ row.currency }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="currency">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold hidden lg:table-cell"
+              >
+                Currency
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="hidden lg:table-cell"
+              >
+                {{ row.currency }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="row.status_label ?? row.status"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="payment_status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Payment
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                @if (row.payment_status) {
+                  <app-status-chip
+                    [status]="row.payment_status"
+                    [label]="row.payment_status_label ?? (row.payment_status | titlecase)"
+                  />
+                } @else {
+                  {{ emptyCell }}
+                }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="address">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Address
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[200px] truncate"
+                [title]="row.address + ', ' + row.city + ', ' + row.country"
+              >
+                {{ row.address }}, {{ row.city }}, {{ row.country }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Created At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="View Order"
+                    (click)="openDetailDialog(row)"
+                  >
+                    <i-tabler
+                      name="eye"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

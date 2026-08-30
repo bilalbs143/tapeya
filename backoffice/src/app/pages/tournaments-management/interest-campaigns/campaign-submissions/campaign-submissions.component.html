@@ -1,12 +1,12 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
-      <div class="grid grid-cols-12 gap-4 items-end">
-        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+      <app-search-filter-bar>
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -22,7 +22,7 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -36,259 +36,253 @@
             />
           </mat-form-field>
         </div>
-        <div
-          class="col-span-12 lg:col-span-6 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-start sm:justify-end gap-2"
-        >
-          <button
-            mat-stroked-button
-            type="button"
-            class="w-full sm:w-auto"
-            (click)="resetSearchForm()"
-          >
-            Clear Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            class="w-full sm:w-auto"
-          >
-            Search
-          </button>
-        </div>
-      </div>
+      </app-search-filter-bar>
     </form>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Interest Submissions List"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="player">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="name"
-              class="bg-light-secondary font-semibold"
-            >
-              Player
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="font-medium"
-            >
-              <div class="flex items-center gap-2">
-                @if (row.profile_picture_url) {
-                  <img
-                    [src]="row.profile_picture_url"
-                    alt=""
-                    class="h-9 w-9 shrink-0 rounded-full object-cover border border-default-border bg-light-secondary"
-                  />
-                }
-                <div class="min-w-0">
-                  <span class="block truncate">{{ row.name ?? emptyCell }}</span>
-                </div>
-              </div>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="nickname">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold hidden lg:table-cell"
-            >
-              Nickname
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[140px] truncate hidden lg:table-cell"
-              [title]="row.nickname ?? ''"
-            >
-              {{ row.nickname ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="email">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Email
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[200px] truncate"
-              [title]="row.email ?? ''"
-            >
-              {{ row.email ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="phone">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Phone
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.phone ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="location">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold hidden lg:table-cell"
-            >
-              City, Country
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[220px] truncate hidden lg:table-cell"
-              [title]="cityCountryLine(row)"
-            >
-              {{ cityCountryLine(row) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="dob_age">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold whitespace-nowrap"
-            >
-              Date of Birth / Age
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ dobAgeLine(row) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="row.status_label"
-              />
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Submitted At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="View Submission"
-                matTooltip="View Submission"
-                (click)="openDetailDialog(row)"
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Submissions"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Interest Submissions List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                <i-tabler
-                  name="eye"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-              @if (row.id_document_url) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="View Document"
-                  matTooltip="View Document"
-                  (click)="openDocument(row)"
-                >
-                  <i-tabler
-                    name="file-text"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="player">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="name"
+                class="font-semibold"
+              >
+                Player
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-medium"
+              >
+                <div class="flex items-center gap-2">
+                  @if (row.profile_picture_url) {
+                    <img
+                      [src]="row.profile_picture_url"
+                      alt=""
+                      width="28"
+                      height="28"
+                      class="size-7 shrink-0 rounded-full object-cover border border-default-border bg-light-secondary"
+                      loading="lazy"
+                    />
+                  }
+                  <div class="min-w-0">
+                    <span class="block truncate">{{ row.name ?? emptyCell }}</span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="nickname">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold hidden lg:table-cell"
+              >
+                Nickname
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[140px] truncate hidden lg:table-cell"
+                [title]="row.nickname ?? ''"
+              >
+                {{ row.nickname ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="email">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Email
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[200px] truncate"
+                [title]="row.email ?? ''"
+              >
+                {{ row.email ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="phone">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Phone
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.phone ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="location">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold hidden lg:table-cell"
+              >
+                City, Country
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[220px] truncate hidden lg:table-cell"
+                [title]="cityCountryLine(row)"
+              >
+                {{ cityCountryLine(row) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="dob_age">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold whitespace-nowrap"
+              >
+                Date of Birth / Age
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ dobAgeLine(row) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="row.status_label"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Submitted At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="View Submission"
+                    matTooltip="View Submission"
+                    (click)="openDetailDialog(row)"
+                  >
+                    <i-tabler
+                      name="eye"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  @if (row.id_document_url) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="View Document"
+                      matTooltip="View Document"
+                      (click)="openDocument(row)"
+                    >
+                      <i-tabler
+                        name="file-text"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

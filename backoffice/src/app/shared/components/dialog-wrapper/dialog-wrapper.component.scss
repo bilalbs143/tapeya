@@ -1,0 +1,63 @@
+.dialog-wrapper__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: 0 18px;
+  min-height: 0;
+}
+
+@media (max-width: 767px) {
+  .dialog-wrapper__header {
+    padding: 0 16px;
+  }
+}
+
+/* Strip Material title padding so the wrapper owns spacing. */
+h3[mat-dialog-title] {
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-section);
+  font-weight: 600;
+  line-height: var(--lh-section);
+  letter-spacing: 0;
+  color: var(--n-90);
+}
+
+.dialog-wrapper__close {
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--n-60);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.dialog-wrapper__close:hover {
+  background: var(--n-10);
+  color: var(--n-90);
+}
+
+.dialog-wrapper__close-icon {
+  display: block;
+  width: 13px;
+  height: 13px;
+  line-height: 0;
+}
+
+.dialog-wrapper__close-icon ::ng-deep svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}

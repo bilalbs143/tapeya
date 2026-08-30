@@ -1,9 +1,10 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 
 @include mat.dialog-overrides(
   (
     container-shape: var(--mat-sys-corner-medium),
+    // Target: our radius (above) + shadow.
+    container-elevation-shadow: var(--e-modal),
     subhead-size: 18px,
     subhead-weight: 600,
     content-padding: 20px 24px,
@@ -13,3 +14,46 @@
     supporting-text-tracking: unset,
   )
 );
+
+// Correction: scrim that doesn't go pure black.
+html {
+  .cdk-overlay-dark-backdrop {
+    background: rgba(23, 26, 23, 0.32);
+  }
+
+  /* Match page-header__actions (gap: --sp-3). Material’s default action
+   * margins stack wider than toolbar buttons. */
+  .mat-mdc-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-3);
+    justify-content: flex-end;
+
+    .mat-mdc-button-base,
+    app-ui-button,
+    app-submit-button {
+      margin: 0 !important;
+    }
+
+    @media (max-width: 767px) {
+      justify-content: stretch;
+
+      app-ui-button,
+      app-submit-button {
+        flex: 1 1 auto;
+      }
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  html {
+    .mat-mdc-dialog-container .mat-mdc-dialog-title,
+    .mat-mdc-dialog-container .mat-mdc-dialog-content,
+    .mat-mdc-dialog-container .mat-mdc-dialog-actions {
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+  }
+}

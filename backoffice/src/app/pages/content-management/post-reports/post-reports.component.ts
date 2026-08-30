@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { PageEvent } from '@angular/material/paginator';
@@ -19,6 +18,11 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManagePostReportDialogComponent } from './manage-post-report-dialog/manage-post-report-dialog.component';
@@ -62,7 +66,6 @@ const STATUS_LABELS: Record<PostReportStatus, string> = {
     MatSortModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     TableImageComponent,
@@ -98,7 +101,6 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.searchForm = this.fb.group({ status: [DEFAULT_FILTERS.status] });
     this.pageSize = this.paginatorConfig.pageSize;
@@ -109,12 +111,7 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -122,18 +119,11 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
@@ -185,7 +175,7 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManagePostReportDialogComponent,
       { report: item },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 }

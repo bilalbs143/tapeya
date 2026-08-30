@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
@@ -24,6 +23,11 @@ import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import {
@@ -49,8 +53,8 @@ const STATUS_OPTIONS = [
 
 const SELF_SERVE_OPTIONS = [
   { value: '', label: 'All Streams' },
-  { value: '1', label: 'Self-serve (mobile) only' },
-  { value: '0', label: 'Admin-created only' },
+  { value: '1', label: 'Self-Serve (Mobile) Only' },
+  { value: '0', label: 'Admin-Created Only' },
 ];
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -75,7 +79,6 @@ const WATCHING_REFRESH_MS = 15_000;
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
     TablerIconsModule,
     RouterLink,
     CommonSharedModule,
@@ -115,7 +118,6 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.searchForm = this.fb.group({
       status: [DEFAULT_FILTERS.status],
@@ -135,12 +137,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -152,18 +149,11 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset(DEFAULT_FILTERS);
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public openCreateDialog(): void {

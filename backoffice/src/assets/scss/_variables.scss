@@ -1,14 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
-
-// font
-$font-family: 'DM Sans', sans-serif;
+// Font loaded via <link> in index.html (Instrument Sans) —
+// not @import here, so it gets preconnect/display=swap from one place.
+$font-family:
+  'Instrument Sans',
+  system-ui,
+  -apple-system,
+  sans-serif;
 
 // light color variable
 
-// Sidenav
-$sidenav-desktop: 300px !default;
-$sidenav-mini: 80px !default;
-$header-height: 70px !default;
+// Sidenav — base 256px + 5%
+$sidenav-desktop: 269px !default;
+$sidenav-mini: 72px !default;
+$header-height: 54px !default;
 
 //BorderColor
 $borderColor: var(--mat-sys-outline-variant);
@@ -19,27 +22,25 @@ $primary: var(--mat-sys-primary);
 $secondary: var(--mat-sys-secondary);
 $accent: var(--mat-sys-secondary);
 $error: var(--mat-sys-error);
-$info: #539bff;
-$warning: #ffae1f;
-$success: #13deb9;
-$white: #ffffff;
+$info: var(--info);
+$warning: var(--warning);
+$success: var(--success);
 
 $light: var(--mat-sys-surface-bright);
 $light-primary: var(--mat-sys-primary-fixed-dim);
 $light-secondary: var(--mat-sys-secondary-fixed-dim);
 $light-accent: var(--mat-sys-secondary-fixed-dim);
 $light-error: var(--mat-sys-error-fixed-dim);
-$light-warning: #ffad1f40;
-$light-success: #13deb940;
-$light-info: #8754ec26;
+$light-warning: var(--warning-tint);
+$light-success: var(--success-tint);
+$light-info: var(--info-tint);
 
 // layout
-$boxedWidth: 1536px;
 $border-radius: 7px;
 
-$card-spacer: 24px;
+$card-spacer: 16px;
 
 $text-color: var(--mat-sys-on-background);
 
-$dark-text-secondary: rgba(255, 255, 255, 0.67);
-$dark-body-bg: #141a21;
+$dark-text-secondary: var(--n-60);
+$dark-body-bg: var(--n-05);

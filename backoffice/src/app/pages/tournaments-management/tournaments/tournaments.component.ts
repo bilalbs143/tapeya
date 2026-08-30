@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { PageEvent } from '@angular/material/paginator';
@@ -20,6 +19,12 @@ import { TournamentsService, type Tournament } from 'src/app/services/tournament
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import { cityCountryLine } from 'src/app/shared/functions/display.helper';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageTournamentDialogComponent } from './manage-tournament-dialog/manage-tournament-dialog.component';
@@ -41,7 +46,6 @@ const DEFAULT_FILTERS = {
     MatSortModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     MatTooltipModule,
@@ -70,8 +74,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
     'tournament_type',
     'venue_name',
     'prize',
-    'country',
-    'city',
+    'location',
     'start_date',
     'end_date',
     'schedule_phase',
@@ -105,12 +108,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -118,18 +116,11 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
@@ -163,7 +154,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );
@@ -175,7 +166,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', tournament: item },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );
@@ -200,5 +191,9 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         })
     );
+  }
+
+  public cityCountryLine(item: Tournament): string {
+    return cityCountryLine(item.city, item.country);
   }
 }

@@ -8,24 +8,26 @@
       <div class="grid grid-cols-12 gap-x-6">
         @if (!isLocked) {
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Campaign Type</mat-label>
-            <mat-radio-group
-              formControlName="kind"
-              class="flex flex-wrap items-center gap-4"
-            >
-              <mat-radio-button value="linked">Link an Existing Tournament</mat-radio-button>
-              <mat-radio-button value="custom">Custom Title (No Tournament Yet)</mat-radio-button>
-            </mat-radio-group>
+            <fieldset class="field-group-fieldset">
+              <legend class="field-group-label">Campaign Type</legend>
+              <mat-radio-group
+                formControlName="kind"
+                class="flex flex-wrap items-center gap-4"
+              >
+                <mat-radio-button value="linked">Link an Existing Tournament</mat-radio-button>
+                <mat-radio-button value="custom">Custom Title (No Tournament Yet)</mat-radio-button>
+              </mat-radio-group>
+            </fieldset>
           </div>
         }
 
         @if (isLinkedKind) {
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Tournament <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Tournament <span class="text-error">*</span></mat-label>
               <input
                 matInput
                 type="text"
@@ -51,11 +53,11 @@
           </div>
         } @else {
           <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Tournament Title <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Tournament Title <span class="text-error">*</span></mat-label>
               <input
                 matInput
                 formControlName="tournament_name"
@@ -70,11 +72,11 @@
         }
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Status</mat-label>
             <mat-select
               formControlName="status"
               placeholder="Select Status"
@@ -89,11 +91,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Public Slug</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Public Slug</mat-label>
             <span
               matTextPrefix
               class="text-muted me-1"
@@ -113,11 +115,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Description</mat-label>
             <textarea
               matInput
               formControlName="description"
@@ -129,37 +131,45 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Form Fields <span class="text-error">*</span></mat-label>
-          <p class="mb-3 max-w-3xl text-xs leading-snug text-muted">
-            Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players.
-            Full name is always stored from the signed-in account. Country and city are toggled together.
-          </p>
-          <div class="grid grid-cols-12 gap-x-4 gap-y-1">
-            @if (formFieldOptions$ | async; as fieldOpts) {
-              @for (opt of fieldOpts; track opt.value) {
-                <div class="col-span-12 sm:col-span-6 lg:col-span-4">
-                  <mat-checkbox
-                    [checked]="isFormFieldSelected($any(opt.value))"
-                    [disabled]="isFormFieldLocked($any(opt.value))"
-                    (change)="toggleFormField($any(opt.value), $event.checked)"
-                    color="primary"
-                  >
-                    {{ opt.label }}
-                  </mat-checkbox>
-                </div>
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Form Fields <span class="text-error">*</span></legend>
+            <p class="mb-3 max-w-3xl text-xs leading-snug text-muted">
+              Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players.
+              Full name is always stored from the signed-in account. Country and city are toggled together.
+            </p>
+            <div class="grid grid-cols-12 gap-x-4 gap-y-1">
+              @if (formFieldOptions$ | async; as fieldOpts) {
+                @for (opt of fieldOpts; track opt.value) {
+                  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                    <mat-checkbox
+                      [checked]="isFormFieldSelected($any(opt.value))"
+                      [disabled]="isFormFieldLocked($any(opt.value))"
+                      (change)="toggleFormField($any(opt.value), $event.checked)"
+                      color="primary"
+                    >
+                      {{ opt.label }}
+                    </mat-checkbox>
+                  </div>
+                }
               }
+            </div>
+            @if (form.get('form_fields')?.touched && form.get('form_fields')?.hasError('required')) {
+              <p class="mt-2 text-xs text-error">Select at least one form field.</p>
             }
-          </div>
-          @if (form.get('form_fields')?.touched && form.get('form_fields')?.hasError('required')) {
-            <p class="mt-2 text-xs text-error">Select at least one form field.</p>
-          }
+          </fieldset>
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Show in Sidebar</mat-label>
+          <p
+            id="campaign-sidebar-label"
+            class="field-group-label"
+          >
+            Show in Sidebar
+          </p>
           <mat-slide-toggle
             formControlName="show_in_sidebar"
             color="primary"
+            aria-labelledby="campaign-sidebar-label"
           ></mat-slide-toggle>
           <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
             Only one campaign can appear in the app sidebar. If another campaign already has this on, it will be turned off when
@@ -167,10 +177,16 @@
           </p>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Show Dialog</mat-label>
+          <p
+            id="campaign-dialog-label"
+            class="field-group-label"
+          >
+            Show Dialog
+          </p>
           <mat-slide-toggle
             formControlName="show_dialog"
             color="primary"
+            aria-labelledby="campaign-dialog-label"
           ></mat-slide-toggle>
           <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
             Only one campaign can show the in-app interest dialog. If another campaign already has this on, it will be turned off
@@ -191,14 +207,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

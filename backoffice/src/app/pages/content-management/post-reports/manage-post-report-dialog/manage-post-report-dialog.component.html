@@ -2,7 +2,7 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Post report form"
+    aria-label="Post Report Form"
   >
     <mat-dialog-content>
       <div class="flex flex-col gap-2">
@@ -59,7 +59,7 @@
           <div
             class="flex items-center gap-3 py-6"
             role="status"
-            aria-label="Loading post media"
+            aria-label="Loading Post Media"
           >
             <app-loader [label]="null" />
           </div>
@@ -106,11 +106,11 @@
 
         <div class="grid grid-cols-12 gap-x-6 pt-2">
           <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Status</mat-label>
               <mat-select
                 formControlName="status"
                 placeholder="Select Status"
@@ -126,14 +126,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

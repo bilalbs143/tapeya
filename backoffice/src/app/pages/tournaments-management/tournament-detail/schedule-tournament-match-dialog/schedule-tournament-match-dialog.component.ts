@@ -2,18 +2,11 @@ import { CommonModule, formatDate } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { forkJoin, merge } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
@@ -22,10 +15,8 @@ import type { TournamentTeamRow } from 'src/app/services/tournament-teams.servic
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { LIVE_STREAM_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ScheduleTournamentMatchDialogData {
@@ -37,23 +28,7 @@ export interface ScheduleTournamentMatchDialogData {
 @Component({
   selector: 'app-schedule-tournament-match-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatRadioModule,
-    MatDatepickerModule,
-    MatIconModule,
-    MatDividerModule,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    LoaderBlockComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './schedule-tournament-match-dialog.component.html',
 })
 export class ScheduleTournamentMatchDialogComponent implements OnInit {

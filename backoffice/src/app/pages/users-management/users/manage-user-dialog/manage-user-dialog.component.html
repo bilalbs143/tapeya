@@ -2,7 +2,7 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="User form"
+    aria-label="User Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
@@ -17,11 +17,11 @@
 
         <!-- Row 1: Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Name</mat-label>
             <input
               matInput
               formControlName="name"
@@ -33,11 +33,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Nickname <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Nickname</mat-label>
             <input
               matInput
               formControlName="nickname"
@@ -51,11 +51,11 @@
 
         <!-- Row 2: Email | Phone -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Email</mat-label>
             <input
               matInput
               type="email"
@@ -67,11 +67,11 @@
 
         <!-- Row 2 cont: Phone -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Phone</mat-label>
             <input
               matInput
               formControlName="phone"
@@ -84,11 +84,11 @@
         </div>
         <!-- Row 3: Date of Birth | Status -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Date of Birth</mat-label>
             <input
               matInput
               formControlName="date_of_birth"
@@ -104,11 +104,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Status</mat-label>
             <mat-select
               formControlName="status"
               placeholder="Select Status"
@@ -124,11 +124,11 @@
 
         <!-- Row 4: Backoffice Roles | Broadcast | Official -->
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Backoffice Roles</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Backoffice Roles</mat-label>
             <mat-select
               formControlName="admin_role_ids"
               multiple
@@ -144,14 +144,14 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Broadcast</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Broadcast</mat-label>
             <mat-select
               formControlName="can_broadcast"
-              placeholder="Select broadcast access"
+              placeholder="Select Broadcast Access"
             >
               @for (opt of broadcastOptions; track opt.value) {
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
@@ -161,11 +161,11 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4 mb-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Official account</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Official Account</mat-label>
             <mat-select
               formControlName="is_official"
               placeholder="Official badge"
@@ -174,17 +174,17 @@
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
-            <mat-hint>Blue tick beside the user’s name. Staff only.</mat-hint>
+            <mat-hint>Blue tick beside the user’s name.</mat-hint>
           </mat-form-field>
         </div>
 
         <!-- Row 5: Playing Role | Bowling Style | Batting Style -->
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Playing Role</mat-label>
             <mat-select
               formControlName="playing_role"
               placeholder="Select Playing Role"
@@ -199,11 +199,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Bowling Style</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Bowling Style</mat-label>
             <mat-select
               formControlName="bowling_style"
               placeholder="Select Bowling Style"
@@ -218,11 +218,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Batting Style</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Batting Style</mat-label>
             <mat-select
               formControlName="batting_style"
               placeholder="Select Batting Style"
@@ -239,11 +239,11 @@
 
         <!-- Row 6: Country | City -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Country</mat-label>
             <mat-select
               formControlName="country"
               placeholder="Select Country"
@@ -256,11 +256,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">City</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>City</mat-label>
             <mat-select
               formControlName="city"
               placeholder="Select City"
@@ -275,11 +275,11 @@
 
         <!-- Row 7: Password | Confirm Password -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Password (Optional)</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Password (Optional)</mat-label>
             <input
               matInput
               type="password"
@@ -289,11 +289,11 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Confirm Password</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Confirm Password</mat-label>
             <input
               matInput
               type="password"
@@ -306,14 +306,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="false"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

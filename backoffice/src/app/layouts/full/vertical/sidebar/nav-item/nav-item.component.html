@@ -1,54 +1,53 @@
 @if (item.navCap) {
-  <div
-    mat-subheader
-    class="nav-caption"
-  >
-    {{ item.navCap }}
-  </div>
+  <div class="nav-caption">{{ item.navCap }}</div>
 }
+
 @if (!item.navCap && !item.external && !item.twoLines) {
   <a
     mat-list-item
     (click)="onItemSelected(item)"
     [ngClass]="{
-      'mat-toolbar mat-primary activeMenu': item.route ? router.isActive(item.route, true) : false,
+      activeMenu: item.route ? router.isActive(item.route, true) : false,
       expanded: expanded,
       activemenu: isChildActive(item),
       disabled: item.disabled,
+      'menu-list-item--child': depth > 0,
+      'menu-list-item--parent': !!item.children?.length,
     }"
     class="menu-list-item"
+    [attr.data-depth]="depth"
   >
+    @if (depth === 0 && item.iconName) {
+      <span
+        class="iconify routeIcon"
+        matListItemIcon
+        [attr.data-icon]="item.iconName"
+      ></span>
+    }
     <span
-      class="iconify routeIcon"
-      matListItemIcon
-      [attr.data-icon]="item.iconName"
-    ></span>
-    <span class="hide-menu">{{ item.displayName }}</span>
-    <div class="flex items-center gap-1">
-      @if (item.children && item.children.length) {
+      matListItemTitle
+      class="hide-menu menu-label"
+      >{{ item.displayName }}</span
+    >
+    @if (item.chip || item.children?.length) {
+      <span
+        matListItemMeta
+        class="menu-trailing"
+      >
         @if (item.chip) {
-          <span>
-            <span class="{{ item.chipClass }} px-2 py-1 item-chip font-medium rounded-full">{{ item.chipContent }}</span>
-          </span>
+          <span class="{{ item.chipClass }} item-chip">{{ item.chipContent }}</span>
         }
-        <span
-          class="arrow-icon"
-          fxFlex
-        >
-          <span fxFlex></span>
-          <mat-icon [@indicatorRotate]="expanded ? 'expanded' : 'collapsed'"> expand_more </mat-icon>
-        </span>
-      }
-    </div>
-    @if (item.chip && !item.children) {
-      <span>
-        <span class="{{ item.chipClass }} px-2 py-1 item-chip font-medium rounded-full">{{ item.chipContent }}</span>
+        @if (item.children?.length) {
+          <mat-icon
+            class="arrow-icon"
+            [@indicatorRotate]="expanded ? 'expanded' : 'collapsed'"
+            >expand_more</mat-icon
+          >
+        }
       </span>
     }
   </a>
 }
-
-<!-- external Link -->
 
 @if (!item.navCap && item.external) {
   <mat-list-item
@@ -56,23 +55,32 @@
     class="menu-list-item"
     target="_blank"
   >
+    @if (item.iconName) {
+      <span
+        class="iconify routeIcon"
+        matListItemIcon
+        [attr.data-icon]="item.iconName"
+      ></span>
+    }
     <span
-      class="iconify routeIcon"
-      matListItemIcon
-      [attr.data-icon]="item.iconName"
-    ></span>
-    <span class="hide-menu">{{ item.displayName }}</span>
+      matListItemTitle
+      class="hide-menu"
+      >{{ item.displayName }}</span
+    >
   </mat-list-item>
 }
 
-<!-- children -->
-@if (expanded) {
-  @for (child of item.children; track child) {
-    <app-nav-item
-      [item]="child"
-      (click)="onSubItemSelected(child)"
-      [depth]="depth + 1"
-    >
-    </app-nav-item>
-  }
+@if (expanded && item.children?.length) {
+  <div class="nav-tree">
+    @for (child of item.children; track child) {
+      <app-nav-item
+        [item]="child"
+        (click)="onSubItemSelected(child)"
+        [depth]="depth + 1"
+        [forceExpanded]="forceExpanded"
+        (notify)="notify.emit($event)"
+      >
+      </app-nav-item>
+    }
+  </div>
 }

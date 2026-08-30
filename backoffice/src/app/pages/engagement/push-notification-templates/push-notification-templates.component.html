@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Push Notification Templates"
       subtitle="Manage reusable push notification templates"
@@ -7,32 +7,31 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter push notification templates"
+      aria-label="Filter Push Notification Templates"
     >
       <app-search-filter-bar>
         <div>
@@ -57,148 +56,158 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Push notification templates"
-          matSortActive="name"
-          matSortStart="asc"
-          matSortDirection="asc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Push Notification Templates"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Push Notification Templates"
+            matSortActive="name"
+            matSortStart="asc"
+            matSortDirection="asc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="name">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="name"
-              class="bg-light-secondary font-semibold"
-            >
-              Name
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.name }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="name"
+                class="font-semibold"
+              >
+                Name
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.name }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="title_template">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Title Template
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-xs truncate"
-              [title]="row.title_template"
-            >
-              {{ row.title_template || emptyCell }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="title_template">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Title Template
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-xs truncate"
+                [title]="row.title_template"
+              >
+                {{ row.title_template || emptyCell }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="is_active">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Active
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip [status]="row.is_active" />
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="is_active">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Active
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip [status]="row.is_active" />
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="updated_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="updated_at"
-              class="bg-light-secondary font-semibold"
-            >
-              Last Updated
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ formatDate(row.updated_at) }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="updated_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="updated_at"
+                class="font-semibold"
+              >
+                Last Updated
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.updated_at) }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              @if (row.is_editable) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Edit template"
-                  (click)="openEditDialog(row)"
-                >
-                  <i-tabler
-                    name="edit"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              } @else {
-                <span class="text-xs text-muted">—</span>
-              }
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  @if (row.is_editable) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Edit Template"
+                      (click)="openEditDialog(row)"
+                    >
+                      <i-tabler
+                        name="edit"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  } @else {
+                    <span class="text-xs text-muted">—</span>
+                  }
+                </div>
+              </td>
+            </ng-container>
 
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
 
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

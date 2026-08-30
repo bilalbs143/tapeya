@@ -1,0 +1,176 @@
+/* Tapeya Backoffice — design tokens
+ * Single source of truth. Every other file (Tailwind, Material, component
+ * styles) reads from here. Never hard-code a hex in a component.
+ *
+ * The `.dark-theme` block below is a provisional dark palette on the same
+ * neutral/accent roles so the dark-mode toggle stays on-brand. Replace with a
+ * designed ramp later if needed.
+ */
+:root {
+  /* ---- Neutrals ------------------------------------------------------- */
+  --n-00: #ffffff; /* page / card surface        */
+  --n-05: #f7f8f8; /* sunken surface, sidebar, row hover */
+  --n-10: #edefef; /* hover fill, table stripe   */
+  --n-20: #e6e9e9; /* hairline border            */
+  --n-25: #e4e7e7; /* panel border               */
+  --n-30: #ccd1d1; /* control border, disabled   */
+  --n-45: #a0a49e; /* placeholder, mono labels   */
+  --n-60: #6b6f6b; /* secondary text   5.1:1     */
+  --n-70: #5c605b; /* helper text      6.3:1     */
+  --n-80: #3e423d; /* nav / body text  9.1:1     */
+  --n-90: #171a17; /* primary text    15.9:1     */
+
+  /* Table sticky header surface (between n-00 and n-05) */
+  --table-header: #fafbfb;
+
+  /* Switch OFF track — between n-25 and n-30 */
+  --switch-off: #d5d9d9;
+
+  /* ---- Accent (interactive only, never decorative) -------------------- */
+  --accent-tint: #e9f4f0;
+  --accent-border: #cce2db;
+  --accent: #0d6a57;
+  --accent-hover: #0a5646;
+  --accent-press: #09493c;
+  --accent-on: #ffffff;
+  --selection: #cbe6dd;
+
+  /* ---- Status (meaning only — not lifecycle decoration) --------------- */
+  --success: #0d6a57;
+  --success-tint: #e9f4f0;
+  --warning: #c4841a;
+  --warning-tint: #fbf3e4;
+  --danger: #b23a24;
+  --danger-tint: #fbedea;
+  --info: #3b6ca8;
+  --info-tint: #ecf1f8;
+
+  /* ---- Neutral status: inactive / muted / removed / scheduled / etc.
+     Reuses the neutral ramp rather than inventing another brand hue. */
+  --muted: var(--n-60);
+  --muted-tint: var(--n-10);
+
+  /* ---- Spacing — eight-point rhythm ----------------------------------- */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 12px;
+  --sp-6: 16px;
+  --sp-7: 20px;
+  --sp-8: 24px;
+  --sp-9: 32px;
+  --sp-10: 40px;
+
+  /* ---- Layout --------------------------------------------------------- */
+  /* List-table scroll body: fill remaining viewport under topbar + typical
+     list chrome (page padding, header, filters, paginator). Tuned ~20rem;
+     embedded/detail tables share this token. */
+  --table-viewport: calc(100dvh - 20rem);
+
+  /* ---- Radius --------------------------------------------------------- */
+  --r-sm: 6px; /* chips, small buttons, menu items */
+  --r-md: 8px; /* inputs, buttons, selects         */
+  --r-lg: 12px; /* cards, panels, dialogs           */
+
+  /* ---- Control heights ------------------------------------------------ */
+  --h-sm: 28px; /* toolbar, inline table actions */
+  --h-md: 34px; /* default buttons, form fields, primary CTA */
+
+  /* ---- Elevation ------------------------------------------------------ */
+  --e-card: 0 1px 2px rgba(23, 26, 23, 0.04);
+  --e-popover: 0 6px 16px -6px rgba(23, 26, 23, 0.18);
+  --e-modal: 0 24px 48px -12px rgba(23, 26, 23, 0.28);
+  --ring: 0 0 0 3px rgba(15, 107, 79, 0.18);
+
+  /* ---- Type ----------------------------------------------------------- */
+  --font-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --fs-display: 30px;
+  --lh-display: 1.15;
+  --tr-display: -0.025em;
+  --fs-title: 22px;
+  --lh-title: 1.2;
+  --tr-title: -0.02em;
+  --fs-section: 15px;
+  --lh-section: 1.3;
+  --fs-body: 13.5px;
+  --lh-body: 1.5;
+  --fs-meta: 12px;
+  --lh-meta: 1.45;
+  --fs-label: 10.5px;
+  --tr-label: 0.07em;
+
+  /* ---- Motion — never animate layout ---------------------------------- */
+  --d-fast: 120ms;
+  --d-menu: 160ms;
+  --d-modal: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-fast: 0ms;
+    --d-menu: 0ms;
+    --d-modal: 0ms;
+  }
+}
+
+/* Suppress transitions for two animation frames around a light/dark class
+   swap (see `applyDocumentTheme`). Elements with `transition` on a
+   color/background that reads an --n-* token would otherwise animate
+   through the old theme's resolved value when the token flips. */
+html.theme-swap-in-progress,
+html.theme-swap-in-progress * {
+  transition: none !important;
+}
+
+::selection {
+  background: var(--selection);
+}
+
+/* ---- Provisional dark ramp ---------------------------------------------
+ * Same roles as light: n-00 stays the "elevated surface" (cards read
+ * lighter than the page, same direction as light mode), n-05 is the
+ * sunken page/sidebar canvas. Accent is brightened for on-dark contrast;
+ * accent-on flips to a near-black label since a bright accent fill reads
+ * better with dark text than white in M3 dark schemes.
+ * ------------------------------------------------------------------- */
+html.dark-theme {
+  --n-00: #1c201e;
+  --n-05: #131615;
+  --n-10: #262b28;
+  --n-20: #2d332f;
+  --n-25: #333a35;
+  --n-30: #454c46;
+  --n-45: #7c8279;
+  --n-60: #9ca199;
+  --n-70: #afb4ac;
+  --n-80: #d2d6ce;
+  --n-90: #f1f3ef;
+
+  --table-header: #181c1a;
+
+  --switch-off: #454c46; /* same role as light OFF track on dark canvas */
+
+  --accent-tint: #17352d;
+  --accent-border: #22503f;
+  --accent: #2fb394;
+  --accent-hover: #45c7a8;
+  --accent-press: #1f9078;
+  --accent-on: #08201a;
+  --selection: #1b4a3d;
+
+  --success: #2fb394;
+  --success-tint: #17352d;
+  --warning: #e3aa4c;
+  --warning-tint: #3a2d12;
+  --danger: #e56a50;
+  --danger-tint: #3b1912;
+  --info: #79a9e0;
+  --info-tint: #17263a;
+
+  --e-card: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --e-popover: 0 6px 16px -6px rgba(0, 0, 0, 0.55);
+  --e-modal: 0 24px 48px -12px rgba(0, 0, 0, 0.65);
+  --ring: 0 0 0 3px rgba(47, 179, 148, 0.35);
+}

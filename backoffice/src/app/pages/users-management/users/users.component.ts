@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +22,12 @@ import { UsersService } from 'src/app/services/users.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import { cityCountryLine } from 'src/app/shared/functions/display.helper';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageUserDialogComponent, type ManageUserDialogResult } from './manage-user-dialog/manage-user-dialog.component';
@@ -47,7 +52,6 @@ const DEFAULT_FILTERS = {
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     CommonSharedModule,
@@ -78,8 +82,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'playing_role',
     'bowling_style',
     'batting_style',
-    'country',
-    'city',
+    'location',
     'status',
     'active_platform',
     'created_at',
@@ -94,11 +97,14 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     return roles.map((r) => r.name).join(', ');
   }
 
+  public cityCountryLine(user: User): string {
+    return cityCountryLine(user.city, user.country);
+  }
+
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.initialiseSearchForm();
     this.pageSize = this.paginatorConfig.pageSize;
@@ -118,12 +124,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -131,18 +132,11 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
@@ -176,7 +170,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );
@@ -188,7 +182,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );

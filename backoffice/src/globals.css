@@ -1,46 +1,55 @@
 @import 'tailwindcss';
+@import './styles/theme.css';
 
 :root {
-  --font-body: 'DM Sans', sans-serif;
+  --font-body: var(--font-sans);
   --border: var(--mat-sys-outline-variant);
-  --info-color: #539bff;
-  --warning-color: #ffae1f;
-  --success-color: #13deb9;
-
-  --lightsuccess-color: #13deb940;
-  --lightinfo-color: #8754ec26;
-  --lightwarning-color: #ffad1f40;
 }
 
+/* Tailwind utility names below (bg-primary, text-success, bg-light-success, …)
+ * are the app color API — list pages and status-class helpers emit them.
+ * Values map to design tokens in theme.css. */
 @theme {
   /* Color */
   --color-primary: var(--mat-sys-primary);
   --color-secondary: var(--mat-sys-secondary);
   --color-error: var(--mat-sys-error);
-  --color-info: var(--info-color);
-  --color-warning: var(--warning-color);
-  --color-success: var(--success-color);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
   --color-dark: var(--mat-sys-on-background);
   --color-light: var(--mat-sys-surface-bright);
+  --color-muted: var(--n-60);
+  --color-ink: var(--n-90);
+  --color-body: var(--n-80);
+  --color-helper: var(--n-70);
+  --color-surface: var(--n-00);
+  --color-surface-sunk: var(--n-05);
 
   /* Light Color */
   --color-light-primary: var(--mat-sys-primary-fixed-dim);
   --color-light-secondary: var(--mat-sys-secondary-fixed-dim);
-  --color-light-error: var(--mat-sys-error-fixed-dim);
-  --color-light-success: var(--lightsuccess-color);
-  --color-light-info: var(--lightinfo-color);
-  --color-light-warning: var(--lightwarning-color);
+  /* Prefer --danger-tint over --mat-sys-error-fixed-dim (M3 structural error
+     palette) so light-error matches our status tint. */
+  --color-light-error: var(--danger-tint);
+  --color-light-success: var(--success-tint);
+  --color-light-info: var(--info-tint);
+  --color-light-warning: var(--warning-tint);
 
   /* Border */
   --color-border: var(--mat-sys-outline-variant);
 
-  /* Border Radius */
-  --radius-sm: var(--mat-sys-corner-small);
-  --radius-md: var(--mat-sys-corner-medium);
+  /* Border radius — stay within --r-lg (12px). */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
 
   /* Shadow */
-  --shadow-sm: #919eab4d 0px 0px 2px 0px, #919eab1f 0px 12px 24px -4px;
-  --shadow-md: rgba(145, 158, 171, 0.12) 0px 1px 16px;
+  --shadow-sm: var(--e-card);
+  --shadow-md: var(--e-popover);
+  --shadow-card: var(--e-card);
+  --shadow-popover: var(--e-popover);
+  --shadow-modal: var(--e-modal);
 
   --animate-loader-spin: loader-spin 0.85s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
 
@@ -151,6 +160,16 @@
     background-color: var(--color-light-secondary) !important;
   }
 
+  /*
+   * Table headers must use --table-header (#FAFBFB), not bg-light-secondary
+   * (--n-10 / #EDEFEF). These utilities live in @layer base with !important,
+   * which beats unlayered _table.scss overrides — so pin the fill here.
+   */
+  .mat-mdc-table .mat-mdc-header-cell,
+  .mat-mdc-table .mdc-data-table__header-cell {
+    background-color: var(--table-header) !important;
+  }
+
   .bg-light-error {
     background-color: var(--color-light-error) !important;
   }
@@ -167,8 +186,9 @@
     background-color: var(--color-light-warning) !important;
   }
 
-  /* Focus visibility — one ring for every interactive element that doesn't already define its own. */
-  :focus-visible {
+  /* Focus visibility — one ring for interactive elements that don't define their own.
+     .ui-btn owns :focus-visible — skip them here. */
+  :focus-visible:not(.ui-btn) {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
     border-radius: 4px;
@@ -179,27 +199,92 @@
     stroke-width: 1.5px;
   }
 
-  /* Row-action icon button — the transparent, borderless icon buttons in a table's Action
-     column (edit/delete/view/etc). One class instead of the five-utility string repeated at
-     every call site, with hover and disabled states built in instead of copy-pasted per page. */
-  .row-action {
-    cursor: pointer;
-    border: 0;
-    background-color: transparent;
-    padding: 0;
+  .row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
     vertical-align: middle;
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
   }
 
-  .row-action:hover {
+  .row-action,
+  td.action-link > a:has(i-tabler),
+  td.action-link > button:has(i-tabler),
+  td.mat-column-actions > a:has(i-tabler),
+  td.mat-column-actions > button:has(i-tabler) {
+    display: inline-grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    margin: 0 !important;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--n-70);
+    cursor: pointer;
+    vertical-align: middle;
+    text-decoration: none;
     opacity: 1;
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  .row-action:hover,
+  td.action-link > a:has(i-tabler):hover,
+  td.action-link > button:has(i-tabler):hover,
+  td.mat-column-actions > a:has(i-tabler):hover,
+  td.mat-column-actions > button:has(i-tabler):hover {
+    background: var(--n-10);
+    color: var(--n-90);
+    opacity: 1;
+  }
+
+  .row-action:focus-visible,
+  td.action-link > a:has(i-tabler):focus-visible,
+  td.action-link > button:has(i-tabler):focus-visible,
+  td.mat-column-actions > a:has(i-tabler):focus-visible,
+  td.mat-column-actions > button:has(i-tabler):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .row-action--danger:hover,
+  .row-action[aria-label*='Delete' i]:hover,
+  .row-action[aria-label*='delete' i]:hover,
+  .row-action[aria-label*='Remove' i]:hover,
+  td.action-link > button[aria-label*='Delete' i]:hover,
+  td.action-link > button[aria-label*='delete' i]:hover,
+  td.action-link > button[aria-label*='Remove' i]:hover,
+  td.mat-column-actions > button[aria-label*='Delete' i]:hover,
+  td.mat-column-actions > button[aria-label*='delete' i]:hover,
+  td.mat-column-actions > button[aria-label*='Remove' i]:hover {
+    background: var(--danger-tint);
+    color: var(--danger);
   }
 
   .row-action:disabled,
   .row-action[aria-disabled='true'] {
     cursor: not-allowed;
     opacity: 0.4;
+  }
+
+  .row-action i-tabler,
+  td.action-link > a i-tabler,
+  td.action-link > button i-tabler,
+  td.mat-column-actions > a i-tabler,
+  td.mat-column-actions > button i-tabler {
+    width: 15px !important;
+    height: 15px !important;
+    min-width: 15px;
+    min-height: 15px;
+    display: block;
+  }
+
+  /* Adjacent icon actions without .row-actions wrapper still get the 2px gap */
+  td.action-link > :is(a, button) + :is(a, button),
+  td.mat-column-actions > :is(a, button) + :is(a, button) {
+    margin-left: 2px !important;
   }
 
   /* Toast/snackbar type accent — MessageService sets panelClass "toast-{type}"; this is the only

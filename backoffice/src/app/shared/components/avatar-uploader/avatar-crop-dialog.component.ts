@@ -1,12 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/list';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ImageCropperComponent, ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
 
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { MaterialModule } from 'src/app/material.module';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface AvatarCropDialogData {
   imageFile: File;
@@ -21,15 +19,7 @@ const ZOOM_MAX = 4;
 @Component({
   selector: 'app-avatar-crop-dialog',
   standalone: true,
-  imports: [
-    MatDialogModule,
-    MatButtonModule,
-    MatTooltipModule,
-    TablerIconsModule,
-    ImageCropperComponent,
-    DialogWrapperComponent,
-    MatDivider,
-  ],
+  imports: [MaterialModule, CommonSharedModule, TablerIconsModule, ImageCropperComponent],
   template: `
     <app-dialog-wrapper title="Adjust Photo">
       <mat-dialog-content class="!px-5 !pb-2">
@@ -89,9 +79,9 @@ const ZOOM_MAX = 4;
       </mat-dialog-content>
 
       <mat-divider></mat-divider>
-      <mat-dialog-actions class="!px-5 !pb-4 !pt-3 gap-2">
-        <button mat-stroked-button mat-dialog-close>Cancel</button>
-        <button mat-flat-button color="primary" [disabled]="!croppedBlob" (click)="apply()">Apply</button>
+      <mat-dialog-actions class="dialog-actions !px-5 !pb-4 !pt-3">
+        <app-ui-button variant="ghost" mat-dialog-close>Cancel</app-ui-button>
+        <app-ui-button variant="primary" [disabled]="!croppedBlob" (click)="apply()">Apply</app-ui-button>
       </mat-dialog-actions>
     </app-dialog-wrapper>
   `,

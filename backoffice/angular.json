@@ -32,10 +32,8 @@
               "src/assets/scss/style.scss",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/angular-calendar/css/angular-calendar.css",
-              "node_modules/highlight.js/styles/atom-one-dark.min.css",
               "node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.carousel.min.css",
-              "node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.theme.default.min.css",
-              "src/assets/scss/custom.scss"
+              "node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.theme.default.min.css"
             ],
             "scripts": [],
             "browser": "src/main.ts"

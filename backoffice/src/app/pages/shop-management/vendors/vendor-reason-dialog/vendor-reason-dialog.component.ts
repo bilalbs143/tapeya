@@ -1,13 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { MaterialModule } from 'src/app/material.module';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface VendorReasonDialogData {
   title: string;
@@ -20,16 +16,7 @@ export interface VendorReasonDialogData {
 @Component({
   selector: 'app-vendor-reason-dialog',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    MatFormFieldModule,
-    MatInputModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './vendor-reason-dialog.component.html',
 })
 export class VendorReasonDialogComponent {

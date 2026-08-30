@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Vendors"
       subtitle="Approve, suspend, and manage marketplace sellers"
@@ -7,36 +7,34 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
           type="button"
           (click)="openCreateDialog()"
         >
           Add Vendor
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
@@ -75,242 +73,253 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Vendors List"
-          matSortActive="id"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="store_name">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Store Name
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.store_name }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="slug">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Slug
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.slug ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="user">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              User
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.user?.name ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="phone">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Phone
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.phone ?? row.user?.phone ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="statusLabel(row)"
-              />
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="commission_rate">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold text-right"
-            >
-              Commission
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-right tabular-nums"
-            >
-              {{ row.commission_rate !== null ? row.commission_rate + '%' : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="is_platform">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Platform
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.is_platform ? 'Yes' : 'No' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Edit Vendor"
-                (click)="openEditDialog(row)"
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Vendors"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Vendors List"
+            matSortActive="id"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                <i-tabler
-                  name="edit"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-              @if (canApprove(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Approve Vendor"
-                  matTooltip="Approve"
-                  (click)="approveVendor(row)"
-                >
-                  <i-tabler
-                    name="check"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              @if (canReject(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Reject Vendor"
-                  matTooltip="Reject"
-                  (click)="rejectVendor(row)"
-                >
-                  <i-tabler
-                    name="x"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              @if (canSuspend(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 row-action"
-                  aria-label="Suspend Vendor"
-                  matTooltip="Suspend"
-                  (click)="suspendVendor(row)"
-                >
-                  <i-tabler
-                    name="ban"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Delete Vendor"
-                [disabled]="row.is_platform"
-                [class.opacity-40]="row.is_platform"
-                [class.pointer-events-none]="row.is_platform"
-                (click)="openDeleteDialog(row)"
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
               >
-                <i-tabler
-                  name="trash"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="store_name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Store Name
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.store_name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="slug">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Slug
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.slug ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                User
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.user?.name ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="phone">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Phone
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.phone ?? row.user?.phone ?? emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="statusLabel(row)"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="commission_rate">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold text-right"
+              >
+                Commission
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-right tabular-nums"
+              >
+                {{ row.commission_rate !== null ? row.commission_rate + '%' : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="is_platform">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Platform
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.is_platform ? 'Yes' : 'No' }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Edit Vendor"
+                    (click)="openEditDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  @if (canApprove(row)) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Approve Vendor"
+                      matTooltip="Approve"
+                      (click)="approveVendor(row)"
+                    >
+                      <i-tabler
+                        name="check"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  @if (canReject(row)) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Reject Vendor"
+                      matTooltip="Reject"
+                      (click)="rejectVendor(row)"
+                    >
+                      <i-tabler
+                        name="x"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  @if (canSuspend(row)) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Suspend Vendor"
+                      matTooltip="Suspend"
+                      (click)="suspendVendor(row)"
+                    >
+                      <i-tabler
+                        name="ban"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="row-action row-action--danger"
+                    aria-label="Delete Vendor"
+                    [disabled]="row.is_platform"
+                    [class.opacity-40]="row.is_platform"
+                    [class.pointer-events-none]="row.is_platform"
+                    (click)="openDeleteDialog(row)"
+                  >
+                    <i-tabler
+                      name="trash"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

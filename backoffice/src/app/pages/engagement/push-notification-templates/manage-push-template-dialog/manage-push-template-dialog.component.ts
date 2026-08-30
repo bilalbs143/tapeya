@@ -1,20 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
 import { renderPushTemplate } from '../push-template-preview.util';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { type PushNotificationTemplate, PushNotificationService } from 'src/app/services/push-notification.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface ManagePushTemplateDialogData {
   template: PushNotificationTemplate;
@@ -23,18 +18,7 @@ export interface ManagePushTemplateDialogData {
 @Component({
   selector: 'app-manage-push-template-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSlideToggleModule,
-    MatDivider,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './manage-push-template-dialog.component.html',
 })
 export class ManagePushTemplateDialogComponent {

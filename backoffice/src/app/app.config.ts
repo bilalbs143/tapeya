@@ -2,6 +2,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS } from '@angular/material/slide-toggle';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
@@ -33,6 +35,15 @@ export const appConfig: ApplicationConfig = {
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: APP_DATE_LOCALE },
     provideNativeDateAdapter(APP_DATE_FORMATS),
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'outline',
+        floatLabel: 'always',
+        subscriptSizing: 'fixed',
+      },
+    },
+    { provide: MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS, useValue: { hideIcon: true } },
     provideAnimationsAsync(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(

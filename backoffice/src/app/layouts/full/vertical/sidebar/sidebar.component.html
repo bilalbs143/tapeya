@@ -1,18 +1,57 @@
-<div class="flex items-center justify-between">
-  <div class="branding min-w-0 shrink">
-    <app-branding></app-branding>
+<div class="sidebar-chrome">
+  <div class="sidebar-brand-row">
+    <div class="branding min-w-0">
+      <app-branding></app-branding>
+    </div>
+
+    @if (showToggle) {
+      <button
+        type="button"
+        class="sidebar-icon-btn"
+        (click)="toggleMobileNav.emit()"
+        aria-label="Close Navigation"
+      >
+        <i-tabler
+          name="x"
+          class="size-4! flex!"
+        ></i-tabler>
+      </button>
+    }
   </div>
 
-  @if (showToggle) {
-    <a
-      href="javascript:void(0)"
-      (click)="toggleMobileNav.emit()"
-      class="flex justify-center ng-star-inserted size-10! shrink-0 items-center text-sm"
-    >
+  <div class="sidebar-search">
+    <label class="sidebar-search__btn">
       <i-tabler
-        name="x"
-        class="size-5! flex!"
+        name="search"
+        class="size-3.5! flex! shrink-0"
       ></i-tabler>
-    </a>
-  }
+      <input
+        #searchInput
+        class="sidebar-search__input"
+        type="search"
+        name="sidebar-search"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Search"
+        [ngModel]="searchQuery"
+        (ngModelChange)="onSearchInput($event)"
+        aria-label="Search Navigation"
+      />
+      @if (searchQuery) {
+        <button
+          type="button"
+          class="sidebar-search__clear"
+          (click)="clearSearch(); $event.preventDefault()"
+          aria-label="Clear Search"
+        >
+          <i-tabler
+            name="x"
+            class="size-3.5! flex!"
+          ></i-tabler>
+        </button>
+      } @else {
+        <kbd class="sidebar-search__kbd">⌘K</kbd>
+      }
+    </label>
+  </div>
 </div>

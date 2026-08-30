@@ -24,46 +24,45 @@
             [formGroup]="form"
             (ngSubmit)="submit()"
           >
-            <mat-label class="text-sm font-semibold mb-3 block">Email</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
               color="primary"
             >
+              <mat-label>Email</mat-label>
               <input
                 matInput
                 type="email"
                 formControlName="email"
               />
               @if (f['email'].touched && f['email'].invalid) {
-                <mat-hint class="mb-4 absolute -top-[19px] right-[3px]">
-                  @if (f['email'].errors && f['email'].errors['required']) {
-                    <div class="text-error">Email is required.</div>
+                <mat-error>
+                  @if (f['email'].errors?.['required']) {
+                    Email is required.
+                  } @else if (f['email'].errors?.['email']) {
+                    Please enter a valid email address.
                   }
-                  @if (f['email'].errors && f['email'].errors['email']) {
-                    <div class="text-error">Please enter a valid email address.</div>
-                  }
-                </mat-hint>
+                </mat-error>
               }
             </mat-form-field>
 
-            <mat-label class="text-sm font-semibold mb-3 block">Password</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
               color="primary"
             >
+              <mat-label>Password</mat-label>
               <input
                 matInput
                 type="password"
                 formControlName="password"
               />
               @if (f['password'].touched && f['password'].invalid) {
-                <mat-hint class="mb-4 absolute -top-[19px] right-[3px]">
-                  @if (f['password'].errors && f['password'].errors['required']) {
-                    <div class="text-error">Password is required.</div>
+                <mat-error>
+                  @if (f['password'].errors?.['required']) {
+                    Password is required.
                   }
-                </mat-hint>
+                </mat-error>
               }
             </mat-form-field>
 

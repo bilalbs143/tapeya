@@ -1,23 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { type TeamRow, TeamsService } from 'src/app/services/teams.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { addSearchFilter, baseListParams } from 'src/app/shared/functions/list-params.function';
 
@@ -31,21 +24,7 @@ export interface AttachTournamentTeamsDialogData {
 @Component({
   selector: 'app-attach-tournament-teams-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatIconModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './attach-tournament-teams-dialog.component.html',
   styleUrl: './attach-tournament-teams-dialog.component.scss',
 })

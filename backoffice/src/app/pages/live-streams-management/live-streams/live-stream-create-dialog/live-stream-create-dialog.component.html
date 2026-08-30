@@ -7,11 +7,11 @@
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12">
-          <mat-label class="mb-2 block text-sm font-semibold">Stream Type <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Stream Type</mat-label>
             <mat-select formControlName="provider">
               @for (opt of providerOptions; track opt.value) {
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
@@ -21,11 +21,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="mb-2 block text-sm font-semibold">Title <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Title</mat-label>
             <input
               matInput
               formControlName="title"
@@ -40,11 +40,11 @@
         </div>
 
         <div class="col-span-12">
-          <mat-label class="mb-2 block text-sm font-semibold">Description</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
+            <mat-label>Description</mat-label>
             <textarea
               matInput
               rows="3"
@@ -58,11 +58,11 @@
 
         @if (isYoutube) {
           <div class="col-span-12">
-            <mat-label class="mb-2 block text-sm font-semibold">Broadcast Privacy</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label>Broadcast Privacy</mat-label>
               <mat-select formControlName="privacy">
                 <mat-option value="public">Public</mat-option>
                 <mat-option value="unlisted">Unlisted</mat-option>
@@ -71,15 +71,16 @@
           </div>
         } @else {
           <div class="col-span-12">
-            <mat-label class="mb-2 block text-sm font-semibold">
-              Streaming URL
-              <span class="text-error">*</span>
-              <span class="text-muted ml-1 text-xs font-normal">(HTTPS YouTube watch/embed URL or HLS .m3u8 link)</span>
-            </mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
             >
+              <mat-label
+                >Streaming URL <span class="text-error">*</span>
+                <span class="text-muted ml-1 text-xs font-normal"
+                  >(HTTPS YouTube watch/embed URL or HLS .m3u8 link)</span
+                ></mat-label
+              >
               <input
                 matInput
                 formControlName="streaming_url"
@@ -122,14 +123,14 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
-      <button
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
         type="button"
-        mat-stroked-button
         [mat-dialog-close]="{ saved: false }"
+        variant="secondary"
       >
         Cancel
-      </button>
+      </app-ui-button>
 
       <app-submit-button
         [disabled]="form.invalid"

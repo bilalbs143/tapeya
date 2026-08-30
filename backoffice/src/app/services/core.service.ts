@@ -32,7 +32,11 @@ export class CoreService {
         return { ...defaults };
       }
       const stored = JSON.parse(raw) as Partial<AppSettings>;
-      return { ...defaults, ...stored };
+      return {
+        theme: typeof stored.theme === 'string' ? stored.theme : defaults.theme,
+        sidenavOpened: typeof stored.sidenavOpened === 'boolean' ? stored.sidenavOpened : defaults.sidenavOpened,
+        sidenavCollapsed: typeof stored.sidenavCollapsed === 'boolean' ? stored.sidenavCollapsed : defaults.sidenavCollapsed,
+      };
     } catch {
       return { ...defaults };
     }

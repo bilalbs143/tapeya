@@ -1,23 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
 import { type InterestSubmission, InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { StatusChipComponent } from 'src/app/shared/components/status-chip/status-chip.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { birthdateAgeLine, cityCountryLine } from 'src/app/shared/functions/display.helper';
 
@@ -28,20 +22,7 @@ export interface SubmissionDetailDialogData {
 @Component({
   selector: 'app-submission-detail-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDivider,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    StatusChipComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, TablerIconsModule],
   templateUrl: './submission-detail-dialog.component.html',
 })
 export class SubmissionDetailDialogComponent implements OnInit {

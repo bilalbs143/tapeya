@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,6 +19,11 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  bindListSortToReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageHeroSliderDialogComponent } from './manage-hero-slider-dialog/manage-hero-slider-dialog.component';
@@ -40,7 +44,6 @@ const DEFAULT_FILTERS = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     TableImageComponent,
@@ -77,7 +80,6 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
-
   constructor() {
     this.initialiseSearchForm();
     this.pageSize = this.paginatorConfig.pageSize;
@@ -94,12 +96,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
-    this.sub.add(
-      this.sort?.sortChange.subscribe(() => {
-        this.currentPage = 0;
-        this.loadHttpData();
-      })
-    );
+    bindListSortToReload(this.sub, this.sort, this);
   }
 
   public ngOnDestroy(): void {
@@ -107,18 +104,11 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
-    this.currentPage = 0;
-    this.loadHttpData();
+    resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
   public onPaginationChange(event: PageEvent): void {
-    const { pageIndex, pageSize } = event;
-    if (this.currentPage !== pageIndex || this.pageSize !== pageSize) {
-      this.currentPage = pageIndex;
-      this.pageSize = pageSize;
-      this.loadHttpData();
-    }
+    onListPaginationChange(this, event);
   }
 
   public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
@@ -149,7 +139,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );
@@ -161,7 +151,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'edit', heroSlider: item },
       (result) => result && this.loadHttpData(),
       {
-        widthSize: 'lg',
+        widthSize: 'md',
         disableClose: true,
       }
     );
@@ -170,7 +160,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(item: HeroSlider): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Hero Slider?', `Are You Sure You Want To Delete This Slide?`, 'Delete', 'Cancel')
+        .prompt('Delete Hero Slider?', `Are you sure you want to delete this slide?`, 'Delete', 'Cancel')
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {

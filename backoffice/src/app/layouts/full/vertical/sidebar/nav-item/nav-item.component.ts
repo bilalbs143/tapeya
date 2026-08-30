@@ -13,12 +13,11 @@ import { MaterialModule } from 'src/app/material.module';
   selector: 'app-nav-item',
   imports: [TablerIconsModule, MaterialModule, CommonModule],
   templateUrl: './nav-item.component.html',
-  styleUrls: [],
   animations: [
     trigger('indicatorRotate', [
       state('collapsed', style({ transform: 'rotate(0deg)' })),
       state('expanded', style({ transform: 'rotate(180deg)' })),
-      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4,0.0,0.2,1)')),
+      transition('expanded <=> collapsed', animate('160ms cubic-bezier(0.16, 1, 0.3, 1)')),
     ]),
   ],
 })
@@ -32,14 +31,25 @@ export class AppNavItemComponent implements OnChanges {
   @HostBinding('attr.aria-expanded') public ariaExpanded = this.expanded;
   @Input() public item!: NavItem;
   @Input() public depth = 0;
+  @Input() public forceExpanded = false;
 
   public readonly navService = inject(NavService);
   public readonly router = inject(Router);
 
   public ngOnChanges() {
+    if (this.forceExpanded && this.item.children?.length) {
+      this.expanded = true;
+      this.ariaExpanded = true;
+      return;
+    }
     const url = this.navService.currentUrl();
+    if (this.item.children?.length && this.isChildActive(this.item)) {
+      this.expanded = true;
+      this.ariaExpanded = true;
+      return;
+    }
     if (this.item.route && url) {
-      this.expanded = url.indexOf(`/${this.item.route}`) === 0;
+      this.expanded = url.indexOf(this.item.route) === 0;
       this.ariaExpanded = this.expanded;
     }
   }

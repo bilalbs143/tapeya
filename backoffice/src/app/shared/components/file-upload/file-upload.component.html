@@ -1,31 +1,41 @@
-<!-- Label row -->
+<!-- Label row — associated with the hidden file input when the drop zone is shown -->
 @if (label) {
-  <mat-label class="text-sm font-semibold mb-2 block">
-    {{ label }}
-    @if (required) {
-      <span class="text-error">*</span>
-    }
-    @if (multiple && maxFiles < 9999) {
-      <span class="text-xs font-normal text-muted ml-1">(up to {{ maxFiles }})</span>
-    }
-  </mat-label>
+  @if (canAddMore) {
+    <label
+      class="field-group-label"
+      [attr.for]="inputId"
+    >
+      {{ label }}
+      @if (required) {
+        <span class="text-error">*</span>
+      }
+      @if (multiple && maxFiles < 9999) {
+        <span class="file-upload__label-meta">(up to {{ maxFiles }})</span>
+      }
+    </label>
+  } @else {
+    <p class="field-group-label">
+      {{ label }}
+      @if (required) {
+        <span class="text-error">*</span>
+      }
+      @if (multiple && maxFiles < 9999) {
+        <span class="file-upload__label-meta">(up to {{ maxFiles }})</span>
+      }
+    </p>
+  }
 }
 
-<!-- ── Drop zone ─────────────────────────────────────────────────────────── -->
+<!-- ── Drop zone ───────────────────────────────────────────────────────────── -->
 @if (canAddMore) {
   <div
     role="button"
     tabindex="0"
     [attr.aria-label]="'Upload ' + (label || 'file')"
     [attr.aria-disabled]="isDisabled || null"
-    class="relative flex flex-col items-center justify-center gap-2 w-full rounded-md border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors duration-150 select-none focus-visible:outline-2 focus-visible:outline-primary"
-    [class.border-primary]="isDragging"
-    [class.bg-primary\/5]="isDragging"
-    [class.border-default-border]="!isDragging"
-    [class.hover\:border-primary]="!isDisabled"
-    [class.hover\:bg-primary\/5]="!isDisabled"
-    [class.opacity-50]="isDisabled"
-    [class.pointer-events-none]="isDisabled"
+    class="file-upload__zone"
+    [class.file-upload__zone--dragging]="isDragging"
+    [class.file-upload__zone--disabled]="isDisabled"
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
     (drop)="onDrop($event)"
@@ -33,38 +43,32 @@
     (keydown.enter)="triggerFileInput()"
     (keydown.space)="triggerFileInput()"
   >
-    <!-- Icon -->
     <i-tabler
-      [name]="isDragging ? 'file-download' : 'cloud-upload'"
-      class="size-12 transition-colors"
-      [class.text-primary]="isDragging"
-      [class.text-muted]="!isDragging"
+      [name]="isDragging ? 'file-download' : 'upload'"
+      class="file-upload__zone-icon"
     ></i-tabler>
 
-    <!-- Primary CTA -->
-    <p class="text-sm font-medium m-0">
+    <p class="file-upload__zone-title">
       @if (isDragging) {
         Drop to upload
       } @else {
-        Drag &amp; drop or <span class="text-primary underline underline-offset-2">browse</span>
+        Drop file or <span class="file-upload__browse">browse</span>
       }
     </p>
 
-    <!-- Hint line -->
     @if (displayHint) {
-      <p class="text-xs text-muted m-0">{{ displayHint }}</p>
+      <p class="file-upload__zone-hint">{{ displayHint }}</p>
     }
 
-    <!-- Invisible native input (click is triggered programmatically) -->
     <input
       #fileInput
       type="file"
+      [id]="inputId"
       [accept]="accept"
       [multiple]="multiple"
       [disabled]="isDisabled"
       class="sr-only"
       (change)="onFileInputChange($event)"
-      aria-hidden="true"
     />
   </div>
 }
@@ -72,62 +76,48 @@
 <!-- ── File / image cards ─────────────────────────────────────────────────── -->
 @if (hasEntries) {
   <div
-    class="mt-3 grid gap-3"
-    [class.grid-cols-1]="!multiple"
-    [class.grid-cols-2]="multiple"
-    [class.sm\:grid-cols-3]="multiple"
-    [class.lg\:grid-cols-4]="multiple"
+    class="file-upload__grid"
+    [class.file-upload__grid--single]="!multiple"
+    [class.file-upload__grid--multi]="multiple"
   >
     @for (entry of entries; track entry.id) {
-      <div class="group relative flex flex-col rounded-md border border-default-border bg-white overflow-hidden shadow-sm">
+      <div class="file-upload__card">
         @if (entry.isImage) {
-          <!-- Image preview -->
           <div
-            class="relative overflow-hidden bg-gray-50"
-            [class.aspect-video]="multiple"
-            [class.max-h-44]="!multiple"
+            class="file-upload__preview"
+            [class.file-upload__preview--multi]="multiple"
+            [class.file-upload__preview--single]="!multiple"
           >
             <img
               [src]="entry.url"
               [alt]="entry.name"
-              class="w-full h-full"
-              [class.object-cover]="multiple"
-              [class.object-contain]="!multiple"
+              class="file-upload__img"
+              [class.file-upload__img--cover]="multiple"
+              [class.file-upload__img--contain]="!multiple"
               loading="lazy"
             />
-            <!-- Existing badge -->
             @if (entry.type === 'existing') {
-              <span
-                class="absolute top-2 left-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-white/90 text-green-700 border border-green-200 backdrop-blur-sm shadow-sm"
-              >
-                <i-tabler
-                  name="check"
-                  class="size-3"
-                ></i-tabler>
-                Saved
-              </span>
+              <span class="file-upload__saved">Saved</span>
             }
           </div>
         } @else {
-          <!-- Non-image file placeholder -->
-          <div class="flex items-center justify-center bg-gray-50 py-6">
+          <div class="file-upload__file-placeholder">
             <i-tabler
               name="file-text"
-              class="size-12 text-muted"
+              class="file-upload__file-icon"
             ></i-tabler>
           </div>
         }
 
-        <!-- Card footer: filename + size / badge -->
-        <div class="flex items-center gap-2 px-3 py-2">
-          <div class="flex-1 min-w-0">
+        <div class="file-upload__card-meta">
+          <div class="file-upload__card-text">
             <p
-              class="text-xs font-medium truncate m-0 text-gray-800"
+              class="file-upload__name"
               [title]="entry.name"
             >
               {{ entry.name }}
             </p>
-            <p class="text-xs text-muted m-0 mt-0.5">
+            <p class="file-upload__size">
               @if (entry.type === 'existing') {
                 Currently saved
               } @else if (typeof entry.sizeBytes === 'number') {
@@ -136,37 +126,31 @@
             </p>
           </div>
 
-          <!-- Remove button -->
           <button
             type="button"
-            class="shrink-0 cursor-pointer border-0 bg-transparent p-0 align-middle text-gray-400 hover:text-error transition-colors"
+            class="file-upload__remove"
             [attr.aria-label]="'Remove ' + entry.name"
             (click)="removeEntry(entry, $event)"
           >
             <i-tabler
               name="trash"
-              class="size-5!"
+              class="file-upload__remove-icon"
             ></i-tabler>
           </button>
         </div>
       </div>
-    }
-
-    <!-- "Add more" tile (multi mode — shown inside the grid when the zone is hidden) -->
-    @if (multiple && !canAddMore && entries.length < maxFiles) {
-      <!-- canAddMore covers this; only shown at exact maxFiles -->
     }
   </div>
 }
 
 <!-- ── Validation errors ───────────────────────────────────────────────────── -->
 @if (validationErrors.length) {
-  <div class="mt-2 flex flex-col gap-1">
+  <div class="file-upload__errors">
     @for (err of validationErrors; track err) {
-      <p class="text-xs text-error flex items-center gap-1 m-0">
+      <p class="file-upload__error">
         <i-tabler
           name="alert-circle"
-          class="size-3.5 shrink-0"
+          class="file-upload__error-icon"
         ></i-tabler>
         {{ err }}
       </p>
@@ -174,7 +158,6 @@
   </div>
 }
 
-<!-- "Max reached" hint (multi mode) -->
 @if (multiple && !canAddMore && entries.length >= maxFiles) {
-  <p class="text-xs text-muted mt-2 m-0">Maximum of {{ maxFiles }} files reached.</p>
+  <p class="file-upload__max">Maximum of {{ maxFiles }} files reached.</p>
 }

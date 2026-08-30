@@ -1,31 +1,158 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 
 @include mat.table-overrides(
   (
-    background-color: var(--mat-card-elevated-container-color),
-    // Material's default is 56px header / 52px row — a 4px mismatch that
-    // reads as an inconsistency once you're looking for it. Header matches
-    // the row height exactly instead.
-    header-container-height: 52px,
+    background-color: var(--n-00),
+    header-container-height: 36px,
+    row-item-outline-color: var(--n-10),
   )
 );
 
-// Table cell density. This is the single source of truth for cell padding — do not
-// duplicate this rule elsewhere (previously conflicted with an identical-selector rule
-// in custom.scss set to 16px, with load order silently deciding the winner).
-// 12px (not the original 8px) — a little more breathing room without going spacious;
-// rows stay close to their original height, just less cramped side-to-side.
-.table-responsive td,
-.table-responsive mat-cell,
-.mdc-data-table__cell,
-.mdc-data-table__header-cell {
-  padding: 0 12px !important;
+/*
+ * Table density:
+ *   header 36px · bg --table-header · 11.5px/600 · --n-60 · border --n-20
+ *   padding 0 14px (first 20 left, last 20 right)
+ *   body cells 9px 14px · border --n-10
+ *   row hover --n-05 — not --n-10
+ *   sorted header label --n-90
+ */
+.mat-mdc-table {
+  --mat-table-row-item-outline-color: var(--n-10);
+  background: var(--n-00);
+  box-shadow: none;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px; // table body density (design mocks used ~13; product choice 12.5)
+
+  .mat-mdc-header-row {
+    min-height: 36px;
+    height: 36px;
+    background: var(--table-header); // sticky paint lives here; sticky position is in custom.scss
+  }
+
+  .mat-mdc-header-cell {
+    height: 36px;
+    padding: 0 14px !important;
+    background: var(--table-header) !important; // beats .bg-light-secondary
+    border-bottom: 1px solid var(--n-20) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    color: var(--n-60) !important;
+    white-space: nowrap !important;
+    vertical-align: middle;
+  }
+
+  .mat-mdc-header-cell:first-of-type {
+    padding-left: 20px !important;
+  }
+
+  .mat-mdc-header-cell:last-of-type {
+    padding-right: 20px !important;
+  }
+
+  // Active sort reads as primary ink
+  .mat-sort-header-sorted,
+  .mat-mdc-header-cell.mat-sort-header-sorted,
+  .mat-sort-header-sorted .mat-sort-header-content {
+    color: var(--n-90) !important;
+  }
+
+  /*
+   * The design's mock arrow is 11×11 on a tight custom SVG. Material’s
+   * default glyph has heavy viewBox padding, so the same px reads much
+   * smaller — use 16px so it optically matches that mock (Material default
+   * was 12 box / 24 SVG). Opacities: inactive 22%, hover ~55%, active 100%.
+   */
+  .mat-sort-header-arrow {
+    width: 16px !important;
+    height: 16px !important;
+    color: currentColor;
+    opacity: 0.22;
+  }
+
+  .mat-sort-header-arrow > svg,
+  .mat-sort-header-arrow [matSortHeaderIcon] {
+    width: 16px !important;
+    height: 16px !important;
+    margin: -8px 0 0 -8px !important;
+  }
+
+  .mat-sort-header:hover .mat-sort-header-arrow,
+  .mat-sort-header.cdk-keyboard-focused .mat-sort-header-arrow,
+  .mat-sort-header.cdk-program-focused .mat-sort-header-arrow {
+    opacity: 0.55;
+  }
+
+  .mat-sort-header-sorted .mat-sort-header-arrow,
+  .mat-sort-header .mat-sort-header-sorted .mat-sort-header-arrow {
+    opacity: 1;
+  }
+
+  // Kill Material sort-header button chrome so column gutters stay even
+  .mat-sort-header-container {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mat-sort-header-content {
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    white-space: nowrap;
+  }
+
+  .mat-sort-header-button {
+    padding: 0 !important;
+    letter-spacing: inherit;
+    font: inherit;
+    color: inherit;
+  }
+
+  .mat-mdc-row {
+    min-height: 44px;
+    background: var(--n-00);
+    transition: background-color var(--d-fast) var(--ease-out);
+  }
+
+  .mat-mdc-row:hover {
+    background-color: var(--n-05);
+  }
+
+  .mat-mdc-cell {
+    padding: 9px 14px !important;
+    border-bottom: 1px solid var(--n-10) !important;
+    font-size: 12.5px !important;
+    line-height: 1.45;
+    color: var(--n-80);
+    vertical-align: middle;
+    white-space: nowrap !important;
+  }
+
+  .mat-mdc-cell:first-of-type {
+    padding-left: 20px !important;
+  }
+
+  .mat-mdc-cell:last-of-type {
+    padding-right: 20px !important;
+  }
 }
 
-// Row hover — a real affordance was missing entirely; rows gave no feedback that
-// they're part of an interactive table (sortable columns, clickable actions) until
-// the cursor was directly over a button.
-.mat-mdc-row:hover {
-  background-color: var(--mat-sys-surface-bright);
+// Legacy selectors (Material MDC class aliases) — keep padding in sync
+.table-responsive td,
+.table-responsive mat-cell,
+.mdc-data-table__cell {
+  padding: 9px 14px !important;
+  white-space: nowrap !important;
+}
+
+.table-responsive th,
+.table-responsive mat-header-cell,
+.mdc-data-table__header-cell {
+  padding: 0 14px !important;
+  height: 36px;
+  white-space: nowrap !important;
 }

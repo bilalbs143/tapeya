@@ -1,5 +1,5 @@
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <app-page-header
       title="Teams"
       subtitle="Manage cricket teams"
@@ -7,40 +7,38 @@
       [showFiltersToggle]="false"
     >
       <ng-container pageActions>
-        <button
-          mat-stroked-button
+        <app-ui-button
           type="button"
           (click)="resetSearchForm()"
+          variant="ghost"
         >
           Clear Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
           type="button"
           (click)="loadHttpData()"
+          variant="secondary"
         >
           Search
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
           type="button"
           (click)="openCreateDialog()"
         >
           Add Team
-        </button>
+        </app-ui-button>
       </ng-container>
     </app-page-header>
   </mat-card-content>
 
   <mat-divider></mat-divider>
 
-  <mat-card-content class="p-6">
+  <mat-card-content>
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
       <app-search-filter-bar>
         <div>
@@ -76,210 +74,206 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          [dataSource]="dataSource"
-          class="w-full min-w-[720px] text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold w-12"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ rowNumber(i) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="logo">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold w-16"
-            ></th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              @if (row.logo) {
-                <img
-                  [src]="row.logo"
-                  alt=""
-                  class="h-9 w-9 rounded-sm object-cover border border-default-border"
-                />
-              } @else {
-                <span class="text-muted">—</span>
-              }
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="name">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="name"
-              class="bg-light-secondary font-semibold"
-            >
-              Name
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="font-medium"
-            >
-              {{ row.name }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="code">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="code"
-              class="bg-light-secondary font-semibold"
-            >
-              Code
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.code }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="country">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="country"
-              class="bg-light-secondary font-semibold"
-            >
-              Country
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.country || emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="city">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="city"
-              class="bg-light-secondary font-semibold"
-            >
-              City
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.city || emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="sponsor">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Sponsor
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.sponsor?.nickname || row.sponsor?.name || emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="icons">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Icons
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ (row.icon_player_ids?.length ?? row.icon_players?.length ?? 0) || '0' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="created_at"
-              class="bg-light-secondary font-semibold"
-            >
-              Created
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              {{ row.created_at | date: 'mediumDate' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Edit team"
-                (click)="openEditDialog(row)"
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Teams"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            [dataSource]="dataSource"
+            class="w-full min-w-[720px] text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold w-12"
               >
-                <i-tabler
-                  name="edit"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Delete team"
-                (click)="openDeleteDialog(row)"
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
               >
-                <i-tabler
-                  name="trash"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+                {{ rowNumber(i) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="logo">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold w-16"
+              ></th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                @if (row.logo) {
+                  <img
+                    [src]="row.logo"
+                    alt=""
+                    width="28"
+                    height="28"
+                    class="size-7 shrink-0 rounded-sm object-cover border border-default-border"
+                    loading="lazy"
+                  />
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="name"
+                class="font-semibold"
+              >
+                Name
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-medium"
+              >
+                {{ row.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="code">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="code"
+                class="font-semibold"
+              >
+                Code
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.code }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="location">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="city"
+                class="font-semibold"
+              >
+                Location
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ cityCountryLine(row) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="sponsor">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Sponsor
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.sponsor?.nickname || row.sponsor?.name || emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="icons">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Icons
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ (row.icon_player_ids?.length ?? row.icon_players?.length ?? 0) || '0' }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="created_at"
+                class="font-semibold"
+              >
+                Created
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.created_at | date: 'mediumDate' }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                <button
+                  type="button"
+                  class="row-action"
+                  aria-label="Edit Team"
+                  (click)="openEditDialog(row)"
+                >
+                  <i-tabler
+                    name="edit"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </button>
+                <button
+                  type="button"
+                  class="row-action row-action--danger"
+                  aria-label="Delete Team"
+                  (click)="openDeleteDialog(row)"
+                >
+                  <i-tabler
+                    name="trash"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </button>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

@@ -44,7 +44,6 @@ export const TournamentsManagementRoutes: Routes = [
       hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management' },
         { title: 'Interest Campaigns', url: '/tournaments-management/interest-campaigns' },
         { title: 'Detail' },
       ],
@@ -99,7 +98,6 @@ export const TournamentsManagementRoutes: Routes = [
       hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management' },
         { title: 'Tournaments', url: '/tournaments-management/tournaments' },
         { title: 'Detail' },
       ],
@@ -133,15 +131,7 @@ export const TournamentsManagementRoutes: Routes = [
         path: 'matches',
         loadComponent: () =>
           import('./tournament-matches/tournament-matches.component').then((m) => m.TournamentMatchesComponent),
-        data: {
-          title: 'Matches',
-          urls: [
-            { title: 'Dashboard', url: '/dashboard' },
-            { title: 'Tournaments Management' },
-            { title: 'Tournaments', url: '/tournaments-management/tournaments' },
-            { title: 'Matches' },
-          ],
-        },
+        data: { title: 'Matches' },
       },
       {
         path: 'interest-campaigns',
@@ -163,7 +153,7 @@ export const TournamentsManagementRoutes: Routes = [
       hideBreadcrumb: true,
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management', url: '/tournaments-management/tournaments' },
+        { title: 'Tournaments', url: '/tournaments-management/tournaments' },
         { title: 'Match Controller' },
       ],
     },

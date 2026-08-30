@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 
 import { LiveStreamDetailStateService } from './live-stream-detail-state.service';
 import { LiveStreamMonitorPlayerComponent } from './live-stream-monitor-player.component';
@@ -8,7 +7,7 @@ import { LiveStreamMonitorPlayerComponent } from './live-stream-monitor-player.c
 @Component({
   selector: 'app-live-stream-settings-tab',
   standalone: true,
-  imports: [CommonModule, MatCardModule, LiveStreamMonitorPlayerComponent],
+  imports: [CommonModule, LiveStreamMonitorPlayerComponent],
   templateUrl: './live-stream-settings-tab.component.html',
 })
 export class LiveStreamSettingsTabComponent {

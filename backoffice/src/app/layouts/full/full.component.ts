@@ -1,6 +1,6 @@
-import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject, signal } from '@angular/core';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Data, NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -9,26 +9,23 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
-import { NavService } from '../../services/nav.service';
-
-import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
 import { AuthService } from 'src/app/services/auth.service';
 import { CoreService } from 'src/app/services/core.service';
 import { authUserDisplayName, authUserDisplayRole } from 'src/app/shared/functions/auth-user-display';
+import { applyDocumentTheme } from 'src/app/shared/functions/theme-swap.function';
 
-import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
-import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
-import { CustomizerComponent } from './shared/customizer/customizer.component';
+import { filterNavItems, navItemsHaveLinks } from './shared/nav/filter-nav-items';
+import type { NavItem } from './shared/nav/nav-item.model';
 import { getVisibleNavItems } from './shared/nav/sidebar-data';
 import { HeaderComponent } from './vertical/header/header.component';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { SidebarComponent } from './vertical/sidebar/sidebar.component';
 
-const MOBILE_VIEW = 'screen and (max-width: 768px)';
+/** Narrow viewport — overlay sidenav (hamburger). */
+const OVERLAY_VIEW = 'screen and (max-width: 1023px)';
+/** Tablet band — auto-collapse sidebar to mini rail. */
 const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
-const MONITOR_VIEW = 'screen and (min-width: 1024px)';
-const BELOWMONITOR = 'screen and (max-width: 1023px)';
 
 @Component({
   selector: 'app-full',
@@ -41,79 +38,82 @@ const BELOWMONITOR = 'screen and (max-width: 1023px)';
     NgScrollbarModule,
     TablerIconsModule,
     HeaderComponent,
-    AppHorizontalHeaderComponent,
-    AppHorizontalSidebarComponent,
-    CustomizerComponent,
   ],
   templateUrl: './full.component.html',
-
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnDestroy {
   private readonly settings = inject(CoreService);
-  private readonly mediaMatcher = inject(MediaMatcher);
   private readonly router = inject(Router);
   private readonly breakpointObserver = inject(BreakpointObserver);
-  private readonly navService = inject(NavService);
   private readonly auth = inject(AuthService);
   private readonly titleService = inject(Title);
 
-  public readonly visibleNavItems = computed(() => getVisibleNavItems(this.auth.currentUser()));
+  public readonly navSearchQuery = signal('');
+
+  public readonly visibleNavItems = computed(() =>
+    filterNavItems(getVisibleNavItems(this.auth.currentUser()), this.navSearchQuery())
+  );
+
+  public readonly navSearchActive = computed(() => this.navSearchQuery().trim().length > 0);
+
+  public readonly navSearchHasResults = computed(() => navItemsHaveLinks(this.visibleNavItems()));
+
+  public onNavSearchChange(query: string): void {
+    this.navSearchQuery.set(query);
+  }
+
+  public trackNavItem(index: number, item: NavItem): string {
+    return item.navCap ?? item.route ?? item.displayName ?? String(index);
+  }
 
   public readonly sidebarUserName = computed(() => authUserDisplayName(this.auth.currentUser()));
 
   public readonly sidebarUserRole = computed(() => authUserDisplayRole(this.auth.currentUser()));
 
+  public readonly sidebarUserInitials = computed(() => {
+    const name = this.sidebarUserName().trim();
+    if (!name) return '?';
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  });
+
   @ViewChild('leftsidenav')
-  public sidenav: MatSidenav;
-  public resView = false;
+  public sidenav!: MatSidenav;
   @ViewChild('content', { static: true }) public content!: MatSidenavContent;
 
   /** Current options from the service (persisted in localStorage). */
-  public get options(): AppSettings {
+  public get options() {
     return this.settings.getOptions();
   }
+
   private layoutChangesSubscription = Subscription.EMPTY;
-  private isMobileScreen = false;
-  private isContentWidthFixed = true;
-  private isCollapsedWidthFixed = false;
-  private htmlElement!: HTMLHtmlElement;
-
-  public get isOver(): boolean {
-    return this.isMobileScreen;
-  }
-
-  public get isTablet(): boolean {
-    return this.resView;
-  }
+  public isOver = false;
 
   constructor() {
-    this.htmlElement = document.querySelector('html')!;
-    this.layoutChangesSubscription = this.breakpointObserver
-      .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
-      .subscribe((state) => {
-        this.options.sidenavOpened = true;
-        this.isMobileScreen = state.breakpoints[BELOWMONITOR];
-        if (this.options.sidenavCollapsed === false) {
-          this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];
-        }
-        this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
-        this.resView = state.breakpoints[BELOWMONITOR];
-      });
-    this.receiveOptions(this.options);
+    this.layoutChangesSubscription = this.breakpointObserver.observe([OVERLAY_VIEW, TABLET_VIEW]).subscribe((state) => {
+      const overlay = state.breakpoints[OVERLAY_VIEW];
+      if (overlay !== this.isOver) {
+        // Crossing desktop ↔ overlay: desktop starts open, overlay starts closed.
+        this.options.sidenavOpened = !overlay;
+      }
+      this.isOver = overlay;
+      if (!this.options.sidenavCollapsed) {
+        this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];
+      }
+    });
+    applyDocumentTheme(this.options.theme);
     this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe(() => {
       this.content.scrollTo({ top: 0 });
       this.syncDocumentTitle();
     });
-    // First NavigationEnd may have already fired before this component existed.
     queueMicrotask(() => this.syncDocumentTitle());
   }
 
   /**
    * Sets the browser tab title from the active route's `data.title`, merged root → leaf so
    * lazy-loaded child routes (which only declare their own slice of `data`) still resolve it.
-   * Previously a side effect of the now-removed global breadcrumb strip — kept as its own thing
-   * since removing the visual strip must not also stop the tab title from updating.
    */
   private syncDocumentTitle(): void {
     let leaf = this.router.routerState.root;
@@ -126,14 +126,14 @@ export class FullComponent implements OnDestroy {
       chain.unshift(r);
       r = r.parent;
     }
-    const merged: Data = {};
-    for (const node of chain) {
-      Object.assign(merged, node.snapshot.data);
-    }
 
-    const title = merged['title'];
-    if (title != null && title !== '') {
-      this.titleService.setTitle(String(title));
+    let title: unknown;
+    for (const route of chain) {
+      const data: Data = route.snapshot.data;
+      if (data['title'] != null) title = data['title'];
+    }
+    if (typeof title === 'string' && title !== '') {
+      this.titleService.setTitle(title);
     }
   }
 
@@ -142,7 +142,6 @@ export class FullComponent implements OnDestroy {
   }
 
   public toggleCollapsed() {
-    this.isContentWidthFixed = false;
     this.options.sidenavCollapsed = !this.options.sidenavCollapsed;
     this.resetCollapsedState();
   }
@@ -151,40 +150,8 @@ export class FullComponent implements OnDestroy {
     setTimeout(() => this.settings.setOptions(this.options), timer);
   }
 
-  public onSidenavClosedStart() {
-    this.isContentWidthFixed = false;
-  }
-
   public onSidenavOpenedChange(isOpened: boolean) {
-    this.isCollapsedWidthFixed = !this.isOver;
     this.options.sidenavOpened = isOpened;
     this.settings.setOptions(this.options);
-  }
-
-  public receiveOptions(options: AppSettings): void {
-    this.toggleDarkTheme(options);
-    this.toggleColorsTheme(options);
-  }
-
-  private toggleDarkTheme(options: AppSettings) {
-    if (options.theme === 'dark') {
-      this.htmlElement.classList.add('dark-theme');
-      this.htmlElement.classList.remove('light-theme');
-    } else {
-      this.htmlElement.classList.remove('dark-theme');
-      this.htmlElement.classList.add('light-theme');
-    }
-  }
-
-  private toggleColorsTheme(options: AppSettings) {
-    // Remove any existing theme class dynamically
-    this.htmlElement.classList.forEach((className) => {
-      if (className.endsWith('_theme')) {
-        this.htmlElement.classList.remove(className);
-      }
-    });
-
-    // Add the selected theme class
-    this.htmlElement.classList.add(options.activeTheme);
   }
 }

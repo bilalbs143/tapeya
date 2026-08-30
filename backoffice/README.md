@@ -1,6 +1,6 @@
 # Tapeya Backoffice
 
-Skeleton theme: full packages + structure, minimal pages (auth + starter). Add your own routes and pages.
+Angular admin app for Tapeya.
 
 ## Setup
 

@@ -1,6 +1,6 @@
 <mat-card class="cardWithShadow overflow-hidden">
   @if (tournamentId === null) {
-    <mat-card-content class="p-6">
+    <mat-card-content>
       <app-page-header
         title="Interest Campaigns"
         subtitle="Manage tournament interest campaigns"
@@ -8,40 +8,38 @@
         [showFiltersToggle]="false"
       >
         <ng-container pageActions>
-          <button
-            mat-stroked-button
+          <app-ui-button
             type="button"
             (click)="resetSearchForm()"
+            variant="ghost"
           >
             Clear Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
+          </app-ui-button>
+          <app-ui-button
             type="button"
             (click)="loadHttpData()"
+            variant="secondary"
           >
             Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
+          </app-ui-button>
+          <app-ui-button
+            variant="primary"
             type="button"
             (click)="openCreateDialog()"
           >
             Add Campaign
-          </button>
+          </app-ui-button>
         </ng-container>
       </app-page-header>
     </mat-card-content>
 
     <mat-divider></mat-divider>
 
-    <mat-card-content class="p-6">
+    <mat-card-content>
       <form
         (ngSubmit)="loadHttpData()"
         [formGroup]="searchForm"
-        aria-label="Filter form"
+        aria-label="Filter Form"
       >
         <app-search-filter-bar>
           <div>
@@ -91,14 +89,14 @@
       </form>
     </mat-card-content>
   } @else {
-    <mat-card-content class="p-6">
+    <mat-card-content>
       <form
         (ngSubmit)="loadHttpData()"
         [formGroup]="searchForm"
-        aria-label="Filter form"
+        aria-label="Filter Form"
       >
-        <div class="grid grid-cols-12 gap-4 items-end">
-          <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+        <app-search-filter-bar>
+          <div>
             <mat-form-field
               appearance="outline"
               class="w-full hide-hint"
@@ -114,31 +112,7 @@
               </mat-select>
             </mat-form-field>
           </div>
-          <div class="col-span-12 lg:col-span-9 flex flex-wrap items-center justify-end gap-2">
-            <button
-              mat-stroked-button
-              type="button"
-              (click)="resetSearchForm()"
-            >
-              Clear Search
-            </button>
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-            >
-              Search
-            </button>
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              (click)="openCreateDialog()"
-            >
-              Add Campaign
-            </button>
-          </div>
-        </div>
+        </app-search-filter-bar>
       </form>
     </mat-card-content>
   }
@@ -146,228 +120,240 @@
   <mat-divider></mat-divider>
 
   <mat-card-content class="p-0 relative">
-    <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper [loading]="isLoading">
-        <table
-          mat-table
-          matSort
-          aria-label="Interest Campaigns List"
-          matSortActive="created_at"
-          matSortStart="desc"
-          matSortDirection="desc"
-          [dataSource]="dataSource"
-          class="min-w-full text-sm"
-        >
-          <ng-container matColumnDef="sr">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              #
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row; let i = index"
-            >
-              {{ totalRecords - currentPage * pageSize - i }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="title">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header="tournament_name"
-              class="bg-light-secondary font-semibold"
-            >
-              Tournament
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="max-w-[280px] font-medium"
-              [title]="row.tournament_name"
-            >
-              <div class="flex items-center gap-2">
-                @if (row.logo_url) {
-                  <img
-                    [src]="row.logo_url"
-                    alt=""
-                    class="h-8 w-8 shrink-0 rounded object-contain border border-default-border bg-light-secondary"
-                  />
-                }
-                <div class="min-w-0">
-                  <span class="block truncate">{{ row.tournament_name }}</span>
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Interest Campaigns"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Interest Campaigns List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="title">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="tournament_name"
+                class="font-semibold"
+              >
+                Tournament
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[280px] font-medium"
+                [title]="row.tournament_name"
+              >
+                <div class="flex items-center gap-2">
+                  @if (row.logo_url) {
+                    <img
+                      [src]="row.logo_url"
+                      alt=""
+                      width="28"
+                      height="28"
+                      class="size-7 shrink-0 rounded object-cover border border-default-border bg-light-secondary"
+                      loading="lazy"
+                    />
+                  }
+                  <div class="min-w-0">
+                    <span class="block truncate">{{ row.tournament_name }}</span>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="kind">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Type
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <span
-                class="rounded-sm font-semibold px-1.5 py-0.5 text-[10px] inline-block"
-                [ngClass]="row.is_linked ? 'bg-light-success text-success' : 'bg-light-warning text-warning'"
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="kind">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                {{ row.is_linked ? 'Linked' : 'Custom' }}
-              </span>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="slug">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Public Link
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              <code class="text-xs">/interest/{{ row.slug }}</code>
-              <button
-                type="button"
-                class="ms-2 row-action"
-                aria-label="Copy Public Link"
-                (click)="copyLink(row)"
+                Type
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
               >
-                <i-tabler
-                  name="copy"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Status
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-            >
-              <app-status-chip
-                [status]="row.status"
-                [label]="row.status_label"
-              />
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="submissions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Submissions
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="font-medium"
-            >
-              <a
-                class="me-2.5 inline-flex align-middle text-primary"
-                [routerLink]="['/tournaments-management/interest-campaigns', row.id, 'submissions']"
-                matTooltip="View Submissions"
-                aria-label="View Submissions"
+                <app-status-chip
+                  [status]="row.is_linked ? 'linked' : 'custom'"
+                  [label]="row.is_linked ? 'Linked' : 'Custom'"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="slug">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
               >
-                {{ row.submissions_count ?? 0 }}
-              </a>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="created_at">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary font-semibold"
-            >
-              Created At
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="whitespace-nowrap"
-            >
-              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary font-semibold"
-            >
-              Action
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="action-link whitespace-nowrap"
-            >
-              <a
-                class="me-2.5 inline-flex align-middle text-primary"
-                [routerLink]="['/tournaments-management/interest-campaigns', row.id, 'overview']"
-                matTooltip="View Campaign"
-                aria-label="View Campaign"
+                Public Link
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
               >
-                <i-tabler
-                  name="eye"
-                  class="size-4.5!"
-                ></i-tabler>
-              </a>
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Edit Campaign"
-                (click)="openEditDialog(row)"
+                <code class="text-xs">/interest/{{ row.slug }}</code>
+                <button
+                  type="button"
+                  class="row-action"
+                  aria-label="Copy Public Link"
+                  (click)="copyLink(row)"
+                >
+                  <i-tabler
+                    name="copy"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </button>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
               >
-                <i-tabler
-                  name="edit"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-              <button
-                type="button"
-                class="me-2.5 row-action"
-                aria-label="Delete Campaign"
-                (click)="openDeleteDialog(row)"
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
               >
-                <i-tabler
-                  name="trash"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns; sticky: true"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-      </app-table-wrapper>
-    </div>
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="row.status_label"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="submissions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Submissions
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-medium"
+              >
+                <a
+                  class="row-action"
+                  [routerLink]="['/tournaments-management/interest-campaigns', row.id, 'submissions']"
+                  matTooltip="View Submissions"
+                  aria-label="View Submissions"
+                >
+                  {{ row.submissions_count ?? 0 }}
+                </a>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Created At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <a
+                    class="row-action"
+                    [routerLink]="['/tournaments-management/interest-campaigns', row.id, 'overview']"
+                    matTooltip="View Campaign"
+                    aria-label="View Campaign"
+                  >
+                    <i-tabler
+                      name="eye"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </a>
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Edit Campaign"
+                    (click)="openEditDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  <button
+                    type="button"
+                    class="row-action row-action--danger"
+                    aria-label="Delete Campaign"
+                    (click)="openDeleteDialog(row)"
+                  >
+                    <i-tabler
+                      name="trash"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
     <app-paginator
+      [loading]="isLoading"
       [length]="totalRecords"
       [pageIndex]="currentPage"
       [pageSize]="pageSize"

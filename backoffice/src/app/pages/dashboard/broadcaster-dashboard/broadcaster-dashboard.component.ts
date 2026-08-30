@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -12,7 +11,6 @@ import { AuthService } from 'src/app/services/auth.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import {
   BROADCASTER_DASHBOARD_MATCH_MIX_TOURNAMENTS_PER_PAGE,
   BROADCASTER_DASHBOARD_PHASE_COUNT_PER_PAGE,
@@ -36,18 +34,8 @@ type MatchMix = {
 @Component({
   selector: 'app-broadcaster-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    MatCardModule,
-    MatButtonModule,
-    TablerIconsModule,
-    NgApexchartsModule,
-    LoaderComponent,
-    CommonSharedModule,
-  ],
+  imports: [CommonModule, RouterLink, MatCardModule, TablerIconsModule, NgApexchartsModule, CommonSharedModule],
   templateUrl: './broadcaster-dashboard.component.html',
-  styleUrl: './broadcaster-dashboard.component.scss',
 })
 export class BroadcasterDashboardComponent implements OnInit {
   private readonly auth = inject(AuthService);

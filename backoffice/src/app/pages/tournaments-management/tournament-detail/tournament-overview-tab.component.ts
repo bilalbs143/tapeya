@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +18,7 @@ import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/servi
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 @Component({
@@ -29,8 +27,6 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
     MatDividerModule,
     MatFormFieldModule,
     MatIconModule,
@@ -39,7 +35,7 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
     TablerIconsModule,
     RouterLink,
     NgApexchartsModule,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   templateUrl: './tournament-overview-tab.component.html',
 })
@@ -68,7 +64,7 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
 
   public matchDateBarChart = {
     type: 'bar' as const,
-    height: 420,
+    height: 360,
     width: '100%' as const,
     fontFamily: 'inherit',
     stacked: true,

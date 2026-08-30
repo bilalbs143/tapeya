@@ -5,6 +5,8 @@ html .topbar {
   top: 0;
   z-index: 9;
   height: $header-height;
+  background: var(--n-00);
+  border-bottom: 1px solid var(--n-20);
 
   .notification-badge {
     .mat-badge-content {

@@ -1,13 +1,32 @@
-@if ((length === 0 || length === undefined) && showNoRecMessage) {
-  <app-empty-data-message [message]="noRecMessage" />
+@if (!loading && error) {
+  <app-empty-data-message
+    variant="overlay"
+    [message]="errorMessage"
+    [description]="errorDescription"
+    icon="alert-circle"
+    [actionLabel]="retryLabel"
+    (action)="retry.emit()"
+  />
+} @else if (!loading && !length && showNoRecMessage) {
+  <app-empty-data-message
+    variant="overlay"
+    [message]="noRecMessage"
+    [description]="noRecDescription"
+    [icon]="noRecIcon"
+    [actionLabel]="noRecActionLabel"
+    (action)="noRecAction.emit()"
+  />
 }
 
-<mat-paginator
-  [length]="length"
-  [pageIndex]="pageIndex"
-  [pageSize]="pageSize"
-  [pageSizeOptions]="pageSizeOptions"
-  [showFirstLastButtons]="showFirstLastButtons"
-  [aria-label]="ariaLabel"
-  (page)="page.emit($event)"
-></mat-paginator>
+<div class="list-paginator">
+  <p class="list-paginator__range">{{ rangeLabel }}</p>
+  <mat-paginator
+    [length]="length"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    [showFirstLastButtons]="showFirstLastButtons"
+    [aria-label]="ariaLabel"
+    (page)="page.emit($event)"
+  ></mat-paginator>
+</div>

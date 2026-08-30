@@ -15,9 +15,6 @@ import {
   EventEmitter,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 // ─── Public types ────────────────────────────────────────────────────────────
@@ -67,7 +64,7 @@ export interface FileEntry {
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatFormFieldModule, MatIconModule, TablerIconsModule],
+  imports: [CommonModule, TablerIconsModule],
   templateUrl: './file-upload.component.html',
   providers: [
     {
@@ -76,6 +73,7 @@ export interface FileEntry {
       multi: true,
     },
   ],
+  styleUrl: './file-upload.component.scss',
 })
 export class FileUploadComponent implements ControlValueAccessor, OnChanges {
   // ── Configurable inputs ────────────────────────────────────────────────────
@@ -132,6 +130,9 @@ export class FileUploadComponent implements ControlValueAccessor, OnChanges {
   public isDragging = false;
   public isDisabled = false;
   public validationErrors: string[] = [];
+
+  /** Stable id so the label's `for` associates with the file input. */
+  public readonly inputId = `file-upload-${crypto.randomUUID()}`;
 
   private blobUrls: string[] = [];
   private readonly destroyRef = inject(DestroyRef);

@@ -46,37 +46,31 @@
         @if (openUrl(); as href) {
           <div class="flex flex-wrap justify-end gap-2 border-t border-default-border bg-[var(--mat-sys-surface)] px-3 py-2">
             @if (progressiveVideoUrl(); as progressive) {
-              <a
-                mat-button
-                color="primary"
-                [href]="progressive"
-                target="_blank"
-                rel="noopener noreferrer"
+              <app-ui-button
+                variant="ghost"
+                type="button"
+                (click)="openExternal(progressive)"
               >
-                Open original
-              </a>
+                Open Original
+              </app-ui-button>
             }
             @if (hlsUrl(); as hls) {
-              <a
-                mat-button
-                color="primary"
-                [href]="hls"
-                target="_blank"
-                rel="noopener noreferrer"
+              <app-ui-button
+                variant="ghost"
+                type="button"
+                (click)="openExternal(hls)"
               >
                 Open HLS
-              </a>
+              </app-ui-button>
             }
             @if (!progressiveVideoUrl() && !hlsUrl()) {
-              <a
-                mat-button
-                color="primary"
-                [href]="href"
-                target="_blank"
-                rel="noopener noreferrer"
+              <app-ui-button
+                variant="ghost"
+                type="button"
+                (click)="openExternal(href)"
               >
-                Open playback
-              </a>
+                Open Playback
+              </app-ui-button>
             }
           </div>
         }

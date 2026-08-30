@@ -1,12 +1,13 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 
 @include mat.list-overrides(
   (
-    list-item-hover-state-layer-color: var(--mat-sys-primary),
-    list-item-container-shape: var(--mat-sys-corner-small),
-    active-indicator-shape: var(--mat-sys-corner-small),
-    list-item-two-line-container-height: 70px,
-    list-item-three-line-container-height: 100px,
+    list-item-hover-state-layer-color: transparent,
+    list-item-hover-state-layer-opacity: 0,
+    list-item-container-shape: 7px,
+    active-indicator-shape: 7px,
+    list-item-one-line-container-height: 32px,
+    list-item-two-line-container-height: 52px,
+    list-item-three-line-container-height: 72px,
   )
 );

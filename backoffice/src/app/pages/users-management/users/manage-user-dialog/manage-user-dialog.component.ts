@@ -1,25 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDivider } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription, of } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import { Country, LocationService } from 'src/app/services/location.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CreateUserPayload, UpdateUserPayload, User, UsersService } from 'src/app/services/users.service';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { AvatarUploaderComponent } from 'src/app/shared/components/avatar-uploader/avatar-uploader.component';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { PHONE_PATTERN } from 'src/app/shared/constants/validation.constants';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
@@ -34,21 +28,7 @@ export type ManageUserDialogResult = User | undefined;
 @Component({
   selector: 'app-manage-user-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    TablerIconsModule,
-    DialogWrapperComponent,
-    MatDivider,
-    SubmitButtonComponent,
-    AvatarUploaderComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, TablerIconsModule, AvatarUploaderComponent],
   templateUrl: './manage-user-dialog.component.html',
 })
 export class ManageUserDialogComponent implements OnInit, OnDestroy {
@@ -74,13 +54,13 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
 
   public readonly broadcastOptions = [
-    { value: false, label: 'Not allowed' },
+    { value: false, label: 'Not Allowed' },
     { value: true, label: 'Allowed (Go Live)' },
   ] as const;
 
   public readonly officialOptions = [
-    { value: false, label: 'Not official' },
-    { value: true, label: 'Official (blue tick)' },
+    { value: false, label: 'Not Official' },
+    { value: true, label: 'Official (Blue Tick)' },
   ] as const;
 
   public pendingAvatarFile: File | null | undefined = undefined;

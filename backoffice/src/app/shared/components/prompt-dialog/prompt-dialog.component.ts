@@ -1,10 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { MaterialModule } from 'src/app/material.module';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface PromptDialogData {
   title: string;
@@ -18,7 +16,7 @@ export interface PromptDialogData {
 @Component({
   selector: 'app-prompt-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatDividerModule, DialogWrapperComponent, SubmitButtonComponent],
+  imports: [MaterialModule, CommonSharedModule],
   templateUrl: './prompt-dialog.component.html',
 })
 export class PromptDialogComponent {

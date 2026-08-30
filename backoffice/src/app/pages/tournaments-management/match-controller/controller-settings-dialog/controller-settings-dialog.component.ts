@@ -1,24 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { MaterialModule } from 'src/app/material.module';
 import type { GraphicTheme, MatchGraphicSession, ThemeConfigProperty } from 'src/app/services/match-graphic.service';
 import { MatchGraphicService } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentMatchRow } from 'src/app/services/tournament-matches.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface ControllerSettingsDialogData {
   matchId: number;
@@ -30,22 +21,7 @@ export interface ControllerSettingsDialogData {
 @Component({
   selector: 'app-controller-settings-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatTooltipModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-    LoaderComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './controller-settings-dialog.component.html',
   styleUrl: './controller-settings-dialog.component.scss',
 })

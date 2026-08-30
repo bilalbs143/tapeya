@@ -1,19 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
+import { MaterialModule } from 'src/app/material.module';
 import { EnumsService } from 'src/app/services/enums.service';
 import {
   type CreateInterestCampaignPayload,
@@ -22,9 +15,8 @@ import {
 } from 'src/app/services/interest-campaign.service';
 import { MediaService } from 'src/app/services/media.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import {
   DEFAULT_INTEREST_FORM_FIELDS,
   LOCKED_INTEREST_FORM_FIELDS,
@@ -63,23 +55,7 @@ function slugify(input: string): string {
 @Component({
   selector: 'app-manage-campaign-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatAutocompleteModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatCheckboxModule,
-    MatDivider,
-    FileUploadComponent,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-campaign-dialog.component.html',
 })
 export class ManageCampaignDialogComponent implements OnInit, OnDestroy {

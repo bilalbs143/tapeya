@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -37,8 +36,7 @@ interface StatRow {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatButtonModule,
-    MatCardModule,
+    MatDividerModule,
     MatFormFieldModule,
     MatSelectModule,
     MatTabsModule,

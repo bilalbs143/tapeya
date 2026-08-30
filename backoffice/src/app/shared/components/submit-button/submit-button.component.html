@@ -1,19 +1,11 @@
-<button
-  mat-flat-button
-  [class]="className"
-  [color]="color"
+<app-ui-button
   [type]="buttonType"
-  [disabled]="isSubmitting || disabled"
-  [attr.cdkFocusInitial]="focusInitial ? '' : null"
+  [variant]="variant"
+  [class]="className"
+  [disabled]="disabled"
+  [loading]="isSubmitting"
+  [focusInitial]="focusInitial"
   (click)="onClick()"
 >
-  @if (!isSubmitting) {
-    {{ text }}
-  }
-  @if (isSubmitting) {
-    <app-loader
-      [diameter]="20"
-      [tone]="'light'"
-    />
-  }
-</button>
+  {{ text }}
+</app-ui-button>

@@ -1,16 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
+import { MaterialModule } from 'src/app/material.module';
 import { MatchGraphicService, type MatchGraphicCaption } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
-import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
-import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 
 export interface MatchCaptionDialogData {
   matchId: number;
@@ -20,17 +16,7 @@ export interface MatchCaptionDialogData {
 @Component({
   selector: 'app-match-caption-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule],
   templateUrl: './match-caption-dialog.component.html',
 })
 export class MatchCaptionDialogComponent {
@@ -60,7 +46,7 @@ export class MatchCaptionDialogComponent {
       return;
     }
     this.messageService
-      .prompt('Delete caption', `Remove "${existing.title}"?`, 'Delete', 'Cancel')
+      .prompt('Delete Caption', `Remove "${existing.title}"?`, 'Delete', 'Cancel')
       .afterClosed()
       .subscribe((ok) => {
         if (!ok) {

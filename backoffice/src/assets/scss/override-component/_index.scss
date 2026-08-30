@@ -1,11 +1,12 @@
 @use 'autocomplete';
 @use 'badge';
 @use 'button';
-@use 'button-toggle';
+@use 'ui-button';
 @use 'card';
 @use 'checkbox';
 @use 'chip';
 @use 'dialog';
+@use 'detail-page';
 @use 'datepicker';
 @use 'fab';
 @use 'form-field';
@@ -15,9 +16,8 @@
 @use 'paginator';
 @use 'theme';
 @use 'table';
-@use 'tree';
 @use 'typography';
-@use 'stepper';
 @use 'expansion';
 @use 'drawer';
-@use 'progress';
+// After theme — must load later so our size tokens win over mat.theme() defaults.
+@use 'slide-toggle';

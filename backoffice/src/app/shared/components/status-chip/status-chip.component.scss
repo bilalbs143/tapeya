@@ -1,0 +1,29 @@
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 22px;
+  font-size: var(--fs-meta);
+  line-height: 1;
+}
+.status-chip__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: status-chip-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-chip__pulse {
+    animation: none;
+  }
+}
+@keyframes status-chip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
