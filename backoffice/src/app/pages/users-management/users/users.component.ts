@@ -24,6 +24,7 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
+  bindListSearchFormLiveReload,
   SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
@@ -132,6 +133,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.loadHttpData();
   }
 

@@ -152,12 +152,6 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
     }
   }
 
-  public runSearchTeams(): void {
-    if (this.activeChild instanceof TournamentTeamsTabComponent) {
-      this.activeChild.loadHttpData();
-    }
-  }
-
   public runScheduleMatch(): void {
     if (this.activeChild instanceof TournamentMatchesComponent) {
       this.activeChild.openScheduleDialog();
@@ -170,12 +164,6 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
     }
   }
 
-  public runSearchMatches(): void {
-    if (this.activeChild instanceof TournamentMatchesComponent) {
-      this.activeChild.loadHttpData();
-    }
-  }
-
   public runAddCampaign(): void {
     if (this.activeChild instanceof TournamentInterestCampaignsTabComponent) {
       this.activeChild.openCreateCampaign();
@@ -185,12 +173,6 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
   public runClearCampaignSearch(): void {
     if (this.activeChild instanceof TournamentInterestCampaignsTabComponent) {
       this.activeChild.clearSearch();
-    }
-  }
-
-  public runSearchCampaigns(): void {
-    if (this.activeChild instanceof TournamentInterestCampaignsTabComponent) {
-      this.activeChild.search();
     }
   }
 

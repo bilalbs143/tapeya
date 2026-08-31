@@ -8,7 +8,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Router, ActivatedRoute } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { EMPTY, Subject, Subscription } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import type { EnumOption } from 'src/app/services/enums.service';
@@ -24,6 +24,7 @@ import type { User } from 'src/app/services/users.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import { LIST_SEARCH_LIVE_DEBOUNCE_MS } from 'src/app/shared/functions/list-page-paging.function';
 
 interface StatRow {
   label: string;
@@ -106,6 +107,15 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
     );
 
     this.sub.add(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(LIST_SEARCH_LIVE_DEBOUNCE_MS),
+          distinctUntilChanged((a, b) => a.tournament_type === b.tournament_type && a.cricket_format === b.cricket_format)
+        )
+        .subscribe(() => this.loadStats())
+    );
+
+    this.sub.add(
       this.enumsService.getEnums().subscribe((enums) => {
         this.tournamentTypeOptions = [
           { value: 'all', label: 'All' },
@@ -154,7 +164,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
   }
 
   public resetFilters(): void {
-    this.filterForm.reset({ tournament_type: 'all', cricket_format: 'all' });
+    this.filterForm.reset({ tournament_type: 'all', cricket_format: 'all' }, { emitEvent: false });
     this.loadStats();
   }
 

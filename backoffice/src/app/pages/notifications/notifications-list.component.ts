@@ -26,6 +26,7 @@ import {
   AdminNotificationType,
 } from 'src/app/shared/constants/notification.constants';
 import {
+  bindListSearchFormLiveReload,
   SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
@@ -108,6 +109,7 @@ export class NotificationsListComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.loadHttpData();
   }
 

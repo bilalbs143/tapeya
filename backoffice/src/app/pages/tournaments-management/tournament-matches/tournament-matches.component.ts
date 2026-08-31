@@ -27,6 +27,7 @@ import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
+  bindListSearchFormLiveReload,
   onListPaginationChange,
   resetListSearchForm,
   SortReloadBinder,
@@ -107,6 +108,7 @@ export class TournamentMatchesComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     const paramMap$ = this.route.parent?.paramMap ?? this.route.paramMap;
     paramMap$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('tournamentId');

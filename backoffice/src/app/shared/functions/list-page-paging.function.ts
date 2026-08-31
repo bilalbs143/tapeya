@@ -2,6 +2,7 @@ import type { FormGroup } from '@angular/forms';
 import type { PageEvent } from '@angular/material/paginator';
 import type { MatSort } from '@angular/material/sort';
 import type { Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 /**
  * Shared list-page Clear / paginate / sort-reset helpers (UX audit §11.1).
@@ -22,17 +23,57 @@ export type ListPagePagingHost = {
   loadHttpData: (pageOverride?: number, perPageOverride?: number) => void;
 };
 
+/** Default debounce for live list search/filter reloads. */
+export const LIST_SEARCH_LIVE_DEBOUNCE_MS = 300;
+
 /**
  * Clear filters to defaults, jump to first page, reload.
  * Always pass a full defaults object (every form control key).
+ * Uses `emitEvent: false` so a live `valueChanges` binder does not double-fetch.
  */
 export function resetListSearchForm(
   host: Pick<ListPagePagingHost, 'searchForm' | 'currentPage' | 'loadHttpData'>,
   defaultFilters: object
 ): void {
-  host.searchForm.reset({ ...defaultFilters });
+  host.searchForm.reset({ ...defaultFilters }, { emitEvent: false });
   host.currentPage = 0;
   host.loadHttpData();
+}
+
+/**
+ * Live-reload the list when any search/filter control changes (debounced).
+ * Opt-in per page — add once in `ngOnInit` and keep the Subscription on the page:
+ *
+ *   this.sub.add(bindListSearchFormLiveReload(this));
+ *
+ * Pair with a single Clear Search action (no manual Search button). Initial load
+ * still belongs in `ngOnInit` via `loadHttpData()`; this binder skips the first
+ * emission by not using `startWith`.
+ */
+export function bindListSearchFormLiveReload(
+  host: Pick<ListPagePagingHost, 'searchForm' | 'currentPage' | 'loadHttpData'>,
+  options?: { debounceMs?: number }
+): Subscription {
+  const debounceMs = options?.debounceMs ?? LIST_SEARCH_LIVE_DEBOUNCE_MS;
+  return host.searchForm.valueChanges
+    .pipe(
+      debounceTime(debounceMs),
+      distinctUntilChanged((prev, next) => stableFormValueKey(prev) === stableFormValueKey(next))
+    )
+    .subscribe(() => {
+      host.currentPage = 0;
+      host.loadHttpData();
+    });
+}
+
+/** Stable compare key for form values (Dates → ISO date so identical picks don't re-fetch). */
+function stableFormValueKey(value: unknown): string {
+  return JSON.stringify(value, (_key, v) => {
+    if (v instanceof Date && !Number.isNaN(v.getTime())) {
+      return v.toISOString();
+    }
+    return v;
+  });
 }
 
 /** Sync Material paginator → host page state, then reload when either changes. */

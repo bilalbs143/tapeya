@@ -66,12 +66,6 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
     }
   }
 
-  public runSearchSubmissions(): void {
-    if (this.activeChild instanceof CampaignSubmissionsComponent) {
-      this.activeChild.loadHttpData();
-    }
-  }
-
   private loadCampaign(id: number): void {
     this.isLoading = true;
     this.campaign = null;

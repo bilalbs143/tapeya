@@ -1646,6 +1646,7 @@ Everything here needs new Laravel filter/scope code (usually mirroring `UserBuil
 3. Extend filtered-empty messaging beyond tournament-matches.
 4. Phone digit SQL: new scopes use Postgres `REGEXP_REPLACE(..., 'g')` (matches `DB_CONNECTION=pgsql`); `User::scopePhone` already branches MySQL — mirror that branch if MySQL CI is ever required.
 5. Placeholder copy uses `Search by …` (fields covered), not `Search {{Things}}` (e.g. `Search by Name, Nickname, or Phone`).
+6. Live search: list pages use `bindListSearchFormLiveReload(this)` (300ms debounce + distinctUntilChanged) and a single secondary **Clear Search** action — no manual Search button. Player Stats uses the same Clear-only live-filter pattern on its filter form.
 
 ## Smoke-test checklist (before merge)
 

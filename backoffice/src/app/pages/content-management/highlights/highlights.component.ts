@@ -23,6 +23,7 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
+  bindListSearchFormLiveReload,
   SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
@@ -112,6 +113,7 @@ export class HighlightsComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.loadTournaments();
     this.loadHttpData();
   }

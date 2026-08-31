@@ -1,5 +1,5 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -9,7 +9,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
@@ -19,7 +19,11 @@ import { QuickMatchesService, type QuickMatchRow } from 'src/app/services/quick-
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { onListPaginationChange, resetListSearchForm } from 'src/app/shared/functions/list-page-paging.function';
+import {
+  bindListSearchFormLiveReload,
+  onListPaginationChange,
+  resetListSearchForm,
+} from 'src/app/shared/functions/list-page-paging.function';
 
 import { QuickMatchDetailDialogComponent } from './quick-match-detail-dialog/quick-match-detail-dialog.component';
 
@@ -49,12 +53,13 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './quick-matches-list.component.html',
 })
-export class QuickMatchesListComponent implements OnInit {
+export class QuickMatchesListComponent implements OnInit, OnDestroy {
   private readonly quickMatches = inject(QuickMatchesService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
+  private readonly sub = new Subscription();
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = ['sr', 'when', 'teams', 'creator', 'venue', 'format', 'status', 'actions'];
@@ -79,7 +84,12 @@ export class QuickMatchesListComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.loadHttpData();
+  }
+
+  public ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   public resetSearchForm(): void {

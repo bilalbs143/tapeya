@@ -25,6 +25,7 @@ import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-
 import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import { bindListSearchFormLiveReload } from 'src/app/shared/functions/list-page-paging.function';
 
 import { AttachTournamentTeamsDialogComponent } from './attach-tournament-teams-dialog/attach-tournament-teams-dialog.component';
 import { EditTournamentTeamGroupDialogComponent } from './edit-tournament-team-group-dialog/edit-tournament-team-group-dialog.component';
@@ -92,6 +93,14 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   public pageSize = this.paginatorConfig.pageSize;
   public pageIndex = 0;
 
+  /** Alias for shared live-search binder (`bindListSearchFormLiveReload`). */
+  public get currentPage(): number {
+    return this.pageIndex;
+  }
+  public set currentPage(value: number) {
+    this.pageIndex = value;
+  }
+
   public tournamentId = 0;
 
   constructor() {
@@ -129,6 +138,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.sub.add(
       this.route
         .parent!.paramMap.pipe(
@@ -170,7 +180,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   }
 
   public resetSearchForm(): void {
-    this.searchForm.reset({ ...DEFAULT_FILTERS });
+    this.searchForm.reset({ ...DEFAULT_FILTERS }, { emitEvent: false });
     this.pageIndex = 0;
     this.loadHttpData();
   }

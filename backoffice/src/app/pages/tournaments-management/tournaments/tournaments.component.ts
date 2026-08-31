@@ -22,6 +22,7 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
   SortReloadBinder,
+  bindListSearchFormLiveReload,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -115,6 +116,7 @@ export class TournamentsComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.sub.add(bindListSearchFormLiveReload(this));
     this.loadHttpData();
   }
 
