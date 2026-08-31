@@ -12,6 +12,8 @@ $field-height: 34px;
 $field-label-gap: 5px; // label → control
 $field-radius: 8px;
 $field-padding-x: 10px;
+// Material fixed-subscript ::before height (see .mat-mdc-form-field-bottom-align::before).
+$form-field-subscript-before: 16px;
 
 .mat-mdc-form-field {
   --mat-form-field-container-height: #{$field-height};
@@ -320,4 +322,24 @@ legend.field-group-label {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* Dialog form stack: 12-col grid + shared row gap. Keep Material fixed
+ * subscript; cancel its reserve into the gap so it does not stack, leaving
+ * --dialog-form-hint-gap between hint/error and the next label. */
+.dialog-form {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--sp-8);
+  row-gap: var(--dialog-form-row-gap);
+
+  // Cells only — skip nested .dialog-form so cancel/padding are not doubled.
+  > *:not(:has(> .dialog-form)) .mat-mdc-form-field {
+    margin-bottom: calc(-1 * #{$form-field-subscript-before} - #{$field-label-gap} + var(--dialog-form-hint-gap));
+  }
+
+  // Last row ends in a field: restore the canceled band so content padding stays.
+  &:has(> :last-child:not(:has(> .dialog-form)) .mat-mdc-form-field) {
+    padding-bottom: calc(#{$form-field-subscript-before} + #{$field-label-gap} - var(--dialog-form-hint-gap));
+  }
 }

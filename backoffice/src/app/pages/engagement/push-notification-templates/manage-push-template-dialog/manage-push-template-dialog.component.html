@@ -5,9 +5,9 @@
     aria-label="Edit Push Template Form"
   >
     <mat-dialog-content>
-      <div class="grid grid-cols-12 gap-x-6">
+      <div class="dialog-form">
         @if (availableVariables.length) {
-          <div class="col-span-12 mb-4">
+          <div class="col-span-12">
             <p class="field-group-label">Available Variables</p>
             <div class="flex flex-wrap gap-1.5">
               @for (variable of availableVariables; track variable) {
@@ -59,17 +59,22 @@
         </div>
 
         <!-- Active toggle -->
-        <div class="col-span-12 flex items-center pt-1">
+        <div class="col-span-12">
+          <p
+            id="push-template-active-label"
+            class="field-group-label"
+          >
+            Active
+          </p>
           <mat-slide-toggle
             formControlName="is_active"
             color="primary"
-          >
-            <span class="text-sm font-semibold">Active</span>
-          </mat-slide-toggle>
+            aria-labelledby="push-template-active-label"
+          ></mat-slide-toggle>
         </div>
 
         <!-- Live Preview -->
-        <div class="col-span-12 mt-2">
+        <div class="col-span-12">
           <p class="text-sm font-semibold mb-2">Live Preview</p>
           <div class="rounded-md bg-[#111827] px-4 py-3 text-white shadow-sm">
             <p class="mb-1 text-sm font-semibold">{{ previewTitle || '—' }}</p>

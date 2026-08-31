@@ -5,7 +5,7 @@
     aria-label="Highlight Form"
   >
     <mat-dialog-content>
-      <div class="grid grid-cols-12 gap-x-6">
+      <div class="dialog-form">
         <!-- Title -->
         <div class="col-span-12">
           <mat-form-field
@@ -114,13 +114,19 @@
         </div>
 
         <!-- Active toggle -->
-        <div class="col-span-12 mb-4 flex items-center pt-2">
+        <div class="col-span-12">
+          <p
+            id="highlight-active-label"
+            class="field-group-label"
+          >
+            Active
+          </p>
           <mat-slide-toggle
             formControlName="is_active"
             color="primary"
-          >
-            <span class="text-sm font-semibold">Active (Visible in the App)</span>
-          </mat-slide-toggle>
+            aria-labelledby="highlight-active-label"
+          ></mat-slide-toggle>
+          <p class="mt-2 mb-0 text-xs leading-snug text-muted">Visible in the app when on.</p>
         </div>
 
         <!-- Thumbnail -->

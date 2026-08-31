@@ -2,7 +2,7 @@ app-search-filter-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  /* Match dialog form grids (`gap-x-6` → 1.5rem / --sp-8). */
+  /* Match dialog form grids (`.dialog-form` column-gap → --sp-8). */
   gap: var(--sp-8);
 }
 

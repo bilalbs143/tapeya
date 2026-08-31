@@ -62,6 +62,11 @@
   --sp-9: 32px;
   --sp-10: 40px;
 
+  /* Dialog form rows (.dialog-form). */
+  --dialog-form-row-gap: var(--sp-6);
+  /* Air between a field’s hint/error band and the next row’s label. */
+  --dialog-form-hint-gap: 3px;
+
   /* ---- Layout --------------------------------------------------------- */
   /* List-table scroll body: fill remaining viewport under topbar + typical
      list chrome (page padding, header, filters, paginator). Tuned ~20rem;

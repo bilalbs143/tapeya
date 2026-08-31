@@ -5,8 +5,8 @@
     aria-label="Hero Slide Form"
   >
     <mat-dialog-content>
-      <div class="grid grid-cols-12 gap-x-6">
-        <div class="col-span-12 mb-4">
+      <div class="dialog-form">
+        <div class="col-span-12">
           <app-file-upload
             formControlName="image_mobile"
             label="Mobile Image (Default)"
@@ -21,7 +21,7 @@
           }
         </div>
 
-        <div class="col-span-12 mb-4">
+        <div class="col-span-12">
           <app-file-upload
             formControlName="image_desktop"
             label="Desktop Image"
@@ -51,7 +51,7 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 mb-4">
+        <div class="col-span-12">
           <fieldset class="field-group-fieldset">
             <legend class="field-group-label">Slide Action <span class="text-error">*</span></legend>
             <mat-radio-group
