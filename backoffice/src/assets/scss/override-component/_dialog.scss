@@ -15,14 +15,35 @@
   )
 );
 
-// Correction: scrim that doesn't go pure black.
 html {
   .cdk-overlay-dark-backdrop {
     background: rgba(23, 26, 23, 0.32);
   }
 
-  /* Match page-header__actions gap. Material’s default action margins stack
-   * wider than toolbar buttons. */
+  /*
+   * Wrapper/form boxes break Material’s title→content→actions flex chain, so the
+   * surface (height:100% + overflow-y:auto) scrolls empty space under actions.
+   * display:contents restores the chain; surface shrink-wraps; content scrolls.
+   */
+  .cdk-overlay-pane.mat-mdc-dialog-panel {
+    max-height: 90dvh;
+  }
+
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface {
+    height: auto !important;
+  }
+
+  .mat-mdc-dialog-surface {
+    overflow: hidden;
+  }
+
+  app-dialog-wrapper,
+  .mat-mdc-dialog-surface > form:has(.mat-mdc-dialog-content) {
+    display: contents;
+  }
+
+  /* Match page-header__actions gap. */
   .mat-mdc-dialog-actions {
     display: flex;
     flex-wrap: wrap;
@@ -50,7 +71,6 @@ html {
         width: 100%;
       }
 
-      /* Danger on its own full-width row (Delete Stream, etc.). */
       > app-ui-button:has(.ui-btn--danger),
       > app-ui-button:has(.ui-btn--danger-solid) {
         flex: 1 1 100%;
