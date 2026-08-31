@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,7 +19,7 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -29,7 +29,6 @@ import { ManageTeamDialogComponent } from './manage-team-dialog/manage-team-dial
 
 const DEFAULT_FILTERS = {
   search: '',
-  country: '',
 } as const;
 
 @Component({
@@ -50,14 +49,23 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './teams.component.html',
 })
-export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TeamsComponent implements OnInit, OnDestroy {
   private readonly teamsService = inject(TeamsService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -82,7 +90,6 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pageSize = this.paginatorConfig.pageSize;
     this.searchForm = this.fb.group({
       search: [DEFAULT_FILTERS.search],
-      country: [DEFAULT_FILTERS.country],
     });
   }
 
@@ -90,12 +97,9 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -107,17 +111,13 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public loadHttpData(): void {
-    const filters = this.searchForm.value as { search?: string; country?: string };
+    const filters = this.searchForm.value as { search?: string };
     const params = buildListParams(this.currentPage, this.pageSize, this.sort ?? null, {
       search: filters.search ?? '',
     });
-    const requestParams: Record<string, unknown> = { ...params };
-    if (filters.country?.trim()) {
-      requestParams['filter[country]'] = filters.country.trim();
-    }
 
     this.isLoading = true;
-    this.teamsService.getList(requestParams).subscribe({
+    this.teamsService.getList(params).subscribe({
       next: (res) => {
         this.dataSource.data = (res.data ?? []).map((row) => ({
           ...row,

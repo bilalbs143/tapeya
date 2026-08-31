@@ -586,6 +586,7 @@ class User extends Authenticatable
             'type',
             'status',
             'active_platform',
+            'city',
             'created_at',
             'updated_at',
         ];

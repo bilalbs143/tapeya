@@ -62,6 +62,11 @@ class NotificationController extends Controller
             }
         }
 
+        if ($request->filled('filter[search]')) {
+            $term = '%'.addcslashes(mb_strtolower((string) $request->input('filter[search]')), '%_\\').'%';
+            $query->whereRaw('LOWER(data) LIKE ?', [$term]);
+        }
+
         if ($request->filled('filter[created_after]')) {
             $query->whereDate('created_at', '>=', $request->input('filter[created_after]'));
         }

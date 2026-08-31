@@ -12,7 +12,7 @@ class MediaCdnSettings extends Settings
 {
     /**
      * Public CDN origin with no trailing slash (e.g. https://cdn.tapeya.com).
-     * Empty → fall back to filesystems.disks.s3.url / AWS_URL.
+     * Empty → https://cdn.tapeya.com.
      */
     public ?string $cdnPublicBaseUrl;
 

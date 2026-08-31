@@ -39,23 +39,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Order Number</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="order_number"
-            />
-          </mat-form-field>
-        </div>
-        <div>
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>Phone</mat-label>
-            <input
-              matInput
-              formControlName="phone"
-              placeholder="e.g. 92... or +92..."
+              formControlName="search"
+              type="search"
+              placeholder="Search by Order Number or Customer"
+              autocomplete="off"
             />
           </mat-form-field>
         </div>
@@ -89,6 +79,44 @@
                 }
               }
             </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>From Date</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="fromDatePicker"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="fromDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #fromDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>To Date</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="toDatePicker"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="toDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #toDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
       </app-search-filter-bar>

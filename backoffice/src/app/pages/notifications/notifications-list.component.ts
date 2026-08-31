@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,13 +26,14 @@ import {
   AdminNotificationType,
 } from 'src/app/shared/constants/notification.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 const DEFAULT_FILTERS = {
+  search: '',
   type: '',
   read: '',
   created_after: null as Date | null,
@@ -58,14 +59,23 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './notifications-list.component.html',
 })
-export class NotificationsListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class NotificationsListComponent implements OnInit, OnDestroy {
   private readonly notificationsService = inject(NotificationsService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = ['sr', 'type', 'message', 'read_at', 'created_at', 'actions'];
@@ -88,6 +98,7 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
 
   constructor() {
     this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
       type: [DEFAULT_FILTERS.type],
       read: [DEFAULT_FILTERS.read],
       created_after: [DEFAULT_FILTERS.created_after],
@@ -100,12 +111,9 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -123,6 +131,9 @@ export class NotificationsListComponent implements OnInit, AfterViewInit, OnDest
     const params = {
       ...buildListParams(page, perPage, this.sort ?? null, {}),
     } as Record<string, unknown>;
+    if ((filters.search ?? '').trim() !== '') {
+      params['filter[search]'] = (filters.search as string).trim();
+    }
     if ((filters.type ?? '').trim() !== '') {
       params['filter[type]'] = (filters.type as string).trim();
     }

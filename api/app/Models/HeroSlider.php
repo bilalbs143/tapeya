@@ -8,6 +8,7 @@ use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Utils\Traits\Model\BaseModelTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class HeroSlider extends Model
 {
@@ -51,7 +52,7 @@ class HeroSlider extends Model
     public static function getFilters(): array
     {
         return [
-            'status',
+            AllowedFilter::exact('status'),
         ];
     }
 

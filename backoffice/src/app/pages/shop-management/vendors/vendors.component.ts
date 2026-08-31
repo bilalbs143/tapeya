@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,7 +19,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -28,7 +28,7 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManageVendorDialogComponent } from './manage-vendor-dialog/manage-vendor-dialog.component';
 import { VendorReasonDialogComponent } from './vendor-reason-dialog/vendor-reason-dialog.component';
 
-const DEFAULT_FILTERS = { store_name: '', status: '' } as const;
+const DEFAULT_FILTERS = { search: '', status: '' } as const;
 
 const STATUS_FILTER_OPTIONS = [
   { value: '', label: 'All' },
@@ -56,14 +56,23 @@ const STATUS_FILTER_OPTIONS = [
   ],
   templateUrl: './vendors.component.html',
 })
-export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class VendorsComponent implements OnInit, OnDestroy {
   private readonly vendorService = inject(VendorService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -86,7 +95,7 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
   public isLoading = false;
   constructor() {
     this.searchForm = this.fb.group({
-      store_name: [DEFAULT_FILTERS.store_name],
+      search: [DEFAULT_FILTERS.search],
       status: [DEFAULT_FILTERS.status],
     });
     this.pageSize = this.paginatorConfig.pageSize;
@@ -96,12 +105,9 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -117,8 +123,8 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
     const perPage = perPageOverride ?? this.pageSize;
     const filters = this.searchForm.value;
     let params = { ...buildListParams(page, perPage, this.sort ?? null, {}) } as Record<string, unknown>;
-    if ((filters.store_name ?? '').trim() !== '') {
-      params = { ...params, 'filter[store_name]': (filters.store_name as string).trim() };
+    if ((filters.search ?? '').trim() !== '') {
+      params = { ...params, 'filter[search]': (filters.search as string).trim() };
     }
     if ((filters.status ?? '') !== '') {
       params = { ...params, 'filter[status]': filters.status };

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -22,7 +22,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -31,8 +31,10 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { SendNotificationDialogComponent } from './send-notification-dialog/send-notification-dialog.component';
 
 const DEFAULT_FILTERS = {
+  search: '',
   status: '',
   triggered_by: '',
+  target_type: '',
   created_after: null as Date | null,
   created_before: null as Date | null,
 } as const;
@@ -56,7 +58,7 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './push-notifications.component.html',
 })
-export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PushNotificationsComponent implements OnInit, OnDestroy {
   private readonly pushService = inject(PushNotificationService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -65,7 +67,16 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   private readonly dialog = inject(MatDialog);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -82,6 +93,7 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   public readonly emptyCell = EMPTY_CELL;
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('push_notification_status');
   public triggeredByOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('push_triggered_by');
+  public targetTypeOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('push_target_type');
 
   public totalRecords = 0;
   public currentPage = 0;
@@ -89,8 +101,10 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
   public isLoading = false;
   constructor() {
     this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
       status: [DEFAULT_FILTERS.status],
       triggered_by: [DEFAULT_FILTERS.triggered_by],
+      target_type: [DEFAULT_FILTERS.target_type],
       created_after: [DEFAULT_FILTERS.created_after],
       created_before: [DEFAULT_FILTERS.created_before],
     });
@@ -101,12 +115,9 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -156,6 +167,7 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
     const params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
         status: (filters.status as string)?.trim() || undefined,
+        search: (filters.search as string)?.trim() || undefined,
         created_after: filters.created_after ? format(filters.created_after as Date, 'yyyy-MM-dd') : undefined,
         created_before: filters.created_before ? format(filters.created_before as Date, 'yyyy-MM-dd') : undefined,
       }),
@@ -163,6 +175,10 @@ export class PushNotificationsComponent implements OnInit, AfterViewInit, OnDest
 
     if ((filters.triggered_by ?? '').trim() !== '') {
       params['filter[triggered_by]'] = (filters.triggered_by as string).trim();
+    }
+
+    if ((filters.target_type ?? '').trim() !== '') {
+      params['filter[target_type]'] = (filters.target_type as string).trim();
     }
 
     this.isLoading = true;

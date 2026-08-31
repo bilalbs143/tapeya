@@ -5,6 +5,7 @@ namespace App\Models\Shop;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Models\BaseModel;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -116,7 +117,36 @@ class Vendor extends BaseModel
             'slug',
             'city',
             'country',
+            AllowedFilter::scope('search'),
         ];
+    }
+
+    /**
+     * Free-search scope: store name/slug/own email/own phone, OR the owning account's
+     * name/nickname/email/phone (delegates to {@see User::scopeSearch()}) —
+     * support tickets usually start from the *person*, not the store name.
+     */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $digits = preg_replace('/\D/', '', $value);
+        $phoneLike = $digits !== '' ? '%'.$digits.'%' : null;
+        $userIds = User::query()->select('id')->search($value)->pluck('id');
+
+        $query->where(function (Builder $q) use ($term, $phoneLike, $userIds): void {
+            $q->whereRaw('LOWER(store_name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(slug) LIKE ?', [$term])
+                ->orWhereRaw("LOWER(COALESCE(email, '')) LIKE ?", [$term]);
+            if ($phoneLike !== null) {
+                $q->orWhereRaw("REGEXP_REPLACE(COALESCE(phone, ''), '[^0-9]', '', 'g') LIKE ?", [$phoneLike]);
+            }
+            if ($userIds->isNotEmpty()) {
+                $q->orWhereIn('user_id', $userIds);
+            }
+        });
     }
 
     /**

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,7 +22,7 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -30,7 +30,7 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageBrandDialogComponent } from './manage-brand-dialog/manage-brand-dialog.component';
 
-const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
+const DEFAULT_FILTERS = { search: '', is_active: '' } as const;
 
 @Component({
   selector: 'app-brands',
@@ -51,7 +51,7 @@ const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
   ],
   templateUrl: './brands.component.html',
 })
-export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BrandsComponent implements OnInit, OnDestroy {
   private readonly brandService = inject(BrandService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -59,7 +59,16 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = ['sr', 'name', 'slug', 'logo', 'sort_order', 'status', 'created_at', 'actions'];
@@ -74,7 +83,7 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
     .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
 
   constructor() {
-    this.searchForm = this.fb.group({ name: [DEFAULT_FILTERS.name], is_active: [DEFAULT_FILTERS.is_active] });
+    this.searchForm = this.fb.group({ search: [DEFAULT_FILTERS.search], is_active: [DEFAULT_FILTERS.is_active] });
     this.pageSize = this.paginatorConfig.pageSize;
   }
 
@@ -82,12 +91,9 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   /** Map enum value (active/inactive) to API filter value (1/0). */
@@ -114,8 +120,8 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (statusFilter !== null) {
       params = { ...params, 'filter[is_active]': statusFilter };
     }
-    if ((filters.name ?? '').trim() !== '') {
-      params = { ...params, 'filter[name]': (filters.name as string).trim() };
+    if ((filters.search ?? '').trim() !== '') {
+      params = { ...params, 'filter[search]': (filters.search as string).trim() };
     }
     this.isLoading = true;
     this.brandService.getList(params).subscribe({

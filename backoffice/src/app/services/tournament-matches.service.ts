@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { toHttpParams } from 'src/app/shared/functions/http-params.function';
+
 export interface TournamentMatchTeam {
   id: number;
   name: string;
@@ -54,6 +56,17 @@ export interface TournamentMatchesListResponse {
   links?: Record<string, string | null>;
 }
 
+export interface TournamentMatchListParams {
+  page?: number;
+  per_page?: number;
+  sort?: string;
+  status?: string;
+  q?: string;
+  from_date?: string;
+  to_date?: string;
+  live_today?: boolean;
+}
+
 export interface CreateTournamentMatchPayload {
   home_team_id: number;
   away_team_id: number;
@@ -72,6 +85,13 @@ export class TournamentMatchesService {
   public listByTournament(tournamentId: number, all = true): Observable<TournamentMatchesListResponse> {
     const q = all ? '?all=1' : '';
     return this.http.get<TournamentMatchesListResponse>(`v1/admin/tournaments/${tournamentId}/matches${q}`);
+  }
+
+  /** Server-side paginated/filtered/sorted match list, for the Tournament Matches list page. */
+  public getList(tournamentId: number, params: TournamentMatchListParams = {}): Observable<TournamentMatchesListResponse> {
+    return this.http.get<TournamentMatchesListResponse>(`v1/admin/tournaments/${tournamentId}/matches`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
   }
 
   public getById(matchId: number): Observable<{ data: TournamentMatchRow }> {

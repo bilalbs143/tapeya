@@ -20,6 +20,20 @@
           @if (showAttachTeams) {
             <app-ui-button
               type="button"
+              variant="ghost"
+              (click)="runClearTeamSearch()"
+            >
+              Clear Search
+            </app-ui-button>
+            <app-ui-button
+              type="button"
+              variant="secondary"
+              (click)="runSearchTeams()"
+            >
+              Search
+            </app-ui-button>
+            <app-ui-button
+              type="button"
               variant="primary"
               (click)="runAttachTeams()"
             >

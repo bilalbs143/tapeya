@@ -4,9 +4,7 @@
     aria-label="Attach Teams to Tournament"
   >
     <mat-dialog-content>
-      <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
-        Search teams by name or code. Teams already on this tournament are hidden from suggestions.
-      </p>
+      <p class="text-xs text-muted m-0 mb-3 leading-snug">Search by name or code. Teams already on this tournament are hidden.</p>
       @if (data.numberOfTeams !== null) {
         <p
           class="text-sm m-0 mb-3 leading-relaxed"
@@ -106,7 +104,7 @@
               matInput
               [formControl]="searchControl"
               [matAutocomplete]="teamAuto"
-              placeholder="Search by name or code"
+              placeholder="Search by Name or Code"
             />
             <mat-autocomplete
               #teamAuto="matAutocomplete"

@@ -68,9 +68,9 @@ class Tournament extends BaseModel
         return [
             AllowedFilter::exact('id'),
             AllowedFilter::partial('tournament_name'),
+            AllowedFilter::scope('search'),
             'status',
             'tournament_type',
-            'country',
             'city',
             AllowedFilter::callback('schedule_window', function (Builder $query, mixed $value): void {
                 if (! is_string($value) || $value === '') {
@@ -83,6 +83,30 @@ class Tournament extends BaseModel
                 self::applyScheduleWindowFilter($query, $phase);
             }),
         ];
+    }
+
+    /**
+     * Free-search scope: tournament name, venue, city, OR the organizer/creator's
+     * name/nickname/email/phone (delegates to {@see User::scopeSearch()},
+     * both relations already eager-loaded via `->with(['organizer', 'creator'])`).
+     */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $userIds = User::query()->select('id')->search($value)->pluck('id');
+
+        $query->where(function (Builder $q) use ($term, $userIds): void {
+            $q->whereRaw('LOWER(tournament_name) LIKE ?', [$term])
+                ->orWhereRaw("LOWER(COALESCE(venue_name, '')) LIKE ?", [$term])
+                ->orWhereRaw("LOWER(COALESCE(city, '')) LIKE ?", [$term]);
+            if ($userIds->isNotEmpty()) {
+                $q->orWhereIn('organizer_id', $userIds)
+                    ->orWhereIn('created_by', $userIds);
+            }
+        });
     }
 
     /**

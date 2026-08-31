@@ -46,10 +46,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Name</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="name"
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name or Slug"
+              autocomplete="off"
             />
           </mat-form-field>
         </div>
@@ -64,6 +67,23 @@
                 @for (opt of opts; track opt.value) {
                   <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                 }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Parent Category</mat-label>
+            <mat-select
+              formControlName="parent_id"
+              placeholder="All"
+            >
+              <mat-option value="">All</mat-option>
+              @for (c of categories; track c.id) {
+                <mat-option [value]="string(c.id)">{{ c.name }}</mat-option>
               }
             </mat-select>
           </mat-form-field>

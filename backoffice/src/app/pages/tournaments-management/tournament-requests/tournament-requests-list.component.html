@@ -39,11 +39,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Contact Phone</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="contact_phone"
-              placeholder="e.g. +92..."
+              formControlName="search"
+              type="search"
+              placeholder="Search by Tournament Name, Contact, or Phone"
+              autocomplete="off"
             />
           </mat-form-field>
         </div>

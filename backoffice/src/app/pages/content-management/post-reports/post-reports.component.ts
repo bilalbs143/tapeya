@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -19,7 +20,7 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -28,7 +29,9 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManagePostReportDialogComponent } from './manage-post-report-dialog/manage-post-report-dialog.component';
 
 const DEFAULT_FILTERS = {
+  search: '',
   status: '',
+  reason: '',
 } as const;
 
 const REPORT_STATUS_OPTIONS: { value: '' | PostReportStatus; label: string }[] = [
@@ -48,6 +51,16 @@ const REASON_LABELS: Record<PostReportReason, string> = {
   other: 'Other',
 };
 
+const REASON_OPTIONS: { value: '' | PostReportReason; label: string }[] = [
+  { value: '', label: 'All' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'harassment', label: 'Harassment' },
+  { value: 'inappropriate', label: 'Inappropriate Content' },
+  { value: 'violence', label: 'Violence' },
+  { value: 'copyright', label: 'Copyright' },
+  { value: 'other', label: 'Other' },
+];
+
 const STATUS_LABELS: Record<PostReportStatus, string> = {
   open: 'Open',
   reviewed: 'Reviewed',
@@ -65,6 +78,7 @@ const STATUS_LABELS: Record<PostReportStatus, string> = {
     MatTableModule,
     MatSortModule,
     MatFormFieldModule,
+    MatInputModule,
     MatSelectModule,
     MatDialogModule,
     TablerIconsModule,
@@ -73,14 +87,23 @@ const STATUS_LABELS: Record<PostReportStatus, string> = {
   ],
   templateUrl: './post-reports.component.html',
 })
-export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PostReportsComponent implements OnInit, OnDestroy {
   private readonly postReportService = inject(PostReportService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -96,13 +119,18 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   public dataSource = new MatTableDataSource<PostReport>([]);
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusOptions = REPORT_STATUS_OPTIONS;
+  public readonly reasonOptions = REASON_OPTIONS;
 
   public totalRecords = 0;
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
   constructor() {
-    this.searchForm = this.fb.group({ status: [DEFAULT_FILTERS.status] });
+    this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
+      status: [DEFAULT_FILTERS.status],
+      reason: [DEFAULT_FILTERS.reason],
+    });
     this.pageSize = this.paginatorConfig.pageSize;
   }
 
@@ -110,12 +138,9 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -130,11 +155,13 @@ export class PostReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     const page = pageOverride ?? this.currentPage;
     const perPage = perPageOverride ?? this.pageSize;
     const filters = this.searchForm.value;
-    const params = {
+    let params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
         status: filters.status ?? '',
+        search: (filters.search ?? '').trim(),
       }),
     } as Record<string, unknown>;
+    if ((filters.reason ?? '') !== '') params = { ...params, 'filter[reason]': filters.reason };
 
     this.isLoading = true;
     this.postReportService.getList(params).subscribe({

@@ -27,11 +27,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Player Name</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
               formControlName="search"
-              placeholder="Search…"
+              type="search"
+              placeholder="Search by Name, Nickname, Email, or Phone"
+              autocomplete="off"
               maxlength="191"
             />
           </mat-form-field>

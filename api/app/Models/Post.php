@@ -306,8 +306,43 @@ class Post extends BaseModel
             AllowedFilter::exact('user_id'),
             AllowedFilter::partial('body'),
             AllowedFilter::partial('caption', 'body'),
-            AllowedFilter::exact('reports_count'),
+            AllowedFilter::scope('search'),
+            AllowedFilter::scope('has_reports'),
         ];
+    }
+
+    /**
+     * Free-search scope: post body OR the creator's name/nickname (relation already
+     * eager-loaded via `User::socialSummaryWith()` in the controller's `baseQuery()`).
+     */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $query->where(function (Builder $q) use ($term): void {
+            $q->whereRaw('LOWER(body) LIKE ?', [$term])
+                ->orWhereHas('user', function (Builder $u) use ($term): void {
+                    $u->whereRaw('LOWER(name) LIKE ?', [$term])
+                        ->orWhereRaw("LOWER(COALESCE(nickname, '')) LIKE ?", [$term]);
+                });
+        });
+    }
+
+    /**
+     * Scope: `1`/`true` → only posts with at least one report; `0`/`false` → only posts with
+     * none. Replaces the impractical exact `reports_count` filter — nobody types an exact count.
+     */
+    public function scopeHasReports(Builder $query, string|bool|null $value): void
+    {
+        $wantsReported = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($wantsReported === null) {
+            return;
+        }
+        $wantsReported
+            ? $query->where('reports_count', '>', 0)
+            : $query->where('reports_count', '=', 0);
     }
 
     /**

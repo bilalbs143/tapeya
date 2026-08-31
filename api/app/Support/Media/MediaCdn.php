@@ -11,8 +11,11 @@ use Throwable;
  */
 final class MediaCdn
 {
+    public const DEFAULT_PUBLIC_BASE = 'https://cdn.tapeya.com';
+
     /**
-     * Effective public CDN base (https://cdn.example.com) or null.
+     * Effective public CDN base (https://cdn.example.com).
+     * Admin setting when set, otherwise {@see DEFAULT_PUBLIC_BASE}.
      */
     public static function publicBaseUrl(): ?string
     {
@@ -26,9 +29,9 @@ final class MediaCdn
 
         $candidate = is_string($fromSettings) && trim($fromSettings) !== ''
             ? $fromSettings
-            : config('filesystems.disks.s3.url');
+            : self::DEFAULT_PUBLIC_BASE;
 
-        return self::normalizeBaseUrl(is_string($candidate) ? $candidate : null);
+        return self::normalizeBaseUrl($candidate);
     }
 
     /**

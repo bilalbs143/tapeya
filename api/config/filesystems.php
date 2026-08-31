@@ -58,8 +58,8 @@ return [
 
         /*
          * S3-compatible disk (AWS S3 or Backblaze B2 via AWS_ENDPOINT).
-         * Set AWS_URL to your Cloudflare CDN hostname (e.g. https://cdn.tapeya.com)
-         * so Storage::url() returns CDN URLs. Admin setting cdn_public_base_url overrides AWS_URL at boot.
+         * Public URL base defaults to https://cdn.tapeya.com. Admin setting
+         * cdn_public_base_url overrides at boot via MediaCdn (not AWS_URL).
          *
          * Object Ownership must be BucketOwnerEnforced (no object ACLs). Public read is via CDN /
          * bucket policy. Always write through App\Support\Media\MediaDisk — never storePublicly()
@@ -71,7 +71,7 @@ return [
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL') ? rtrim(env('AWS_URL'), '/') : null,
+            'url' => 'https://cdn.tapeya.com',
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,
@@ -86,7 +86,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Use 'public' for local storage, or 's3' for B2/S3 with Cloudflare CDN
-    | (AWS_URL / cdn_public_base_url). See docs/MEDIA_CDN_MIGRATION.md.
+    | (cdn_public_base_url / default https://cdn.tapeya.com). See docs/MEDIA_CDN_MIGRATION.md.
     |
     */
     'media_disk' => env('MEDIA_DISK', 'public'),

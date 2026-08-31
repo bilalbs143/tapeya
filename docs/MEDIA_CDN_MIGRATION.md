@@ -4,7 +4,7 @@
 
 - **Writes:** `App\Support\Media\MediaDisk` → private B2 (`MEDIA_DISK=s3`, no object ACLs)
 - **Reads:** Cloudflare Worker `infra/cdn-tapeya` on `cdn.tapeya.com` → signed B2 GETs + Workers Cache
-- **Public URL base:** Admin `cdn_public_base_url` (falls back to `AWS_URL`)
+- **Public URL base:** Admin `cdn_public_base_url` (empty → `https://cdn.tapeya.com`)
 
 For **video/image delivery speed, ABR HLS, prefetch, immutable Cache-Control, and multi-layer caching**, see **[MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md)** (planning doc).
 
@@ -89,7 +89,7 @@ AWS_DEFAULT_REGION=...         # e.g. us-west-004
 AWS_BUCKET=...
 AWS_ENDPOINT=https://s3.<region>.backblazeb2.com
 AWS_USE_PATH_STYLE_ENDPOINT=true
-AWS_URL=https://cdn.tapeya.com  # fallback when setting empty
+# Public CDN base is Admin cdn_public_base_url (empty → https://cdn.tapeya.com)
 # Optional overrides (defaults are true):
 # FILESYSTEM_S3_THROW=true
 # FILESYSTEM_S3_REPORT=true
@@ -97,7 +97,7 @@ AWS_URL=https://cdn.tapeya.com  # fallback when setting empty
 
 Admin → System Settings → **Media & CDN** → `cdn_public_base_url` = `https://cdn.tapeya.com` (no trailing slash).
 
-Empty setting → falls back to `AWS_URL`.
+Empty setting → `https://cdn.tapeya.com`.
 
 After changing settings: `php artisan settings:clear-cache` and `php artisan config:clear`.
 
@@ -120,7 +120,7 @@ After changing settings: `php artisan settings:clear-cache` and `php artisan con
 
 ### Rollback
 
-Point `cdn_public_base_url` / `AWS_URL` back to CloudFront and restore AWS credentials on `MEDIA_DISK=s3` (objects still on S3 until deleted).
+Point `cdn_public_base_url` back to the prior CDN hostname and restore AWS credentials on `MEDIA_DISK=s3` (objects still on S3 until deleted).
 
 ---
 

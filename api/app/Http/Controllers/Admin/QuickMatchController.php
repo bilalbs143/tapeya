@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchEndReasonEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
@@ -39,6 +40,7 @@ class QuickMatchController extends Controller
         $validated = $request->validate([
             'status' => ['sometimes', 'nullable', 'string', Rule::in(MatchStatusEnum::values())],
             'created_by' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
+            'cricket_format' => ['sometimes', 'nullable', 'string', Rule::in(CricketFormatEnum::values())],
             'from_date' => ['sometimes', 'nullable', 'date'],
             'to_date' => ['sometimes', 'nullable', 'date', 'after_or_equal:from_date'],
             'q' => ['sometimes', 'nullable', 'string', 'max:100'],
@@ -55,6 +57,9 @@ class QuickMatchController extends Controller
         }
         if (! empty($validated['created_by'])) {
             $query->where('created_by', (int) $validated['created_by']);
+        }
+        if (! empty($validated['cricket_format'])) {
+            $query->where('cricket_format', $validated['cricket_format']);
         }
         if (! empty($validated['from_date'])) {
             $query->whereDate('match_date', '>=', $validated['from_date']);

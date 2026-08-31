@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -24,7 +24,7 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -33,8 +33,9 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManageUserDialogComponent, type ManageUserDialogResult } from './manage-user-dialog/manage-user-dialog.component';
 
 const DEFAULT_FILTERS = {
-  phone: '',
+  search: '',
   status: '',
+  active_platform: '',
   created_after: null as Date | null,
   created_before: null as Date | null,
 } as const;
@@ -58,7 +59,7 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './users.component.html',
 })
-export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
+export class UsersComponent implements OnInit, OnDestroy {
   private readonly usersService = inject(UsersService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -67,8 +68,18 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sub = new Subscription();
 
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('user_status');
+  public platformOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('active_platform');
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -112,8 +123,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initialiseSearchForm(): void {
     this.searchForm = this.fb.group({
-      phone: [DEFAULT_FILTERS.phone],
+      search: [DEFAULT_FILTERS.search],
       status: [DEFAULT_FILTERS.status],
+      active_platform: [DEFAULT_FILTERS.active_platform],
       created_after: [DEFAULT_FILTERS.created_after],
       created_before: [DEFAULT_FILTERS.created_before],
     });
@@ -123,12 +135,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -144,8 +153,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     const perPage = perPageOverride ?? this.pageSize;
     const filters = this.searchForm.value;
     const requestParams = buildListParams(page, perPage, this.sort ?? null, {
-      phone: filters.phone ?? '',
+      search: (filters.search ?? '').trim(),
       status: filters.status ?? '',
+      active_platform: filters.active_platform ?? '',
       created_after: filters.created_after ? format(filters.created_after, 'yyyy-MM-dd') : undefined,
       created_before: filters.created_before ? format(filters.created_before, 'yyyy-MM-dd') : undefined,
     });

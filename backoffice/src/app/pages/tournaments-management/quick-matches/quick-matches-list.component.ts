@@ -1,5 +1,5 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -7,10 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
@@ -20,17 +19,14 @@ import { QuickMatchesService, type QuickMatchRow } from 'src/app/services/quick-
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import {
-  bindListSortToReload,
-  onListPaginationChange,
-  resetListSearchForm,
-} from 'src/app/shared/functions/list-page-paging.function';
+import { onListPaginationChange, resetListSearchForm } from 'src/app/shared/functions/list-page-paging.function';
 
 import { QuickMatchDetailDialogComponent } from './quick-match-detail-dialog/quick-match-detail-dialog.component';
 
 const DEFAULT_FILTERS = {
   q: '',
   status: '',
+  cricket_format: '',
   from_date: null as Date | null,
   to_date: null as Date | null,
 } as const;
@@ -43,7 +39,6 @@ const DEFAULT_FILTERS = {
     ReactiveFormsModule,
     MaterialModule,
     MatTableModule,
-    MatSortModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -54,15 +49,12 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './quick-matches-list.component.html',
 })
-export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class QuickMatchesListComponent implements OnInit {
   private readonly quickMatches = inject(QuickMatchesService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
-  private readonly sub = new Subscription();
-
-  @ViewChild(MatSort) public sort!: MatSort;
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = ['sr', 'when', 'teams', 'creator', 'venue', 'format', 'status', 'actions'];
@@ -73,11 +65,13 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
   public pageSize: number;
   public isLoading = false;
   public readonly matchStatusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('match_status');
+  public readonly cricketFormatOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('cricket_format');
 
   constructor() {
     this.searchForm = this.fb.group({
       q: [DEFAULT_FILTERS.q],
       status: [DEFAULT_FILTERS.status],
+      cricket_format: [DEFAULT_FILTERS.cricket_format],
       from_date: [DEFAULT_FILTERS.from_date],
       to_date: [DEFAULT_FILTERS.to_date],
     });
@@ -86,14 +80,6 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
 
   public ngOnInit(): void {
     this.loadHttpData();
-  }
-
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
-  public ngOnDestroy(): void {
-    this.sub.unsubscribe();
   }
 
   public resetSearchForm(): void {
@@ -115,6 +101,7 @@ export class QuickMatchesListComponent implements OnInit, AfterViewInit, OnDestr
         page: this.currentPage + 1,
         per_page: this.pageSize,
         status: filters.status || undefined,
+        cricket_format: filters.cricket_format || undefined,
         q: (filters.q ?? '').trim() || undefined,
         from_date: fromDate || undefined,
         to_date: toDate || undefined,

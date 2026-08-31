@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -17,6 +21,7 @@ import { type TeamRow } from 'src/app/services/teams.service';
 import { TournamentTeamsService, type TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
+import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
 import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
@@ -24,10 +29,27 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { AttachTournamentTeamsDialogComponent } from './attach-tournament-teams-dialog/attach-tournament-teams-dialog.component';
 import { EditTournamentTeamGroupDialogComponent } from './edit-tournament-team-group-dialog/edit-tournament-team-group-dialog.component';
 
+const DEFAULT_FILTERS = {
+  search: '',
+} as const;
+
 @Component({
   selector: 'app-tournament-teams-tab',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatSortModule, MatTooltipModule, TablerIconsModule, CommonSharedModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatDividerModule,
+    MatTableModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTooltipModule,
+    TablerIconsModule,
+    CommonSharedModule,
+    EmptyDataMessageComponent,
+  ],
   templateUrl: './tournament-teams-tab.component.html',
 })
 export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
@@ -37,6 +59,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   private readonly tournamentsService = inject(TournamentsService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
+  private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
   @ViewChild(MatSort)
@@ -57,11 +80,14 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     });
   }
 
+  public searchForm: FormGroup;
   public dataSource = new MatTableDataSource<TournamentTeamRow>([]);
   public tournament: Tournament | null = null;
   public isLoading = true;
+  /** True when the last load used a non-empty search (for empty-state copy). */
+  public searchActive = false;
   public readonly emptyCell = EMPTY_CELL;
-  public readonly columns = ['name', 'sponsor', 'group', 'actions'] as const;
+  public readonly columns = ['name', 'code', 'sponsor', 'group', 'actions'] as const;
   public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
   public pageSize = this.paginatorConfig.pageSize;
   public pageIndex = 0;
@@ -69,10 +95,15 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   public tournamentId = 0;
 
   constructor() {
+    this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
+    });
     this.dataSource.sortingDataAccessor = (row, column) => {
       switch (column) {
         case 'name':
           return row.name ?? '';
+        case 'code':
+          return row.code ?? '';
         case 'sponsor':
           return row.sponsor?.nickname || row.sponsor?.name || '';
         case 'group':
@@ -87,6 +118,14 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     return this.tournament?.number_of_groups != null && this.tournament.number_of_groups > 0
       ? this.tournament.number_of_groups
       : 1;
+  }
+
+  public get hasNoTeams(): boolean {
+    return !this.isLoading && !this.searchActive && this.dataSource.data.length === 0;
+  }
+
+  public get hasFilterEmpty(): boolean {
+    return !this.isLoading && this.searchActive && this.dataSource.data.length === 0;
   }
 
   public ngOnInit(): void {
@@ -109,7 +148,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
 
             return forkJoin({
               tournament: this.tournamentsService.getById(id),
-              teams: this.teamsService.listTeams(id),
+              teams: this.teamsService.listTeams(id, this.listParams()),
             }).pipe(
               catchError(() => {
                 this.isLoading = false;
@@ -120,9 +159,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
         )
         .subscribe(({ tournament, teams }) => {
           this.tournament = tournament.data ?? null;
-          this.dataSource.data = teams.data ?? [];
-          this.pageIndex = 0;
-          this.dataSource.paginator?.firstPage();
+          this.applyTeamsResponse(teams.data ?? []);
           this.isLoading = false;
         })
     );
@@ -132,17 +169,41 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  public resetSearchForm(): void {
+    this.searchForm.reset({ ...DEFAULT_FILTERS });
+    this.pageIndex = 0;
+    this.loadHttpData();
+  }
+
+  public loadHttpData(): void {
+    this.load();
+  }
+
+  private listParams(): Record<string, unknown> {
+    const search = String(this.searchForm.value.search ?? '').trim();
+    this.searchActive = search.length > 0;
+    const params: Record<string, unknown> = {};
+    if (search) {
+      params['filter[search]'] = search;
+    }
+    return params;
+  }
+
+  private applyTeamsResponse(rows: TournamentTeamRow[]): void {
+    this.dataSource.data = rows;
+    this.pageIndex = 0;
+    this.dataSource.paginator?.firstPage();
+  }
+
   private load(): void {
     this.isLoading = true;
     forkJoin({
       tournament: this.tournamentsService.getById(this.tournamentId),
-      teams: this.teamsService.listTeams(this.tournamentId),
+      teams: this.teamsService.listTeams(this.tournamentId, this.listParams()),
     }).subscribe({
       next: ({ tournament, teams }) => {
         this.tournament = tournament.data ?? null;
-        this.dataSource.data = teams.data ?? [];
-        this.pageIndex = 0;
-        this.dataSource.paginator?.firstPage();
+        this.applyTeamsResponse(teams.data ?? []);
         this.isLoading = false;
       },
       error: () => {
@@ -152,17 +213,23 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   }
 
   public openAttachTeams(): void {
-    this.messageService.openDialog<AttachTournamentTeamsDialogComponent, boolean>(
-      AttachTournamentTeamsDialogComponent,
-      {
-        tournamentId: this.tournamentId,
-        numberOfGroups: this.numberOfGroups,
-        numberOfTeams: this.tournament?.number_of_teams ?? null,
-        attachedTeamIds: this.dataSource.data.map((t) => t.id),
+    // Unfiltered list so attach dialog knows every already-linked team, even when search is active.
+    this.teamsService.listTeams(this.tournamentId).subscribe({
+      next: (res) => {
+        this.messageService.openDialog<AttachTournamentTeamsDialogComponent, boolean>(
+          AttachTournamentTeamsDialogComponent,
+          {
+            tournamentId: this.tournamentId,
+            numberOfGroups: this.numberOfGroups,
+            numberOfTeams: this.tournament?.number_of_teams ?? null,
+            attachedTeamIds: (res.data ?? []).map((t) => t.id),
+          },
+          (saved) => saved && this.load(),
+          { widthSize: 'sm', disableClose: true }
+        );
       },
-      (saved) => saved && this.load(),
-      { widthSize: 'sm', disableClose: true }
-    );
+      error: () => this.messageService.error('Could not load attached teams.'),
+    });
   }
 
   public openEditGroup(team: TournamentTeamRow): void {

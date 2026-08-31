@@ -6,6 +6,7 @@ use App\Enums\Push\PushNotificationStatusEnum;
 use App\Enums\Push\PushTargetTypeEnum;
 use App\Enums\Push\PushTriggeredByEnum;
 use App\Utils\Traits\Model\Filters\DateFilterTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -71,10 +72,24 @@ class PushNotificationLog extends BaseModel
             AllowedFilter::exact('triggered_by'),
             AllowedFilter::exact('target_type'),
             AllowedFilter::exact('target_user_id'),
+            AllowedFilter::scope('search'),
             AllowedFilter::scope('created_between'),
             AllowedFilter::scope('created_after'),
             AllowedFilter::scope('created_before'),
         ];
+    }
+
+    /** Free-search scope: notification title OR body. */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $query->where(function (Builder $q) use ($term): void {
+            $q->whereRaw('LOWER(title) LIKE ?', [$term])
+                ->orWhereRaw("LOWER(COALESCE(body, '')) LIKE ?", [$term]);
+        });
     }
 
     /**

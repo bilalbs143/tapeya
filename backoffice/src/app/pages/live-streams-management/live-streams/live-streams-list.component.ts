@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -24,7 +24,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -40,6 +40,7 @@ const DEFAULT_FILTERS = {
   status: '',
   search: '',
   self_serve: '',
+  provider: '',
 } as const;
 
 const STATUS_OPTIONS = [
@@ -61,6 +62,12 @@ const PROVIDER_LABELS: Record<string, string> = {
   external: 'External URL',
   youtube: 'YouTube RTMP',
 };
+
+const PROVIDER_OPTIONS = [
+  { value: '', label: 'All Providers' },
+  { value: 'external', label: 'External URL' },
+  { value: 'youtube', label: 'YouTube RTMP' },
+];
 
 const LIVE_STREAM_DIALOG_OPTIONS = { widthSize: 'md' as const, disableClose: true };
 
@@ -85,7 +92,7 @@ const WATCHING_REFRESH_MS = 15_000;
   ],
   templateUrl: './live-streams-list.component.html',
 })
-export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LiveStreamsListComponent implements OnInit, OnDestroy {
   private readonly streamApi = inject(LiveStreamService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
@@ -93,7 +100,16 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   private readonly sub = new Subscription();
   private watchingRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public dataSource = new MatTableDataSource<LiveStreamListItem>([]);
@@ -111,6 +127,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   ];
   public readonly statusOptions = STATUS_OPTIONS;
   public readonly selfServeOptions = SELF_SERVE_OPTIONS;
+  public readonly providerOptions = PROVIDER_OPTIONS;
   public readonly emptyCell = EMPTY_CELL;
   public readonly matchControllerLink = matchControllerLink;
 
@@ -123,6 +140,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
       status: [DEFAULT_FILTERS.status],
       search: [DEFAULT_FILTERS.search],
       self_serve: [DEFAULT_FILTERS.self_serve],
+      provider: [DEFAULT_FILTERS.provider],
     });
     this.pageSize = this.paginatorConfig.pageSize;
   }
@@ -136,16 +154,13 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
     }, WATCHING_REFRESH_MS);
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     if (this.watchingRefreshTimer) {
       clearInterval(this.watchingRefreshTimer);
       this.watchingRefreshTimer = null;
     }
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -229,6 +244,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
     const silent = options?.silent === true;
 
     const selfServe = (filters.self_serve as string)?.trim();
+    const provider = (filters.provider as string)?.trim();
 
     const params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
@@ -236,6 +252,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
         search: (filters.search as string)?.trim() || undefined,
       }),
       ...(selfServe ? { 'filter[self_serve]': selfServe } : {}),
+      ...(provider ? { 'filter[provider]': provider } : {}),
     } as Record<string, string | number>;
 
     if (!silent) {

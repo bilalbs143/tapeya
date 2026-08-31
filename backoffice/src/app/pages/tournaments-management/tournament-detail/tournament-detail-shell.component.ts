@@ -146,6 +146,18 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
     }
   }
 
+  public runClearTeamSearch(): void {
+    if (this.activeChild instanceof TournamentTeamsTabComponent) {
+      this.activeChild.resetSearchForm();
+    }
+  }
+
+  public runSearchTeams(): void {
+    if (this.activeChild instanceof TournamentTeamsTabComponent) {
+      this.activeChild.loadHttpData();
+    }
+  }
+
   public runScheduleMatch(): void {
     if (this.activeChild instanceof TournamentMatchesComponent) {
       this.activeChild.openScheduleDialog();
@@ -160,7 +172,7 @@ export class TournamentDetailShellComponent implements OnInit, OnDestroy {
 
   public runSearchMatches(): void {
     if (this.activeChild instanceof TournamentMatchesComponent) {
-      this.activeChild.applyFilters();
+      this.activeChild.loadHttpData();
     }
   }
 

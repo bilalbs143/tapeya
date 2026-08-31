@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,7 +21,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -30,6 +30,7 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManagePushTemplateDialogComponent } from './manage-push-template-dialog/manage-push-template-dialog.component';
 
 const DEFAULT_FILTERS = {
+  search: '',
   is_active: '',
 } as const;
 
@@ -51,7 +52,7 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './push-notification-templates.component.html',
 })
-export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PushNotificationTemplatesComponent implements OnInit, OnDestroy {
   private readonly pushService = inject(PushNotificationService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -59,7 +60,16 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public statusOptions$: Observable<EnumOption[]> = this.enumsService
@@ -76,6 +86,7 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
   constructor() {
     this.pageSize = this.paginatorConfig.pageSize;
     this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
       is_active: [DEFAULT_FILTERS.is_active],
     });
   }
@@ -84,12 +95,9 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -140,6 +148,9 @@ export class PushNotificationTemplatesComponent implements OnInit, AfterViewInit
     const statusFilter = this.mapStatusToIsActive(filters.is_active);
     if (statusFilter !== null) {
       params['filter[is_active]'] = statusFilter;
+    }
+    if ((filters.search ?? '').trim() !== '') {
+      params['filter[search]'] = (filters.search as string).trim();
     }
 
     this.isLoading = true;

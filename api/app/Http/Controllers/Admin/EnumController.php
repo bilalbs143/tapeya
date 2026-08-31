@@ -10,6 +10,7 @@ use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Push\PushNotificationStatusEnum;
+use App\Enums\Push\PushTargetTypeEnum;
 use App\Enums\Push\PushTriggeredByEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentMethodEnum;
@@ -48,7 +49,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v19', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v20', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -88,6 +89,7 @@ class EnumController extends Controller
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),
             'push_triggered_by' => $this->toOptions(PushTriggeredByEnum::cases()),
+            'push_target_type' => $this->toOptions(PushTargetTypeEnum::cases()),
             'admin_roles' => Role::forGuard(RoleGuardEnum::ADMIN->value)->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,

@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { format } from 'date-fns';
 import { Observable, Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
@@ -20,7 +23,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -29,7 +32,10 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManageSupportMessageDialogComponent } from './manage-support-message-dialog/manage-support-message-dialog.component';
 
 const DEFAULT_FILTERS = {
+  search: '',
   status: '',
+  created_after: null as Date | null,
+  created_before: null as Date | null,
 } as const;
 
 @Component({
@@ -42,6 +48,8 @@ const DEFAULT_FILTERS = {
     MatTableModule,
     MatSortModule,
     MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
     MatSelectModule,
     MatDialogModule,
     TablerIconsModule,
@@ -49,7 +57,7 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './support-messages-list.component.html',
 })
-export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class SupportMessagesListComponent implements OnInit, OnDestroy {
   private readonly supportMessageService = inject(SupportMessageService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -57,7 +65,16 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -79,7 +96,12 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
   public pageSize: number;
   public isLoading = false;
   constructor() {
-    this.searchForm = this.fb.group({ status: [DEFAULT_FILTERS.status] });
+    this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
+      status: [DEFAULT_FILTERS.status],
+      created_after: [DEFAULT_FILTERS.created_after],
+      created_before: [DEFAULT_FILTERS.created_before],
+    });
     this.pageSize = this.paginatorConfig.pageSize;
   }
 
@@ -87,12 +109,9 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -109,7 +128,10 @@ export class SupportMessagesListComponent implements OnInit, AfterViewInit, OnDe
     const filters = this.searchForm.value;
     const params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
+        search: (filters.search ?? '').trim(),
         status: filters.status ?? '',
+        created_after: filters.created_after ? format(filters.created_after, 'yyyy-MM-dd') : undefined,
+        created_before: filters.created_before ? format(filters.created_before, 'yyyy-MM-dd') : undefined,
       }),
     } as Record<string, unknown>;
 

@@ -46,6 +46,22 @@
             appearance="outline"
             class="w-full hide-hint"
           >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              type="search"
+              placeholder="Search by Title or Body"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
             <mat-label>Status</mat-label>
             <mat-select formControlName="status">
               <mat-option value="">All Statuses</mat-option>
@@ -80,11 +96,29 @@
             appearance="outline"
             class="w-full hide-hint"
           >
+            <mat-label>Target Type</mat-label>
+            <mat-select formControlName="target_type">
+              <mat-option value="">All</mat-option>
+              @if (targetTypeOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
             <mat-label>From Date</mat-label>
             <input
               matInput
               [matDatepicker]="fromPicker"
               formControlName="created_after"
+              placeholder="Select Date"
             />
             <mat-datepicker-toggle
               matIconSuffix
@@ -104,6 +138,7 @@
               matInput
               [matDatepicker]="toPicker"
               formControlName="created_before"
+              placeholder="Select Date"
             />
             <mat-datepicker-toggle
               matIconSuffix

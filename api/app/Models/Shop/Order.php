@@ -7,6 +7,7 @@ use App\Enums\Shop\PaymentMethodEnum;
 use App\Enums\Shop\PaymentStatusEnum;
 use App\Models\BaseModel;
 use App\Models\User;
+use App\Utils\Traits\Model\Filters\DateFilterTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,8 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 class Order extends BaseModel
 {
+    use DateFilterTrait;
+
     /** Generate next order number for current year (e.g. TAP-2026-00001). Call within a DB transaction. */
     public static function generateOrderNumber(): string
     {
@@ -109,11 +112,43 @@ class Order extends BaseModel
     }
 
     /**
+     * Free-search scope: order number (partial) OR the owning customer's name/nickname/email/phone
+     * (delegates to {@see User::scopeSearch()} — same reference matching this app's
+     * other free-search scopes use).
+     */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $userIds = User::query()->select('id')->search($value)->pluck('id');
+
+        $query->where(function (Builder $q) use ($term, $userIds): void {
+            $q->whereRaw('LOWER(order_number) LIKE ?', [$term]);
+            if ($userIds->isNotEmpty()) {
+                $q->orWhereIn('user_id', $userIds);
+            }
+        });
+    }
+
+    /**
      * @return array<int, string|AllowedFilter>
      */
     public static function getFilters(): array
     {
-        return ['id', 'user_id', 'status', 'payment_status', 'order_number', AllowedFilter::scope('phone')];
+        return [
+            'id',
+            AllowedFilter::exact('user_id'),
+            AllowedFilter::exact('status'),
+            AllowedFilter::exact('payment_status'),
+            'order_number',
+            AllowedFilter::scope('phone'),
+            AllowedFilter::scope('search'),
+            AllowedFilter::scope('created_after'),
+            AllowedFilter::scope('created_before'),
+            AllowedFilter::scope('created_between'),
+        ];
     }
 
     /**

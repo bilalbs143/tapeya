@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { format } from 'date-fns';
 import { Observable, Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
@@ -21,7 +23,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -29,7 +31,13 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { OrderDetailDialogComponent } from './order-detail-dialog/order-detail-dialog.component';
 
-const DEFAULT_FILTERS = { order_number: '', status: '', payment_status: '', phone: '' } as const;
+const DEFAULT_FILTERS = {
+  search: '',
+  status: '',
+  payment_status: '',
+  created_after: null as Date | null,
+  created_before: null as Date | null,
+} as const;
 
 @Component({
   selector: 'app-orders',
@@ -43,13 +51,14 @@ const DEFAULT_FILTERS = { order_number: '', status: '', payment_status: '', phon
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepickerModule,
     MatDialogModule,
     TablerIconsModule,
     CommonSharedModule,
   ],
   templateUrl: './orders.component.html',
 })
-export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
+export class OrdersComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -57,7 +66,16 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -84,10 +102,11 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor() {
     this.searchForm = this.fb.group({
-      order_number: [DEFAULT_FILTERS.order_number],
+      search: [DEFAULT_FILTERS.search],
       status: [DEFAULT_FILTERS.status],
       payment_status: [DEFAULT_FILTERS.payment_status],
-      phone: [DEFAULT_FILTERS.phone],
+      created_after: [DEFAULT_FILTERS.created_after],
+      created_before: [DEFAULT_FILTERS.created_before],
     });
     this.pageSize = this.paginatorConfig.pageSize;
   }
@@ -96,12 +115,9 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -116,18 +132,16 @@ export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
     const page = pageOverride ?? this.currentPage;
     const perPage = perPageOverride ?? this.pageSize;
     const filters = this.searchForm.value;
-    let params = { ...buildListParams(page, perPage, this.sort ?? null, { status: filters.status ?? '' }) } as Record<
-      string,
-      unknown
-    >;
+    let params = {
+      ...buildListParams(page, perPage, this.sort ?? null, {
+        status: filters.status ?? '',
+        search: (filters.search ?? '').trim(),
+        created_after: filters.created_after ? format(filters.created_after, 'yyyy-MM-dd') : undefined,
+        created_before: filters.created_before ? format(filters.created_before, 'yyyy-MM-dd') : undefined,
+      }),
+    } as Record<string, unknown>;
     if ((filters.payment_status ?? '') !== '') {
       params = { ...params, 'filter[payment_status]': filters.payment_status };
-    }
-    if ((filters.order_number ?? '').trim() !== '') {
-      params = { ...params, 'filter[order_number]': (filters.order_number as string).trim() };
-    }
-    if ((filters.phone ?? '').trim() !== '') {
-      params = { ...params, 'filter[phone]': (filters.phone as string).trim() };
     }
     this.isLoading = true;
     this.orderService.getList(params).subscribe({

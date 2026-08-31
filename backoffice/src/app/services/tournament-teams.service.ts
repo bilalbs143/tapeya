@@ -31,8 +31,10 @@ export interface SquadOccupancyRow {
 export class TournamentTeamsService {
   private readonly http = inject(HttpClient);
 
-  public listTeams(tournamentId: number): Observable<{ data: TournamentTeamRow[] }> {
-    return this.http.get<{ data: TournamentTeamRow[] }>(`v1/admin/tournaments/${tournamentId}/teams`);
+  public listTeams(tournamentId: number, params: Record<string, unknown> = {}): Observable<{ data: TournamentTeamRow[] }> {
+    return this.http.get<{ data: TournamentTeamRow[] }>(`v1/admin/tournaments/${tournamentId}/teams`, {
+      params: toHttpParams(params),
+    });
   }
 
   public getTeamSquad(tournamentId: number, teamId: number): Observable<{ data: SquadUser[] }> {

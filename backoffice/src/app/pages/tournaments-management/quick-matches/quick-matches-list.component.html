@@ -44,7 +44,7 @@
               matInput
               formControlName="q"
               type="search"
-              placeholder="Creator or team name"
+              placeholder="Search by Creator or Team Name"
               autocomplete="off"
             />
           </mat-form-field>
@@ -103,6 +103,22 @@
             </mat-select>
           </mat-form-field>
         </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Format</mat-label>
+            <mat-select formControlName="cricket_format">
+              <mat-option value="">All</mat-option>
+              @if (cricketFormatOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
       </app-search-filter-bar>
     </form>
   </mat-card-content>
@@ -121,7 +137,6 @@
           <table
             mat-table
             [dataSource]="dataSource"
-            matSort
             class="text-sm"
           >
             <ng-container matColumnDef="sr">

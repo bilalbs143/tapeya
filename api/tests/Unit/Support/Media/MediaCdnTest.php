@@ -16,12 +16,12 @@ class MediaCdnTest extends TestCase
         $this->assertNull(MediaCdn::normalizeBaseUrl(null));
     }
 
-    public function test_apply_uses_env_aws_url_when_setting_empty(): void
+    public function test_apply_ignores_aws_url_and_defaults_when_setting_empty(): void
     {
         config(['filesystems.disks.s3.url' => 'https://cdn.from-env.example']);
 
         MediaCdn::applyToFilesystemConfig();
 
-        $this->assertSame('https://cdn.from-env.example', config('filesystems.disks.s3.url'));
+        $this->assertSame(MediaCdn::DEFAULT_PUBLIC_BASE, config('filesystems.disks.s3.url'));
     }
 }

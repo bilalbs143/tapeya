@@ -107,7 +107,7 @@
               placeholder="Auto-Generated from Title"
               maxlength="191"
             />
-            <mat-hint>Lowercase Letters, Digits, and Dashes. Leave Blank to Auto-Generate.</mat-hint>
+            <mat-hint>Lowercase, digits, and dashes. Blank = auto-generate.</mat-hint>
             @if (form.get('slug')?.touched && form.get('slug')?.hasError('slug')) {
               <mat-error>Slug May Only Contain Lowercase Letters, Digits, and Dashes.</mat-error>
             }
@@ -134,8 +134,8 @@
           <fieldset class="field-group-fieldset">
             <legend class="field-group-label">Form Fields <span class="text-error">*</span></legend>
             <p class="mb-3 max-w-3xl text-xs leading-snug text-muted">
-              Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players.
-              Full name is always stored from the signed-in account. Country and city are toggled together.
+              Pick fields for the public form. Unchecked = hidden. Name comes from the account; country &amp; city toggle
+              together.
             </p>
             <div class="grid grid-cols-12 gap-x-4 gap-y-1">
               @if (formFieldOptions$ | async; as fieldOpts) {
@@ -172,8 +172,7 @@
             aria-labelledby="campaign-sidebar-label"
           ></mat-slide-toggle>
           <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
-            Only one campaign can appear in the app sidebar. If another campaign already has this on, it will be turned off when
-            you save.
+            Only one sidebar campaign at a time — saving turns the other off.
           </p>
         </div>
         <div class="col-span-12 lg:col-span-6">
@@ -189,8 +188,7 @@
             aria-labelledby="campaign-dialog-label"
           ></mat-slide-toggle>
           <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
-            Only one campaign can show the in-app interest dialog. If another campaign already has this on, it will be turned off
-            when you save.
+            Only one interest dialog at a time — saving turns the other off.
           </p>
         </div>
 

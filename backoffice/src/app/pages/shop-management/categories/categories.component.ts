@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,7 +22,7 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -30,7 +30,7 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ManageCategoryDialogComponent } from './manage-category-dialog/manage-category-dialog.component';
 
-const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
+const DEFAULT_FILTERS = { search: '', is_active: '', parent_id: '' } as const;
 
 @Component({
   selector: 'app-categories',
@@ -51,7 +51,7 @@ const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
   ],
   templateUrl: './categories.component.html',
 })
-export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CategoriesComponent implements OnInit, OnDestroy {
   private readonly categoryService = inject(CategoryService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -59,7 +59,16 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -83,22 +92,34 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
   public statusOptions$: Observable<EnumOption[]> = this.enumsService
     .getOptions('status')
     .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
+  public readonly string = String;
+  public categories: Category[] = [];
 
   constructor() {
-    this.searchForm = this.fb.group({ name: [DEFAULT_FILTERS.name], is_active: [DEFAULT_FILTERS.is_active] });
+    this.searchForm = this.fb.group({
+      search: [DEFAULT_FILTERS.search],
+      is_active: [DEFAULT_FILTERS.is_active],
+      parent_id: [DEFAULT_FILTERS.parent_id],
+    });
     this.pageSize = this.paginatorConfig.pageSize;
   }
 
   public ngOnInit(): void {
+    this.loadParentOptions();
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
+  private loadParentOptions(): void {
+    this.categoryService.getList({ all: true, sort: 'sort_order' }).subscribe({
+      next: (res) => {
+        this.categories = res.data ?? [];
+      },
+    });
   }
 
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   private mapStatusToIsActive(value: string | undefined): string | null {
@@ -124,8 +145,11 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (statusFilter !== null) {
       params = { ...params, 'filter[is_active]': statusFilter };
     }
-    if ((filters.name ?? '').trim() !== '') {
-      params = { ...params, 'filter[name]': (filters.name as string).trim() };
+    if ((filters.search ?? '').trim() !== '') {
+      params = { ...params, 'filter[search]': (filters.search as string).trim() };
+    }
+    if ((filters.parent_id ?? '') !== '') {
+      params = { ...params, 'filter[parent_id]': filters.parent_id };
     }
     this.isLoading = true;
     this.categoryService.getList(params).subscribe({

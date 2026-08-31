@@ -3,6 +3,7 @@
 namespace App\Models\Shop;
 
 use App\Models\BaseModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -38,7 +39,19 @@ class Brand extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'name', 'slug', AllowedFilter::exact('is_active')];
+        return [
+            'id',
+            'name',
+            'slug',
+            AllowedFilter::exact('is_active'),
+            AllowedFilter::callback('search', function (Builder $query, mixed $value): void {
+                $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
+                $query->where(function (Builder $q) use ($term) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term])
+                        ->orWhereRaw('LOWER(slug) LIKE ?', [$term]);
+                });
+            }),
+        ];
     }
 
     /**

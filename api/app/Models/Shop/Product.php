@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class Product extends BaseModel
@@ -181,6 +182,35 @@ class Product extends BaseModel
         return $prefix.str_pad((string) $next, $width, '0', STR_PAD_LEFT);
     }
 
+    /** Free-search scope: case-insensitive match on name OR SKU. */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $query->where(function (Builder $q) use ($term): void {
+            $q->whereRaw('LOWER(name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(sku) LIKE ?', [$term]);
+        });
+    }
+
+    /**
+     * Scope: `in_stock` / `low_stock` / `out_of_stock`, using the same
+     * stock_quantity vs. COALESCE(low_stock_threshold, 5) comparison already
+     * used for the low-stock dashboard widget (see EcommerceDashboardController).
+     */
+    public function scopeStockStatus(Builder $query, ?string $value): void
+    {
+        match ($value) {
+            'out_of_stock' => $query->where('stock_quantity', '<=', 0),
+            'low_stock' => $query->where('stock_quantity', '>', 0)
+                ->whereColumn('stock_quantity', '<=', DB::raw('COALESCE(low_stock_threshold, 5)')),
+            'in_stock' => $query->whereColumn('stock_quantity', '>', DB::raw('COALESCE(low_stock_threshold, 5)')),
+            default => null,
+        };
+    }
+
     /**
      * @return array<int, string>
      */
@@ -189,6 +219,8 @@ class Product extends BaseModel
         return [
             AllowedFilter::exact('id'),
             'name',
+            AllowedFilter::scope('search'),
+            AllowedFilter::scope('stock_status'),
             AllowedFilter::exact('brand_id'),
             AllowedFilter::exact('category_id'),
             AllowedFilter::exact('vendor_id'),

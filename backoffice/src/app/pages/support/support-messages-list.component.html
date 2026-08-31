@@ -39,6 +39,21 @@
             appearance="outline"
             class="w-full hide-hint"
           >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name, Phone, or Message"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
             <mat-label>Status</mat-label>
             <mat-select formControlName="status">
               <mat-option value="">All</mat-option>
@@ -48,6 +63,44 @@
                 }
               }
             </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>From Date</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="fromDatePicker"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="fromDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #fromDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>To Date</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="toDatePicker"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="toDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #toDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
       </app-search-filter-bar>

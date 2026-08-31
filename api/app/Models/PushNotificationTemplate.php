@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class PushNotificationTemplate extends BaseModel
@@ -34,7 +35,22 @@ class PushNotificationTemplate extends BaseModel
         return [
             AllowedFilter::exact('key'),
             AllowedFilter::exact('is_active'),
+            AllowedFilter::scope('search'),
         ];
+    }
+
+    /** Free-search scope: name, key, or title template. */
+    public function scopeSearch(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $term = '%'.addcslashes(mb_strtolower($value), '%_\\').'%';
+        $query->where(function (Builder $q) use ($term): void {
+            $q->whereRaw('LOWER(name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(key) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(title_template) LIKE ?', [$term]);
+        });
     }
 
     /**

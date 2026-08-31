@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -24,7 +24,7 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { birthdateAgeLine, cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -54,7 +54,7 @@ const DEFAULT_FILTERS = { status: '', search: '' } as const;
   ],
   templateUrl: './campaign-submissions.component.html',
 })
-export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CampaignSubmissionsComponent implements OnInit, OnDestroy {
   private readonly submissionService = inject(InterestSubmissionService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
@@ -63,7 +63,16 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
   private readonly route = inject(ActivatedRoute);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public campaignId!: number;
   public searchForm: FormGroup;
@@ -111,12 +120,9 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
     );
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -136,7 +142,7 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
       'filter[campaign_id]': this.campaignId,
     };
     const search = (filters.search ?? '').trim();
-    if (search !== '') params = { ...params, 'filter[name]': search };
+    if (search !== '') params = { ...params, 'filter[search]': search };
 
     this.isLoading = true;
     this.submissionService.getList(params).subscribe({

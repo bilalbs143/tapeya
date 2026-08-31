@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -23,7 +23,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -61,7 +61,7 @@ const DEFAULT_FILTERS = { status: '', linked: '', search: '' } as const;
   ],
   templateUrl: './interest-campaigns-list.component.html',
 })
-export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class InterestCampaignsListComponent implements OnInit, OnChanges, OnDestroy {
   @Input() public tournamentId: number | null = null;
   @Input() public tournamentName: string | null = null;
 
@@ -72,7 +72,16 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public dataSource = new MatTableDataSource<InterestCampaign>([]);
@@ -118,12 +127,9 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
     }
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {

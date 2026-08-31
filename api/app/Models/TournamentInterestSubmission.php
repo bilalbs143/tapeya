@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -38,8 +39,22 @@ class TournamentInterestSubmission extends BaseModel
             AllowedFilter::exact('user_id'),
             AllowedFilter::exact('status'),
             AllowedFilter::partial('name'),
+            AllowedFilter::partial('nickname'),
             AllowedFilter::partial('email'),
             AllowedFilter::partial('phone'),
+            AllowedFilter::callback('search', function (Builder $query, mixed $value): void {
+                $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
+                $digits = preg_replace('/\D/', '', (string) $value);
+                $phoneLike = $digits !== '' ? '%'.$digits.'%' : null;
+                $query->where(function (Builder $q) use ($term, $phoneLike) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term])
+                        ->orWhereRaw("LOWER(COALESCE(nickname, '')) LIKE ?", [$term])
+                        ->orWhereRaw("LOWER(COALESCE(email, '')) LIKE ?", [$term]);
+                    if ($phoneLike !== null) {
+                        $q->orWhereRaw("REGEXP_REPLACE(COALESCE(phone, ''), '[^0-9]', '', 'g') LIKE ?", [$phoneLike]);
+                    }
+                });
+            }),
         ];
     }
 

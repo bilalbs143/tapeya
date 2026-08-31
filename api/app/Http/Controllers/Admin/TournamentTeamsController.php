@@ -18,15 +18,25 @@ class TournamentTeamsController extends Controller
 
     /**
      * Teams attached to the tournament (same payload as app organizer list).
+     * Optional `filter[search]` — case-insensitive partial match on name or code
+     * (same behavior as the global Teams admin list).
      */
     public function index(Tournament $tournament): JsonResponse
     {
-        $teams = $tournament->teams()
+        $query = $tournament->teams()
             ->with(['sponsor', 'iconPlayers'])
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
 
-        return $this->success(TeamResource::collection($teams));
+        $search = request()->input('filter.search');
+        if (is_string($search) && trim($search) !== '') {
+            $term = '%'.addcslashes(mb_strtolower(trim($search)), '%_\\').'%';
+            $query->where(function ($q) use ($term): void {
+                $q->whereRaw('LOWER(teams.name) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(teams.code, \'\')) LIKE ?', [$term]);
+            });
+        }
+
+        return $this->success(TeamResource::collection($query->get()));
     }
 
     /**

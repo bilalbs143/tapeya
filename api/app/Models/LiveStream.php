@@ -236,7 +236,10 @@ class LiveStream extends BaseModel
             }),
             AllowedFilter::callback('search', function ($query, $value) {
                 $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
-                $query->whereRaw('LOWER(title) LIKE ?', [$term]);
+                $query->where(function ($q) use ($term) {
+                    $q->whereRaw('LOWER(title) LIKE ?', [$term])
+                        ->orWhereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$term]);
+                });
             }),
         ];
     }

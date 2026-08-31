@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,7 +25,7 @@ import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { cityCountryLine } from 'src/app/shared/functions/display.helper';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -33,7 +33,7 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { TournamentRequestDetailDialogComponent } from './tournament-request-detail-dialog/tournament-request-detail-dialog.component';
 
-const DEFAULT_FILTERS = { contact_phone: '', status: '', tournament_type: '' } as const;
+const DEFAULT_FILTERS = { search: '', status: '', tournament_type: '' } as const;
 
 @Component({
   selector: 'app-tournament-requests-list',
@@ -53,7 +53,7 @@ const DEFAULT_FILTERS = { contact_phone: '', status: '', tournament_type: '' } a
   ],
   templateUrl: './tournament-requests-list.component.html',
 })
-export class TournamentRequestsListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TournamentRequestsListComponent implements OnInit, OnDestroy {
   private readonly tournamentRequestService = inject(TournamentRequestService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
@@ -62,7 +62,16 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -91,7 +100,7 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
 
   constructor() {
     this.searchForm = this.fb.group({
-      contact_phone: [DEFAULT_FILTERS.contact_phone],
+      search: [DEFAULT_FILTERS.search],
       status: [DEFAULT_FILTERS.status],
       tournament_type: [DEFAULT_FILTERS.tournament_type],
     });
@@ -102,12 +111,9 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -125,11 +131,9 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
     let params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
         status: filters.status ?? '',
+        search: (filters.search ?? '').trim(),
       }),
     } as Record<string, unknown>;
-    if ((filters.contact_phone ?? '').trim() !== '') {
-      params = { ...params, 'filter[contact_phone]': (filters.contact_phone as string).trim() };
-    }
     if ((filters.tournament_type ?? '').trim() !== '') {
       params = { ...params, 'filter[tournament_type]': (filters.tournament_type as string).trim() };
     }

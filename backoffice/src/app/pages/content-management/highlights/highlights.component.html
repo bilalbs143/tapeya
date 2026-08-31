@@ -46,18 +46,80 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Search by Title</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
               formControlName="search"
-              placeholder="Search Highlights..."
+              placeholder="Search by Title"
             />
-            <mat-icon matSuffix>
-              <i-tabler
-                name="search"
-                class="size-4.5!"
-              ></i-tabler>
-            </mat-icon>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Tournament</mat-label>
+            <mat-select
+              formControlName="tournament_id"
+              placeholder="All"
+            >
+              <mat-option value="">All</mat-option>
+              @for (t of tournaments; track t.id) {
+                <mat-option [value]="string(t.id)">{{ t.tournament_name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Active</mat-label>
+            <mat-select formControlName="is_active">
+              <mat-option value="">All</mat-option>
+              <mat-option value="yes">Active</mat-option>
+              <mat-option value="no">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="startDate"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="endDate"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endDate></mat-datepicker>
           </mat-form-field>
         </div>
       </app-search-filter-bar>

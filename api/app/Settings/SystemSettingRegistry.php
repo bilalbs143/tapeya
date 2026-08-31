@@ -432,7 +432,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::MEDIA_CDN,
                 'type' => SystemSettingTypeEnum::STRING,
                 'label' => 'CDN Public Base URL',
-                'description' => 'Cloudflare hostname for media and static /app assets (e.g. https://cdn.tapeya.com). Empty uses AWS_URL.',
+                'description' => 'Cloudflare hostname for media and static /app assets (e.g. https://cdn.tapeya.com). Empty uses https://cdn.tapeya.com.',
                 'settings_class' => MediaCdnSettings::class,
                 'property' => 'cdnPublicBaseUrl',
                 'nullable_string' => true,

@@ -46,10 +46,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Name</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="name"
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name or Slug"
+              autocomplete="off"
             />
           </mat-form-field>
         </div>

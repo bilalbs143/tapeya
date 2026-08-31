@@ -39,6 +39,21 @@
             appearance="outline"
             class="w-full hide-hint"
           >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name, Key, or Title"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
             <mat-label>Status</mat-label>
             <mat-select formControlName="is_active">
               @if (statusOptions$ | async; as opts) {

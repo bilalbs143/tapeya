@@ -46,10 +46,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Name</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="name"
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name or SKU"
+              autocomplete="off"
             />
           </mat-form-field>
         </div>
@@ -99,6 +102,50 @@
               @for (c of categories; track c.id) {
                 <mat-option [value]="string(c.id)">{{ c.name }}</mat-option>
               }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Vendor</mat-label>
+            <mat-select
+              formControlName="vendor_id"
+              placeholder="All"
+            >
+              <mat-option value="">All</mat-option>
+              @for (v of vendors; track v.id) {
+                <mat-option [value]="string(v.id)">{{ v.store_name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>On Sale</mat-label>
+            <mat-select formControlName="is_special_offer">
+              @for (opt of yesNoOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Stock Status</mat-label>
+            <mat-select formControlName="stock_status">
+              <mat-option value="">All</mat-option>
+              <mat-option value="in_stock">In Stock</mat-option>
+              <mat-option value="low_stock">Low Stock</mat-option>
+              <mat-option value="out_of_stock">Out of Stock</mat-option>
             </mat-select>
           </mat-form-field>
         </div>

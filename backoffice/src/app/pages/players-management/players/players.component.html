@@ -58,7 +58,7 @@
               matInput
               formControlName="search"
               type="search"
-              placeholder="Name, Email, Phone…"
+              placeholder="Search by Name, Nickname, or Phone"
               autocomplete="off"
             />
           </mat-form-field>
@@ -68,13 +68,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Phone</mat-label>
-            <input
-              matInput
-              formControlName="phone"
-              placeholder="E.164 or partial digits"
-              autocomplete="off"
-            />
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">All</mat-option>
+              @for (opt of statusOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
         <div>
@@ -89,6 +89,44 @@
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="startDate"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="endDate"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endDate></mat-datepicker>
           </mat-form-field>
         </div>
       </app-search-filter-bar>

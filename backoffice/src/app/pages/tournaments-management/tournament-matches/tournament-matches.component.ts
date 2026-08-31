@@ -1,5 +1,5 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +15,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { Subscription } from 'rxjs';
 
 import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/schedule-tournament-match-dialog/schedule-tournament-match-dialog.component';
 
@@ -23,9 +24,13 @@ import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EmptyDataMessageComponent } from 'src/app/shared/components/empty-data-message/empty-data-message.component';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  onListPaginationChange,
+  resetListSearchForm,
+  SortReloadBinder,
+} from 'src/app/shared/functions/list-page-paging.function';
 
 const DEFAULT_FILTERS = {
   q: '',
@@ -57,7 +62,7 @@ const DEFAULT_FILTERS = {
   ],
   templateUrl: './tournament-matches.component.html',
 })
-export class TournamentMatchesComponent implements OnInit {
+export class TournamentMatchesComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -66,24 +71,16 @@ export class TournamentMatchesComponent implements OnInit {
   private readonly enumsService = inject(EnumsService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
+  private readonly sub = new Subscription();
+  private readonly sortBinder = new SortReloadBinder(this);
 
-  /** Table + paginator render after load; setters wire them when they appear. */
   @ViewChild(MatSort)
-  public set matSort(sort: MatSort | undefined) {
-    if (sort) {
-      this.dataSource.sort = sort;
-      this.dataSource.data = [...this.dataSource.data];
-    }
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
   }
 
-  @ViewChild(PaginatorComponent)
-  public set appPaginator(paginator: PaginatorComponent | undefined) {
-    queueMicrotask(() => {
-      const mat = paginator?.matPaginator;
-      if (mat && this.dataSource.paginator !== mat) {
-        this.dataSource.paginator = mat;
-      }
-    });
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
   }
 
   public readonly matchStatusOptions$ = this.enumsService.getOptions('match_status');
@@ -97,34 +94,16 @@ export class TournamentMatchesComponent implements OnInit {
   public readonly emptyCell = EMPTY_CELL;
 
   public tournamentId!: number;
-  /** Full list from API (before client filters). */
-  public allMatches: TournamentMatchRow[] = [];
   public dataSource = new MatTableDataSource<TournamentMatchRow>([]);
   public displayedColumns: string[] = ['when', 'teams', 'venue', 'status', 'result', 'actions'];
-  public readonly pageSizeOptions = this.paginatorConfig.pageSizeOptions;
-  public pageSize = this.paginatorConfig.pageSize;
-  public pageIndex = 0;
+
+  public totalRecords = 0;
+  public currentPage = 0;
+  public pageSize: number;
   public isLoading = false;
 
   constructor() {
-    this.dataSource.sortingDataAccessor = (row, column) => {
-      switch (column) {
-        case 'when':
-          return `${row.match_date ?? ''} ${row.match_time ?? ''}`;
-        case 'teams':
-          return `${row.home_team?.name ?? ''} ${row.away_team?.name ?? ''}`;
-        case 'venue':
-          return row.venue_name ?? '';
-        case 'status':
-          return row.status ?? '';
-        case 'result':
-          return row.result_summary ?? '';
-        case 'actions':
-          return '';
-        default:
-          return '';
-      }
-    };
+    this.pageSize = this.paginatorConfig.pageSize;
   }
 
   public ngOnInit(): void {
@@ -136,15 +115,21 @@ export class TournamentMatchesComponent implements OnInit {
         return;
       }
       this.tournamentId = Number(id);
-      this.loadMatches();
+      this.currentPage = 0;
+      this.loadHttpData();
     });
+  }
+
+  public ngOnDestroy(): void {
+    this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public openScheduleDialog(): void {
     this.messageService.openDialog<ScheduleTournamentMatchDialogComponent, boolean>(
       ScheduleTournamentMatchDialogComponent,
       { tournamentId: this.tournamentId, mode: 'create' },
-      (saved) => saved && this.loadMatches(),
+      (saved) => saved && this.loadHttpData(),
       { widthSize: 'md', disableClose: true }
     );
   }
@@ -153,94 +138,69 @@ export class TournamentMatchesComponent implements OnInit {
     this.messageService.openDialog<ScheduleTournamentMatchDialogComponent, boolean>(
       ScheduleTournamentMatchDialogComponent,
       { tournamentId: this.tournamentId, mode: 'edit', match },
-      (saved) => saved && this.loadMatches(),
+      (saved) => saved && this.loadHttpData(),
       { widthSize: 'md', disableClose: true }
     );
   }
 
-  public loadMatches(): void {
-    this.isLoading = true;
-    this.matchesApi.listByTournament(this.tournamentId, true).subscribe({
-      next: (res) => {
-        this.allMatches = res.data ?? [];
-        this.applyFilters();
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-        this.messageService.error('Could not load matches.');
-      },
-    });
-  }
-
-  public applyFilters(): void {
-    const { q, status, from_date: fromDate, live_today: liveToday } = this.searchForm.getRawValue();
-    const term = (q ?? '').trim().toLowerCase();
-    const statusVal = (status ?? '').trim();
-    const fromVal = fromDate instanceof Date ? formatDate(fromDate, 'yyyy-MM-dd', 'en-US') : '';
-    const todayStr = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
-
-    let rows = [...this.allMatches];
-
-    if (liveToday) {
-      rows = rows.filter((r) => (r.match_date ?? '').slice(0, 10) === todayStr);
-    }
-
-    if (statusVal) {
-      rows = rows.filter((r) => r.status === statusVal);
-    }
-
-    if (fromVal) {
-      rows = rows.filter((r) => (r.match_date ?? '') >= fromVal);
-    }
-
-    if (term) {
-      rows = rows.filter((r) => {
-        const hay = [
-          r.match_date,
-          r.match_time,
-          r.venue_name,
-          r.home_team?.name,
-          r.away_team?.name,
-          r.status_label,
-          r.status,
-          r.result_summary,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        return hay.includes(term);
-      });
-    }
-
-    this.dataSource.data = rows;
-    if (this.dataSource.sort) {
-      this.dataSource.data = [...rows];
-    }
-    this.pageIndex = 0;
-    this.dataSource.paginator?.firstPage();
-  }
-
-  public onPage(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-  }
-
   public resetSearchForm(): void {
-    this.searchForm.reset({
-      q: DEFAULT_FILTERS.q,
-      status: DEFAULT_FILTERS.status,
-      from_date: DEFAULT_FILTERS.from_date,
-      live_today: DEFAULT_FILTERS.live_today,
-    });
-    this.applyFilters();
+    resetListSearchForm(this, DEFAULT_FILTERS);
+  }
+
+  public onPaginationChange(event: PageEvent): void {
+    onListPaginationChange(this, event);
+  }
+
+  public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
+    const page = pageOverride ?? this.currentPage;
+    const perPage = perPageOverride ?? this.pageSize;
+    const filters = this.searchForm.getRawValue();
+
+    const sortActive = this.sort?.active;
+    const sortDirection = this.sort?.direction;
+    const sort = sortActive && sortDirection ? `${sortDirection === 'desc' ? '-' : ''}${sortActive}` : 'match_date';
+
+    const fromDate = filters.from_date instanceof Date ? formatDate(filters.from_date, 'yyyy-MM-dd', 'en-US') : undefined;
+
+    this.isLoading = true;
+    this.matchesApi
+      .getList(this.tournamentId, {
+        page: page + 1,
+        per_page: perPage,
+        sort,
+        q: (filters.q ?? '').trim() || undefined,
+        status: filters.status || undefined,
+        from_date: fromDate,
+        live_today: filters.live_today || undefined,
+      })
+      .subscribe({
+        next: (res) => {
+          this.dataSource.data = res.data ?? [];
+          this.totalRecords = res.meta?.total ?? res.data?.length ?? 0;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+          this.messageService.error('Could not load matches.');
+        },
+      });
   }
 
   public get hasNoMatches(): boolean {
-    return !this.isLoading && this.allMatches.length === 0;
+    return !this.isLoading && this.totalRecords === 0 && !this.hasActiveFilters();
   }
 
   public get hasFilterEmpty(): boolean {
-    return !this.isLoading && this.allMatches.length > 0 && this.dataSource.data.length === 0;
+    return !this.isLoading && this.totalRecords === 0 && this.hasActiveFilters();
+  }
+
+  private hasActiveFilters(): boolean {
+    const filters = this.searchForm.getRawValue();
+    return (
+      (filters.q ?? '').trim() !== '' ||
+      (filters.status ?? '') !== '' ||
+      filters.from_date instanceof Date ||
+      !!filters.live_today
+    );
   }
 }

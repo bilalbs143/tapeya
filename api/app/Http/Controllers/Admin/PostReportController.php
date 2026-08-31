@@ -43,6 +43,7 @@ class PostReportController extends BaseAdminController
                 AllowedFilter::exact('reason'),
                 AllowedFilter::exact('post_id'),
                 AllowedFilter::exact('reporter_id'),
+                AllowedFilter::scope('search'),
             ])
             ->defaultSort('-id')
             ->allowedSorts(['id', 'created_at', 'status', 'reason']);

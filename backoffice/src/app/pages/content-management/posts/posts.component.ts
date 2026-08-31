@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +20,7 @@ import { TableImageComponent } from 'src/app/shared/components/table-image/table
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  bindListSortToReload,
+  SortReloadBinder,
   onListPaginationChange,
   resetListSearchForm,
 } from 'src/app/shared/functions/list-page-paging.function';
@@ -29,10 +29,11 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { ManagePostDialogComponent } from './manage-post-dialog/manage-post-dialog.component';
 
 const DEFAULT_FILTERS = {
-  caption: '',
+  search: '',
   type: '',
   status: '',
   visibility: '',
+  has_reports: '',
 } as const;
 
 const POST_TYPE_OPTIONS: { value: '' | PostType; label: string }[] = [
@@ -101,14 +102,23 @@ const TYPE_LABELS: Record<PostType, string> = {
   ],
   templateUrl: './posts.component.html',
 })
-export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PostsComponent implements OnInit, OnDestroy {
   private readonly postService = inject(PostService);
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
-  @ViewChild(MatSort) public sort!: MatSort;
+  private readonly sortBinder = new SortReloadBinder(this);
+
+  @ViewChild(MatSort)
+  public set sort(value: MatSort | undefined) {
+    this.sortBinder.bind(value);
+  }
+
+  public get sort(): MatSort | undefined {
+    return this.sortBinder.current;
+  }
 
   public searchForm!: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -137,10 +147,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
   public isLoading = false;
   constructor() {
     this.searchForm = this.fb.group({
-      caption: [DEFAULT_FILTERS.caption],
+      search: [DEFAULT_FILTERS.search],
       type: [DEFAULT_FILTERS.type],
       status: [DEFAULT_FILTERS.status],
       visibility: [DEFAULT_FILTERS.visibility],
+      has_reports: [DEFAULT_FILTERS.has_reports],
     });
     this.pageSize = this.paginatorConfig.pageSize;
   }
@@ -149,12 +160,9 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHttpData();
   }
 
-  public ngAfterViewInit(): void {
-    bindListSortToReload(this.sub, this.sort, this);
-  }
-
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.sortBinder.destroy();
   }
 
   public resetSearchForm(): void {
@@ -175,14 +183,17 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
       }),
     } as Record<string, unknown>;
 
-    if ((filters.caption ?? '').trim() !== '') {
-      params = { ...params, 'filter[caption]': (filters.caption as string).trim() };
+    if ((filters.search ?? '').trim() !== '') {
+      params = { ...params, 'filter[search]': (filters.search as string).trim() };
     }
     if ((filters.type ?? '').trim() !== '') {
       params = { ...params, 'filter[type]': (filters.type as string).trim() };
     }
     if ((filters.visibility ?? '').trim() !== '') {
       params = { ...params, 'filter[visibility]': (filters.visibility as string).trim() };
+    }
+    if ((filters.has_reports ?? '') !== '') {
+      params = { ...params, 'filter[has_reports]': filters.has_reports };
     }
 
     this.isLoading = true;

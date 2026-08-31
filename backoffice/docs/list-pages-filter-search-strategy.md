@@ -1,8 +1,8 @@
 # List Pages: Search & Filter Strategy
 
-**Status:** Audit / proposal — no implementation yet. This document is step 1 of the filter/search overhaul: a page-by-page inventory of what exists today, followed by a recommendation for what every list page should look like. Nothing here should be built until this document is reviewed and approved.
+**Status:** Implementation complete (Waves 1–3 landed in working tree). This document remains the source of truth for *what* each page should expose; the At-a-Glance / Part 2 inventory still describes the pre-overhaul baseline. See **Part 4 — Implementation Status** for what shipped, what polish remains, and how to verify.
 
-**Scope:** every list/table page in the backoffice that uses `app-search-filter-bar` — **24 list pages** across 9 modules, plus **one non-list detail view (Player Stats, #10)** carried in this document for completeness since it lives in the same module and was in the original audit brief. Player Stats is **out of scope for implementation** — it has no row set to filter, and its two bucket selectors already work correctly. Do not treat it as a build target in any implementation plan drawn from this document.
+**Scope:** every list/table page in the backoffice that uses `app-search-filter-bar` — **24 list pages** across 9 modules, plus **one non-list detail view (Player Stats, #10)** carried in this document for completeness since it lives in the same module and was in the original audit brief. Player Stats is **out of scope for implementation** — it has no row set to filter, and its two bucket selectors already work correctly. Do not treat it as a build target.
 
 ## At a Glance
 
@@ -62,7 +62,7 @@ These standards apply to every list page. Page-specific sections (Part 2) exist 
 - **Case-insensitive, partial match** (`LIKE '%term%'` on `LOWER(column)`, or the DB-appropriate equivalent) on every text field in scope, OR'd together in one clause.
 - **Digit-normalized phone matching** where a page searches a phone column: strip non-digits from both the stored value and the query term before matching (`api/app/Builders/UserBuilder.php::search()` is the reference implementation — see below).
 - **Relationships are opt-in, not default.** Only pull a related table into free search when the relationship is already eager-loaded for the list (`->with([...])` in the controller's `baseQuery()`) and the admin's real workflow needs it (e.g. finding an Order by the customer's name). Don't join a table purely to make search "more thorough" — every extra joined `LIKE` clause is a query-plan cost paid on every keystroke-triggered request.
-- **Naming/placeholder convention:** the control is always a `mat-form-field` with placeholder `Search {{things}}` (e.g. "Search users", "Search products") — never a generic "Search" with no scope, since that invites admins to expect full-table search it doesn't do.
+- **Naming/placeholder convention:** the control is always a `mat-form-field` labeled `Search` with a `Search by …` placeholder that lists the fields it covers (e.g. "Search by Name, Nickname, or Phone") — never a generic "Search {Things}" that hides the scope.
 - **Debounce on input** (already standard practice in this codebase — keep it) so free search doesn't fire a request per keystroke.
 
 **Reference implementation to copy:** `api/app/Builders/UserBuilder.php::search()` + `api/app/Models/User.php::getFilters()` (`AllowedFilter::scope('search')`). It case-insensitively OR-matches `name`, `nickname`, `email`, and digit-normalizes `phone` — exactly the shape every other page's free search should follow, substituting the page's own meaningful columns.
@@ -106,17 +106,15 @@ Fields that fail this test and should be removed or never added:
 
 ## 5. UI/UX Consistency
 
-- **Fixed layout, every page:** `app-page-header` → `mat-divider` → `app-search-filter-bar` (Free Search first, then filters in most-used-first order) → `mat-divider` → `app-table-wrapper`. No page should reorder or omit dividers.
-- **Hard rule — visual split inside the filter bar itself:** within `app-search-filter-bar`, Free Search is not just "the first control," it is visually separated from the advanced filters by a thin vertical divider, so the bar always reads as two zones:
+- **Fixed layout, every page:** `app-page-header` → `mat-divider` → `app-search-filter-bar` (Free Search first, then filters in most-used-first order) → `mat-divider` → `app-table-wrapper`. No page should reorder or omit page-level dividers.
+- **Filter bar layout:** within `app-search-filter-bar`, Free Search is always the first control, then advanced filters in most-used-first order. Spacing alone separates the controls — no vertical divider between search and filters.
 
   ```
-  [ 🔍 Search ]  │  [ Status ▾ ]  [ Type ▾ ]  [ Date Range ]  [ Clear ]
-       Free            └──────────── Advanced Filters ─────────────┘
+  [ 🔍 Search ]  [ Status ▾ ]  [ Type ▾ ]  [ Date Range ]  [ Clear ]
+       Free      └──────────── Advanced Filters ─────────────┘
        Search
   ```
-
-  This is a layout requirement, not a suggestion left to each page: every page gets the same `[Search] │ [Advanced Filters]` shape, with the divider rendered by the shared bar component (see Shared Building Blocks below), never hand-drawn per page with a border/margin hack.
-- **Free search is always the leftmost/first control**, to the left of the divider — admins should be able to reach for the same first move on every page.
+- **Free search is always the leftmost/first control** — admins should be able to reach for the same first move on every page.
 - **Consistent control types per data shape:** enums/status → `mat-select`; booleans → a two/three-state `mat-select` (All / Yes / No), not a bare checkbox that can't represent "unset"; date ranges → a shared date-range control (start + end), not two independent unlabeled date pickers.
 - **Clear/reset** always restores every control (including free search) to its default and reloads page 1 — use `resetListSearchForm()`, never a bespoke per-page implementation.
 - **Active-filter indication:** when filters beyond defaults are applied, this should be visible (e.g. a "Clear filters" control only enabled/shown when non-default) — several current pages give no visual indication that a filter is active, which this document's per-page audits call out.
@@ -130,14 +128,14 @@ The per-page work in Part 2 assumes these pieces of shared UI exist. None of the
 
 | Building block | Status today | What's needed |
 |---|---|---|
-| `app-search-filter-bar` divider slot | Component only lays out flex children (`search-filter-bar.component.ts`/`.scss`); no concept of a "search zone" vs. "filters zone" | Add a way to mark the free-search control as visually distinct (leading slot + vertical divider) so the `[Search] │ [Filters]` split in §5 renders consistently without each page hand-styling it |
-| Shared date-range control | Every page with a date range today hand-rolls two independent `mat-datepicker` inputs (From/To, Start/End — naming itself is inconsistent page to page) | One `app-date-range-filter`-style control: paired start/end pickers, consistent labeling, "after ≤ before" validation built in once instead of per page (Quick Matches already validates this ad hoc — generalize it) |
-| Two/three-state boolean select | No shared pattern; booleans that exist today are ad hoc (`is_active`, `is_special_offer`, etc. all unwired) | A small shared options constant/component for "All / Yes / No" selects, so every new boolean filter (Highlights' Is Active, Products' On Sale, a future "Has Reports" on Posts) looks and behaves identically |
-| Active-filter indicator | Not implemented anywhere — no page shows "N filters applied" or disables Clear when already at defaults | A small presentational helper (likely reading `searchForm.value` against `DEFAULT_FILTERS`) wired into the shared Clear button |
-| Empty-state copy/component | Pages reuse one generic empty state for both "no data at all" and "no results match your filters" | Extend the existing empty-state component to accept a mode/message so a filtered-to-zero result reads differently from a genuinely empty table |
-| Relationship-aware search scope helper (backend) | Each model that needs to search a related table today hand-writes its own `whereHas(...)` (Post, Support Message, Vendor, Order all need this independently) | Not a UI component, but worth a shared Laravel trait/helper mirroring `UserBuilder::search()`'s shape, so every new multi-column search scope is written the same way instead of five subtly different `whereHas` styles |
+| `app-search-filter-bar` first-child = free search | **Done** — first projected child is free search on every list page | Keep first child = free search; no vertical divider between search and filters |
+| Shared date-range control | Every page with a date range today hand-rolls two independent `mat-datepicker` inputs (From/To, Start/End — naming itself is inconsistent page to page) | One `app-date-range-filter`-style control: paired start/end pickers, consistent labeling, "after ≤ before" validation built in once instead of per page (Quick Matches already validates this ad hoc — generalize it). **Deferred polish — see Part 4.** |
+| Two/three-state boolean select | **Partial** — `ALL_YES_NO_FILTER_OPTIONS` in `shared/constants/filter-options.constants.ts`; not every boolean select migrated yet | Prefer the shared constant for new Yes/No filters; Active/Inactive labels stay page-specific where clearer |
+| Active-filter indicator | Not implemented everywhere — no page shows "N filters applied" or disables Clear when already at defaults | A small presentational helper (likely reading `searchForm.value` against `DEFAULT_FILTERS`) wired into the shared Clear button. **Deferred polish — see Part 4.** |
+| Empty-state copy/component | Partial — tournament-matches distinguishes filtered-empty; most pages still reuse one empty message | Extend the existing empty-state component to accept a mode/message so a filtered-to-zero result reads differently from a genuinely empty table |
+| Relationship-aware search scope helper (backend) | Each model that needs to search a related table today hand-writes its own `whereHas(...)` / `User::search()` pluck (Post, Support Message, Vendor, Order, Tournament Request) | Optional shared Laravel helper mirroring `UserBuilder::search()` — **deferred**; current scopes are consistent enough |
 
-None of these are large builds individually, but every Wave 1+ page in Part 3 below depends on at least the first three, so they should be scheduled before — or, at minimum, alongside — the very first page in Wave 1, not deferred to the end.
+None of these are large builds individually. Yes/No options are in place; date-range / active-filter / empty-state polish can ship after the waves without blocking.
 
 ---
 
@@ -1122,8 +1120,8 @@ Status
 
 #### Page Information
 - **Purpose:** Manage the shop's (potentially hierarchical, via `parent_id`) product category tree.
-- **Current search:** One "Name" text field → `filter[name]`, bare partial match, server-side.
-- **Current filters:** Name (text, partial, server), Status (select: All/Active/Inactive → `filter[is_active]`, exact, server).
+- **Current search:** One "Search" text field → `filter[search]`, `AllowedFilter::callback` matching Name OR Slug (case-insensitive `LIKE`), server-side — mirrors `Brand::getFilters()`'s `search` scope exactly.
+- **Current filters:** Search (text, combined Name/Slug, server), Status (select: All/Active/Inactive → `filter[is_active]`, exact, server), Parent Category (select, relationship → `filter[parent_id]`, exact, server).
 - **Current table columns:** `sr, name, slug, image, parent, sort_order, status, created_at, actions`.
 
 #### Free Search
@@ -1132,23 +1130,20 @@ Free Search
 ├── Name
 └── Slug
 ```
-Same reasoning as Brands: `slug` is already a bare allowed filter server-side (`Category::getFilters()`) but unused, and it's the natural second thing an admin searches by when categories are used to build storefront URLs.
+Same reasoning as Brands: `slug` was already a bare allowed filter server-side but unused via the UI, and it's the natural second thing an admin searches by when categories are used to build storefront URLs. Implemented.
 
 #### Filters
 
 | Filter | Type | Keep/Add/Remove | Server-side | Reason |
 |---|---|---|---|---|
-| Name | text | Keep (merge with Slug into Free Search) | Yes | Primary lookup for the category tree. |
+| Search (Name/Slug) | text | Keep | Yes | Primary lookup for the category tree; now covers both fields in one box, same shape as Brands. |
 | Status | select (boolean) | Keep | Yes | Active/inactive lifecycle filtering, same rationale as Brands. |
-| Parent Category | select (relationship) | Add | Backend-only-today | `parent_id` is already `AllowedFilter::exact`, and `parent` is already eager-loaded and shown as a column — this page is explicitly hierarchical (has `children()`/`parent()` relations), so "show me all subcategories under X" is a meaningful, frequent narrowing that today requires scanning the Parent column by eye. |
-| Slug | text | Add (fold into Free Search) | Backend-only-today | Already allowed server-side, unused. |
+| Parent Category | select (relationship) | Keep | Yes | `parent_id` is `AllowedFilter::exact`, and `parent` is already eager-loaded and shown as a column — this page is explicitly hierarchical (has `children()`/`parent()` relations), so "show me all subcategories under X" is a meaningful, frequent narrowing that previously required scanning the Parent column by eye. |
 
 #### What We Have Today
-Functionally identical pattern to Brands (Name + Status, both genuinely server-side), but Categories has a parent/child hierarchy that the UI does nothing to help navigate — there's no way to filter down to one branch of the tree without reading every row's Parent column.
+Now matches Brands' pattern exactly: a combined Name/Slug free search plus Status, and additionally a Parent Category filter that Brands doesn't need (Brands has no hierarchy).
 
 #### What We Should Add
-- Parent Category filter (select), reusing `parent_id`'s existing exact server-side filter — the single highest-value addition here given the model is explicitly hierarchical.
-- Slug folded into Free Search, same as Brands.
 - Optional, lower priority: a "Top-level only" toggle (`parent_id IS NULL`) for admins managing the top of the tree, via a small new scope.
 
 #### What We Should Remove
@@ -1158,9 +1153,9 @@ None — current filters are all justified.
 ```
 Free Search (Name, Slug)
     ↓
-Parent Category
-    ↓
 Status
+    ↓
+Parent Category
 ```
 
 ---
@@ -1251,20 +1246,19 @@ Order Number and Phone should be unified into one box, and Customer Name/Email a
 | Status | select | Keep | Yes | The single most important operational filter for an orders queue — "show me all Processing orders," "show me Cancelled orders," etc. is the day-to-day workflow. Should be hardened to `AllowedFilter::exact('status')` instead of today's bare partial match (see below). |
 | Payment Status | select | Keep | Yes | E-commerce orders admin needs a clear status vs. payment-status distinction, and this page correctly has both as independent axes (an order can be Delivered but Unpaid, etc.) — this is good design already in place. Should likewise be hardened to `exact`. |
 | Created date range | date-range | Add | No | No date filtering exists at all today (`Order` doesn't use `OperatorFilterTrait`/`DateFilterTrait` the way `User` does), yet "today's orders" / "this week's orders" / "orders in date X–Y" is one of the most routine asks in any order admin. High business value, currently a real gap. |
-| Total amount range | number-range | Add | No | No amount filter exists at all today. Finding high-value orders (fraud review, VIP handling) or auditing a specific total is a classic e-commerce admin need explicitly worth covering; needs a new `scopeTotalBetween`/min/max pair, analogous to how `OperatorFilterTrait` adds date-range scopes elsewhere in this codebase. |
 | Customer (user_id) | relationship | Skip for now | Yes (bare, exists) | `user_id` is in `getFilters()` but as a **bare** filter, meaning it does a partial `LIKE` match on a numeric ID column rather than `AllowedFilter::exact('user_id')` — inconsistent with how every other model in this group (Product, Brand, Category, Vendor) treats its FK columns, and a latent correctness risk (e.g., `user_id=1` would also match 10, 11, 21, 100…). Worth fixing to `exact` regardless of whether a UI control is ever built on top of it. |
 
 #### What We Have Today
-Status and Payment Status are both real, independent, server-side filters — the status/payment-status distinction the task calls out is already correctly modeled here, which is good. The `scopePhone` cross-relation search is a genuinely well-built piece of backend logic (digit-normalizing, delegating to `User::scopePhone`) — better than the plain bare filters used elsewhere in this page group — but it's exposed as an isolated field instead of folded into a unified search experience. Two backend correctness smells worth flagging regardless of the UI redesign: `status` and `payment_status` are bare (partial-match) filters on enum-cast columns rather than `AllowedFilter::exact`, which happens to work today only because none of `OrderStatusEnum`'s values (`pending/processing/dispatched/delivered/cancelled`) or `PaymentStatusEnum`'s values (`unpaid/advance/paid/refunded`) are substrings of each other — a future status addition could silently break this. Likewise `user_id` is bare instead of exact. There is no date-range or amount-range filtering of any kind, despite both being standard, high-value e-commerce admin needs.
+Status and Payment Status are both real, independent, server-side filters — the status/payment-status distinction the task calls out is already correctly modeled here, which is good. The `scopePhone` cross-relation search is a genuinely well-built piece of backend logic (digit-normalizing, delegating to `User::scopePhone`) — better than the plain bare filters used elsewhere in this page group — but it's exposed as an isolated field instead of folded into a unified search experience. Two backend correctness smells worth flagging regardless of the UI redesign: `status` and `payment_status` are bare (partial-match) filters on enum-cast columns rather than `AllowedFilter::exact`, which happens to work today only because none of `OrderStatusEnum`'s values (`pending/processing/dispatched/delivered/cancelled`) or `PaymentStatusEnum`'s values (`unpaid/advance/paid/refunded`) are substrings of each other — a future status addition could silently break this. Likewise `user_id` is bare instead of exact. There is no date-range filtering of any kind, despite it being a standard, high-value e-commerce admin need.
 
 #### What We Should Add
 - Unified free search: Order Number + Customer Name/Email/Phone, extending the existing `scopePhone` pattern into a full `Order::scopeSearch()`.
 - Created-at date range filter (new scopes, or adopt the `OperatorFilterTrait` pattern already used elsewhere in the codebase).
-- Total-amount range filter (new min/max scopes) — explicitly high-value for an orders page per standard e-commerce admin needs.
 - Harden `status`/`payment_status`/`user_id` to `AllowedFilter::exact` for correctness, independent of any UI change.
 
 #### What We Should Remove
 - The separate "Order Number" and "Phone" fields, once merged into one Free Search box (the underlying scope logic is kept and extended, not discarded).
+- A Total Amount Range filter (min/max total) was built and then deliberately dropped — not a fit for this admin's workflow, so it's intentionally excluded rather than deferred.
 
 #### Recommended Final Design
 ```
@@ -1275,8 +1269,6 @@ Status
 Payment Status
     ↓
 Created Date Range
-    ↓
-Total Amount Range
 ```
 
 
@@ -1566,7 +1558,7 @@ Created date range
 
 This is the rollout order once this document is approved. It groups the 24 in-scope pages (Player Stats, #10, is excluded — see its section) into three waves by risk and dependency, not by module, so early waves ship value fast with near-zero backend risk and later waves take on the larger rebuilds.
 
-**Sequencing rule:** the Shared Building Blocks (Part 1, §6) — specifically the search-bar divider slot, the shared date-range control, and the two/three-state boolean select — should land **before or alongside the first Wave 1 page**, not deferred to Wave 3. Every wave below assumes they exist; building them per-page instead of once will cost more total effort than building them first.
+**Sequencing note (historical):** Shared Building Blocks were meant to land with Wave 1. In practice Waves 1–3 shipped first; Yes/No constant landed in close-out (Part 4). An early Search│Filters vertical divider was tried then removed — spacing alone separates the zones. Date-range / active-filter / empty-state polish remain deferred.
 
 ## Wave 1 — Frontend-only (backend capability already exists)
 
@@ -1580,7 +1572,7 @@ Every row here is "wire up a filter/scope that already works server-side" — no
 | 12 | Highlights | FE-only | Is Active select, Tournament select, Created Date Range — all three already allowed server-side via `DateFilterTrait`/exact filters, simply unwired |
 | 14 | Post Reports | FE-only | Reason select (wires existing `AllowedFilter::exact('reason')`, already sortable) |
 | 16 | Products | FE-only | Vendor select, On Sale toggle — both wire existing exact filters |
-| 18 | Categories | FE-only | Parent Category select (wires existing `AllowedFilter::exact('parent_id')`) |
+| 18 | Categories | FE-only + small BE | Parent Category select (wires existing `AllowedFilter::exact('parent_id')`); combined Name+Slug search (new `search` callback filter, mirroring Brands) |
 | 21 | Live Streams | FE-only | Provider select (wires existing `AllowedFilter::exact('provider')`) |
 | 22 | Push Notifications | FE-only | Target Type select (wires existing `AllowedFilter::exact('target_type')`) |
 | 7 | Campaign Submissions | FE + 1-line BE | Widen "Player Name" box to also send existing `email`/`phone` partial filters; add one new `AllowedFilter::partial('nickname')` to fully match the Users/Players search shape |
@@ -1605,7 +1597,7 @@ Everything here needs new Laravel filter/scope code (usually mirroring `UserBuil
 
 | # | Page | Effort | What ships |
 |---|---|---|---|
-| 20 | Orders | New BE scope | Unify Order Number + Phone into one `Order::scopeSearch()`, extended to also match customer Name/Email (already eager-loaded); add created-date range and total-amount range filters (both entirely new) |
+| 20 | Orders | New BE scope | Unify Order Number + Phone into one `Order::scopeSearch()`, extended to also match customer Name/Email (already eager-loaded); add a created-date range filter (entirely new). A Total Amount Range filter was also built, then deliberately removed — not a fit for this admin's workflow |
 | 16 | Products | New BE scope | Combined Name+SKU search scope (`Product::scopeSearch()`); new stock-status scope (in stock / low stock / out of stock) |
 | 24 | Support Messages | New BE scope, larger | Add a `search` scope across `name`/`phone`/`message` (+ the `user` relation for logged-in submitters); add created-date range; migrate the model onto the standard `getFilters()`/`getSorts()` convention (currently bypassed via inline controller filters) |
 | 19 | Vendors | New BE scope | `Vendor::scopeSearch()` extending Store Name to also match the owning user's name/email/phone (mirroring how `Order::scopePhone()` already delegates to `User::scopePhone()`) |
@@ -1620,3 +1612,51 @@ Everything here needs new Laravel filter/scope code (usually mirroring `UserBuil
 | 23 | Push Notification Templates | New BE scope, low priority | Search across `name`/`key`/`title_template` — small fixed catalog, defer to backlog unless it grows |
 
 **Not in any wave (already solid, no action needed):** Interest Campaigns (#6), Static Pages (#15), and Player Stats (#10, out of scope — see its section above).
+
+---
+
+# Part 4 — Implementation Status (close-out)
+
+**Verdict: good to go for merge** on functional Waves 1–3. Remaining items below are polish, not blockers.
+
+## What shipped
+
+| Wave | Outcome |
+|---|---|
+| **1 — FE-only** | Done across Users, Players, Tournaments, Highlights, Post Reports, Products, Categories, Live Streams, Push Notifications, Campaign Submissions, Brands (search / filters wired; `push_target_type` enum cache bumped in `EnumController`). |
+| **2 — Correctness** | Done: Teams/Tournaments country list filters removed; Players `city` sort allowed; Orders/Hero Slider status → `AllowedFilter::exact`; Tournament Matches → server-side paginate/filter/sort (no more `?all=1` list path); Quick Matches dead `matSort` removed; Tournament Request status/type hardened to exact. |
+| **3 — New scopes** | Done: multi-column `search` (or equivalent) on Orders, Products (+ stock status), Support Messages (+ model on `getFilters()`), Vendors, Tournament Requests, Posts (+ `has_reports`), Tournaments (venue/city/organizer), Post Reports, Push Notifications/Templates, Live Streams (title+description), Notifications (JSON payload text search). |
+| **Sort wiring bugfix** | `SortReloadBinder` replaces one-shot `bindListSortToReload` so sort works after the table mounts behind `@if (isLoading)`. Adopted on all sortable list pages. |
+
+## Shared building blocks (Part 1 §6)
+
+| Block | Status |
+|---|---|
+| Search vs Filters layout | Free search is first child; gap spacing only — no vertical divider between search and filters |
+| Shared All/Yes/No options | **Done** — `shared/constants/filter-options.constants.ts` (`ALL_YES_NO_FILTER_OPTIONS`); Products On Sale uses it |
+| Shared date-range control | **Deferred** — pages still use paired `created_after` / `created_before` pickers; behavior is correct, labeling varies |
+| Active-filter indicator on Clear | **Deferred** — Clear lives in page header on most pages; tournament-matches already distinguishes filtered-empty |
+| Filtered vs truly-empty empty copy | **Partial** — tournament-matches has it; other pages still share one empty state |
+| Backend search helper trait | **Deferred** — scopes copy `UserBuilder` / `User::scopeSearch` patterns consistently enough |
+
+## Known non-blockers / follow-ups
+
+1. Roll `ALL_YES_NO_FILTER_OPTIONS` (or Active/Inactive variants) through Highlights / other boolean selects.
+2. Optional `app-date-range-filter` to unify From/To labels and `after ≤ before` validation.
+3. Extend filtered-empty messaging beyond tournament-matches.
+4. Phone digit SQL: new scopes use Postgres `REGEXP_REPLACE(..., 'g')` (matches `DB_CONNECTION=pgsql`); `User::scopePhone` already branches MySQL — mirror that branch if MySQL CI is ever required.
+5. Placeholder copy uses `Search by …` (fields covered), not `Search {{Things}}` (e.g. `Search by Name, Nickname, or Phone`).
+
+## Smoke-test checklist (before merge)
+
+- [ ] Users: free search by name/email/phone; Platform filter; Clear resets
+- [ ] Players: Status + date range; Location column sorts
+- [ ] Tournaments: search by name/venue/city; Status / Schedule / Type filters
+- [ ] Tournament Matches (detail → Matches tab): search/status/from/live today paginate server-side; Status column sorts
+- [ ] Teams: search by name/code
+- [ ] Tournament detail → Teams: search by name/code; Attach still sees all attached teams when filtered
+- [ ] Orders: one search box finds order # or customer; status exact
+- [ ] Support: search by name/phone/message
+- [ ] Products: name/SKU search; Vendor; On Sale; Stock Status
+- [ ] Push Notifications: Target Type options load (`push_target_type`)
+- [ ] Column sort clicks after first load (any page) still reload page 0

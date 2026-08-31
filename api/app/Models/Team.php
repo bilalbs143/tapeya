@@ -73,7 +73,6 @@ class Team extends BaseModel
                         ->orWhereRaw('LOWER(code) LIKE ?', [$term]);
                 });
             }),
-            AllowedFilter::exact('country'),
         ];
     }
 

@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow overflow-hidden">
   <mat-card-content>
     <form
-      (ngSubmit)="applyFilters()"
+      (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
       aria-label="Filter Form"
     >
@@ -16,7 +16,7 @@
               matInput
               formControlName="q"
               type="search"
-              placeholder="Teams, Venue, Result…"
+              placeholder="Search by Team or Venue"
               autocomplete="off"
             />
           </mat-form-field>
@@ -61,7 +61,7 @@
             class="shrink-0"
             matTooltip="Fixture date is today (local time), including scheduled matches that have not started."
             matTooltipShowDelay="300"
-            (change)="applyFilters()"
+            (change)="loadHttpData()"
           >
             Live Today
           </mat-slide-toggle>
@@ -103,7 +103,7 @@
           <table
             mat-table
             matSort
-            matSortActive="when"
+            matSortActive="match_date"
             matSortStart="asc"
             matSortDirection="asc"
             [dataSource]="dataSource"
@@ -114,7 +114,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                mat-sort-header
+                mat-sort-header="match_date"
                 class="font-semibold"
               >
                 Date / Time
@@ -132,7 +132,6 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                mat-sort-header
                 class="font-semibold"
               >
                 Fixture
@@ -151,7 +150,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                mat-sort-header
+                mat-sort-header="venue_name"
                 class="font-semibold"
               >
                 Venue
@@ -189,7 +188,6 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                mat-sort-header
                 class="font-semibold"
               >
                 Result
@@ -257,13 +255,12 @@
 
     <app-paginator
       [loading]="isLoading"
-      [length]="dataSource.data.length"
-      [pageIndex]="pageIndex"
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
       [pageSize]="pageSize"
-      [pageSizeOptions]="pageSizeOptions"
       [showNoRecMessage]="false"
       ariaLabel="Select page of matches"
-      (page)="onPage($event)"
+      (page)="onPaginationChange($event)"
     />
   </mat-card-content>
 </mat-card>

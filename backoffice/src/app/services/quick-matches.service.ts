@@ -64,6 +64,7 @@ export interface QuickMatchListParams {
   status?: string;
   q?: string;
   created_by?: number | string;
+  cricket_format?: string;
   from_date?: string;
   to_date?: string;
 }

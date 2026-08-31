@@ -39,18 +39,14 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Search Body</mat-label>
+            <mat-label>Search</mat-label>
             <input
               matInput
-              formControlName="caption"
-              placeholder="Search by body…"
+              formControlName="search"
+              type="search"
+              placeholder="Search by Body or Creator"
+              autocomplete="off"
             />
-            <mat-icon matSuffix>
-              <i-tabler
-                name="search"
-                class="size-4.5!"
-              ></i-tabler>
-            </mat-icon>
           </mat-form-field>
         </div>
 
@@ -92,6 +88,20 @@
               @for (opt of visibilityOptions; track opt.value) {
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Has Reports</mat-label>
+            <mat-select formControlName="has_reports">
+              <mat-option value="">All</mat-option>
+              <mat-option value="1">Reported Only</mat-option>
+              <mat-option value="0">Not Reported</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
