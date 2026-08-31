@@ -89,6 +89,7 @@ export class FullComponent implements OnDestroy {
   }
 
   private layoutChangesSubscription = Subscription.EMPTY;
+  private overlayScrollY = 0;
   public isOver = false;
 
   constructor() {
@@ -102,6 +103,7 @@ export class FullComponent implements OnDestroy {
       if (!this.options.sidenavCollapsed) {
         this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];
       }
+      this.syncOverlayScrollLock(this.isOver && this.options.sidenavOpened);
     });
     applyDocumentTheme(this.options.theme);
     this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe(() => {
@@ -139,6 +141,7 @@ export class FullComponent implements OnDestroy {
 
   public ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
+    this.syncOverlayScrollLock(false);
   }
 
   public toggleCollapsed() {
@@ -153,5 +156,23 @@ export class FullComponent implements OnDestroy {
   public onSidenavOpenedChange(isOpened: boolean) {
     this.options.sidenavOpened = isOpened;
     this.settings.setOptions(this.options);
+    this.syncOverlayScrollLock(this.isOver && isOpened);
+  }
+
+  /** Lock page scroll while overlay sidenav is open (needed on real iOS). */
+  private syncOverlayScrollLock(locked: boolean): void {
+    const root = document.documentElement;
+    if (locked === root.classList.contains('sidebar-overlay-open')) return;
+
+    if (locked) {
+      this.overlayScrollY = window.scrollY;
+      root.classList.add('sidebar-overlay-open');
+      document.body.style.top = `-${this.overlayScrollY}px`;
+      return;
+    }
+
+    root.classList.remove('sidebar-overlay-open');
+    document.body.style.top = '';
+    window.scrollTo(0, this.overlayScrollY);
   }
 }

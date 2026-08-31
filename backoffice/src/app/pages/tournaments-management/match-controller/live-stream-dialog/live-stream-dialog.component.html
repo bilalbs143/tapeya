@@ -117,8 +117,7 @@
     @if (!loading && hasStream) {
       @if (!isLive) {
         <app-ui-button
-          variant="secondary"
-          class="border border-error! text-error"
+          variant="danger"
           type="button"
           [disabled]="!!activeAction"
           (click)="deleteStream()"

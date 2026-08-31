@@ -21,13 +21,13 @@ html {
     background: rgba(23, 26, 23, 0.32);
   }
 
-  /* Match page-header__actions (gap: --sp-3). Material’s default action
-   * margins stack wider than toolbar buttons. */
+  /* Match page-header__actions gap. Material’s default action margins stack
+   * wider than toolbar buttons. */
   .mat-mdc-dialog-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-3);
+    gap: 10px;
     justify-content: flex-end;
 
     .mat-mdc-button-base,
@@ -37,11 +37,23 @@ html {
     }
 
     @media (max-width: 767px) {
-      justify-content: stretch;
+      justify-content: flex-start;
 
-      app-ui-button,
-      app-submit-button {
-        flex: 1 1 auto;
+      > app-ui-button,
+      > app-submit-button {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+      }
+
+      > app-submit-button > app-ui-button {
+        width: 100%;
+      }
+
+      /* Danger on its own full-width row (Delete Stream, etc.). */
+      > app-ui-button:has(.ui-btn--danger),
+      > app-ui-button:has(.ui-btn--danger-solid) {
+        flex: 1 1 100%;
       }
     }
   }
@@ -49,7 +61,6 @@ html {
 
 @media (max-width: 767px) {
   html {
-    .mat-mdc-dialog-container .mat-mdc-dialog-title,
     .mat-mdc-dialog-container .mat-mdc-dialog-content,
     .mat-mdc-dialog-container .mat-mdc-dialog-actions {
       padding-left: 16px !important;

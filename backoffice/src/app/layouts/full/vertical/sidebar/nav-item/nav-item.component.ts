@@ -55,30 +55,20 @@ export class AppNavItemComponent implements OnChanges {
   }
 
   public onItemSelected(item: NavItem) {
-    if (!item.children?.length && item.route) {
+    if (item.children?.length) {
+      this.expanded = !this.expanded;
+      this.ariaExpanded = this.expanded;
+      return;
+    }
+
+    if (item.route) {
       void this.router.navigate([item.route]);
     }
-    if (item.children && item.children.length) {
-      this.expanded = !this.expanded;
-    }
-    //scroll
-    window.scroll({
-      top: 0,
-      left: 0,
-      behavior: 'smooth',
-    });
-    if (!this.expanded) {
-      if (window.innerWidth < 1024) {
-        this.notify.emit();
-      }
-    }
-  }
 
-  public onSubItemSelected(item: NavItem) {
-    if (!item.children || !item.children.length) {
-      if (this.expanded && window.innerWidth < 1024) {
-        this.notify.emit();
-      }
+    window.scroll({ top: 0, left: 0, behavior: 'smooth' });
+
+    if (window.innerWidth < 1024) {
+      this.notify.emit();
     }
   }
 

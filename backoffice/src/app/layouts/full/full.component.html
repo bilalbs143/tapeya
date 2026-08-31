@@ -13,17 +13,14 @@
     (openedChange)="onSidenavOpenedChange($event)"
     class="sidebarNav"
   >
-    <div class="flex-layout flex flex-col h-full">
+    <div class="sidebar-shell">
       <app-sidebar
         (toggleMobileNav)="sidenav.toggle()"
         [showToggle]="isOver"
         [searchQuery]="navSearchQuery()"
         (searchQueryChange)="onNavSearchChange($event)"
       ></app-sidebar>
-      <ng-scrollbar
-        class="relative"
-        style="height: 100%"
-      >
+      <ng-scrollbar class="sidebar-nav-scroll">
         @if (navSearchActive() && !navSearchHasResults()) {
           <p class="sidebar-search-empty">No matching pages</p>
         } @else {

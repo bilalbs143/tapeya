@@ -46,9 +46,17 @@ app-search-filter-bar:has(> :nth-child(4)) > * {
 }
 
 @media (max-width: 767px) {
+  app-search-filter-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   app-search-filter-bar > * {
-    flex: 1 1 100%;
-    max-width: none;
     min-width: 0;
+    max-width: none;
+  }
+
+  app-search-filter-bar > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }

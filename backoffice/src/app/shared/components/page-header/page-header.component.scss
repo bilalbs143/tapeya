@@ -66,11 +66,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-/* Phone: title only + centered action row */
+/* Phone: title + status chip on one row; actions stretch like dialog footers */
 @media (max-width: 767px) {
   .page-header__main {
     flex-direction: column;
@@ -79,7 +79,8 @@
   }
 
   .page-header__identity {
-    gap: 0;
+    justify-content: space-between;
+    gap: var(--sp-3);
   }
 
   .page-header__rule,
@@ -89,12 +90,25 @@
   }
 
   .page-header__title {
+    flex: 1 1 auto;
+    min-width: 0;
     white-space: normal;
     overflow-wrap: anywhere;
   }
 
   .page-header__actions {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+
+  :host ::ng-deep .page-header__actions > app-ui-button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+  }
+
+  :host ::ng-deep .page-header__actions > app-ui-button:has(.ui-btn--danger),
+  :host ::ng-deep .page-header__actions > app-ui-button:has(.ui-btn--danger-solid) {
+    flex: 1 1 100%;
   }
 }

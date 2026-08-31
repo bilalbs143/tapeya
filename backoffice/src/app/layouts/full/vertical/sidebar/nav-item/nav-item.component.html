@@ -75,7 +75,6 @@
     @for (child of item.children; track child) {
       <app-nav-item
         [item]="child"
-        (click)="onSubItemSelected(child)"
         [depth]="depth + 1"
         [forceExpanded]="forceExpanded"
         (notify)="notify.emit($event)"

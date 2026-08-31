@@ -280,6 +280,65 @@ $form-field-subscript-before: 16px;
   }
 }
 
+/*
+ * Chip grids (Organizer / Broadcaster / Sponsor / …):
+ * Fixed 34px height lets the chip spill onto the label; Material’s
+ * `flex: 1 0 150px` on the chip input forces a wrap on mobile.
+ */
+.mat-mdc-form-field:has(.mat-mdc-chip-grid) {
+  .mat-mdc-text-field-wrapper,
+  .mat-mdc-form-field-flex,
+  .mat-mdc-form-field-infix {
+    height: auto;
+    min-height: $field-height;
+  }
+
+  .mat-mdc-form-field-flex {
+    padding-block: 3px !important;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: 0 !important;
+  }
+
+  .mat-mdc-chip-grid {
+    width: 100%;
+    min-width: 0;
+
+    .mdc-evolution-chip-set__chips {
+      margin-inline: 0;
+      min-width: 0;
+    }
+
+    .mdc-evolution-chip {
+      --mdc-chip-container-height: 24px;
+      max-width: min(52%, 11rem);
+      margin: 0 6px 0 0;
+      font-size: 12px;
+    }
+
+    .mdc-evolution-chip__cell--primary,
+    .mdc-evolution-chip__action--primary,
+    .mat-mdc-chip-action-label {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .mdc-evolution-chip__text-label,
+    .mat-mdc-chip-action-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    input.mat-mdc-chip-input {
+      flex: 1 1 5rem !important;
+      min-width: 5rem !important;
+      margin: 0 !important;
+    }
+  }
+}
+
 html {
   .hide-hint {
     .mat-mdc-form-field-subscript-wrapper {

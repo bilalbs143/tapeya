@@ -10,7 +10,7 @@ import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/
  *   1–3 filters → compact slots, capped at 22 rem each (no full-row stretch)
  *   4+ filters  → equal distribution across full row width
  *   Tablet      → ~2 per row
- *   Mobile      → single column, full width
+ *   Mobile      → 2-column grid; odd last filter full width
  */
 @Component({
   selector: 'app-search-filter-bar',

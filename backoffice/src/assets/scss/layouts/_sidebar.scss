@@ -9,6 +9,27 @@
   border-right: 1px solid var(--n-20);
   border-radius: 0 !important;
   background: var(--n-05);
+
+  .mat-drawer-inner-container {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+/* Chrome + scrollable nav + profile footer. */
+.sidebar-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-nav-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto !important;
+  overscroll-behavior: contain;
 }
 
 // —— Brand + search chrome ————————————————————————————————
@@ -459,6 +480,37 @@
   flex: none;
   border-top: 1px solid var(--n-20);
   padding: 10px 12px;
+}
+
+@media (max-width: 1023px) {
+  /* Real iOS: 100vh is taller than the visible area. */
+  .mat-drawer.sidebarNav.mat-drawer-over {
+    height: 100dvh !important;
+    max-height: 100dvh;
+  }
+
+  .profile-bar {
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Freeze page behind overlay sidenav (iOS scroll chaining). */
+html.sidebar-overlay-open {
+  overflow: hidden;
+
+  body {
+    position: fixed;
+    inset-inline: 0;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .contentWrapper {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
 }
 
 .sidebar-profile {
