@@ -7,3 +7,41 @@
     calendar-container-elevation-shadow: var(--mat-sys-level1),
   )
 );
+
+/*
+ * Toggle in the 34px field. padding:0 without re-centering left the SVG
+ * top-start while the ripple filled the box — same fix as paginator nav.
+ */
+html {
+  .mat-datepicker-toggle {
+    .mat-mdc-icon-button {
+      width: 30px !important;
+      height: 30px !important;
+      padding: 0 !important;
+      display: inline-grid !important;
+      place-items: center;
+      line-height: 0;
+      --mat-icon-button-state-layer-size: 30px;
+      --mat-icon-button-icon-size: 20px;
+      --mdc-icon-button-state-layer-size: 30px;
+
+      .mat-mdc-button-touch-target {
+        width: 30px;
+        height: 30px;
+      }
+
+      .mat-mdc-button-persistent-ripple,
+      .mat-mdc-button-persistent-ripple::before,
+      .mat-mdc-button-ripple {
+        inset: 0;
+        border-radius: 50%;
+      }
+    }
+
+    .mat-datepicker-toggle-default-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+  }
+}

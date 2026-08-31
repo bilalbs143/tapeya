@@ -1,13 +1,56 @@
 @use '@angular/material' as mat;
 
+/*
+ * Radio: 16×16 · 1px border · accent when checked · label 13px / 9px gap.
+ * State layer 28px. Material centers with (layer − 20px) / 2 — re-center on 16.
+ */
 @include mat.radio-overrides(
   (
-    unselected-icon-color: var(--mat-sys-outline-variant),
+    state-layer-size: 28px,
+    touch-target-display: none,
+    unselected-icon-color: var(--mat-sys-outline),
+    unselected-hover-icon-color: var(--n-60),
+    unselected-focus-icon-color: var(--n-60),
+    selected-icon-color: var(--accent),
+    selected-hover-icon-color: var(--accent-hover),
+    selected-focus-icon-color: var(--accent),
+    selected-pressed-icon-color: var(--accent-press),
+    label-text-size: 13px,
+    label-text-color: var(--n-80),
   )
 );
 
 html {
-  .mat-mdc-radio-button .mdc-radio__outer-circle {
-    border-width: 1px;
+  .mat-mdc-radio-button {
+    .mdc-radio,
+    .mdc-radio__background {
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    .mdc-radio {
+      padding: 0 !important;
+    }
+
+    .mdc-radio__background::before {
+      top: calc(-1 * (var(--mat-radio-state-layer-size) - 16px) / 2) !important;
+      left: calc(-1 * (var(--mat-radio-state-layer-size) - 16px) / 2) !important;
+    }
+
+    .mdc-radio__outer-circle {
+      border-width: 1px;
+    }
+
+    .mat-internal-form-field {
+      gap: 9px;
+    }
+
+    .mdc-form-field > label {
+      padding-left: 0;
+    }
+  }
+
+  .mat-mdc-radio-group {
+    gap: var(--sp-5);
   }
 }

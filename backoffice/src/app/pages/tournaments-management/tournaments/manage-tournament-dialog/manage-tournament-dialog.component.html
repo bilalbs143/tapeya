@@ -357,7 +357,7 @@
             <legend class="field-group-label">Group Mode <span class="text-error">*</span></legend>
             <mat-radio-group
               formControlName="group_mode"
-              class="flex flex-wrap gap-4"
+              class="flex flex-wrap gap-3"
             >
               @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
                 <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>

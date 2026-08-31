@@ -56,7 +56,7 @@
             <legend class="field-group-label">Slide Action <span class="text-error">*</span></legend>
             <mat-radio-group
               formControlName="cta_type"
-              class="flex flex-wrap items-center gap-4"
+              class="flex flex-wrap items-center gap-3"
             >
               @if (ctaTypeOptions$ | async; as ctaTypeOptions) {
                 @for (opt of ctaTypeOptions; track opt.value) {

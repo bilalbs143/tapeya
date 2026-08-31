@@ -174,15 +174,6 @@ $form-field-subscript-before: 16px;
     align-self: center;
   }
 
-  .mat-datepicker-toggle {
-    .mat-mdc-icon-button {
-      width: 28px;
-      height: 28px;
-      padding: 0;
-      --mdc-icon-button-state-layer-size: 28px;
-    }
-  }
-
   .mat-mdc-select-arrow-wrapper {
     height: auto !important;
     transform: none !important;
@@ -241,7 +232,8 @@ $form-field-subscript-before: 16px;
   }
 
   .mat-mdc-form-field-subscript-wrapper {
-    margin-top: $field-label-gap;
+    margin-top: 0;
+    margin-bottom: $field-label-gap;
     padding: 0;
     font-size: 11.5px;
     letter-spacing: 0;
@@ -253,6 +245,9 @@ $form-field-subscript-before: 16px;
   .mat-mdc-form-field-hint {
     color: var(--n-60);
     font-size: 11.5px;
+    /* No extra top offset — wrapper no longer has margin-top. */
+    margin: 0;
+    padding: 0;
   }
 
   .mdc-line-ripple {
@@ -384,8 +379,8 @@ legend.field-group-label {
 }
 
 /* Dialog form stack: 12-col grid + shared row gap. Keep Material fixed
- * subscript; cancel its reserve into the gap so it does not stack, leaving
- * --dialog-form-hint-gap between hint/error and the next label. */
+ * subscript; cancel its ::before + wrapper margin-bottom into the gap so
+ * they do not stack, leaving --dialog-form-hint-gap before the next label. */
 .dialog-form {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
