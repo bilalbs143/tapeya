@@ -3,11 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\Common\StatusEnum;
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
-use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
@@ -45,7 +43,7 @@ use Illuminate\Support\Facades\Hash;
  *   - 3 sponsors (real names; become team owners via teams.user_id; cricket profile fields), password: password
  *   - 6 tournaments (explicit type × format; Tapeya Open Championship 11-a-side; all four cricket formats)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
- *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
+ *   - Attaches players to teams (team_user); free-text sponsor + two icon player names per team
  *   - Attaches teams to tournaments (tournament_team): exactly number_of_teams per tournament;
  *     group_index assigned when number_of_groups > 1
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
@@ -178,14 +176,13 @@ class ScoringDemoSeeder extends Seeder
      * Explicit type × format mapping — one row per cricket format plus a second open + tape_ball
      * tournament for cross-event career aggregation.
      *
-     * @var list<array{name: string, short: string, type: string, format: string, teams: int, groups: int, city: string, venue: string}>
+     * @var list<array{name: string, short: string, type: string, teams: int, groups: int, city: string, venue: string}>
      */
     private const DEMO_TOURNAMENT_CONFIG = [
         [
             'name' => 'Tapeya Open Championship',
             'short' => 'TOC',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
-            'format' => CricketFormatEnum::TAPE_BALL->value,
             'teams' => 2,
             'groups' => 1,
             'city' => 'Karachi',
@@ -194,8 +191,7 @@ class ScoringDemoSeeder extends Seeder
         [
             'name' => 'Karachi Premier League',
             'short' => 'KPL',
-            'type' => TournamentTypeEnum::LEAGUE->value,
-            'format' => CricketFormatEnum::HARD_BALL->value,
+            'type' => TournamentTypeEnum::PRIVATE_TOURNAMENT->value,
             'teams' => 4,
             'groups' => 1,
             'city' => 'Karachi',
@@ -205,7 +201,6 @@ class ScoringDemoSeeder extends Seeder
             'name' => 'Lahore Summer Cup',
             'short' => 'LSC',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
-            'format' => CricketFormatEnum::TAPE_BALL->value,
             'teams' => 4,
             'groups' => 1,
             'city' => 'Lahore',
@@ -214,8 +209,7 @@ class ScoringDemoSeeder extends Seeder
         [
             'name' => 'Islamabad T20 Challenge',
             'short' => 'ITC',
-            'type' => TournamentTypeEnum::EMERGING->value,
-            'format' => CricketFormatEnum::TENNIS_BALL->value,
+            'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
             'teams' => 4,
             'groups' => 1,
             'city' => 'Islamabad',
@@ -225,7 +219,6 @@ class ScoringDemoSeeder extends Seeder
             'name' => 'National Club Championship',
             'short' => 'NCC',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
-            'format' => CricketFormatEnum::HARD_TENNIS->value,
             'teams' => 4,
             'groups' => 2,
             'city' => 'Rawalpindi',
@@ -235,7 +228,6 @@ class ScoringDemoSeeder extends Seeder
             'name' => 'Pindi Tape Ball Open',
             'short' => 'PTO',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
-            'format' => CricketFormatEnum::TAPE_BALL->value,
             'teams' => 4,
             'groups' => 1,
             'city' => 'Rawalpindi',
@@ -445,11 +437,8 @@ class ScoringDemoSeeder extends Seeder
     private function createTournaments(array $organizers): array
     {
         $tournaments = [];
-        $timings = MatchTimingEnum::cases();
-
         foreach (self::DEMO_TOURNAMENT_CONFIG as $i => $config) {
             $org = $organizers[$i % count($organizers)];
-            $timing = $timings[$i % count($timings)];
             $start = now()->addDays(7 + ($i + 1) * 3);
             $end = $start->copy()->addDays(7);
 
@@ -462,7 +451,6 @@ class ScoringDemoSeeder extends Seeder
                     'created_by' => $org->id,
                     'short_name' => $config['short'],
                     'tournament_type' => $config['type'],
-                    'cricket_format' => $config['format'],
                     'venue_name' => $config['venue'],
                     'start_date' => $start,
                     'end_date' => $end,
@@ -470,7 +458,6 @@ class ScoringDemoSeeder extends Seeder
                     'number_of_groups' => $config['groups'],
                     'country' => 'Pakistan',
                     'city' => $config['city'],
-                    'match_timings' => $timing->value,
                     'status' => StatusEnum::ACTIVE->value,
                     'prize' => $config['groups'] > 1 ? 'Championship trophy + prize pool' : 'Participation medals',
                 ]
@@ -497,6 +484,7 @@ class ScoringDemoSeeder extends Seeder
                     'name' => $teamDef['name'],
                     'country' => 'Pakistan',
                     'city' => 'Karachi',
+                    'sponsor' => $sponsor->name,
                     'user_id' => $sponsor->id,
                     'created_by' => $sponsor->id,
                 ]
@@ -513,6 +501,7 @@ class ScoringDemoSeeder extends Seeder
 
         $playerOffset = 0;
         foreach ($teams as $team) {
+            $iconNames = [];
             for ($j = 0; $j < self::DEMO_PLAYERS_PER_TEAM; $j++) {
                 $player = $players[$playerOffset++];
                 DB::table('team_user')->insertOrIgnore([
@@ -522,14 +511,10 @@ class ScoringDemoSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
                 if ($j < 2) {
-                    DB::table('team_icon_players')->insertOrIgnore([
-                        'team_id' => $team->id,
-                        'user_id' => $player->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    $iconNames[] = $player->name;
                 }
             }
+            $team->update(['icon_players' => $iconNames === [] ? null : implode(', ', $iconNames)]);
         }
 
         // Attach teams to tournaments — exactly number_of_teams per tournament (pivot group_index when grouped).
@@ -847,7 +832,16 @@ class ScoringDemoSeeder extends Seeder
         ]);
         $innings2->update(['status' => InningsStatusEnum::COMPLETED->value]);
 
-        $match->update(['status' => MatchStatusEnum::COMPLETED]);
+        $innings1Runs = (int) $innings1->balls()->sum('runs');
+        $innings2Runs = (int) $innings2->balls()->sum('runs');
+        $winningTeamId = $innings1Runs >= $innings2Runs ? $battingTeamId : $bowlingTeamId;
+        $margin = abs($innings1Runs - $innings2Runs);
+
+        $match->update([
+            'status' => MatchStatusEnum::COMPLETED,
+            'winning_team_id' => $winningTeamId,
+            'win_by_runs' => $margin > 0 ? $margin : null,
+        ]);
     }
 
     /** @return list<int> */
@@ -874,10 +868,11 @@ class ScoringDemoSeeder extends Seeder
         int $bowlingTeamId
     ): void {
         $now = now();
-        $rows = [];
+        $squadRows = [];
+        $playingRows = [];
 
         foreach ($battingPlayers as $playerId) {
-            $rows[] = [
+            $squadRows[] = [
                 'match_id' => $match->id,
                 'team_id' => $battingTeamId,
                 'user_id' => $playerId,
@@ -887,7 +882,7 @@ class ScoringDemoSeeder extends Seeder
         }
 
         foreach ($bowlingPlayers as $playerId) {
-            $rows[] = [
+            $squadRows[] = [
                 'match_id' => $match->id,
                 'team_id' => $bowlingTeamId,
                 'user_id' => $playerId,
@@ -896,6 +891,32 @@ class ScoringDemoSeeder extends Seeder
             ];
         }
 
-        DB::table('match_squads')->insert($rows);
+        DB::table('match_squads')->insert($squadRows);
+
+        foreach (array_slice($battingPlayers, 0, self::DEMO_STATS_PLAYERS_PER_SIDE) as $playerId) {
+            $playingRows[] = [
+                'match_id' => $match->id,
+                'team_id' => $battingTeamId,
+                'user_id' => $playerId,
+                'playing_role' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        foreach (array_slice($bowlingPlayers, 0, self::DEMO_STATS_PLAYERS_PER_SIDE) as $playerId) {
+            $playingRows[] = [
+                'match_id' => $match->id,
+                'team_id' => $bowlingTeamId,
+                'user_id' => $playerId,
+                'playing_role' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if ($playingRows !== []) {
+            DB::table('match_players')->insert($playingRows);
+        }
     }
 }

@@ -16,7 +16,6 @@ use App\Enums\Event\MatchBreakTypeEnum;
 use App\Enums\Event\MatchEndReasonEnum;
 use App\Enums\Event\MatchOversEnum;
 use App\Enums\Event\MatchStatusEnum;
-use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\NoBallRunsTypeEnum;
 use App\Enums\Event\NoBallTypeEnum;
 use App\Enums\Event\OverthrowDeliveryTypeEnum;
@@ -272,7 +271,6 @@ class ScorecardEnumUseCaseAuditTest extends TestCase
     {
         $this->assertSame(['bat', 'bowl'], TossChoiceEnum::values());
         $this->assertCount(4, CricketFormatEnum::cases());
-        $this->assertCount(3, MatchTimingEnum::cases());
         $this->assertSame(
             [5, 10, 15, 20, 25, 30, 40, 50],
             MatchOversEnum::values(),

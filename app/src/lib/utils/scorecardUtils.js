@@ -133,14 +133,28 @@ export function apiTournamentMatchToStatusDetailsMatch(apiMatch, scorecard) {
   };
 }
 
-/** Minimal tab details (e.g. result banner) from API match when no mock bundle exists. */
-export function minimalStatusDetailsFromApi(apiMatch) {
-  if (!apiMatch?.winning_team?.name) return null;
-  const name = apiMatch.winning_team.name;
-  return {
-    resultText: `${name} won`,
-    resultHighlight: name,
-  };
+/** Tab details for ScorecardStatusDetails (result banner, scorecard, overs, playing XI). */
+export function buildFanMatchDetails(apiMatch, scorecard, playingXI) {
+  /** @type {Record<string, unknown>} */
+  const out = {};
+
+  const summary = apiMatch?.result_summary;
+  if (summary) {
+    out.resultText = summary;
+    if (apiMatch?.winning_team?.name) {
+      out.resultHighlight = apiMatch.winning_team.name;
+    }
+  }
+
+  const overs = oversDetailsFromScorecard(scorecard, apiMatch?.home_team_id, apiMatch?.away_team_id);
+  if (overs.length > 0) out.overs = overs;
+
+  const teams = battingTeamsFromScorecard(scorecard, apiMatch);
+  if (teams.length > 0) out.teams = teams;
+
+  if (playingXI) out.playingXI = playingXI;
+
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 /**
@@ -194,49 +208,86 @@ export function oversDetailsFromScorecard(scorecard, homeTeamId, awayTeamId) {
   }));
 }
 
+function formatBatterDismissal(row) {
+  if (row?.is_on_crease) return 'not out';
+  if (row?.dismissal_label) return String(row.dismissal_label);
+  if (row?.dismissal_type) return String(row.dismissal_type).replace(/_/g, ' ');
+  return '';
+}
+
+function formatExtrasDetail(extras) {
+  if (!extras || typeof extras !== 'object') return '-';
+  const parts = [];
+  if (extras.wides) parts.push(`w ${extras.wides}`);
+  if (extras.no_balls) parts.push(`nb ${extras.no_balls}`);
+  if (extras.byes) parts.push(`b ${extras.byes}`);
+  if (extras.leg_byes) parts.push(`lb ${extras.leg_byes}`);
+  if (extras.penalty_runs) parts.push(`p ${extras.penalty_runs}`);
+  return parts.length ? parts.join(', ') : '-';
+}
+
+/**
+ * Map GET /matches/:id/scorecard innings into fan scorecard tab `teams` shape.
+ *
+ * @param {object|null|undefined} scorecard
+ * @param {object|null|undefined} apiMatch
+ */
+export function battingTeamsFromScorecard(scorecard, apiMatch) {
+  const innings = scorecard?.innings;
+  if (!Array.isArray(innings) || innings.length === 0 || !apiMatch) return [];
+
+  const hid = apiMatch.home_team_id != null ? Number(apiMatch.home_team_id) : NaN;
+  const aid = apiMatch.away_team_id != null ? Number(apiMatch.away_team_id) : NaN;
+
+  const mapInnings = (inn, fallbackName) => {
+    if (!inn) return null;
+    const hasBatting = Array.isArray(inn.batting_stats) && inn.batting_stats.length > 0;
+    const hasBalls = Number(inn.balls_count) > 0;
+    if (!hasBatting && !hasBalls) return null;
+    const batting = (inn.batting_stats ?? []).map((row) => ({
+      name: row.name ?? 'Player',
+      dismissal: formatBatterDismissal(row),
+      r: row.runs ?? 0,
+      b: row.balls ?? 0,
+      fours: row.fours ?? 0,
+      sixes: row.sixes ?? 0,
+      sr: typeof row.strike_rate === 'number' ? row.strike_rate.toFixed(1) : String(row.strike_rate ?? '0.0'),
+    }));
+
+    const extras = inn.extras_breakdown ?? {};
+    const totalExtras = inn.total_extras ?? extras.total ?? 0;
+
+    return {
+      name: fallbackName ?? inn.batting_team?.name ?? 'Team',
+      batting,
+      extras: { runs: totalExtras, detail: formatExtrasDetail(extras) },
+      total: {
+        score: `${inn.total_runs ?? 0}/${inn.total_wickets ?? 0}`,
+        summary: `${inn.overs_display ?? '0.0'} Ov (RR: ${inn.run_rate ?? '0.00'})`,
+      },
+    };
+  };
+
+  const homeInn = Number.isFinite(hid) ? innings.find((i) => Number(i?.batting_team_id) === hid) : null;
+  const awayInn = Number.isFinite(aid) ? innings.find((i) => Number(i?.batting_team_id) === aid) : null;
+
+  const homeName = apiMatch.home_team?.name ?? homeInn?.batting_team?.name;
+  const awayName = apiMatch.away_team?.name ?? awayInn?.batting_team?.name;
+
+  return [mapInnings(homeInn, homeName), mapInnings(awayInn, awayName)].filter(Boolean);
+}
+
 /**
  * Playing XI payload for StatusDetailsPlayingXITab from GET playing-eleven (home + away).
- *
- * @param {object|null|undefined} xiHome - { players?: Array<{ name?: string, role?: string }>, player_ids?: number[] }
- * @param {object|null|undefined} xiAway
- * @returns {{ team1: Array<{ name: string, role: string }>, team2: Array<{ name: string, role: string }> } | null}
  */
 export function playingXIFromPlayingElevenResponses(xiHome, xiAway) {
   const mapRow = (p) => ({
     name: String(p?.name ?? 'Player').trim() || 'Player',
-    role: String(p?.role ?? p?.playing_role ?? 'Player'),
+    role: String(p?.role ?? 'Player'),
   });
 
-  const fromPayload = (payload) => {
-    if (payload?.players?.length) return payload.players.map(mapRow);
-    const ids = payload?.player_ids;
-    if (Array.isArray(ids) && ids.length > 0)
-      return ids.map((id) => ({
-        name: `Player #${id}`,
-        role: 'Player',
-      }));
-    return [];
-  };
-
-  const team1 = fromPayload(xiHome);
-  const team2 = fromPayload(xiAway);
+  const team1 = (xiHome?.players ?? []).map(mapRow);
+  const team2 = (xiAway?.players ?? []).map(mapRow);
   if (team1.length === 0 && team2.length === 0) return null;
   return { team1, team2 };
-}
-
-/**
- * Merge tab detail fragments for ScorecardStatusDetails.
- *
- * @param {object|null|undefined} resultDetails - from minimalStatusDetailsFromApi
- * @param {Array<{ over: number, team1: object, team2: object }>} overs
- * @param {{ team1: Array<{ name: string, role: string }>, team2: Array<{ name: string, role: string }> }|null} playingXI
- * @returns {Record<string, unknown>|null}
- */
-export function buildMatchStatusDetails(resultDetails, overs, playingXI) {
-  /** @type {Record<string, unknown>} */
-  const out = {};
-  if (resultDetails && typeof resultDetails === 'object') Object.assign(out, resultDetails);
-  if (overs.length > 0) out.overs = overs;
-  if (playingXI) out.playingXI = playingXI;
-  return Object.keys(out).length > 0 ? out : null;
 }

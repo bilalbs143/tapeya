@@ -20,14 +20,17 @@ import { buildQuickMatchScorecardPath, buildQuickMatchScorecardShareUrl, shareLi
 import { calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
 import {
   apiTournamentMatchToStatusDetailsMatch,
-  buildMatchStatusDetails,
-  minimalStatusDetailsFromApi,
+  buildFanMatchDetails,
   normaliseTournamentMatches,
-  oversDetailsFromScorecard,
   playingXIFromPlayingElevenResponses,
 } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
-import { useGetMatchQuery, useGetMatchStateQuery, useGetScorecardQuery } from '@/store/api/matchApi';
+import {
+  useGetMatchPlayingElevenQuery,
+  useGetMatchQuery,
+  useGetMatchStateQuery,
+  useGetScorecardQuery,
+} from '@/store/api/matchApi';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { ListEmpty } from '@/ui/ListState';
@@ -247,6 +250,13 @@ export default function ScorecardStatusDetails() {
     skip: !matchIdOk || !apiMatch || tournamentMismatch,
   });
 
+  const homeTeamId = apiMatch?.home_team_id;
+  const awayTeamId = apiMatch?.away_team_id;
+  const canFetchXi = matchIdOk && !!apiMatch && !tournamentMismatch && homeTeamId && awayTeamId;
+
+  const { data: xiHomeApi } = useGetMatchPlayingElevenQuery({ matchId, teamId: homeTeamId }, { skip: !canFetchXi });
+  const { data: xiAwayApi } = useGetMatchPlayingElevenQuery({ matchId, teamId: awayTeamId }, { skip: !canFetchXi });
+
   const { data: rawTournamentMatches = [] } = useGetTournamentMatchesQuery(
     { tournamentId, all: true },
     { skip: standalone || !tournamentOk || tournamentMismatch },
@@ -273,13 +283,11 @@ export default function ScorecardStatusDetails() {
 
   const details = useMemo(() => {
     if (!apiMatch || tournamentMismatch) return null;
-    const resultBits = minimalStatusDetailsFromApi(apiMatch);
-    const overs = oversDetailsFromScorecard(scorecard, apiMatch.home_team_id, apiMatch.away_team_id);
-    const xiHome = matchState?.playing_eleven?.home ?? null;
-    const xiAway = matchState?.playing_eleven?.away ?? null;
+    const xiHome = matchState?.playing_eleven?.home ?? xiHomeApi;
+    const xiAway = matchState?.playing_eleven?.away ?? xiAwayApi;
     const playingXI = playingXIFromPlayingElevenResponses(xiHome, xiAway);
-    return buildMatchStatusDetails(resultBits, overs, playingXI);
-  }, [apiMatch, tournamentMismatch, scorecard, matchState?.playing_eleven]);
+    return buildFanMatchDetails(apiMatch, scorecard, playingXI);
+  }, [apiMatch, tournamentMismatch, scorecard, matchState?.playing_eleven, xiHomeApi, xiAwayApi]);
 
   const liveDetails = useMemo(() => {
     const ai = matchState?.active_innings;

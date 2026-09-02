@@ -106,5 +106,4 @@ class PostViewAndHashtagTest extends TestCase
         $this->assertDatabaseHas('hashtags', ['name' => 'six']);
         $this->assertSame(1, Hashtag::query()->where('name', 'cricket')->value('posts_count'));
     }
-
 }

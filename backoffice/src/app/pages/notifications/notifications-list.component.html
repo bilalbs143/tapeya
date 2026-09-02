@@ -280,20 +280,6 @@
                       ></i-tabler>
                     </a>
                   }
-                  @if (
-                    row.type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED && row.data?.tournament_request_id !== null
-                  ) {
-                    <a
-                      [routerLink]="['/tournaments-management/tournament-requests']"
-                      aria-label="View Tournament Requests"
-                      class="align-middle"
-                    >
-                      <i-tabler
-                        name="file-text"
-                        class="size-4.5!"
-                      ></i-tabler>
-                    </a>
-                  }
                   @if (row.type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED && row.data?.vendor_id !== null) {
                     <a
                       [routerLink]="['/shop-management/vendors']"

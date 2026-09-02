@@ -21,7 +21,7 @@ import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import {
-  ADMIN_NOTIFICATION_TYPE_LABELS,
+  adminNotificationTypeLabel,
   ADMIN_NOTIFICATION_TYPE_OPTIONS,
   AdminNotificationType,
 } from 'src/app/shared/constants/notification.constants';
@@ -165,7 +165,7 @@ export class NotificationsListComponent implements OnInit, OnDestroy {
 
   public typeLabel(type: string | null): string {
     if (!type) return this.emptyCell;
-    return ADMIN_NOTIFICATION_TYPE_LABELS[type as keyof typeof ADMIN_NOTIFICATION_TYPE_LABELS] ?? type;
+    return adminNotificationTypeLabel(type) || this.emptyCell;
   }
 
   public messageText(notification: Notification): string {

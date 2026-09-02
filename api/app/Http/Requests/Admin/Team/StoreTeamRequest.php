@@ -22,9 +22,9 @@ class StoreTeamRequest extends FormRequest
             'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'logo' => ['nullable', 'image', 'max:2048'],
-            'sponsor_user_id' => ['required', 'integer', 'exists:users,id'],
-            'icon_player_ids' => ['nullable', 'array'],
-            'icon_player_ids.*' => ['integer', 'exists:users,id'],
+            'sponsor' => ['nullable', 'string', 'max:500'],
+            'icon_players' => ['nullable', 'string', 'max:500'],
+            'owner_user_id' => ['required', 'integer', 'exists:users,id'],
         ];
     }
 }

@@ -31,8 +31,6 @@ const Stats = lazy(() => import('@/pages/Stats'));
 const StaticPage = lazy(() => import('@/pages/StaticPage'));
 const Support = lazy(() => import('@/pages/Support'));
 const NotificationCenter = lazy(() => import('@/pages/NotificationCenter'));
-const TournamentRequest = lazy(() => import('@/pages/TournamentRequest'));
-const TournamentRequestSuccess = lazy(() => import('@/pages/TournamentRequestSuccess'));
 
 const DraftingHome = lazy(() => import('@/pages/drafting/DraftingHome'));
 const TeamList = lazy(() => import('@/pages/drafting/TeamList'));
@@ -96,6 +94,7 @@ const MainLayout = lazy(() => import('@/layouts/MainLayout').then((m) => ({ defa
 const AuthLayout = lazy(() => import('@/layouts/AuthLayout').then((m) => ({ default: m.AuthLayout })));
 
 const Tournaments = lazy(() => import('@/pages/organizer/tournaments/Tournaments'));
+const CreateTournament = lazy(() => import('@/pages/organizer/tournaments/CreateTournament'));
 const TournamentCreateTeamIntro = lazy(() => import('@/pages/organizer/tournaments/TournamentCreateTeamIntro'));
 const TournamentSavedTeams = lazy(() => import('@/pages/organizer/tournaments/TournamentSavedTeams'));
 const TournamentAddSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentAddSquad'));
@@ -163,6 +162,7 @@ function App() {
                       <Route path="/upcoming-tournaments/:tournamentId" element={<UpcomingTournamentDetails />} />
                       <Route path="/interest/:slug" element={<InterestForm />} />
                       <Route path="/organizer/tournaments" element={<Tournaments />} />
+                      <Route path="/organizer/tournaments/create" element={<CreateTournament />} />
                       <Route
                         path="/organizer/tournaments/:tournamentId/create-team-intro"
                         element={<TournamentCreateTeamIntro />}
@@ -198,8 +198,6 @@ function App() {
                         <Route path="/seller/brands" element={<SellerBrands />} />
                         <Route path="/seller/categories" element={<SellerCategories />} />
                       </Route>
-                      <Route path="/tournament-request" element={<TournamentRequest />} />
-                      <Route path="/tournament-request/success" element={<TournamentRequestSuccess />} />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />

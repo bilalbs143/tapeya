@@ -12,7 +12,6 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { type Country, LocationService } from 'src/app/services/location.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
-import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import type { Tournament, TournamentUpdatePayload } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
@@ -49,8 +48,6 @@ export type OrganizerOption = UserSearchRow;
 export interface ManageTournamentDialogData {
   mode: 'create' | 'edit';
   tournament?: Tournament;
-  /** When set, form is pre-filled from this request (create mode), including organizer from request user. */
-  fromRequest?: TournamentRequest;
 }
 
 @Component({
@@ -82,8 +79,6 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   public organizerSearch$ = new Subject<string>();
   public readonly tournamentTypeOptions$ = this.enumsService.getOptions('tournament_type');
   public readonly groupModeOptions$ = this.enumsService.getOptions('group_mode');
-  public readonly cricketFormatOptions$ = this.enumsService.getOptions('cricket_format');
-  public readonly matchTimingsOptions$ = this.enumsService.getOptions('match_timings');
   public readonly statusOptions$ = this.enumsService.getOptions('status');
 
   public get title(): string {
@@ -186,9 +181,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     const tournament = this.data.tournament;
-    const fromRequest = this.data.fromRequest;
+    const source = tournament;
 
-    const source = fromRequest ?? tournament;
     const initialOrganizer: OrganizerOption | null =
       tournament?.organizer_id && tournament?.organizer
         ? {
@@ -198,15 +192,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
             email: tournament.organizer.email ?? null,
             phone: tournament.organizer.phone ?? null,
           }
-        : fromRequest?.user_id && fromRequest?.user
-          ? {
-              id: fromRequest.user.id,
-              name: fromRequest.user.name,
-              nickname: fromRequest.user.nickname ?? null,
-              email: fromRequest.user.email ?? null,
-              phone: fromRequest.user.phone ?? null,
-            }
-          : null;
+        : null;
 
     const numGroups = source?.number_of_groups ?? 1;
     const groupMode = numGroups > 1 ? 'group_wise' : 'open';
@@ -217,18 +203,15 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         organizer: [initialOrganizer, [organizerRequiredValidator]],
         tournament_name: [source?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
         short_name: [source?.short_name ?? '', [Validators.maxLength(64)]],
-        tournament_type: [normalizeEnumValue(source?.tournament_type, ''), [Validators.required]],
-        cricket_format: [normalizeEnumValue(source?.cricket_format, ''), [Validators.required]],
-        venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
-        start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
-        end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
-        number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
+        tournament_type: [normalizeEnumValue(source?.tournament_type, 'open_tournament'), [Validators.required]],
+        venue_name: [source?.venue_name ?? 'TBD', [Validators.maxLength(255)]],
+        start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : new Date(), [Validators.required]],
+        end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : new Date(), [Validators.required]],
+        number_of_teams: [source?.number_of_teams ?? 8, [Validators.required, Validators.min(1), Validators.max(500)]],
         group_mode: [groupMode, [Validators.required]],
         number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
-        country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
-        // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
+        country: [source?.country ?? '', [Validators.maxLength(100)]],
         city: [{ value: source?.city ?? '', disabled: !source?.country }, [Validators.required, Validators.maxLength(100)]],
-        match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
         status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
         prize: [source?.prize ?? '', [Validators.maxLength(255)]],
         display_image: [
@@ -287,15 +270,13 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
       tournament_name: v.tournament_name,
       short_name: String(v.short_name ?? '').trim() || null,
       tournament_type: v.tournament_type,
-      cricket_format: v.cricket_format,
-      venue_name: v.venue_name,
+      venue_name: v.venue_name || 'TBD',
       start_date: this.formatDateForApi(v.start_date) ?? '',
       end_date: this.formatDateForApi(v.end_date) ?? '',
       number_of_teams: String(Number(v.number_of_teams)),
       number_of_groups: String(Math.max(1, Math.min(16, numGroups))),
       country: v.country ?? '',
       city: v.city,
-      match_timings: v.match_timings,
       status: v.status,
       prize: String(v.prize ?? '').trim(),
     };

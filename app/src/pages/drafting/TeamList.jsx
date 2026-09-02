@@ -13,19 +13,13 @@ const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
 
 function teamDisplayMeta(team) {
-  const owner = team?.sponsor?.name ?? '—';
-  const iconPlayers =
-    Array.isArray(team?.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : '—';
-  return { owner, iconPlayers };
+  const sponsor = typeof team?.sponsor === 'string' && team.sponsor.trim() ? team.sponsor.trim() : '—';
+  const iconPlayers = typeof team?.icon_players === 'string' && team.icon_players.trim() ? team.icon_players.trim() : '—';
+  return { sponsor, iconPlayers };
 }
 
 function TeamCard({ team, index, onEdit, onDelete, onClick }) {
-  const { owner, iconPlayers } = teamDisplayMeta(team);
+  const { sponsor, iconPlayers } = teamDisplayMeta(team);
 
   return (
     <div
@@ -39,7 +33,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
         <p className="text-muted mt-0.5 text-[14px]">
-          <span className="text-brand font-medium">Owner: {owner}</span>
+          <span className="text-brand font-medium">Sponsor: {sponsor}</span>
         </p>
         <p className="text-muted mt-0.5 text-[12px]">
           Icon Players: <span className="text-white">{iconPlayers}</span>

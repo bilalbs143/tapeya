@@ -18,8 +18,6 @@ export interface Tournament {
   short_name?: string | null;
   tournament_type: string;
   tournament_type_label: string;
-  cricket_format: string;
-  cricket_format_label: string;
   venue_name: string;
   start_date: string;
   end_date: string;
@@ -28,8 +26,6 @@ export interface Tournament {
   number_of_groups?: number;
   country?: string | null;
   city: string;
-  match_timings: string;
-  match_timings_label: string;
   status: string;
   status_enum?: string;
   status_label?: string;

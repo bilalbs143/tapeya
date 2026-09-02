@@ -39,8 +39,8 @@ export const teamApi = baseApi.injectEndpoints({
             code: body.code,
             country: body.country,
             city: body.city,
-            sponsor_user_id: body.sponsor_user_id ?? null,
-            icon_player_ids: body.icon_player_ids ?? [],
+            sponsor: body.sponsor ?? null,
+            icon_players: body.icon_players ?? null,
           },
         };
       },
@@ -55,8 +55,8 @@ export const teamApi = baseApi.injectEndpoints({
           code: payload.code,
           country: payload.country,
           city: payload.city,
-          sponsor_user_id: payload.sponsor_user_id ?? null,
-          icon_player_ids: payload.icon_player_ids ?? [],
+          sponsor: payload.sponsor ?? null,
+          icon_players: payload.icon_players ?? null,
         },
       }),
       invalidatesTags: (_result, _error, { teamId }) => [

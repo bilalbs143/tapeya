@@ -29,10 +29,6 @@ export const navItems: NavItem[] = [
         route: '/tournaments-management/tournaments',
       },
       {
-        displayName: 'Tournament Requests',
-        route: '/tournaments-management/tournament-requests',
-      },
-      {
         displayName: 'Quick Matches',
         route: '/tournaments-management/quick-matches',
       },

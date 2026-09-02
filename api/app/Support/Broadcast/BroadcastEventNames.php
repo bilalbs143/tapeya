@@ -4,7 +4,6 @@ namespace App\Support\Broadcast;
 
 use App\Events\Broadcast\Admin\BroadcastConcurrencyAlertBroadcast;
 use App\Events\Broadcast\Admin\SupportMessageSubmittedBroadcast;
-use App\Events\Broadcast\Admin\TournamentRequestSubmittedBroadcast;
 use App\Events\Broadcast\Admin\UserRegisteredBroadcast;
 use App\Events\Broadcast\Admin\VendorApplicationSubmittedBroadcast;
 use App\Events\Broadcast\Admin\YouTubeQuotaAlertBroadcast;
@@ -21,7 +20,6 @@ use App\Events\Broadcast\User\PostEngagementBroadcast;
  * @see OrderStatusUpdatedBroadcast
  * @see PostEngagementBroadcast
  * @see \App\Events\Broadcast\Admin\OrderPlacedBroadcast
- * @see TournamentRequestSubmittedBroadcast
  * @see UserRegisteredBroadcast
  * @see VendorApplicationSubmittedBroadcast
  * @see BroadcastConcurrencyAlertBroadcast
@@ -37,8 +35,6 @@ final class BroadcastEventNames
     public const USER_POST_ENGAGEMENT = 'user.post.engagement';
 
     public const ADMIN_ORDER_PLACED = 'admin.order.placed';
-
-    public const ADMIN_TOURNAMENT_REQUEST_SUBMITTED = 'admin.tournament_request.submitted';
 
     public const ADMIN_USER_REGISTERED = 'admin.user.registered';
 

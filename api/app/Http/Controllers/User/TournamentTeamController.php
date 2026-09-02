@@ -29,7 +29,7 @@ class TournamentTeamController extends Controller
     public function index(Tournament $tournament): JsonResponse
     {
         $teams = $tournament->teams()
-            ->with(['sponsor', 'iconPlayers'])
+            ->with(['owner', 'creator'])
             ->orderBy('name')
             ->get();
 

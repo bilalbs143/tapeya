@@ -11,8 +11,7 @@ use InvalidArgumentException;
 final class StatBucketFilters
 {
     /**
-     * Profile career filters. Accepts league | open_tournament | emerging | quick | all.
-     * null statsBucket means "all tournament buckets" (excludes quick).
+     * Profile career filters. Accepts open_tournament | private_tournament | quick | all.
      *
      * @return array{
      *     statsBucket: StatsBucketEnum|null,
@@ -44,12 +43,12 @@ final class StatBucketFilters
     public static function fromRankingsQuery(string $tournamentType, string $cricketFormat = 'all'): array
     {
         if ($tournamentType === 'all' || $tournamentType === StatsBucketEnum::QUICK->value) {
-            throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging.');
+            throw new InvalidArgumentException('tournament_type must be one of: open_tournament, private_tournament.');
         }
 
         $type = self::parseTournamentType($tournamentType, allowAll: false);
         if ($type === null) {
-            throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging.');
+            throw new InvalidArgumentException('tournament_type must be one of: open_tournament, private_tournament.');
         }
 
         return [
@@ -64,7 +63,7 @@ final class StatBucketFilters
     {
         if ($value === 'all') {
             if (! $allowAll) {
-                throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging, quick.');
+                throw new InvalidArgumentException('tournament_type must be one of: open_tournament, private_tournament, quick.');
             }
 
             return null;
@@ -72,7 +71,7 @@ final class StatBucketFilters
 
         $enum = StatsBucketEnum::tryFrom($value);
         if ($enum === null) {
-            throw new InvalidArgumentException('Invalid tournament_type. Use: league, open_tournament, emerging, quick, all.');
+            throw new InvalidArgumentException('Invalid tournament_type. Use: open_tournament, private_tournament, quick, all.');
         }
 
         return $enum;
@@ -82,7 +81,7 @@ final class StatBucketFilters
     {
         if ($value === 'all') {
             if (! $allowAll) {
-                throw new InvalidArgumentException('tournament_type must be one of: league, open_tournament, emerging.');
+                throw new InvalidArgumentException('tournament_type must be one of: open_tournament, private_tournament.');
             }
 
             return null;
@@ -90,7 +89,7 @@ final class StatBucketFilters
 
         $enum = TournamentTypeEnum::tryFrom($value);
         if ($enum === null) {
-            throw new InvalidArgumentException('Invalid tournament_type. Use: league, open_tournament, emerging, all.');
+            throw new InvalidArgumentException('Invalid tournament_type. Use: open_tournament, private_tournament, all.');
         }
 
         return $enum;

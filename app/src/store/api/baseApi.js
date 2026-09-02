@@ -46,7 +46,6 @@ export const baseApi = createApi({
     'Shop',
     'VendorShop',
     'Tournament',
-    'TournamentRequest',
     'TournamentTeams',
     'TournamentSquadOccupancy',
     'TournamentMatches',

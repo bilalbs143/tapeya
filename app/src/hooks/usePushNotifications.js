@@ -120,7 +120,6 @@ function routeFromPushData(navigate, data, currentPath = '/') {
     case 'post_reposted':
     case 'post_published':
     case 'user_followed':
-    case 'user_referred':
       go('/notification-center');
       break;
     case 'manual_broadcast':

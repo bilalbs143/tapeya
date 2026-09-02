@@ -121,10 +121,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.teamsService.getList(params).subscribe({
       next: (res) => {
-        this.dataSource.data = (res.data ?? []).map((row) => ({
-          ...row,
-          icon_player_ids: row.icon_player_ids ?? [],
-        }));
+        this.dataSource.data = res.data ?? [];
         this.totalRecords = res.meta?.total ?? res.data?.length ?? 0;
         this.isLoading = false;
       },

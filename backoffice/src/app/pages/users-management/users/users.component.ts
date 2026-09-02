@@ -87,7 +87,6 @@ export class UsersComponent implements OnInit, OnDestroy {
     'sr',
     'name',
     'nickname',
-    'referral_nickname',
     'email',
     'phone',
     'admin_roles',

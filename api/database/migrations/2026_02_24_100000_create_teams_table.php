@@ -15,18 +15,17 @@ return new class extends Migration
             $table->string('code', 20)->unique();
             $table->string('country', 100)->nullable();
             $table->string('city', 100)->nullable();
-
-            // Sponsor who owns this team (app user).
+            // Free-text display fields (comma-separated when multiple). Not users FKs.
+            $table->string('sponsor', 500)->nullable();
+            $table->string('icon_players', 500)->nullable();
+            // Managing owner (capability).
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
-            // Who created the team (sponsor or organizer); nullable in case of backfill.
             $table->foreignId('created_by')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-
             $table->timestamps();
         });
     }

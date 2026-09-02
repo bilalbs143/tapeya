@@ -6,10 +6,12 @@ use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreUserTournamentRequest;
 use App\Http\Resources\User\TournamentResource;
 use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentUserReaction;
+use App\Services\Tournament\TournamentCreationService;
 use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -17,9 +19,14 @@ class TournamentController extends Controller
 {
     use BaseControllerTrait;
 
+    public function __construct(
+        private readonly TournamentCreationService $tournamentCreation,
+    ) {}
+
     /**
      * List tournaments (for app: e.g. to pick tournament when creating teams or viewing schedule).
      * Query organizer_tournaments=1 scopes the list to tournaments organized by the authenticated user.
+     * Public lists default to open tournaments only (private tournaments are organizer-only).
      */
     public function index(): JsonResponse
     {
@@ -29,18 +36,25 @@ class TournamentController extends Controller
             ->allowedSorts(Tournament::getSorts())
             ->withCount(['teams', 'matches']);
 
-        if (request()->boolean('organizer_tournaments')) {
+        $isOrganizerScope = request()->boolean('organizer_tournaments');
+
+        if ($isOrganizerScope) {
             $uid = request()->user()->id;
             $query->where(function ($q) use ($uid) {
                 $q->where('organizer_id', $uid)
                     ->orWhere('created_by', $uid)
                     ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
             });
+        } else {
+            $query->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT);
         }
 
-        // Scorecard hub: with_matches loads fixtures and is limited to open tournaments.
+        // Scorecard hub: with_matches loads fixtures. Public lists stay open-only;
+        // organizer scope may include private tournaments (e.g. unified my-matches).
         if (request()->boolean('with_matches')) {
-            $query->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT);
+            if (! $isOrganizerScope) {
+                $query->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT);
+            }
             $query->with([
                 'matches.homeTeam',
                 'matches.awayTeam',
@@ -66,6 +80,20 @@ class TournamentController extends Controller
         }
 
         return $this->success(TournamentResource::collection($this->paginateOrAll($query)));
+    }
+
+    /**
+     * Create a tournament instantly (no admin approval). Submitter becomes organizer.
+     */
+    public function store(StoreUserTournamentRequest $request): JsonResponse
+    {
+        $tournament = $this->tournamentCreation->createForUser(
+            $request->user(),
+            $request->validated(),
+        );
+        $tournament->loadCount(['teams', 'matches']);
+
+        return $this->success(new TournamentResource($tournament), 'Tournament created.', 'CREATED');
     }
 
     /**

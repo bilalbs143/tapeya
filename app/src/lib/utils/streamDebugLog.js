@@ -1,5 +1,8 @@
 import { appendStreamDebugLine } from '@/lib/utils/streamDebugStore';
 
+/** Reserved strip below the status bar — native overlay is pushed down by this amount. */
+export const STREAM_DEBUG_PANEL_PX = 120;
+
 /** Enable verbose stream logs: localStorage.setItem('tapeya_stream_debug', '1') */
 export function isStreamDebugEnabled() {
   if (import.meta.env.DEV) {
@@ -24,8 +27,8 @@ export function streamDebugLog(scope, payload) {
   appendStreamDebugLine(scope, payload);
 
   if (payload !== undefined) {
-    console.info(`[TapeyaStream:${scope}]`, payload);
+    console.log(`[TapeyaStream:${scope}]`, payload);
   } else {
-    console.info(`[TapeyaStream:${scope}]`);
+    console.log(`[TapeyaStream:${scope}]`);
   }
 }

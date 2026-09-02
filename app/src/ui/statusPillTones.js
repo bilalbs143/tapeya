@@ -13,19 +13,6 @@ export function matchStatusTone(status) {
   }
 }
 
-/** Tone for tournament request review statuses. */
-export function tournamentRequestStatusTone(status) {
-  switch (status) {
-    case 'approved':
-      return 'success';
-    case 'rejected':
-      return 'danger';
-    case 'pending':
-    default:
-      return 'brand';
-  }
-}
-
 /** Tone for shop / seller order fulfillment statuses. */
 export function orderStatusTone(status) {
   switch ((status ?? '').toLowerCase()) {

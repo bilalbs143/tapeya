@@ -39,7 +39,6 @@ use App\Http\Controllers\Admin\TournamentInterestCampaignController;
 use App\Http\Controllers\Admin\TournamentInterestSubmissionController;
 use App\Http\Controllers\Admin\TournamentMatchController;
 use App\Http\Controllers\Admin\TournamentMatchSquadController;
-use App\Http\Controllers\Admin\TournamentRequestController;
 use App\Http\Controllers\Admin\TournamentTeamsController;
 use App\Http\Controllers\Admin\TournamentTeamSquadController;
 use App\Http\Controllers\Admin\UserController;
@@ -153,9 +152,6 @@ Route::prefix('admin')->group(function () {
         Route::get('countries', [CountryController::class, 'index']);
         Route::get('countries/cities', [CountryController::class, 'cities']);
 
-        Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
-        Route::get('tournament-requests/{tournament_request}', [TournamentRequestController::class, 'show']);
-        Route::match(['put', 'patch'], 'tournament-requests/{tournament_request}', [TournamentRequestController::class, 'update']);
         Route::get('interest-campaigns', [TournamentInterestCampaignController::class, 'index']);
         Route::post('interest-campaigns', [TournamentInterestCampaignController::class, 'store']);
         Route::get('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'show']);

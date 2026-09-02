@@ -57,7 +57,6 @@ use App\Http\Controllers\User\TeamController;
 use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
 use App\Http\Controllers\User\TournamentReactionController;
-use App\Http\Controllers\User\TournamentRequestController;
 use App\Http\Controllers\User\TournamentStatsController;
 use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserActivePlatformController;
@@ -184,6 +183,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
 
     Route::get('tournaments', [TournamentController::class, 'index']);
+    Route::post('tournaments', [TournamentController::class, 'store']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);
     Route::post('tournaments/{tournament}/dislike', [TournamentReactionController::class, 'dislike']);
@@ -316,9 +316,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('interest-campaigns/{slug}', [InterestCampaignController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::post('interest-campaigns/{slug}/submissions', [InterestCampaignController::class, 'store'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::delete('interest-campaigns/{slug}/submissions/me', [InterestCampaignController::class, 'destroy'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
-    Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
-    Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
-
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
 

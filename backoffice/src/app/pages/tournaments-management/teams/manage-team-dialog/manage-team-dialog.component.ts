@@ -42,19 +42,14 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   private readonly originalHasLogo = !!this.data.team?.logo;
 
   public form!: FormGroup;
-  public readonly sponsorSearch = this.fb.nonNullable.control('');
-  public readonly iconSearch = this.fb.nonNullable.control('');
+  public readonly ownerSearch = this.fb.nonNullable.control('');
 
   public countriesList: Country[] = [];
   public cities: { id: number; name: string }[] = [];
-  public sponsor: TeamUserCandidate | null = null;
-  public sponsorCandidates: TeamUserCandidate[] = [];
-  public iconCandidates: TeamUserCandidate[] = [];
-  public iconPlayers: TeamUserCandidate[] = [];
+  public owner: TeamUserCandidate | null = null;
+  public ownerCandidates: TeamUserCandidate[] = [];
 
-  /** Same chip-input behaviour as tournament overview (Broadcaster / Organizer). */
   public readonly roleChipSeparatorKeys = [ENTER, COMMA] as const;
-  public readonly roleChipInputAddOnBlur = false;
   public isSubmitting = false;
 
   public get title(): string {
@@ -63,10 +58,6 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
 
   public get submitButtonText(): string {
     return this.data.mode === 'create' ? 'Create' : 'Save';
-  }
-
-  public get isEdit(): boolean {
-    return this.data.mode === 'edit';
   }
 
   public ngOnInit(): void {
@@ -99,9 +90,9 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     });
 
     this.sub.add(
-      this.sponsorSearch.valueChanges
+      this.ownerSearch.valueChanges
         .pipe(
-          startWith(this.sponsorSearch.value),
+          startWith(this.ownerSearch.value),
           debounceTime(250),
           distinctUntilChanged(),
           switchMap((term) =>
@@ -109,22 +100,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
           )
         )
         .subscribe((res) => {
-          this.sponsorCandidates = res.data ?? [];
-        })
-    );
-
-    this.sub.add(
-      this.iconSearch.valueChanges
-        .pipe(
-          startWith(this.iconSearch.value),
-          debounceTime(250),
-          distinctUntilChanged(),
-          switchMap((term) =>
-            this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as TeamUserCandidate[] })))
-          )
-        )
-        .subscribe((res) => {
-          this.iconCandidates = res.data ?? [];
+          this.ownerCandidates = res.data ?? [];
         })
     );
   }
@@ -134,9 +110,10 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
       name: ['', [Validators.required, Validators.maxLength(255)]],
       code: ['', [Validators.required, Validators.maxLength(20)]],
       country: ['', [Validators.required, Validators.maxLength(100)]],
-      // City starts disabled; enabled reactively once a country is selected and cities are loaded.
       city: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(100)]],
-      sponsor_user_id: [0, [Validators.required, Validators.min(1)]],
+      sponsor: ['', [Validators.maxLength(500)]],
+      icon_players: ['', [Validators.maxLength(500)]],
+      owner_user_id: [0, [Validators.required, Validators.min(1)]],
       logo: [null as FileUploadValue | null],
     });
   }
@@ -166,7 +143,6 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
         cityControl?.enable();
       },
       error: () => {
-        // Keep city enabled so required validator fires and prevents accidental submission.
         this.cities = [];
         cityControl?.enable();
       },
@@ -180,14 +156,14 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
         code: t.code,
         country: t.country ?? '',
         city: t.city ?? '',
-        sponsor_user_id: t.sponsor_id,
+        sponsor: t.sponsor ?? '',
+        icon_players: t.icon_players ?? '',
+        owner_user_id: t.owner_id,
       },
       { emitEvent: false }
     );
-    this.sponsor = t.sponsor ?? null;
-    this.sponsorSearch.setValue('', { emitEvent: false });
-    const icons = t.icon_players?.length ? t.icon_players : [];
-    this.iconPlayers = [...icons];
+    this.owner = t.owner ?? null;
+    this.ownerSearch.setValue('', { emitEvent: false });
     if (t.logo) {
       this.form.patchValue({ logo: { files: [], existingUrls: [t.logo] } as FileUploadValue }, { emitEvent: false });
     }
@@ -198,7 +174,6 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  /** Chip text (matches tournament overview Broadcaster / Organizer). */
   public userChipLabel(u: TeamUserCandidate): string {
     const nick = u.nickname?.trim();
     if (nick) {
@@ -207,68 +182,52 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     return u.name?.trim() || `#${u.id}`;
   }
 
-  /** Autocomplete line (matches tournament overview). */
   public userOptionLabel(c: TeamUserCandidate): string {
     const tail = c.email || c.phone || c.nickname || `#${c.id}`;
     return `${c.name} — ${tail}`;
   }
 
-  public onSponsorChipInputTokenEnd(event: MatChipInputEvent): void {
+  public onOwnerChipInputTokenEnd(event: MatChipInputEvent): void {
     event.chipInput?.clear();
   }
 
-  public onIconChipInputTokenEnd(event: MatChipInputEvent): void {
-    event.chipInput?.clear();
-  }
-
-  public onSponsorSelected(event: MatAutocompleteSelectedEvent): void {
+  public onOwnerSelected(event: MatAutocompleteSelectedEvent): void {
     const user = event.option.value as TeamUserCandidate;
     if (!user?.id) {
       return;
     }
-    this.sponsor = user;
-    this.form.patchValue({ sponsor_user_id: user.id });
-    this.sponsorSearch.setValue('', { emitEvent: false });
-    this.sponsorCandidates = [];
+    this.owner = user;
+    this.form.patchValue({ owner_user_id: user.id });
+    this.ownerSearch.setValue('', { emitEvent: false });
+    this.ownerCandidates = [];
   }
 
-  public onIconSelected(event: MatAutocompleteSelectedEvent): void {
-    const user = event.option.value as TeamUserCandidate;
-    if (!user?.id || this.iconPlayers.some((p) => p.id === user.id)) {
-      return;
-    }
-    this.iconPlayers = [...this.iconPlayers, user];
-    this.iconSearch.setValue('', { emitEvent: false });
-    this.iconCandidates = [];
-  }
-
-  public removeSponsor(): void {
-    this.sponsor = null;
-    this.form.patchValue({ sponsor_user_id: 0 });
-    this.sponsorSearch.setValue('', { emitEvent: false });
-    this.sponsorCandidates = [];
-  }
-
-  public removeIconPlayer(user: TeamUserCandidate): void {
-    this.iconPlayers = this.iconPlayers.filter((p) => p.id !== user.id);
+  public removeOwner(): void {
+    this.owner = null;
+    this.form.patchValue({ owner_user_id: 0 });
+    this.ownerSearch.setValue('', { emitEvent: false });
+    this.ownerCandidates = [];
   }
 
   private buildPayload(): TeamSavePayload {
     const v = this.form.getRawValue();
+    const sponsor = String(v.sponsor ?? '').trim();
+    const iconPlayers = String(v.icon_players ?? '').trim();
     return {
       name: String(v.name).trim(),
       code: String(v.code).trim(),
       country: String(v.country).trim(),
       city: String(v.city).trim(),
-      sponsor_user_id: Number(v.sponsor_user_id),
-      icon_player_ids: this.iconPlayers.map((p) => p.id),
+      sponsor: sponsor || null,
+      icon_players: iconPlayers || null,
+      owner_user_id: Number(v.owner_user_id),
     };
   }
 
   public onSubmit(): void {
     this.form.markAllAsTouched();
-    if (!this.form.valid || !this.form.value.sponsor_user_id) {
-      this.messageService.error('Fill all required fields and choose a sponsor (app user).');
+    if (!this.form.valid || !this.form.value.owner_user_id) {
+      this.messageService.error('Fill all required fields and choose a team owner (app user).');
       return;
     }
     const payload = this.buildPayload();

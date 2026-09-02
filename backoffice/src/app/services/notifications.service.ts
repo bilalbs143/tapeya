@@ -17,10 +17,7 @@ export interface NotificationData {
   total?: string;
   currency?: string;
   message?: string;
-  tournament_request_id?: number;
   tournament_name?: string;
-  contact_person_name?: string;
-  contact_phone?: string;
   [key: string]: unknown;
 }
 

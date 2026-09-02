@@ -6,7 +6,6 @@
   >
     <mat-dialog-content>
       <div class="dialog-form">
-        <!-- Row 1: Name | Code -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -42,7 +41,6 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 2: Country | City (same pattern as manage user) -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -84,7 +82,6 @@
           </mat-form-field>
         </div>
 
-        <!-- Logo -->
         <div class="col-span-12">
           <app-file-upload
             formControlName="logo"
@@ -95,101 +92,85 @@
           ></app-file-upload>
         </div>
 
-        <!-- Sponsor (chip grid + autocomplete, same pattern as tournament Broadcaster) -->
-        <div class="col-span-12">
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
-            <mat-label>Sponsor <span class="text-error">*</span></mat-label>
-            <mat-chip-grid
-              #sponsorChipGrid
-              aria-label="Team Sponsor"
-            >
-              @if (sponsor) {
-                <mat-chip-row
-                  (removed)="removeSponsor()"
-                  class="text-sm"
-                >
-                  {{ userChipLabel(sponsor) }}
-                  <button
-                    type="button"
-                    matChipRemove
-                    [attr.aria-label]="'Remove sponsor ' + userChipLabel(sponsor)"
-                  >
-                    <mat-icon>cancel</mat-icon>
-                  </button>
-                </mat-chip-row>
-              }
-              <input
-                [formControl]="sponsorSearch"
-                [matChipInputFor]="sponsorChipGrid"
-                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
-                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
-                (matChipInputTokenEnd)="onSponsorChipInputTokenEnd($event)"
-                [matAutocomplete]="sponsorAuto"
-                [placeholder]="sponsor ? 'Search to replace…' : 'Search to assign…'"
-              />
-            </mat-chip-grid>
-            <mat-autocomplete
-              #sponsorAuto="matAutocomplete"
-              (optionSelected)="onSponsorSelected($event)"
-            >
-              @for (c of sponsorCandidates; track c.id) {
-                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
-              }
-            </mat-autocomplete>
+            <mat-label>Sponsor</mat-label>
+            <input
+              matInput
+              formControlName="sponsor"
+              placeholder="e.g. Pepsi, Jazz, Imad Waseem"
+              autocomplete="off"
+            />
+            <mat-hint>Comma-separated if more than one</mat-hint>
           </mat-form-field>
-          @if (form.get('sponsor_user_id')?.invalid && form.get('sponsor_user_id')?.touched) {
-            <p class="text-error text-sm m-0 mt-1">Select a sponsor from the suggestions.</p>
-          }
         </div>
 
-        <!-- Icon players (multi chips + autocomplete) -->
-        <div class="col-span-12">
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
             <mat-label>Icon Players</mat-label>
+            <input
+              matInput
+              formControlName="icon_players"
+              placeholder="e.g. Babar Azam, Shaheen Afridi"
+              autocomplete="off"
+            />
+            <mat-hint>Comma-separated if more than one</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Owner <span class="text-error">*</span></mat-label>
             <mat-chip-grid
-              #iconChipGrid
-              aria-label="Icon Players"
+              #ownerChipGrid
+              aria-label="Team Owner"
             >
-              @for (p of iconPlayers; track p.id) {
+              @if (owner) {
                 <mat-chip-row
-                  (removed)="removeIconPlayer(p)"
+                  (removed)="removeOwner()"
                   class="text-sm"
                 >
-                  {{ userChipLabel(p) }}
+                  {{ userChipLabel(owner) }}
                   <button
                     type="button"
                     matChipRemove
-                    [attr.aria-label]="'Remove icon player ' + userChipLabel(p)"
+                    [attr.aria-label]="'Remove owner ' + userChipLabel(owner)"
                   >
                     <mat-icon>cancel</mat-icon>
                   </button>
                 </mat-chip-row>
               }
               <input
-                [formControl]="iconSearch"
-                [matChipInputFor]="iconChipGrid"
+                [formControl]="ownerSearch"
+                [matChipInputFor]="ownerChipGrid"
                 [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
-                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
-                (matChipInputTokenEnd)="onIconChipInputTokenEnd($event)"
-                [matAutocomplete]="iconAuto"
-                [placeholder]="iconPlayers.length ? 'Search to add another…' : 'Search to assign…'"
+                [matChipInputAddOnBlur]="false"
+                (matChipInputTokenEnd)="onOwnerChipInputTokenEnd($event)"
+                [matAutocomplete]="ownerAuto"
+                [placeholder]="owner ? 'Search to replace…' : 'Search to assign…'"
               />
             </mat-chip-grid>
             <mat-autocomplete
-              #iconAuto="matAutocomplete"
-              (optionSelected)="onIconSelected($event)"
+              #ownerAuto="matAutocomplete"
+              (optionSelected)="onOwnerSelected($event)"
             >
-              @for (c of iconCandidates; track c.id) {
+              @for (c of ownerCandidates; track c.id) {
                 <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
               }
             </mat-autocomplete>
           </mat-form-field>
+          @if (form.get('owner_user_id')?.invalid && form.get('owner_user_id')?.touched) {
+            <p class="text-error text-sm m-0 mt-1">Select an owner from the suggestions.</p>
+          }
         </div>
       </div>
     </mat-dialog-content>
@@ -200,10 +181,8 @@
         type="button"
         [mat-dialog-close]="false"
         variant="secondary"
+        >Cancel</app-ui-button
       >
-        Cancel
-      </app-ui-button>
-
       <app-submit-button
         [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"

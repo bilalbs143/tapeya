@@ -26,15 +26,9 @@ const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 function teamDisplayMeta(team) {
-  const owner = team?.sponsor?.name ?? '—';
-  const iconPlayers =
-    Array.isArray(team?.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : '—';
-  return { owner, iconPlayers };
+  const sponsor = typeof team?.sponsor === 'string' && team.sponsor.trim() ? team.sponsor.trim() : '—';
+  const iconPlayers = typeof team?.icon_players === 'string' && team.icon_players.trim() ? team.icon_players.trim() : '—';
+  return { sponsor, iconPlayers };
 }
 
 export default function TeamDetail() {
@@ -179,7 +173,7 @@ export default function TeamDetail() {
     );
   }
 
-  const { owner, iconPlayers } = teamDisplayMeta(team);
+  const { sponsor, iconPlayers } = teamDisplayMeta(team);
   const squadEmptyMessage = 'No players in squad. Search for players above to add them.';
 
   return (
@@ -194,7 +188,7 @@ export default function TeamDetail() {
               <TeamLogo team={team} variant="draft" />
               <div className="min-w-0 flex-1">
                 <h2 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h2>
-                <p className="text-brand mt-0.5 text-[14px]">Owner: {owner}</p>
+                <p className="text-brand mt-0.5 text-[14px]">Sponsor: {sponsor}</p>
                 <p className="mt-0.5 text-[12px] text-white">
                   Icon Players: <span className="text-muted">{iconPlayers}</span>
                 </p>

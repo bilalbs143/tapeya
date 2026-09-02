@@ -30,7 +30,6 @@ function scrollToSide(sideId) {
 }
 
 const DEFAULTS = {
-  cricket_format: 'tape_ball',
   overs: 20,
   players_per_side: 11,
   home: { name: '', team_id: '', players: [] },

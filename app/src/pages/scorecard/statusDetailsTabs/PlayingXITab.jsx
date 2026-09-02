@@ -69,7 +69,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                     {players1[i] ? (
                       <>
                         <p className="text-[12px] font-bold text-white">{players1[i].name}</p>
-                        <p className="text-muted mt-0.5 text-[12px]">{players1[i].playing_role}</p>
+                        <p className="text-muted mt-0.5 text-[12px]">{players1[i].role}</p>
                       </>
                     ) : (
                       <span className="text-muted">—</span>
@@ -79,7 +79,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                     {players2[i] ? (
                       <>
                         <p className="text-[12px] font-bold text-white">{players2[i].name}</p>
-                        <p className="text-muted mt-0.5 text-[12px]">{players2[i].playing_role}</p>
+                        <p className="text-muted mt-0.5 text-[12px]">{players2[i].role}</p>
                       </>
                     ) : (
                       <span className="text-muted">—</span>

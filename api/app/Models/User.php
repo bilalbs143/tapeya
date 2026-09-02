@@ -67,7 +67,6 @@ class User extends Authenticatable
         'posts_count',
         'created_by',
         'added_via_quick_match',
-        'referred_by',
         'active_platform',
         'active_platform_updated_at',
         'can_broadcast',
@@ -263,6 +262,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Read-only scorecard / match-state.
+     * Write path stays {@see canScoreMatchInApp} (staff / quick owner only).
+     * View path: staff + any active app user for open tournaments and quick matches.
+     */
+    public function canViewMatchScorecardInApp(TournamentMatch $match): bool
+    {
+        if ($this->canScoreMatchInApp($match)) {
+            return true;
+        }
+
+        if (! $this->isUser() || ! $this->isActive()) {
+            return false;
+        }
+
+        if ($match->isQuick()) {
+            return true;
+        }
+
+        $match->loadMissing('tournament');
+
+        return $match->tournament?->tournament_type?->isPublic() ?? false;
+    }
+
+    /**
      * May manage another owner's team-level squad when that team is in a tournament this user staffs.
      */
     public function canManageTeamSquadAsTournamentStaff(Team $team): bool
@@ -299,7 +322,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Teams this user owns (`teams.user_id`).
+     * Teams this user owns/manages (`teams.user_id`). Display sponsor is free-text on the team.
      */
     public function ownedTeams(): HasMany
     {
@@ -317,22 +340,6 @@ class User extends Authenticatable
     public function creator(): BelongsTo
     {
         return $this->belongsTo(self::class, 'created_by');
-    }
-
-    /**
-     * User who referred this account via nickname at registration. Null when no referral was used.
-     */
-    public function referrer(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'referred_by');
-    }
-
-    /**
-     * Users who registered with this account's nickname as their referral.
-     */
-    public function referrals(): HasMany
-    {
-        return $this->hasMany(self::class, 'referred_by');
     }
 
     /**

@@ -21,12 +21,8 @@ class StoreTeamRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', 'unique:teams,code'],
             'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
-            // Owner/sponsor user id; if omitted, defaults to authenticated user.
-            'sponsor_user_id' => ['nullable', 'integer', 'exists:users,id'],
-
-            // Icon players (user ids) for this team.
-            'icon_player_ids' => ['nullable', 'array'],
-            'icon_player_ids.*' => ['integer', 'exists:users,id'],
+            'sponsor' => ['nullable', 'string', 'max:500'],
+            'icon_players' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

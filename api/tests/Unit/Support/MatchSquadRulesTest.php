@@ -22,14 +22,12 @@ class MatchSquadRulesTest extends TestCase
         $tournament = Tournament::create([
             'organizer_id' => $organizer->id,
             'tournament_name' => 'Rules Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
+            'tournament_type' => 'open_tournament',
             'venue_name' => 'Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'City',
-            'match_timings' => 'day',
         ]);
 
         $home = Team::create([

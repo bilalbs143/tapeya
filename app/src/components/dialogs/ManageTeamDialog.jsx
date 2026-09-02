@@ -1,23 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
-import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { useDialog } from '@/context/DialogContext';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
-import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
+import { MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
 import { canAddTournamentTeams, getTournamentNumberOfGroups, mergeTournamentMeta } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
 import { useCreateTeamMutation, useSearchTeamsQuery, useUpdateTeamMutation } from '@/store/api/teamApi';
 import { useAttachTeamsToTournamentMutation, useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
-import { useLookupUsersQuery } from '@/store/api/userApi';
-import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FileUploadField } from '@/ui/FileUploadField';
@@ -41,10 +37,10 @@ import {
 const EMPTY_FORM = {
   name: '',
   code: '',
-  sponsor_user_id: '',
+  sponsor: '',
   country: DEFAULT_COUNTRY,
   city: '',
-  icon_player_ids: [],
+  icon_players: '',
 };
 
 /** @param {number|undefined} preferred @param {number} numberOfGroups */
@@ -54,19 +50,14 @@ function normalizeGroupIndex(preferred, numberOfGroups) {
   return 1;
 }
 
+function asText(value) {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+  return '';
+}
+
 /**
  * Body-only dialog — rendered by DialogManager inside BaseDialog.
- * Open via:
- *   openDialog('manageTeam', { mode: 'create', tournamentId, tournament, onSuccess })
- *   openDialog('manageTeam', { mode: 'edit', team, onSuccess })
- *
- * @param {object} props
- * @param {'create'|'edit'} props.mode
- * @param {object} [props.team] — required when mode is 'edit'
- * @param {number} [props.tournamentId] — when set on create, attaches team to tournament after save
- * @param {object} [props.tournament] — tournament meta (team limit, groups)
- * @param {number} [props.preferredGroupIndex]
- * @param {(team: object) => void} [props.onSuccess]
  */
 export function ManageTeamDialog({ mode = 'create', team, tournamentId, tournament, preferredGroupIndex, onSuccess }) {
   const isEdit = mode === 'edit';
@@ -74,10 +65,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
   const { closeDialog } = useDialog();
   const toast = useToast();
 
-  // ── Form ────────────────────────────────────────────────────────────────────
-
   const {
-    control,
     handleSubmit,
     register,
     formState: { errors },
@@ -100,79 +88,36 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
   const numberOfGroups = getTournamentNumberOfGroups(resolvedTournament);
   const hasGroups = numberOfGroups > 1;
 
-  // ── Local state ─────────────────────────────────────────────────────────────
-
   const teamNameFieldRef = useRef(null);
-  const sponsorFieldRef = useRef(null);
-  const iconPlayersFieldRef = useRef(null);
-
   const [logoUpload, setLogoUpload] = useState(EMPTY_FILE_UPLOAD);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamNameDropdownOpen, setTeamNameDropdownOpen] = useState(isTournamentCreate);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(() => normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
-  const [selectedSponsor, setSelectedSponsor] = useState(null);
-  const [sponsorSearch, setSponsorSearch] = useState('');
-  const [sponsorDropdownOpen, setSponsorDropdownOpen] = useState(false);
-  const [iconPlayerSearch, setIconPlayerSearch] = useState('');
-  const [iconPlayerIdToName, setIconPlayerIdToName] = useState({});
-  const [iconPlayerPanelOpen, setIconPlayerPanelOpen] = useState(false);
-
-  const debouncedSponsorSearch = useDebounce(sponsorSearch.trim(), DEBOUNCE_MS);
-  const debouncedIconPlayerSearch = useDebounce(iconPlayerSearch.trim(), DEBOUNCE_MS);
-
-  const closeIconPlayerPanel = useCallback(() => {
-    setIconPlayerPanelOpen(false);
-    setIconPlayerSearch('');
-  }, []);
 
   const isReadonly = isTournamentCreate && !!selectedTeam;
   const readonlyClass = isReadonly ? 'cursor-default opacity-90' : '';
 
-  const showSponsorDropdown = !isReadonly && !selectedSponsor && sponsorSearch.trim().length > 0 && sponsorDropdownOpen;
   const showTeamNameDropdown =
     isTournamentCreate && searchQuery.length >= MIN_SEARCH_LENGTH && !selectedTeam && teamNameDropdownOpen;
-
-  // ── Prefill form (edit) or reset (create) ───────────────────────────────────
 
   useEffect(() => {
     if (isEdit) {
       if (!team) return;
-
-      const iconIdToName = {};
-      const iconIds = [];
-      if (Array.isArray(team.icon_players)) {
-        for (const p of team.icon_players) {
-          if (p?.id != null) {
-            iconIdToName[Number(p.id)] = p.name ?? p.nickname ?? '—';
-            iconIds.push(Number(p.id));
-          }
-        }
-      }
-
       reset({
         name: team.name ?? '',
         code: team.code ?? '',
-        sponsor_user_id: team.sponsor_id != null ? String(team.sponsor_id) : '',
+        sponsor: asText(team.sponsor),
         country: team.country ?? '',
         city: team.city ?? '',
-        icon_player_ids: iconIds,
+        icon_players: asText(team.icon_players),
       });
-
-      setIconPlayerIdToName(iconIdToName);
-      setSelectedSponsor(team.sponsor_id != null && team.sponsor ? { id: team.sponsor_id, name: team.sponsor.name ?? '' } : null);
     } else {
       reset(EMPTY_FORM);
-      setIconPlayerIdToName({});
-      setSelectedSponsor(null);
       setSelectedTeam(null);
       setTeamNameDropdownOpen(isTournamentCreate);
     }
 
     setLogoUpload(isEdit && team?.logo ? fileUploadValueFromUrl(team.logo) : EMPTY_FILE_UPLOAD);
-    setSponsorSearch('');
-    setSponsorDropdownOpen(false);
-    setIconPlayerSearch('');
-    setIconPlayerPanelOpen(false);
   }, [isEdit, team, reset, isTournamentCreate]);
 
   useEffect(() => {
@@ -180,19 +125,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
       setSelectedGroupIndex(normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
     }
   }, [isEdit, isTournamentCreate, preferredGroupIndex, numberOfGroups]);
-
-  // ── Close sponsor dropdown on outside click ─────────────────────────────────
-
-  useEffect(() => {
-    if (!showSponsorDropdown) return undefined;
-    const handle = (e) => {
-      if (sponsorFieldRef.current && !sponsorFieldRef.current.contains(e.target)) {
-        setSponsorDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, [showSponsorDropdown]);
 
   useEffect(() => {
     if (!showTeamNameDropdown) return undefined;
@@ -204,29 +136,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
   }, [showTeamNameDropdown]);
-
-  // ── Close icon player panel on outside click ────────────────────────────────
-
-  useEffect(() => {
-    if (!iconPlayerPanelOpen) return undefined;
-    const handle = (e) => {
-      if (iconPlayersFieldRef.current && !iconPlayersFieldRef.current.contains(e.target)) {
-        closeIconPlayerPanel();
-      }
-    };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, [iconPlayerPanelOpen, closeIconPlayerPanel]);
-
-  // ── API ──────────────────────────────────────────────────────────────────────
-
-  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useLookupUsersQuery(debouncedSponsorSearch, {
-    skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
-  });
-
-  const { data: playersList = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedIconPlayerSearch, {
-    skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
-  });
 
   const { data: searchResults = [], isFetching: isSearchingTeams } = useSearchTeamsQuery(searchQuery, {
     skip: !isTournamentCreate || searchQuery.length < MIN_SEARCH_LENGTH || !!selectedTeam,
@@ -250,33 +159,13 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     setValue('code', picked.code ?? '');
     setValue('country', picked.country ?? '');
     setValue('city', picked.city ?? '');
-    setValue('sponsor_user_id', picked.sponsor_id != null ? String(picked.sponsor_id) : '');
-    setValue('icon_player_ids', Array.isArray(picked.icon_player_ids) ? picked.icon_player_ids : []);
-    const fromTeam = {};
-    if (Array.isArray(picked.icon_players)) {
-      for (const p of picked.icon_players) {
-        if (p?.id != null) {
-          fromTeam[Number(p.id)] = p.name ?? p.nickname ?? '—';
-        }
-      }
-    }
-    setIconPlayerIdToName(fromTeam);
-    setIconPlayerPanelOpen(false);
-    setIconPlayerSearch('');
-    setSelectedSponsor(
-      picked.sponsor_id != null && picked.sponsor ? { id: picked.sponsor_id, name: picked.sponsor.name ?? '' } : null,
-    );
+    setValue('sponsor', asText(picked.sponsor));
+    setValue('icon_players', asText(picked.icon_players));
   };
 
   const handleChangeTeam = () => {
     setSelectedTeam(null);
     setTeamNameDropdownOpen(true);
-    setSelectedSponsor(null);
-    setSponsorSearch('');
-    setSponsorDropdownOpen(true);
-    setIconPlayerSearch('');
-    setIconPlayerIdToName({});
-    setIconPlayerPanelOpen(false);
     reset(EMPTY_FORM);
     setLogoUpload(EMPTY_FILE_UPLOAD);
   };
@@ -289,8 +178,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     }).unwrap();
     return attachedTeam;
   };
-
-  // ── Submit ───────────────────────────────────────────────────────────────────
 
   const onSubmit = async (data) => {
     const logoFile = logoUpload.files[0] ?? null;
@@ -373,10 +260,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     return 'Create Team';
   })();
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
-  const playerLineLabel = (player) => player.name ?? player.nickname ?? '—';
-
   return (
     <>
       <DialogHeaderRow>
@@ -410,7 +293,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
             </FormField>
           ) : null}
 
-          {/* Team Name */}
           <FormField label="Team Name" htmlFor="manage-name" required>
             {isTournamentCreate ? (
               <div ref={teamNameFieldRef} className="relative">
@@ -457,7 +339,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                               <span className="font-semibold text-white">{result.name}</span>
                               <span className="text-muted text-[13px]">
                                 Code: {result.code}
-                                {result.sponsor?.name ? ` · ${result.sponsor.name}` : ''}
+                                {asText(result.sponsor) ? ` · ${asText(result.sponsor)}` : ''}
                               </span>
                             </button>
                           </li>
@@ -481,7 +363,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
             )}
           </FormField>
 
-          {/* Team Code */}
           <FormField label="Team Code" htmlFor="manage-code" required>
             <Input
               id="manage-code"
@@ -495,81 +376,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
             />
           </FormField>
 
-          {/* Owner / Sponsor */}
-          <FormField label="Owner / Sponsor" htmlFor="manage-sponsor">
-            <Controller
-              name="sponsor_user_id"
-              control={control}
-              render={({ field }) => (
-                <div ref={sponsorFieldRef} className="relative">
-                  <Input
-                    id="manage-sponsor"
-                    placeholder="Search by name, nickname or phone…"
-                    autoComplete="off"
-                    disabled={isReadonly}
-                    value={selectedSponsor ? selectedSponsor.name : sponsorSearch}
-                    onChange={(e) => {
-                      if (selectedSponsor) {
-                        setSelectedSponsor(null);
-                        field.onChange('');
-                      }
-                      setSponsorSearch(e.target.value);
-                      if (!isReadonly) setSponsorDropdownOpen(true);
-                    }}
-                    onFocus={() => {
-                      if (!isReadonly) setSponsorDropdownOpen(true);
-                    }}
-                    className={readonlyClass}
-                  />
-                  {selectedSponsor && !isReadonly && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedSponsor(null);
-                        field.onChange('');
-                        setSponsorSearch('');
-                        setSponsorDropdownOpen(true);
-                      }}
-                      className="text-muted absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors hover:text-white"
-                      aria-label="Clear Sponsor"
-                    >
-                      <CloseIcon />
-                    </button>
-                  )}
-                  {showSponsorDropdown && (
-                    <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
-                      {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
-                        <p className="text-muted px-3 py-4 text-center text-[13px]">
-                          Type at least {MIN_SEARCH_LENGTH} characters to search
-                        </p>
-                      ) : isSearchingSponsors ? (
-                        <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
-                      ) : sponsorsList.length === 0 ? (
-                        <p className="text-muted px-3 py-4 text-center text-[13px]">No users found</p>
-                      ) : (
-                        <ul>
-                          {sponsorsList.map((s) => (
-                            <PlayerSearchResultRow
-                              key={s.id}
-                              player={s}
-                              onClick={() => {
-                                field.onChange(String(s.id));
-                                setSelectedSponsor({ id: s.id, name: s.name ?? '' });
-                                setSponsorSearch('');
-                                setSponsorDropdownOpen(false);
-                              }}
-                            />
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            />
-          </FormField>
-
-          {/* Country & City */}
           <CountryCityFields
             country={country ?? ''}
             city={city ?? ''}
@@ -581,130 +387,32 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
             readOnly={isReadonly}
           />
 
-          {/* Icon Players */}
-          <FormField label="Icon Players" htmlFor="manage-icon-players">
-            <Controller
-              name="icon_player_ids"
-              control={control}
-              render={({ field }) => {
-                const displayNames = (field.value ?? [])
-                  .map((id) => iconPlayerIdToName[id])
-                  .filter(Boolean)
-                  .join(', ');
-                const inputDisplay = iconPlayerPanelOpen ? iconPlayerSearch : displayNames;
-
-                return (
-                  <div className="space-y-2">
-                    <div ref={iconPlayersFieldRef} className="relative">
-                      <Input
-                        id="manage-icon-players"
-                        role="combobox"
-                        placeholder="Search by name, nickname or phone…"
-                        autoComplete="off"
-                        aria-autocomplete="list"
-                        aria-expanded={iconPlayerPanelOpen}
-                        readOnly={isReadonly}
-                        value={inputDisplay}
-                        onChange={(e) => {
-                          if (!isReadonly) setIconPlayerSearch(e.target.value);
-                        }}
-                        onFocus={() => {
-                          if (!isReadonly) {
-                            setIconPlayerSearch('');
-                            setIconPlayerPanelOpen(true);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape' && iconPlayerPanelOpen) {
-                            e.stopPropagation();
-                            closeIconPlayerPanel();
-                          }
-                        }}
-                        className={field.value?.length > 0 && !isReadonly ? 'pr-12' : isReadonly ? readonlyClass : ''}
-                      />
-                      {field.value?.length > 0 && !isReadonly && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            field.onChange([]);
-                            setIconPlayerIdToName({});
-                            closeIconPlayerPanel();
-                          }}
-                          className="text-muted absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors hover:text-white"
-                          aria-label="Clear Icon Players"
-                        >
-                          <CloseIcon />
-                        </button>
-                      )}
-                      {iconPlayerPanelOpen && !isReadonly && (
-                        <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
-                          {iconPlayerSearch.trim().length === 0 ? (
-                            <p className="text-muted px-3 py-4 text-center text-[13px]">Type to search players…</p>
-                          ) : debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH ? (
-                            <p className="text-muted px-3 py-4 text-center text-[13px]">
-                              Type at least {MIN_SEARCH_LENGTH} characters
-                            </p>
-                          ) : isSearchingPlayers ? (
-                            <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
-                          ) : playersList.length === 0 ? (
-                            <p className="text-muted px-3 py-4 text-center text-[13px]">No players found</p>
-                          ) : (
-                            <div>
-                              {playersList.map((player) => {
-                                const isSelected = field.value?.includes(player.id);
-                                return (
-                                  <div
-                                    key={player.id}
-                                    role="option"
-                                    aria-selected={Boolean(isSelected)}
-                                    className="rounded-sm hover:bg-white/10"
-                                  >
-                                    <label className="flex cursor-pointer items-center gap-3 py-2.5 pr-4 pl-4 text-base text-white">
-                                      <Checkbox
-                                        checked={Boolean(isSelected)}
-                                        onCheckedChange={(checked) => {
-                                          const prev = field.value ?? [];
-                                          if (checked) {
-                                            setIconPlayerIdToName((m) => ({ ...m, [player.id]: playerLineLabel(player) }));
-                                            field.onChange(prev.includes(player.id) ? prev : [...prev, player.id]);
-                                          } else {
-                                            setIconPlayerIdToName((m) => {
-                                              const next = { ...m };
-                                              delete next[player.id];
-                                              return next;
-                                            });
-                                            field.onChange(prev.filter((id) => id !== player.id));
-                                          }
-                                          closeIconPlayerPanel();
-                                        }}
-                                      />
-                                      <span className="truncate">{playerLineLabel(player)}</span>
-                                      {(player.playing_role ?? player.playing_role_enum) && (
-                                        <span className="text-muted ml-auto shrink-0 text-[12px]">
-                                          {player.playing_role ?? player.playing_role_enum}
-                                        </span>
-                                      )}
-                                    </label>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    {(field.value?.length ?? 0) > 0 && (
-                      <p className="text-muted text-[13px]">
-                        {field.value.length} player{field.value.length === 1 ? '' : 's'} selected
-                      </p>
-                    )}
-                  </div>
-                );
-              }}
+          <FormField label="Sponsor" htmlFor="manage-sponsor">
+            <Input
+              id="manage-sponsor"
+              placeholder="e.g. Pepsi, Jazz, Imad Waseem"
+              autoComplete="off"
+              maxLength={500}
+              error={errors.sponsor?.message}
+              readOnly={isReadonly}
+              className={readonlyClass}
+              {...register('sponsor')}
             />
           </FormField>
 
-          {/* Logo */}
+          <FormField label="Icon Players" htmlFor="manage-icon-players">
+            <Input
+              id="manage-icon-players"
+              placeholder="e.g. Babar Azam, Shaheen Afridi"
+              autoComplete="off"
+              maxLength={500}
+              error={errors.icon_players?.message}
+              readOnly={isReadonly}
+              className={readonlyClass}
+              {...register('icon_players')}
+            />
+          </FormField>
+
           {!isReadonly ? (
             <FileUploadField
               label={isEdit ? 'Update Logo' : 'Upload Logo'}

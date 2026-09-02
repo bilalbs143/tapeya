@@ -18,7 +18,7 @@ class RankingController extends Controller
     /**
      * Leaderboard / rankings scoped by tournament_type and cricket_format.
      *
-     * Query: tournament_type = league | open_tournament | emerging (required; no 'all')
+     * Query: tournament_type = open_tournament | private_tournament (required; no 'all')
      *        cricket_format = hard_ball | tape_ball | tennis_ball | hard_tennis | all (default: all)
      *        category = batting | bowling | fielding
      *        sort = runs | average | strike_rate | fours | sixes | wickets | economy | catches | run_outs | stumpings

@@ -7,7 +7,7 @@ import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import type { UserSearchRow } from './users.service';
 
-/** App user row for sponsor / icon player pickers (same payload as admin user search). */
+/** App user row for team owner picker. */
 export type TeamUserCandidate = UserSearchRow;
 
 export interface TeamRow {
@@ -17,11 +17,13 @@ export interface TeamRow {
   country: string;
   city: string;
   logo?: string | null;
-  sponsor_id: number;
-  sponsor?: TeamUserCandidate | null;
+  /** Free-text; comma-separated when multiple. */
+  sponsor?: string | null;
+  /** Free-text; comma-separated when multiple. */
+  icon_players?: string | null;
+  owner_id: number;
+  owner?: TeamUserCandidate | null;
   creator?: TeamUserCandidate | null;
-  icon_player_ids: number[];
-  icon_players?: TeamUserCandidate[];
   created_at?: string | null;
   updated_at?: string | null;
 }
@@ -44,8 +46,9 @@ export interface TeamSavePayload {
   code: string;
   country: string;
   city: string;
-  sponsor_user_id: number;
-  icon_player_ids: number[];
+  sponsor?: string | null;
+  icon_players?: string | null;
+  owner_user_id: number;
 }
 
 @Injectable({ providedIn: 'root' })

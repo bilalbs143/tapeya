@@ -59,14 +59,12 @@ class GraphicSessionConfigTest extends TestCase
         $tournament = Tournament::create([
             'organizer_id' => $organizer->id,
             'tournament_name' => 'Test Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
+            'tournament_type' => 'open_tournament',
             'venue_name' => 'Test Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'Test City',
-            'match_timings' => 'day',
         ]);
         $teamA = Team::create(['name' => 'Team A', 'code' => 'TMA'.uniqid(), 'user_id' => $organizer->id, 'created_by' => $organizer->id]);
         $teamB = Team::create(['name' => 'Team B', 'code' => 'TMB'.uniqid(), 'user_id' => $organizer->id, 'created_by' => $organizer->id]);

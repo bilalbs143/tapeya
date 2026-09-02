@@ -8,16 +8,19 @@ enum TournamentTypeEnum: string
 {
     use BaseEnumTrait;
 
-    case LEAGUE = 'league';
     case OPEN_TOURNAMENT = 'open_tournament';
-    case EMERGING = 'emerging';
+    case PRIVATE_TOURNAMENT = 'private_tournament';
 
     public function label(): string
     {
         return match ($this) {
-            self::LEAGUE => 'League',
             self::OPEN_TOURNAMENT => 'Open Tournament',
-            self::EMERGING => 'Emerging',
+            self::PRIVATE_TOURNAMENT => 'Private Tournament',
         };
+    }
+
+    public function isPublic(): bool
+    {
+        return $this === self::OPEN_TOURNAMENT;
     }
 }

@@ -56,7 +56,7 @@ const MENU_SECTIONS = [
     id: 'tournaments',
     items: [
       { label: 'My Tournaments', icon: myTournamentsIcon, path: '/organizer/tournaments' },
-      { label: 'Request Tournament', icon: requestTournamentIcon, path: '/tournament-request' },
+      { label: 'Create Tournament', icon: requestTournamentIcon, path: '/organizer/tournaments/create' },
     ],
   },
   {
@@ -133,11 +133,11 @@ export function Sidebar({ open, onClose }) {
           icon: interestCampaignIcon,
           path: `/interest/${slug}`,
         };
-        const requestIdx = items.findIndex((i) => i.path === '/tournament-request');
-        if (requestIdx === -1) {
+        const createIdx = items.findIndex((i) => i.path === '/organizer/tournaments/create');
+        if (createIdx === -1) {
           items = [...items, interestRow];
         } else {
-          items = [...items.slice(0, requestIdx + 1), interestRow, ...items.slice(requestIdx + 1)];
+          items = [...items.slice(0, createIdx + 1), interestRow, ...items.slice(createIdx + 1)];
         }
       }
 
@@ -150,7 +150,9 @@ export function Sidebar({ open, onClose }) {
   const isActivePath = (path) => {
     if (!path) return false;
     const current = location?.pathname ?? '';
-    return current === path || current.startsWith(`${path}/`);
+    if (current === path) return true;
+    if (path === '/organizer/tournaments' && current.startsWith('/organizer/tournaments/create')) return false;
+    return current.startsWith(`${path}/`);
   };
 
   useEffect(() => {

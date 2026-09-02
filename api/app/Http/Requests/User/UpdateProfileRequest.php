@@ -33,7 +33,7 @@ class UpdateProfileRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'nickname' => ['sometimes', 'required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', Rule::unique('users', 'nickname')->ignore($userId)],
+            'nickname' => ['sometimes', 'required', 'string', 'max:50', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
             'playing_role' => ['nullable', Rule::enum(PlayingRoleEnum::class)],

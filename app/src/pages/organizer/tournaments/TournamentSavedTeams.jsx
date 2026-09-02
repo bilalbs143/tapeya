@@ -21,19 +21,13 @@ import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 function teamDisplay(team) {
-  const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
-  const iconPlayers =
-    Array.isArray(team.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : '—';
-  return { owner, iconPlayers };
+  const sponsor = typeof team?.sponsor === 'string' && team.sponsor.trim() ? team.sponsor.trim() : '—';
+  const iconPlayers = typeof team?.icon_players === 'string' && team.icon_players.trim() ? team.icon_players.trim() : '—';
+  return { sponsor, iconPlayers };
 }
 
 function TeamCard({ team, index }) {
-  const { owner, iconPlayers } = teamDisplay(team);
+  const { sponsor, iconPlayers } = teamDisplay(team);
 
   return (
     <div className="bg-surface flex items-start gap-3 rounded-[17px] p-4">
@@ -44,7 +38,7 @@ function TeamCard({ team, index }) {
           {team.group_index != null && <span className="text-muted text-[12px]">Group {team.group_index}</span>}
         </div>
         <p className="mt-0.5 text-[14px] text-white">
-          Owner: <span className="text-brand font-medium">{owner}</span>
+          Sponsor: <span className="text-brand font-medium">{sponsor}</span>
         </p>
         <p className="mt-0.5 text-[12px] text-white">
           Icon Players: <span className="text-muted">{iconPlayers}</span>

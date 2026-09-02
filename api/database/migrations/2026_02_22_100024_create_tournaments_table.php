@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('tournament_name');
             $table->string('short_name', 64)->nullable();
             $table->string('tournament_type', 30);
-            $table->string('cricket_format', 30);
             $table->string('venue_name');
             $table->date('start_date');
             $table->date('end_date');
@@ -23,7 +22,6 @@ return new class extends Migration
             $table->unsignedTinyInteger('number_of_groups')->default(1);
             $table->string('country', 100)->nullable();
             $table->string('city', 100);
-            $table->string('match_timings', 30);
             $table->string('status', 20)->default('active');
             $table->string('stream_provider', 30)->nullable();
             $table->string('display_image')->nullable();

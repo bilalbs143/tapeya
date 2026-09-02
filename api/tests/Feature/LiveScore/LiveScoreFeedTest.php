@@ -47,7 +47,7 @@ class LiveScoreFeedTest extends TestCase
     public function test_excludes_non_open_tournament_matches(): void
     {
         $this->scoringMatch->tournament->update([
-            'tournament_type' => TournamentTypeEnum::LEAGUE->value,
+            'tournament_type' => TournamentTypeEnum::PRIVATE_TOURNAMENT->value,
         ]);
 
         $user = User::factory()->create();

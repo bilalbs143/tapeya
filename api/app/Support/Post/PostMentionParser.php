@@ -7,11 +7,14 @@ use Illuminate\Support\Collection;
 
 /**
  * Extracts @nickname tokens from post captions and comment bodies.
- * Token charset matches the consumer app; requires a boundary before @
- * (start of string or whitespace) so emails like user@gmail.com are ignored.
+ * Nicknames allow letters and spaces (see register/profile validation).
+ * Requires a boundary before @ (start of string or whitespace) so emails are ignored.
+ * Quoted form @"First Last" is supported for multi-word nicknames.
  */
 final class PostMentionParser
 {
+    private const NICKNAME_BODY = '[A-Za-z]+(?:\s+[A-Za-z]+)*';
+
     /**
      * @return list<string> Unique nicknames (first-seen casing), one per lowercase key
      */
@@ -21,17 +24,22 @@ final class PostMentionParser
             return [];
         }
 
-        if (! preg_match_all('/(?:^|[\s])@([a-zA-Z0-9_]+)/u', $body, $matches)) {
-            return [];
+        $unique = [];
+
+        if (preg_match_all('/(?:^|[\s])@"('.self::NICKNAME_BODY.')"/u', $body, $quoted)) {
+            foreach ($quoted[1] as $nickname) {
+                self::rememberNickname($unique, $nickname);
+            }
         }
 
-        $unique = [];
-        foreach ($matches[1] as $nickname) {
-            $key = strtolower($nickname);
-            if ($key === '' || isset($unique[$key])) {
-                continue;
+        if (preg_match_all(
+            '/(?:^|[\s])@([A-Za-z]+)(?=[\s.,!?;:—–\-]|$)/u',
+            $body,
+            $matches,
+        )) {
+            foreach ($matches[1] as $nickname) {
+                self::rememberNickname($unique, $nickname);
             }
-            $unique[$key] = $nickname;
         }
 
         return array_values($unique);
@@ -39,6 +47,7 @@ final class PostMentionParser
 
     /**
      * Active app users matching extracted nicknames (case-insensitive).
+     * Ambiguous nicknames (multiple users share the same nickname) are skipped.
      *
      * @return Collection<int, User>
      */
@@ -49,15 +58,36 @@ final class PostMentionParser
             return collect();
         }
 
-        $lower = array_map('strtolower', $nicknames);
-        $placeholders = implode(',', array_fill(0, count($lower), '?'));
+        $resolved = collect();
 
-        return User::query()
-            ->appUsers()
-            ->active()
-            ->whereNotNull('nickname')
-            ->where('nickname', '!=', '')
-            ->whereRaw('LOWER(nickname) IN ('.$placeholders.')', $lower)
-            ->get(['id', 'name', 'nickname', 'avatar']);
+        foreach ($nicknames as $nickname) {
+            $users = User::query()
+                ->appUsers()
+                ->active()
+                ->whereNotNull('nickname')
+                ->where('nickname', '!=', '')
+                ->whereRaw('LOWER(TRIM(nickname)) = ?', [strtolower(trim($nickname))])
+                ->get(['id', 'name', 'nickname', 'avatar']);
+
+            if ($users->count() === 1) {
+                $resolved->push($users->first());
+            }
+        }
+
+        return $resolved->unique('id')->values();
+    }
+
+    /**
+     * @param  array<string, string>  $unique
+     */
+    private static function rememberNickname(array &$unique, string $nickname): void
+    {
+        $trimmed = trim($nickname);
+        $key = strtolower($trimmed);
+        if ($key === '' || isset($unique[$key])) {
+            return;
+        }
+
+        $unique[$key] = $trimmed;
     }
 }

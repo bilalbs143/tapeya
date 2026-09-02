@@ -24,7 +24,7 @@ class TournamentTeamsController extends Controller
     public function index(Tournament $tournament): JsonResponse
     {
         $query = $tournament->teams()
-            ->with(['sponsor', 'iconPlayers'])
+            ->with(['owner', 'creator'])
             ->orderBy('name');
 
         $search = request()->input('filter.search');

@@ -33,14 +33,12 @@ class TeamCapabilityAuthTest extends TestCase
             'organizer_id' => $organizer->id,
             'created_by' => $organizer->id,
             'tournament_name' => 'Capability Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
+            'tournament_type' => 'open_tournament',
             'venue_name' => 'Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 4,
             'city' => 'Lahore',
-            'match_timings' => 'day',
         ]);
     }
 
@@ -127,30 +125,38 @@ class TeamCapabilityAuthTest extends TestCase
                 'city' => 'Lahore',
             ])
             ->assertCreated()
-            ->assertJsonPath('data.sponsor_id', $user->id);
+            ->assertJsonPath('data.owner_id', $user->id);
     }
 
-    public function test_app_user_cannot_create_team_for_another_user(): void
+    public function test_app_user_can_set_free_text_sponsor_and_icon_players(): void
     {
         $user = User::factory()->create(['type' => 'user']);
-        $other = User::factory()->create(['type' => 'user']);
 
         $this->actingAs($user, 'api')
             ->postJson('/api/v1/teams', [
-                'name' => 'Other Side',
-                'code' => 'OTH'.uniqid(),
+                'name' => 'Named Side',
+                'code' => 'NAM'.uniqid(),
                 'country' => 'PK',
                 'city' => 'Lahore',
-                'sponsor_user_id' => $other->id,
+                'sponsor' => 'Pepsi Cricket, Jazz',
+                'icon_players' => 'Babar Azam, Shaheen Afridi, Babar Azam',
             ])
-            ->assertForbidden();
+            ->assertCreated()
+            ->assertJsonPath('data.sponsor', 'Pepsi Cricket, Jazz')
+            ->assertJsonPath('data.icon_players', 'Babar Azam, Shaheen Afridi, Babar Azam')
+            ->assertJsonPath('data.owner_id', $user->id)
+            ->assertJsonMissingPath('data.sponsor_id')
+            ->assertJsonMissingPath('data.icon_player_ids');
     }
 
-    public function test_app_user_cannot_change_team_ownership(): void
+    public function test_app_user_can_update_and_clear_free_text_fields(): void
     {
         $owner = User::factory()->create(['type' => 'user']);
-        $other = User::factory()->create(['type' => 'user']);
         $team = $this->createTeamFor($owner);
+        $team->update([
+            'sponsor' => 'Old Sponsor',
+            'icon_players' => 'Old Icon',
+        ]);
 
         $this->actingAs($owner, 'api')
             ->putJson("/api/v1/teams/{$team->id}", [
@@ -158,9 +164,46 @@ class TeamCapabilityAuthTest extends TestCase
                 'code' => $team->code,
                 'country' => 'PK',
                 'city' => 'Lahore',
-                'sponsor_user_id' => $other->id,
+                'sponsor' => '  New Sponsor, Brand X  ',
+                'icon_players' => '  Player One, Player Two  ',
             ])
-            ->assertForbidden();
+            ->assertOk()
+            ->assertJsonPath('data.sponsor', 'New Sponsor, Brand X')
+            ->assertJsonPath('data.icon_players', 'Player One, Player Two');
+
+        $this->actingAs($owner, 'api')
+            ->putJson("/api/v1/teams/{$team->id}", [
+                'name' => $team->name,
+                'code' => $team->code,
+                'country' => 'PK',
+                'city' => 'Lahore',
+                'sponsor' => '',
+                'icon_players' => '',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.sponsor', null)
+            ->assertJsonPath('data.icon_players', null);
+    }
+
+    public function test_admin_can_create_team_with_owner_and_free_text_fields(): void
+    {
+        $admin = User::factory()->create(['type' => 'administrator']);
+        $owner = User::factory()->create(['type' => 'user']);
+
+        $this->actingAs($admin, 'api')
+            ->postJson('/api/v1/admin/teams', [
+                'name' => 'Admin Side',
+                'code' => 'ADM'.uniqid(),
+                'country' => 'PK',
+                'city' => 'Karachi',
+                'sponsor' => 'Pepsi, Jazz, Imad Waseem',
+                'icon_players' => 'Babar Azam, Shaheen Afridi',
+                'owner_user_id' => $owner->id,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.owner_id', $owner->id)
+            ->assertJsonPath('data.sponsor', 'Pepsi, Jazz, Imad Waseem')
+            ->assertJsonPath('data.icon_players', 'Babar Azam, Shaheen Afridi');
     }
 
     public function test_me_has_no_capability_bag(): void

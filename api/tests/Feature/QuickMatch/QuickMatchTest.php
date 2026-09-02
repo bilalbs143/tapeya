@@ -141,7 +141,7 @@ class QuickMatchTest extends TestCase
         $this->assertSame(4, (int) $quickRow->runs);
         $this->assertSame(0, PlayerBattingStats::query()
             ->where('player_id', $strikerId)
-            ->whereIn('tournament_type', ['league', 'open_tournament', 'emerging'])
+            ->whereIn('tournament_type', ['open_tournament', 'private_tournament'])
             ->count());
     }
 

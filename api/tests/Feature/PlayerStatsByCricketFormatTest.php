@@ -30,7 +30,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         $this->actingAs($this->organizer, 'api');
     }
 
-    public function test_career_rows_are_isolated_by_cricket_format(): void
+    public function test_career_rows_aggregate_by_tournament_type(): void
     {
         $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
         $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
@@ -38,19 +38,13 @@ class PlayerStatsByCricketFormatTest extends TestCase
         $this->scoreRunsForStriker($tapeMatch, $this->player(0)->id, 30);
         $this->scoreRunsForStriker($hardMatch, $this->player(0)->id, 50);
 
-        $tapeRow = PlayerBattingStats::where('player_id', $this->player(0)->id)
+        $row = PlayerBattingStats::where('player_id', $this->player(0)->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'tape_ball')
-            ->first();
-        $hardRow = PlayerBattingStats::where('player_id', $this->player(0)->id)
-            ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'hard_ball')
+            ->where('cricket_format', 'all')
             ->first();
 
-        $this->assertNotNull($tapeRow);
-        $this->assertNotNull($hardRow);
-        $this->assertSame(30, $tapeRow->runs);
-        $this->assertSame(50, $hardRow->runs);
+        $this->assertNotNull($row);
+        $this->assertSame(80, $row->runs);
     }
 
     public function test_same_bucket_aggregates_across_tournaments(): void
@@ -63,7 +57,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $row = PlayerBattingStats::where('player_id', $this->player(0)->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'tape_ball')
+            ->where('cricket_format', 'all')
             ->first();
 
         $this->assertNotNull($row);
@@ -71,7 +65,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         $this->assertSame(2, $row->matches);
     }
 
-    public function test_profile_stats_api_supports_format_filter(): void
+    public function test_profile_stats_api_open_tournament_bucket(): void
     {
         $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
         $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
@@ -80,32 +74,30 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $response = $this->getJson('/api/v1/users/'.$this->player(0)->id.'/stats?'.http_build_query([
             'tournament_type' => 'open_tournament',
-            'cricket_format' => 'tape_ball',
         ]));
 
         $response->assertOk();
         $response->assertJsonPath('data.tournament_type', 'open_tournament');
-        $response->assertJsonPath('data.cricket_format', 'tape_ball');
-        $response->assertJsonPath('data.batting.runs', 12);
+        $response->assertJsonPath('data.cricket_format', 'all');
+        $response->assertJsonPath('data.batting.runs', 100);
     }
 
     public function test_profile_rollup_across_types_for_single_format(): void
     {
         $openMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $leagueMatch = $this->createMatchForBucket('league', 'tape_ball');
+        $leagueMatch = $this->createMatchForBucket('private_tournament', 'tape_ball');
         $this->scoreRunsForStriker($openMatch, $this->player(0)->id, 10);
         $this->scoreRunsForStriker($leagueMatch, $this->player(0)->id, 25);
 
         $response = $this->getJson('/api/v1/users/'.$this->player(0)->id.'/stats?'.http_build_query([
             'tournament_type' => 'all',
-            'cricket_format' => 'tape_ball',
         ]));
 
         $response->assertOk();
         $response->assertJsonPath('data.batting.runs', 35);
     }
 
-    public function test_rankings_filter_by_cricket_format(): void
+    public function test_rankings_include_all_formats_for_tournament_type(): void
     {
         $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
         $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
@@ -115,15 +107,14 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $response = $this->getJson('/api/v1/rankings?'.http_build_query([
             'tournament_type' => 'open_tournament',
-            'cricket_format' => 'tape_ball',
             'category' => 'batting',
             'sort' => 'runs',
         ]));
 
         $response->assertOk();
-        $response->assertJsonPath('data.cricket_format', 'tape_ball');
+        $response->assertJsonPath('data.cricket_format', 'all');
         $playerIds = collect($response->json('data.rankings'))->pluck('player_id')->all();
-        $this->assertSame([$this->player(0)->id], $playerIds);
+        $this->assertEqualsCanonicalizing([$this->player(0)->id, $this->player(1)->id], $playerIds);
     }
 
     public function test_rankings_reject_invalid_category(): void
@@ -137,7 +128,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
     {
         $this->getJson('/api/v1/rankings?tournament_type=all&category=batting')
             ->assertStatus(400)
-            ->assertJsonFragment(['message' => 'tournament_type must be one of: league, open_tournament, emerging.']);
+            ->assertJsonFragment(['message' => 'tournament_type must be one of: open_tournament, private_tournament.']);
     }
 
     public function test_player_stats_service_reads_materialized_bucket(): void
@@ -149,7 +140,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         $stats = $service->battingForPlayer(
             $this->player(0)->id,
             'open_tournament',
-            'tape_ball'
+            'all'
         );
 
         $this->assertSame(42, $stats['runs']);
@@ -216,7 +207,6 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $response = $this->getJson('/api/v1/users/'.$bowlerId.'/stats?'.http_build_query([
             'tournament_type' => 'all',
-            'cricket_format' => 'all',
         ]));
 
         $response->assertOk();
@@ -267,7 +257,6 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $response = $this->getJson('/api/v1/rankings?'.http_build_query([
             'tournament_type' => 'open_tournament',
-            'cricket_format' => 'tape_ball',
             'category' => 'batting',
             'sort' => 'average',
         ]));
@@ -402,7 +391,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        $first = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'tape_ball'));
+        $first = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'all'));
         $this->assertSame(50, $first->firstWhere('player_id', $this->player(0)->id)['stats']['runs']);
 
         $this->recordBall($innings, [
@@ -413,7 +402,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         ]);
         RefreshMatchStatsJob::dispatchSync($match->id);
 
-        $second = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'tape_ball'));
+        $second = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'all'));
         $this->assertSame(60, $second->firstWhere('player_id', $this->player(0)->id)['stats']['runs']);
     }
 
@@ -423,13 +412,11 @@ class PlayerStatsByCricketFormatTest extends TestCase
             'organizer_id' => $this->organizer->id,
             'tournament_name' => 'Cup '.uniqid(),
             'tournament_type' => $tournamentType,
-            'cricket_format' => $cricketFormat,
             'venue_name' => 'Test Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'Test City',
-            'match_timings' => 'day',
         ]);
 
         $teamA = Team::create([
@@ -453,6 +440,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
             'match_date' => now()->toDateString(),
             'match_time' => '10:00:00',
             'venue_name' => 'Test Ground',
+            'cricket_format' => $cricketFormat,
             'players_per_side' => 3,
             'overs' => 2,
             'status' => MatchStatusEnum::IN_PROGRESS->value,

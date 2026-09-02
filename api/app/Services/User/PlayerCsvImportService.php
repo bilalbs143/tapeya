@@ -189,7 +189,7 @@ class PlayerCsvImportService
 
         $v = Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', 'unique:users,nickname'],
+            'nickname' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,}$/', 'unique:users,phone'],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],

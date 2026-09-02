@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\Event\CricketFormatEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,9 +15,7 @@ class PlayerFieldingStats extends Model
 
     protected function casts(): array
     {
-        return [
-            'cricket_format' => CricketFormatEnum::class,
-        ];
+        return [];
     }
 
     public function player(): BelongsTo

@@ -53,7 +53,7 @@ class LiveStreamListingTest extends TestCase
     {
         $user = User::factory()->create();
         $match = $this->createMatch();
-        $match->tournament->update(['tournament_type' => TournamentTypeEnum::LEAGUE->value]);
+        $match->tournament->update(['tournament_type' => TournamentTypeEnum::PRIVATE_TOURNAMENT->value]);
 
         LiveStream::factory()->create([
             'match_id' => $match->id,

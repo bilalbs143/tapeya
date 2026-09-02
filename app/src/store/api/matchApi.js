@@ -69,6 +69,15 @@ export const matchApi = baseApi.injectEndpoints({
         matchId && teamId ? [{ type: 'Match', id: `${matchId}-team-${teamId}` }] : [],
     }),
 
+    getMatchPlayingEleven: builder.query({
+      query: ({ matchId, teamId }) => ({
+        url: `/matches/${matchId}/teams/${teamId}/playing-eleven`,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (_result, _err, { matchId, teamId }) =>
+        matchId && teamId ? [{ type: 'Match', id: `${matchId}-xi-${teamId}` }] : [],
+    }),
+
     storeMatchSquad: builder.mutation({
       query: ({ matchId, teamId, player_ids }) => ({
         url: `/matches/${matchId}/teams/${teamId}/squad`,
@@ -210,11 +219,12 @@ export const matchApi = baseApi.injectEndpoints({
         body: { player_ids },
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, { matchId }) =>
-        matchId
+      invalidatesTags: (_result, _err, { matchId, teamId }) =>
+        matchId && teamId
           ? [
               { type: 'MatchState', id: matchId },
               { type: 'Scorecard', id: matchId },
+              { type: 'Match', id: `${matchId}-xi-${teamId}` },
             ]
           : [],
     }),
@@ -494,6 +504,7 @@ export const {
   useGetMatchPlayerStatsQuery,
   useLazyGetMatchPlayerStatsQuery,
   useGetMatchTeamSquadQuery,
+  useGetMatchPlayingElevenQuery,
   useStoreMatchSquadMutation,
   useUpdateWicketKeeperMutation,
   useStoreMatchSubstituteMutation,

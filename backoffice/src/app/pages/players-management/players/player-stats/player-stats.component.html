@@ -93,20 +93,6 @@
                 </mat-select>
               </mat-form-field>
             </div>
-
-            <div>
-              <mat-form-field
-                appearance="outline"
-                class="w-full hide-hint"
-              >
-                <mat-label>Cricket Format</mat-label>
-                <mat-select formControlName="cricket_format">
-                  @for (opt of cricketFormatOptions; track opt.value) {
-                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
           </app-search-filter-bar>
         </form>
       </div>
@@ -195,9 +181,7 @@
                 <section class="px-5 py-5">
                   <header class="mb-3.5">
                     <h2 class="m-0 text-[15px] font-semibold leading-snug">Batting Details</h2>
-                    <p class="m-0 mt-1 text-xs text-muted">
-                      Career batting statistics for the selected tournament type and format.
-                    </p>
+                    <p class="m-0 mt-1 text-xs text-muted">Career batting statistics for the selected tournament type.</p>
                   </header>
                   <dl class="m-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     @for (row of battingRows(stats.batting); track row.label) {
@@ -280,9 +264,7 @@
                 <section class="px-5 py-5">
                   <header class="mb-3.5">
                     <h2 class="m-0 text-[15px] font-semibold leading-snug">Bowling Details</h2>
-                    <p class="m-0 mt-1 text-xs text-muted">
-                      Career bowling statistics for the selected tournament type and format.
-                    </p>
+                    <p class="m-0 mt-1 text-xs text-muted">Career bowling statistics for the selected tournament type.</p>
                   </header>
                   <dl class="m-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     @for (row of bowlingRows(stats.bowling); track row.label) {
@@ -378,9 +360,7 @@
                 <section class="px-5 py-5">
                   <header class="mb-3.5">
                     <h2 class="m-0 text-[15px] font-semibold leading-snug">Fielding Details</h2>
-                    <p class="m-0 mt-1 text-xs text-muted">
-                      Career fielding statistics for the selected tournament type and format.
-                    </p>
+                    <p class="m-0 mt-1 text-xs text-muted">Career fielding statistics for the selected tournament type.</p>
                   </header>
                   <dl class="m-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     @for (row of fieldingRows(stats.fielding); track row.label) {

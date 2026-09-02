@@ -23,16 +23,14 @@ class TeamResource extends JsonResource
             'country' => $team->country,
             'city' => $team->city,
 
-            'sponsor_id' => $team->user_id,
-            'sponsor' => $this->whenLoaded('sponsor', fn () => new UserResource($team->sponsor)),
+            'sponsor' => $team->sponsor,
+            'icon_players' => $team->icon_players,
+
+            'owner_id' => $team->user_id,
+            'owner' => $this->whenLoaded('owner', fn () => new UserResource($team->owner)),
 
             'created_by' => $team->created_by,
             'creator' => $this->whenLoaded('creator', fn () => new UserResource($team->creator)),
-
-            'icon_player_ids' => $team->relationLoaded('iconPlayers')
-                ? $team->iconPlayers->pluck('id')->values()->all()
-                : [],
-            'icon_players' => $this->whenLoaded('iconPlayers', fn () => UserResource::collection($team->iconPlayers)),
 
             'group_index' => $this->when(isset($team->pivot), fn () => $team->pivot->group_index),
 

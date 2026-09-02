@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 /**
  * Build Go Live form schema using orientation values from GET /enums → stream_orientation.
- * Same pattern as createTournamentRequestSchema(groupModeValues).
  *
  * @param {string[]} orientationValues — enums.stream_orientation.map((o) => o.value)
  */

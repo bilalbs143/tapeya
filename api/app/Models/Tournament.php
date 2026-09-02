@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Enums\Common\StatusEnum;
-use App\Enums\Event\CricketFormatEnum;
-use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Models\Relations\TournamentSquadPlayersRelation;
@@ -26,7 +24,6 @@ class Tournament extends BaseModel
         'tournament_name',
         'short_name',
         'tournament_type',
-        'cricket_format',
         'venue_name',
         'start_date',
         'end_date',
@@ -34,7 +31,6 @@ class Tournament extends BaseModel
         'number_of_groups',
         'country',
         'city',
-        'match_timings',
         'status',
         'stream_provider',
         'display_image',
@@ -52,8 +48,6 @@ class Tournament extends BaseModel
     {
         return [
             'tournament_type' => TournamentTypeEnum::class,
-            'cricket_format' => CricketFormatEnum::class,
-            'match_timings' => MatchTimingEnum::class,
             'status' => StatusEnum::class,
             'start_date' => 'date',
             'end_date' => 'date',

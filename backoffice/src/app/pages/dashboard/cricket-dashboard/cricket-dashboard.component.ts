@@ -47,7 +47,7 @@ export class CricketDashboardComponent implements OnInit {
   );
 
   // ── Format breakdowns ─────────────────────────────────────────────────────
-  public readonly tournamentsByFormat = computed(() => this.stats()?.tournaments_by_format ?? []);
+  public readonly tournamentsByType = computed(() => this.stats()?.tournaments_by_type ?? []);
   public readonly matchesByFormat = computed(() => this.stats()?.matches_by_format ?? []);
 
   // ── Top teams ─────────────────────────────────────────────────────────────
@@ -62,12 +62,8 @@ export class CricketDashboardComponent implements OnInit {
   public readonly playerGrowthLabels = computed(() => this.stats()?.player_growth_labels ?? []);
   public readonly playerGrowthCounts = computed(() => this.stats()?.player_growth_counts ?? []);
 
-  // ── Tournament requests (6 months) ────────────────────────────────────────
-  public readonly requestsMonthlyLabels = computed(() => this.stats()?.requests_monthly_labels ?? []);
-  public readonly requestsMonthlyCounts = computed(() => this.stats()?.requests_monthly_counts ?? []);
-
-  // ── Request pipeline ──────────────────────────────────────────────────────
-  public readonly requestPipeline = computed(() => this.stats()?.request_pipeline ?? { pending: 0, approved: 0, rejected: 0 });
+  public readonly tournamentsMonthlyLabels = computed(() => this.stats()?.tournaments_monthly_labels ?? []);
+  public readonly tournamentsMonthlyCounts = computed(() => this.stats()?.tournaments_monthly_counts ?? []);
 
   // ── Active platform ─────────────────────────────────────────────────────────
   public readonly usersByActivePlatform = computed(() => this.stats()?.users_by_active_platform ?? []);
@@ -76,7 +72,7 @@ export class CricketDashboardComponent implements OnInit {
   // ── Live / recent matches ─────────────────────────────────────────────────
   public readonly liveMatches = computed(() => this.stats()?.live_matches ?? []);
   public readonly recentMatches = computed(() => this.stats()?.recent_matches ?? []);
-  public readonly recentRequests = computed(() => this.stats()?.recent_tournament_requests ?? []);
+  public readonly recentTournaments = computed(() => this.stats()?.recent_tournaments ?? []);
 
   // ── Derived computed signals for ApexCharts ───────────────────────────────
 
@@ -95,11 +91,11 @@ export class CricketDashboardComponent implements OnInit {
   public readonly formatBarSeries = computed(() => [
     {
       name: 'Tournaments',
-      data: this.tournamentsByFormat().map((f) => f.count),
+      data: this.tournamentsByType().map((f) => f.count),
     },
   ]);
 
-  public readonly formatBarCategories = computed(() => this.tournamentsByFormat().map((f) => f.label));
+  public readonly formatBarCategories = computed(() => this.tournamentsByType().map((f) => f.label));
 
   public readonly matchFormatSeries = computed(() => [
     {
@@ -124,17 +120,12 @@ export class CricketDashboardComponent implements OnInit {
     },
   ]);
 
-  public readonly requestsSeries = computed(() => [
+  public readonly tournamentsCreatedSeries = computed(() => [
     {
-      name: 'Requests',
-      data: this.requestsMonthlyCounts(),
+      name: 'Tournaments Created',
+      data: this.tournamentsMonthlyCounts(),
     },
   ]);
-
-  public readonly pipelineSeries = computed(() => {
-    const p = this.requestPipeline();
-    return [p.pending, p.approved, p.rejected];
-  });
 
   public readonly platformSeries = computed(() => this.usersByActivePlatform().map((row) => row.count));
 
@@ -286,7 +277,7 @@ export class CricketDashboardComponent implements OnInit {
 
   public readonly playerGrowthBarColors = ['var(--mat-sys-tertiary)'];
 
-  public readonly requestsLineChart = {
+  public readonly tournamentsCreatedLineChart = {
     type: 'line' as const,
     height: 240,
     toolbar: { show: false },
@@ -295,44 +286,8 @@ export class CricketDashboardComponent implements OnInit {
     zoom: { enabled: false },
   };
 
-  public readonly requestsLineStroke = { curve: 'smooth' as const, width: 2 };
-  public readonly requestsLineColors = ['var(--mat-sys-secondary)'];
-
-  public readonly pipelineDonutChart = {
-    type: 'donut' as const,
-    height: 180,
-    fontFamily: 'inherit',
-    toolbar: { show: false },
-    foreColor: 'var(--mat-sys-on-surface-variant)',
-  };
-
-  public readonly pipelineLabels = ['Pending', 'Approved', 'Rejected'];
-
-  public readonly pipelineColors = ['var(--color-warning)', 'var(--color-success)', 'var(--mat-sys-error)'];
-
-  public readonly pipelineLegend = {
-    position: 'bottom' as const,
-    fontSize: '11px',
-    labels: { colors: 'var(--mat-sys-on-surface-variant)' },
-  };
-
-  public readonly pipelinePlotOptions = {
-    pie: {
-      donut: {
-        size: '55%',
-        labels: {
-          show: true,
-          total: {
-            show: true,
-            label: 'Total',
-            color: 'var(--mat-sys-on-surface-variant)',
-            formatter: (w: { globals: { seriesTotals: number[] } }): string =>
-              String(w.globals.seriesTotals.reduce((a, b) => a + b, 0)),
-          },
-        },
-      },
-    },
-  };
+  public readonly tournamentsCreatedLineStroke = { curve: 'smooth' as const, width: 2 };
+  public readonly tournamentsCreatedLineColors = ['var(--mat-sys-secondary)'];
 
   public readonly platformDonutChart = {
     type: 'donut' as const,
@@ -398,7 +353,7 @@ export class CricketDashboardComponent implements OnInit {
   }
 
   public hasFormatData(): boolean {
-    return this.tournamentsByFormat().length > 0;
+    return this.tournamentsByType().length > 0;
   }
 
   public hasMatchFormatData(): boolean {
@@ -413,12 +368,8 @@ export class CricketDashboardComponent implements OnInit {
     return this.hasSeries(this.playerGrowthCounts());
   }
 
-  public hasRequestsData(): boolean {
-    return this.hasSeries(this.requestsMonthlyCounts());
-  }
-
-  public hasPipelineData(): boolean {
-    return this.hasSeries(this.pipelineSeries());
+  public hasTournamentsCreatedData(): boolean {
+    return this.hasSeries(this.tournamentsMonthlyCounts());
   }
 
   public hasPlatformData(): boolean {
@@ -441,15 +392,8 @@ export class CricketDashboardComponent implements OnInit {
     return `${m.winner} won`;
   }
 
-  public requestStatusClass(status: string | null): string {
-    switch (status) {
-      case 'approved':
-        return 'text-success';
-      case 'rejected':
-        return 'text-error';
-      default:
-        return 'text-warning';
-    }
+  public tournamentStatusClass(status: string | null): string {
+    return status === 'active' ? 'text-success' : 'text-muted';
   }
 
   public formatDate(iso: string | null): string {

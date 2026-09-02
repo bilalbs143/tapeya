@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { phoneSchema } from './shared';
-
 /** Fallback when API group_mode enum is not yet loaded (must match API GroupModeEnum). */
 const DEFAULT_GROUP_MODE_VALUES = ['open', 'group_wise'];
 
@@ -34,35 +32,33 @@ function parseDateString(str) {
 }
 
 /**
- * Build tournament request form schema using group mode values (e.g. from API enums).
- * Pass enums.group_mode.map(o => o.value) or [] to use fallback ['open', 'group_wise'].
- * Keys match tournament_requests table columns for easy submit mapping.
- *
  * @param {string[]} groupModeValues - Allowed group_mode values from API (GET /enums → group_mode[].value)
  */
-export function createTournamentRequestSchema(groupModeValues = []) {
+export function createCreateTournamentSchema(groupModeValues = []) {
   const groupModeEnum =
     Array.isArray(groupModeValues) && groupModeValues.length >= 2 ? groupModeValues : DEFAULT_GROUP_MODE_VALUES;
 
   return z
     .object({
-      contact_person_name: z.string().min(1, 'Contact person name is required').max(255),
-      contact_phone: phoneSchema,
       tournament_name: z.string().min(1, 'Tournament name is required').max(255),
-      short_name: z.string().max(64).optional(),
-      tournament_type: z.string().min(1, 'Tournament type is required'),
-      cricket_format: z.string().min(1, 'Cricket format is required'),
+      short_name: z
+        .string()
+        .min(1, 'Short name is required')
+        .max(64, 'Short name must be 64 characters or less')
+        .transform((v) => v.trim()),
+      tournament_type: z.enum(['open_tournament', 'private_tournament'], {
+        required_error: 'Tournament type is required',
+      }),
       venue_name: z.string().min(1, 'Venue name is required').max(255),
       start_date: z.string().min(1, 'Start date is required'),
       end_date: z.string().min(1, 'End date is required'),
       number_of_teams: z.coerce
         .number({ invalid_type_error: 'Enter a number' })
         .int('Must be a whole number')
-        .min(1, 'At least 1 team')
+        .min(2, 'At least 2 teams')
         .max(500),
       country: z.string().min(1, 'Country is required').max(100),
       city: z.string().min(1, 'City is required').max(100),
-      match_timings: z.string().min(1, 'Match timings is required'),
       prize: z.string().max(255).optional(),
       group_mode: z.enum(groupModeEnum, {
         required_error: 'Select Open Group or Group Wise',
@@ -117,5 +113,25 @@ export function createTournamentRequestSchema(groupModeValues = []) {
     );
 }
 
-/** Default schema using fallback group mode values (for when API is not used). */
-export const tournamentRequestSchema = createTournamentRequestSchema();
+export const createTournamentSchema = createCreateTournamentSchema();
+
+/**
+ * @param {import('zod').infer<ReturnType<typeof createCreateTournamentSchema>>} data
+ */
+export function buildCreateTournamentPayload(data) {
+  const number_of_groups = data.group_mode === 'group_wise' && data.number_of_groups != null ? Number(data.number_of_groups) : 1;
+
+  return {
+    tournament_name: data.tournament_name.trim(),
+    short_name: data.short_name,
+    tournament_type: data.tournament_type,
+    venue_name: data.venue_name.trim(),
+    start_date: data.start_date,
+    end_date: data.end_date,
+    number_of_teams: data.number_of_teams,
+    number_of_groups,
+    country: data.country.trim(),
+    city: data.city.trim(),
+    prize: data.prize?.trim() || undefined,
+  };
+}

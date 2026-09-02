@@ -17,7 +17,7 @@ export const playerApi = baseApi.injectEndpoints({
       providesTags: (result, error, { userId }) => (result ? [{ type: 'User', id: `stats-${userId}` }] : []),
     }),
     /**
-     * Open-tournament tape-ball rank; pass category + sort from user playing role.
+     * Open-tournament rank; pass category + sort from user playing role.
      * Params may be omitted — API derives category/sort from the user's profile when absent.
      */
     getPlayerRankingPosition: builder.query({

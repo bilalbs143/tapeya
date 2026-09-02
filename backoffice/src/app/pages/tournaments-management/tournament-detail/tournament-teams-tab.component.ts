@@ -114,7 +114,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
         case 'code':
           return row.code ?? '';
         case 'sponsor':
-          return row.sponsor?.nickname || row.sponsor?.name || '';
+          return typeof row.sponsor === 'string' ? row.sponsor : '';
         case 'group':
           return row.group_index ?? Number.MAX_SAFE_INTEGER;
         default:
@@ -279,9 +279,10 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       country: row.country ?? '',
       city: row.city ?? '',
       logo: row.logo,
-      sponsor_id: row.sponsor?.id ?? 0,
-      sponsor: row.sponsor,
-      icon_player_ids: [],
+      sponsor: typeof row.sponsor === 'string' ? row.sponsor : null,
+      icon_players: typeof row.icon_players === 'string' ? row.icon_players : null,
+      owner_id: row.owner_id ?? row.owner?.id ?? 0,
+      owner: row.owner ?? null,
     };
   }
 

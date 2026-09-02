@@ -18,7 +18,7 @@ class UserTeamController extends Controller
 
     public function index(User $user): JsonResponse
     {
-        $teams = $user->teams()->with(['sponsor'])->orderBy('name')->get();
+        $teams = $user->teams()->with(['owner'])->orderBy('name')->get();
 
         return $this->success(TeamResource::collection($teams));
     }

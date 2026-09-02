@@ -83,4 +83,41 @@ class UserCanScoreMatchInAppTest extends TestCase
         $this->assertFalse($owner->canOperateTournamentInApp($this->scoringMatch->tournament));
         $this->assertFalse($owner->canScoreMatchInApp($this->scoringMatch));
     }
+
+    public function test_fan_can_view_open_tournament_scorecard_but_not_score(): void
+    {
+        $this->setUpScoringMatch();
+        $fan = User::factory()->create(['type' => 'user', 'status' => 'active']);
+
+        $this->assertTrue($fan->canViewMatchScorecardInApp($this->scoringMatch));
+        $this->assertFalse($fan->canScoreMatchInApp($this->scoringMatch));
+    }
+
+    public function test_fan_cannot_view_private_tournament_scorecard(): void
+    {
+        $this->setUpScoringMatch();
+        $this->scoringMatch->tournament->update(['tournament_type' => 'private_tournament']);
+        $fan = User::factory()->create(['type' => 'user', 'status' => 'active']);
+
+        $this->assertFalse($fan->canViewMatchScorecardInApp($this->scoringMatch));
+    }
+
+    public function test_organizer_can_view_private_tournament_scorecard(): void
+    {
+        $this->setUpScoringMatch();
+        $this->scoringMatch->tournament->update(['tournament_type' => 'private_tournament']);
+
+        $this->assertTrue($this->organizer->canViewMatchScorecardInApp($this->scoringMatch));
+    }
+
+    public function test_any_active_user_can_view_quick_match_scorecard(): void
+    {
+        $owner = User::factory()->create(['type' => 'user', 'status' => 'active']);
+        $viewer = User::factory()->create(['type' => 'user', 'status' => 'active']);
+        $match = $this->createQuickMatch($owner);
+        $match->setRelation('tournament', null);
+
+        $this->assertTrue($viewer->canViewMatchScorecardInApp($match));
+        $this->assertFalse($viewer->canScoreMatchInApp($match));
+    }
 }

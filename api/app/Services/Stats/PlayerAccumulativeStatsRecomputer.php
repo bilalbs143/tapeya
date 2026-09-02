@@ -17,7 +17,7 @@ use App\Services\PlayerStatsService;
 
 /**
  * Refresh career buckets in player_*_stats.
- * Tournament path: league / OT / emerging (+ rankings cache bust).
+ * Tournament path: open / private — one career row per type (cricket_format=all).
  * Quick path: tournament_type='quick' keyed by match cricket_format (no rankings bust).
  */
 final class PlayerAccumulativeStatsRecomputer
@@ -39,15 +39,10 @@ final class PlayerAccumulativeStatsRecomputer
 
         $eventType = $tournament->tournament_type;
         $eventTypeValue = $eventType instanceof TournamentTypeEnum ? $eventType->value : (string) $eventType;
-        $cricketFormat = $tournament->cricket_format;
-        $cricketFormatValue = $cricketFormat instanceof CricketFormatEnum
-            ? $cricketFormat->value
-            : (string) $cricketFormat;
+        $cricketFormatValue = 'all';
 
         $matchIdsInBucket = TournamentMatch::query()
-            ->whereHas('tournament', fn ($q) => $q
-                ->where('tournament_type', $eventTypeValue)
-                ->where('cricket_format', $cricketFormatValue))
+            ->whereHas('tournament', fn ($q) => $q->where('tournament_type', $eventTypeValue))
             ->pluck('id')
             ->all();
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { withIosNativeEmbedParams } from '@/lib/utils/liveStreamUtils';
-import { streamDebugLog } from '@/lib/utils/streamDebugLog';
+import { isStreamDebugEnabled, STREAM_DEBUG_PANEL_PX, streamDebugLog } from '@/lib/utils/streamDebugLog';
 import {
   hideYoutubeStreamOverlay,
   showYoutubeStreamOverlay,
@@ -11,7 +11,6 @@ import {
 import { useIosNativeIframeLoad } from '../hooks/useIosNativeIframeLoad';
 import { useIosNativePlayback } from '../hooks/useIosNativePlayback';
 import { buildNativeOverlayLayout, buildNativeStackLayout } from '../ios/iosNativeStreamLayout';
-import { shouldShowStreamDebugOverlay, STREAM_DEBUG_PANEL_PX } from '../StreamDebugOverlay';
 import { StreamVideoLoading } from '../StreamVideoLoading';
 import { StreamVideoRetry } from '../StreamVideoRetry';
 
@@ -26,7 +25,7 @@ function hasValidPortraitFrame(layout) {
 }
 
 function applyDebugTopInset(layout, skipInset = false) {
-  if (skipInset || !shouldShowStreamDebugOverlay() || layout.immersiveFullscreen) {
+  if (skipInset || !isStreamDebugEnabled() || layout.immersiveFullscreen) {
     return layout;
   }
   const inset = STREAM_DEBUG_PANEL_PX;

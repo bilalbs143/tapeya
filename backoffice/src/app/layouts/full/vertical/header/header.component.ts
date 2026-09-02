@@ -25,7 +25,7 @@ import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
-import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
+import { adminNotificationTypeLabel, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
 import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
 import { applyDocumentTheme } from 'src/app/shared/functions/theme-swap.function';
 
@@ -108,12 +108,11 @@ export class HeaderComponent implements OnInit {
 
   public notificationTypeLabel(type: string | null): string {
     if (!type) return 'Notification';
-    return ADMIN_NOTIFICATION_TYPE_LABELS[type as keyof typeof ADMIN_NOTIFICATION_TYPE_LABELS] ?? type;
+    return adminNotificationTypeLabel(type) || 'Notification';
   }
 
   public notificationIcon(type: string | null): string {
     if (type === AdminNotificationType.ORDER_PLACED) return 'shopping-cart';
-    if (type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED) return 'file-text';
     if (type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED) return 'building-store';
     if (type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) return 'broadcast';
     if (type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) return 'gauge';

@@ -23,15 +23,15 @@ class TeamController extends Controller
 
     /**
      * List/search teams (e.g. for organizer to find a team to attach to tournament).
-     * GET /teams?search=... — optional search by code or name (partial match).
-     * GET /teams?mine=1 — only teams owned by the authenticated user (sponsor).
+     * GET /teams?search=... — optional search by code, name, sponsor, or icon players.
+     * GET /teams?mine=1 — only teams owned by the authenticated user.
      */
     public function index(): JsonResponse
     {
         $search = request()->str('search')->trim();
         $mine = request()->boolean('mine');
         $query = Team::query()
-            ->with(['sponsor', 'iconPlayers'])
+            ->with(['owner', 'creator'])
             ->orderBy('name');
 
         if ($mine) {
@@ -46,7 +46,9 @@ class TeamController extends Controller
             $term = '%'.mb_strtolower($search->toString()).'%';
             $query->where(function ($q) use ($term) {
                 $q->whereRaw('LOWER(code) LIKE ?', [$term])
-                    ->orWhereRaw('LOWER(name) LIKE ?', [$term]);
+                    ->orWhereRaw('LOWER(name) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(sponsor, \'\')) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(icon_players, \'\')) LIKE ?', [$term]);
             });
         }
 
@@ -57,38 +59,24 @@ class TeamController extends Controller
 
     /**
      * Create a team owned by the authenticated user.
-     *
-     * App users may only create a team for themselves (assignment-based ownership).
-     * Creating a team on behalf of another user is admin-only.
      */
     public function store(StoreTeamRequest $request): JsonResponse
     {
         $authUser = $request->user();
         $data = $request->validated();
 
-        $sponsorId = isset($data['sponsor_user_id']) ? (int) $data['sponsor_user_id'] : (int) $authUser->id;
-        $iconPlayerIds = $data['icon_player_ids'] ?? [];
-
-        unset($data['sponsor_user_id'], $data['icon_player_ids']);
-
-        if ($sponsorId !== (int) $authUser->id) {
-            return $this->forbidden('You can only create a team for yourself.');
-        }
-
         $team = Team::create([
             'name' => $data['name'],
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
+            'sponsor' => Team::normalizeFreeText($data['sponsor'] ?? null),
+            'icon_players' => Team::normalizeFreeText($data['icon_players'] ?? null),
             'user_id' => $authUser->id,
             'created_by' => $authUser->id,
         ]);
 
-        if (! empty($iconPlayerIds)) {
-            $team->iconPlayers()->sync($iconPlayerIds);
-        }
-
-        $team->load(['sponsor', 'creator', 'iconPlayers']);
+        $team->load(['owner', 'creator']);
 
         return $this->success(
             new TeamResource($team),
@@ -98,10 +86,7 @@ class TeamController extends Controller
     }
 
     /**
-     * Update team metadata (name, code, country, city, icon players).
-     *
-     * Allowed for the team owner or tournament staff of a tournament that includes this team.
-     * Ownership changes are admin-only.
+     * Update team metadata (name, code, country, city, sponsor, icon players).
      */
     public function update(UpdateTeamRequest $request, Team $team): JsonResponse
     {
@@ -112,31 +97,20 @@ class TeamController extends Controller
         }
 
         $data = $request->validated();
-        $iconPlayerIds = $data['icon_player_ids'] ?? [];
-
-        if (isset($data['sponsor_user_id']) && (int) $data['sponsor_user_id'] !== (int) $team->user_id) {
-            return $this->forbidden('Only administrators can change team ownership.');
-        }
 
         $team->update([
             'name' => $data['name'],
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
+            'sponsor' => Team::normalizeFreeText($data['sponsor'] ?? null),
+            'icon_players' => Team::normalizeFreeText($data['icon_players'] ?? null),
         ]);
-
-        $team->iconPlayers()->sync($iconPlayerIds);
-        $team->load(['sponsor', 'creator', 'iconPlayers']);
+        $team->load(['owner', 'creator']);
 
         return $this->success(new TeamResource($team), 'Team updated.', 'SUCCESS');
     }
 
-    /**
-     * Get the team-level squad (players belonging to this team).
-     * GET /teams/{team}/squad
-     *
-     * Any authenticated app user may view (squad is public within the app).
-     */
     public function showSquad(Team $team): JsonResponse
     {
         $team->load('players');
@@ -144,11 +118,6 @@ class TeamController extends Controller
         return $this->success(UserResource::collection($team->players));
     }
 
-    /**
-     * Create or update the team-level squad (players belonging to this team).
-     *
-     * Allowed for the team owner or tournament staff of a tournament that includes this team.
-     */
     public function storeSquad(StoreTeamSquadRequest $request, Team $team): JsonResponse
     {
         $authUser = $request->user();

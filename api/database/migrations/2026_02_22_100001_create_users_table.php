@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('nickname', 50)->nullable()->unique();
+            $table->string('nickname', 50)->nullable();
             $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
@@ -29,7 +29,6 @@ return new class extends Migration
             $table->unsignedInteger('posts_count')->default(0);
             $table->unsignedInteger('following_count')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('referred_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('date_of_birth')->nullable();
             $table->string('playing_role', 30)->nullable();
             $table->string('bowling_style', 50)->nullable();

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
-use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\Admin\User\UserResource;
@@ -23,7 +22,7 @@ class UserController extends BaseAdminController
 
     protected function baseQuery()
     {
-        return User::query()->user()->with(['creator:id,name,nickname', 'referrer:id,nickname', 'roles']);
+        return User::query()->user()->with(['creator:id,name,nickname', 'roles']);
     }
 
     public function store(StoreUserRequest $request): JsonResponse
@@ -33,9 +32,7 @@ class UserController extends BaseAdminController
         unset($data['admin_role_ids']);
 
         if (! isset($data['status'])) {
-            $data['status'] = ($data['type'] ?? null) === UserTypeEnum::USER->value
-                ? UserStatusEnum::VERIFICATION_PENDING->value
-                : UserStatusEnum::ACTIVE->value;
+            $data['status'] = UserStatusEnum::ACTIVE->value;
         }
 
         $data['created_by'] = $request->user()?->id;

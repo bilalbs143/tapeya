@@ -109,30 +109,6 @@
             appearance="outline"
             class="w-full"
           >
-            <mat-label>Cricket Format</mat-label>
-            <mat-select
-              formControlName="cricket_format"
-              placeholder="Select Format"
-            >
-              @if (cricketFormatOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-            @if (
-              form.get('cricket_format')?.invalid && (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)
-            ) {
-              <mat-error>Select a cricket format.</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <div class="col-span-12 lg:col-span-6">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
             <mat-label>Prize</mat-label>
             <input
               matInput
@@ -204,27 +180,6 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 lg:col-span-6">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-label>Match Timings</mat-label>
-            <mat-select
-              formControlName="match_timings"
-              placeholder="Select Timings"
-            >
-              @if (matchTimingsOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-            @if (form.get('match_timings')?.invalid && (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)) {
-              <mat-error>Select match timings.</mat-error>
-            }
-          </mat-form-field>
-        </div>
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"

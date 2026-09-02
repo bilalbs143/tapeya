@@ -85,10 +85,10 @@ End-to-end flow from tournament request to scheduled tournament matches. Defines
 **To implement:**
 
 - Sponsor-facing and organizer-facing APIs/screens to:
-  - List events (and, for organizer, list sponsors) so teams can be created for an event or on behalf of a sponsor.
-  - **Create team** with: name, logo, code, country, city, user_id (sponsor), created_by (optional), icon players (user_id list).
+  - List events (and, for organizer, list owners) so teams can be created for an event.
+  - **Create team** with: name, logo, code, country, city, free-text **sponsor** / **icon_players** (comma-separated), `user_id` (managing owner), `created_by` (optional).
   - Edit team and manage **squad/players** (add/remove players; drafting flow if required).
-- Data model: **teams** table with: name, logo, code, country, city, user_id (sponsor), created_by (nullable; user_id of creator — sponsor or organizer). **team_icon_players** or a JSON/array for icon player user_ids. **event_team** / **team_user** (or similar) to link teams to tournaments and to squad members.
+- Data model: **teams** table with: name, logo, code, country, city, `sponsor` (string), `icon_players` (string), `user_id` (owner), `created_by` (nullable). **team_user** links squad members; **tournament_team** links teams to tournaments.
 
 ---
 

@@ -13,17 +13,6 @@ export const TournamentsManagementRoutes: Routes = [
     },
   },
   {
-    path: 'tournament-requests',
-    loadComponent: () =>
-      import('./tournament-requests/tournament-requests-list.component').then((m) => m.TournamentRequestsListComponent),
-    data: {
-      title: 'Tournament Requests',
-      icon: 'solar:clipboard-list-line-duotone',
-      hideBreadcrumb: true,
-      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Tournament Requests' }],
-    },
-  },
-  {
     path: 'interest-campaigns',
     loadComponent: () =>
       import('./interest-campaigns/interest-campaigns-list.component').then((m) => m.InterestCampaignsListComponent),

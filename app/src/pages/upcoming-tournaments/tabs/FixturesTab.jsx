@@ -7,7 +7,6 @@ import { formatDate } from '@/lib/utils/dateUtils';
 import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
-import { Button } from '@/ui/Button';
 import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
@@ -85,9 +84,21 @@ export function FixturesTab({
     const dateLabel = match.match_date ? formatDate(match.match_date) : '';
     const timePart = match.match_time ? ` · ${match.match_time}` : '';
     const venue = match.venue_name ?? '';
+    const goToMatch = () => {
+      if (match.id == null) return;
+      if (canManageTournament && status !== 'result') {
+        navigate(`/organizer/scoring/match/${match.id}`);
+        return;
+      }
+      navigate(`/scorecard/${tournamentId}/match/${match.id}`);
+    };
 
     return (
-      <div className="bg-surface rounded-[17px] p-4 text-white">
+      <button
+        type="button"
+        onClick={goToMatch}
+        className="bg-surface w-full rounded-[17px] p-4 text-left text-white transition-opacity active:opacity-90"
+      >
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-brand text-[12px] font-bold uppercase">{STATUS_LABELS[status] ?? 'Upcoming'}</span>
@@ -121,14 +132,12 @@ export function FixturesTab({
             <span className="text-white">{venue}</span>
           </p>
         )}
-        {canManageTournament && match.id != null && (
+        {canManageTournament && match.id != null && status !== 'live' && status !== 'result' && (
           <div className="mt-3 flex justify-end border-t border-white/10 pt-3">
-            <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/organizer/scoring/match/${match.id}`)}>
-              {status === 'live' ? 'Continue Scoring' : status === 'result' ? 'View Fixture' : 'Start Match'}
-            </Button>
+            <span className="text-brand text-[12px] font-semibold">Tap to start scoring</span>
           </div>
         )}
-      </div>
+      </button>
     );
   };
 

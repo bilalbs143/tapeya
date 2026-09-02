@@ -1,5 +1,5 @@
 /**
- * Ranking.jsx — Open-tournament tape-ball rankings: Top Batters, Top Bowlers, Others (sixes/fours).
+ * Ranking.jsx — Open-tournament rankings: Top Batters, Top Bowlers, Others (sixes/fours).
  * Route: /ranking. Sections show top 5 and link to RankingStatsTotal via location state.
  */
 

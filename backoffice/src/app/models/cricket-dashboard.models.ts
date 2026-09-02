@@ -1,7 +1,6 @@
 /** Cricket dashboard stats returned by GET v1/admin/cricket/dashboard-stats */
 
 export interface CricketDashboardStats {
-  // KPIs
   tournaments_total: number;
   tournaments_active: number;
   matches_total: number;
@@ -9,14 +8,12 @@ export interface CricketDashboardStats {
   teams_total: number;
   players_total: number;
 
-  // Tournament phase breakdown
   phase_counts: {
     upcoming: number;
     live: number;
     completed: number;
   };
 
-  // Match status breakdown
   match_status_counts: {
     scheduled: number;
     toss_done: number;
@@ -25,45 +22,33 @@ export interface CricketDashboardStats {
     cancelled: number;
   };
 
-  // Format breakdowns
-  tournaments_by_format: CricketFormatCount[];
+  tournaments_by_type: TournamentTypeCount[];
   matches_by_format: CricketFormatCount[];
 
-  // Top teams
   top_teams_by_wins: TopTeamRow[];
 
-  // Match activity (last 30 days)
   match_activity_dates: string[];
   match_activity_counts: number[];
 
-  // Player growth (last 6 months)
   player_growth_labels: string[];
   player_growth_counts: number[];
 
-  // Tournament requests trend (last 6 months)
-  requests_monthly_labels: string[];
-  requests_monthly_counts: number[];
+  tournaments_monthly_labels: string[];
+  tournaments_monthly_counts: number[];
 
-  // Request pipeline
-  request_pipeline: {
-    pending: number;
-    approved: number;
-    rejected: number;
-  };
-
-  // Active client platform breakdown
   users_by_active_platform: ActivePlatformCount[];
   users_with_platform_total: number;
   app_users_total: number;
 
-  // Live matches
   live_matches: LiveMatchRow[];
-
-  // Recent completed matches
   recent_matches: RecentMatchRow[];
+  recent_tournaments: RecentTournamentRow[];
+}
 
-  // Recent tournament requests
-  recent_tournament_requests: RecentTournamentRequestRow[];
+export interface TournamentTypeCount {
+  type: string;
+  label: string;
+  count: number;
 }
 
 export interface CricketFormatCount {
@@ -109,14 +94,13 @@ export interface RecentMatchRow {
   overs: number | null;
 }
 
-export interface RecentTournamentRequestRow {
+export interface RecentTournamentRow {
   id: number;
   tournament_name: string | null;
+  type_label: string | null;
+  organizer_name: string | null;
   status: string | null;
   status_label: string | null;
-  user_name: string;
-  cricket_format: string | null;
-  format_label: string | null;
   created_at: string | null;
 }
 

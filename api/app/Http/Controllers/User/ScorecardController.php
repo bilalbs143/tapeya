@@ -357,7 +357,7 @@ class ScorecardController extends Controller
     public function matchState(Request $request, TournamentMatch $match): JsonResponse
     {
         $user = $request->user();
-        if (! $user || ! $user->canScoreMatchInApp($match)) {
+        if (! $user || ! $user->canViewMatchScorecardInApp($match)) {
             return $this->forbidden('You cannot view this match state.');
         }
 
@@ -370,7 +370,7 @@ class ScorecardController extends Controller
     public function scorecard(Request $request, TournamentMatch $match): JsonResponse
     {
         $user = $request->user();
-        if (! $user || ! $user->canScoreMatchInApp($match)) {
+        if (! $user || ! $user->canViewMatchScorecardInApp($match)) {
             return $this->forbidden('You cannot view this scorecard.');
         }
 
@@ -402,7 +402,7 @@ class ScorecardController extends Controller
     public function playerStats(Request $request, TournamentMatch $match): JsonResponse
     {
         $user = $request->user();
-        if (! $user || ! $user->canScoreMatchInApp($match)) {
+        if (! $user || ! $user->canViewMatchScorecardInApp($match)) {
             return $this->forbidden('You cannot view match player stats.');
         }
 

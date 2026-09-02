@@ -18,7 +18,7 @@ use Google\Service\YouTube\LiveBroadcast;
 use Google\Service\YouTube\LiveBroadcastContentDetails;
 use Google\Service\YouTube\LiveBroadcastSnippet;
 use Google\Service\YouTube\LiveBroadcastStatus;
-use Google\Service\YouTube\LiveStream;
+use Google\Service\YouTube\LiveStream as YouTubeLiveStream;
 use Google\Service\YouTube\LiveStreamSnippet;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
@@ -45,7 +45,7 @@ class YouTubeStreamProvider implements StreamProviderContract
 
     public function createStream(LiveStream $stream, CreateStreamData $data): void
     {
-        $liveStream = new LiveStream(['kind' => 'youtube#liveStream']);
+        $liveStream = new YouTubeLiveStream(['kind' => 'youtube#liveStream']);
         $liveStream->setSnippet(new LiveStreamSnippet(['title' => $data->title]));
         $liveStream->setCdn(new CdnSettings([
             'ingestionType' => 'rtmp',

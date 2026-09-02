@@ -63,31 +63,31 @@ class PlayerController extends Controller
             'country' => $data['country'] ?? null,
             'city' => $data['city'] ?? null,
             'type' => UserTypeEnum::USER,
-            'status' => UserStatusEnum::VERIFICATION_PENDING,
+            'status' => UserStatusEnum::ACTIVE,
             'created_by' => $request->user()?->id,
         ]);
 
-        return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])), 'Player created.', 'CREATED');
+        return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname'])), 'Player created.', 'CREATED');
     }
 
     public function show(User $player): JsonResponse
     {
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])));
+        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
     }
 
     public function update(UpdateBroadcasterPlayerRequest $request, User $player): JsonResponse
     {
         $data = $request->validated();
         if ($data === []) {
-            return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])));
+            return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
         }
         $player->update($data);
 
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])), 'Player updated.');
+        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])), 'Player updated.');
     }
 
     private function playerBaseQuery()
     {
-        return User::query()->user()->with(['creator:id,name,nickname', 'referrer:id,nickname']);
+        return User::query()->user()->with(['creator:id,name,nickname']);
     }
 }

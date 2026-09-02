@@ -9,17 +9,15 @@ enum StatsBucketEnum: string
 {
     use BaseEnumTrait;
 
-    case LEAGUE = 'league';
     case OPEN_TOURNAMENT = 'open_tournament';
-    case EMERGING = 'emerging';
+    case PRIVATE_TOURNAMENT = 'private_tournament';
     case QUICK = 'quick';
 
     public function label(): string
     {
         return match ($this) {
-            self::LEAGUE => 'League',
             self::OPEN_TOURNAMENT => 'Open Tournament',
-            self::EMERGING => 'Emerging',
+            self::PRIVATE_TOURNAMENT => 'Private Tournament',
             self::QUICK => 'Quick',
         };
     }
@@ -36,6 +34,9 @@ enum StatsBucketEnum: string
 
     public static function fromTournamentType(TournamentTypeEnum $type): self
     {
-        return self::from($type->value);
+        return match ($type) {
+            TournamentTypeEnum::OPEN_TOURNAMENT => self::OPEN_TOURNAMENT,
+            TournamentTypeEnum::PRIVATE_TOURNAMENT => self::PRIVATE_TOURNAMENT,
+        };
     }
 }

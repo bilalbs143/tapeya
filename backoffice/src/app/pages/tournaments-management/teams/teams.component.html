@@ -168,7 +168,7 @@
                 mat-cell
                 *matCellDef="let row"
               >
-                {{ row.sponsor?.nickname || row.sponsor?.name || emptyCell }}
+                {{ row.sponsor || emptyCell }}
               </td>
             </ng-container>
             <ng-container matColumnDef="icons">
@@ -183,7 +183,7 @@
                 mat-cell
                 *matCellDef="let row"
               >
-                {{ (row.icon_player_ids?.length ?? row.icon_players?.length ?? 0) || '0' }}
+                {{ row.icon_players || emptyCell }}
               </td>
             </ng-container>
             <ng-container matColumnDef="created_at">

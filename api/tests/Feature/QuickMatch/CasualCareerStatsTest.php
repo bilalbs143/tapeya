@@ -58,7 +58,7 @@ class CasualCareerStatsTest extends TestCase
         $this->assertSame(1, (int) $row->matches);
         $this->assertSame(0, PlayerBattingStats::query()
             ->where('player_id', $striker->id)
-            ->whereIn('tournament_type', ['league', 'open_tournament', 'emerging'])
+            ->whereIn('tournament_type', ['open_tournament', 'private_tournament'])
             ->count());
     }
 
@@ -70,7 +70,6 @@ class CasualCareerStatsTest extends TestCase
 
         $this->getJson('/api/v1/users/'.$striker->id.'/stats?'.http_build_query([
             'tournament_type' => 'quick',
-            'cricket_format' => 'tape_ball',
         ]))
             ->assertOk()
             ->assertJsonPath('data.tournament_type', 'quick')
@@ -89,14 +88,12 @@ class CasualCareerStatsTest extends TestCase
 
         $this->getJson('/api/v1/users/'.$striker->id.'/stats?'.http_build_query([
             'tournament_type' => 'all',
-            'cricket_format' => 'all',
         ]))
             ->assertOk()
             ->assertJsonPath('data.batting.runs', 11);
 
         $this->getJson('/api/v1/users/'.$striker->id.'/stats?'.http_build_query([
             'tournament_type' => 'quick',
-            'cricket_format' => 'all',
         ]))
             ->assertOk()
             ->assertJsonPath('data.batting.runs', 40);
@@ -126,7 +123,7 @@ class CasualCareerStatsTest extends TestCase
         $otRow = PlayerBattingStats::query()
             ->where('player_id', $striker->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'tape_ball')
+            ->where('cricket_format', 'all')
             ->first();
         $this->assertNotNull($otRow);
         $this->assertSame(50, (int) $otRow->runs);
@@ -168,13 +165,11 @@ class CasualCareerStatsTest extends TestCase
             'organizer_id' => $this->owner->id,
             'tournament_name' => 'Cup '.uniqid(),
             'tournament_type' => $tournamentType,
-            'cricket_format' => $cricketFormat,
             'venue_name' => 'Test Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'Test City',
-            'match_timings' => 'day',
         ]);
 
         $teamA = Team::create([
@@ -198,6 +193,7 @@ class CasualCareerStatsTest extends TestCase
             'match_date' => now()->toDateString(),
             'match_time' => '10:00:00',
             'venue_name' => 'Test Ground',
+            'cricket_format' => $cricketFormat,
             'players_per_side' => 2,
             'overs' => 5,
             'status' => MatchStatusEnum::IN_PROGRESS->value,

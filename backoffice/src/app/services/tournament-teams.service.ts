@@ -14,7 +14,11 @@ export interface TournamentTeamRow {
   country?: string | null;
   city?: string | null;
   group_index?: number | null;
-  sponsor?: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null } | null;
+  /** Free-text; comma-separated when multiple. */
+  sponsor?: string | null;
+  icon_players?: string | null;
+  owner_id?: number;
+  owner?: UserSearchRow | null;
 }
 
 /** Player row on a tournament team squad (same minimal fields as admin user search). */

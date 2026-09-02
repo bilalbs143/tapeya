@@ -27,9 +27,9 @@ class UpdateTeamRequest extends FormRequest
             'country' => ['sometimes', 'required', 'string', 'max:100'],
             'city' => ['sometimes', 'required', 'string', 'max:100'],
             'logo' => ['nullable', 'image', 'max:2048'],
-            'sponsor_user_id' => ['sometimes', 'required', 'integer', 'exists:users,id'],
-            'icon_player_ids' => ['nullable', 'array'],
-            'icon_player_ids.*' => ['integer', 'exists:users,id'],
+            'sponsor' => ['nullable', 'string', 'max:500'],
+            'icon_players' => ['nullable', 'string', 'max:500'],
+            'owner_user_id' => ['sometimes', 'required', 'integer', 'exists:users,id'],
         ];
     }
 }

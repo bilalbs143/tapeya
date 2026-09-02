@@ -35,22 +35,16 @@ const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
 
 function teamDisplay(team) {
-  const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
-  const iconPlayers =
-    Array.isArray(team.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : '—';
-  return { owner, iconPlayers };
+  const sponsor = typeof team?.sponsor === 'string' && team.sponsor.trim() ? team.sponsor.trim() : '—';
+  const iconPlayers = typeof team?.icon_players === 'string' && team.icon_players.trim() ? team.icon_players.trim() : '—';
+  return { sponsor, iconPlayers };
 }
 
 /**
  * TeamCard — displays team metadata with remove action.
  */
 function TeamCard({ team, index, onEdit, onDelete, isDeleting }) {
-  const { owner, iconPlayers } = teamDisplay(team);
+  const { sponsor, iconPlayers } = teamDisplay(team);
 
   return (
     <div className="bg-surface rounded-[17px] p-4">
@@ -59,7 +53,7 @@ function TeamCard({ team, index, onEdit, onDelete, isDeleting }) {
         <div className="min-w-0 flex-1">
           <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
           <p className="mt-0.5 text-[14px] text-white">
-            Owner: <span className="text-brand font-medium">{owner}</span>
+            Sponsor: <span className="text-brand font-medium">{sponsor}</span>
           </p>
           <p className="mt-0.5 text-[12px] text-white">
             Icon Players: <span className="text-muted">{iconPlayers}</span>

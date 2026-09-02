@@ -24,9 +24,8 @@ class UpdateTeamRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', Rule::unique('teams', 'code')->ignore($teamId)],
             'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
-            'sponsor_user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'icon_player_ids' => ['nullable', 'array'],
-            'icon_player_ids.*' => ['integer', 'exists:users,id'],
+            'sponsor' => ['nullable', 'string', 'max:500'],
+            'icon_players' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

@@ -94,13 +94,6 @@ class PushNotificationTemplateSeeder extends Seeder
                 'body_template' => '{{actor_name}} started following you',
                 'available_variables' => ['actor_name', 'actor_id', 'deep_link'],
             ],
-            [
-                'key' => 'user_referred',
-                'name' => 'User Referred',
-                'title_template' => 'New Referral',
-                'body_template' => '{{actor_name}} joined using your nickname',
-                'available_variables' => ['actor_name', 'actor_id', 'deep_link'],
-            ],
         ];
 
         foreach ($templates as $template) {
@@ -117,8 +110,9 @@ class PushNotificationTemplateSeeder extends Seeder
         }
 
         // Retired keys — vendors share order_* templates; payment updates no longer notify vendors.
+        // Referral notifications removed with the referral product.
         PushNotificationTemplate::query()
-            ->whereIn('key', ['vendor_order_placed', 'vendor_order_status_updated', 'order_payment_updated'])
+            ->whereIn('key', ['vendor_order_placed', 'vendor_order_status_updated', 'order_payment_updated', 'user_referred'])
             ->delete();
     }
 }

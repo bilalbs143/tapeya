@@ -4,7 +4,6 @@ namespace App\Http\Controllers\User\Auth;
 
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Events\UserReferred;
 use App\Events\UserRegistered;
 use App\Exceptions\OtpSmsDeliveryException;
 use App\Http\Controllers\Controller;
@@ -20,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * User (app) auth: phone + OTP only. No password.
  *
- * Register: POST /register (name, phone, email?) → create user, send OTP → user must verify.
+ * Register: POST /register (name, nickname, phone) → create user, send OTP → user must verify.
  * Login:    POST /request-otp (phone) → send OTP → POST /verify-otp (phone, code) → token.
  * Both flows complete with the same verify-otp step (activates account and returns token).
  *
@@ -35,31 +34,24 @@ class UserAuthController extends Controller
     ) {}
 
     /**
-     * Register: name, phone (with country code), optional email. Creates user (VERIFICATION_PENDING), sends OTP.
+     * Register: name, nickname, phone (with country code). Creates user (VERIFICATION_PENDING), sends OTP.
      * User must then call verify-otp with the code to activate and get token.
      *
      * Walk-ups already exist as verification_pending users — they activate via login OTP
      * (request-otp → verify-otp), not via register. Unique phone still rejects that path.
-     *
-     * Optional referral_nickname stores referred_by immediately; UserReferred (push + DB notify)
-     * fires only after OTP verification activates the account.
      */
     public function register(RegisterRequest $request)
     {
         $data = $request->validated();
 
-        $referrer = $this->resolveReferrer($data['referral_nickname'] ?? null);
-
-        $user = DB::transaction(function () use ($data, $referrer) {
+        $user = DB::transaction(function () use ($data) {
             return User::create([
                 'name' => $data['name'],
                 'nickname' => $data['nickname'],
                 'phone' => $data['phone'],
-                'email' => $data['email'] ?? null,
                 'password' => null,
                 'type' => UserTypeEnum::USER,
                 'status' => UserStatusEnum::VERIFICATION_PENDING,
-                'referred_by' => $referrer?->id,
             ]);
         });
 
@@ -126,14 +118,8 @@ class UserAuthController extends Controller
             return response()->failure('Account is blocked.', 'FORBIDDEN');
         }
 
-        $wasPending = $user->isVerificationPending();
-
         $user->update(['status' => UserStatusEnum::ACTIVE]);
         $user = $user->fresh();
-
-        if ($wasPending) {
-            $this->dispatchReferralIfNeeded($user);
-        }
 
         $token = $user->createToken('app')->plainTextToken;
 
@@ -166,49 +152,6 @@ class UserAuthController extends Controller
         request()->user()->currentAccessToken()?->delete();
 
         return response()->success(message: 'auth.logged_out');
-    }
-
-    /**
-     * Notify the referrer once, when a referred account first becomes ACTIVE.
-     */
-    private function dispatchReferralIfNeeded(User $user): void
-    {
-        if ($user->referred_by === null) {
-            return;
-        }
-
-        $referrer = User::query()->find($user->referred_by);
-        if ($referrer === null || (int) $referrer->id === (int) $user->id) {
-            return;
-        }
-
-        event(new UserReferred($referrer, $user));
-    }
-
-    /**
-     * Resolve an active app user by nickname for referral assignment.
-     * Prefers an exact nickname match, then the earliest case-insensitive match.
-     * Unknown or inactive nicknames are ignored so registration is not blocked.
-     */
-    private function resolveReferrer(?string $referralNickname): ?User
-    {
-        if ($referralNickname === null || $referralNickname === '') {
-            return null;
-        }
-
-        $base = User::query()
-            ->active()
-            ->where('type', UserTypeEnum::USER);
-
-        $exact = (clone $base)->where('nickname', $referralNickname)->first();
-        if ($exact !== null) {
-            return $exact;
-        }
-
-        return $base
-            ->whereRaw('LOWER(nickname) = ?', [strtolower($referralNickname)])
-            ->orderBy('id')
-            ->first();
     }
 
     /**

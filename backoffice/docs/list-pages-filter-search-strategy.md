@@ -233,7 +233,7 @@ Free Search
 ├── code
 └── city (optional)
 ```
-The existing `search` scope already covers the two fields admins actually type when looking up a team (full name or short code), case-insensitively, matching the `User::search()` quality bar reasonably well. `city` could be added to the OR-search since the "Location" column combines city + country and city is not otherwise filterable, but this is a minor enhancement, not a gap. Sponsor name is a relation (`sponsor` → `User`) that is eager-loaded (`->with(['sponsor', 'creator', 'iconPlayers'])`) but is a much rarer search key (admins rarely look up a team by its sponsor) so it's not worth the added query complexity.
+The existing `search` scope covers name/code (and free-text `sponsor` / `icon_players`), case-insensitively. Sponsor is a plain string column on `teams`, not a user relation.
 
 #### Filters
 
@@ -567,7 +567,7 @@ Date of Birth / Age range
 - **Purpose:** Admin roster of app accounts (`type = user`, via `UserController::baseQuery()` → `User::query()->user()`) for reviewing profiles, backoffice role assignments, moderation status, and platform activity, plus create/edit/delete and broadcast-ban actions.
 - **Current search:** **None.** There is no free-text search box in the UI at all. `DEFAULT_FILTERS` only defines `phone`, `status`, `created_after`, `created_before` — `loadHttpData()` never sends `filter[search]`, even though `buildListParams()` supports it and the backend's `scope('search')` (→ `UserBuilder::search()`) is fully wired and battle-tested (it's the reference implementation cited for this whole audit). This is server-side-capable but simply unused here.
 - **Current filters:** Phone (text input, exact/partial digit match), Status (select, populated from `enumsService.getOptions('user_status')`), Start Date / End Date (two `mat-datepicker` inputs mapped to `created_after`/`created_before`).
-- **Current table columns:** `sr, name, nickname, referral_nickname, email, phone, admin_roles, playing_role, bowling_style, batting_style, location, status, active_platform, created_at, updated_at, actions`.
+- **Current table columns:** `sr, name, nickname, email, phone, admin_roles, playing_role, bowling_style, batting_style, location, status, active_platform, created_at, updated_at, actions`.
 
 #### Free Search
 ```
@@ -627,7 +627,7 @@ Created Date Range
 - **Purpose:** Admin registry of the same `type = user` population as the Users page, but framed around playing-profile data (playing role, batting/bowling style, DOB) rather than accounts/roles — includes CSV bulk-import and a link into per-player career stats. Note: `PlayerController` does **not** extend `BaseAdminController` (unlike the documented convention) — it hand-rolls the same `QueryBuilder::for(...)->allowedFilters(User::getFilters())->allowedSorts(User::getSorts())` pattern inline, reusing the `User` model's filters/sorts directly since players ARE `User` records.
 - **Current search:** Server-side. One free-text box (placeholder "Name, Email, Phone…") wired to `filter[search]` → `User::scopeSearch()` → `UserBuilder::search()` — the same reference implementation as Users. Note the placeholder text under-describes it: the underlying query also matches **nickname**, which isn't mentioned in the UI copy.
 - **Current filters:** Search (text, see above), Phone (text, digit-normalized partial match via `scope('phone')`), Platform (select, `active_platform`, populated from `enumsService.getOptions('active_platform')`).
-- **Current table columns:** `sr, name, nickname, referral_nickname, email, phone, date_of_birth, playing_role, bowling_style, batting_style, location, active_platform, actions`. Notably **no `status` column** — unlike Users, admins here cannot see (or filter) whether a player is blocked or still verification-pending.
+- **Current table columns:** `sr, name, nickname, email, phone, date_of_birth, playing_role, bowling_style, batting_style, location, active_platform, actions`. Notably **no `status` column** — unlike Users, admins here cannot see (or filter) whether a player is blocked or still verification-pending.
 
 #### Free Search
 ```

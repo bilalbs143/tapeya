@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\StoreTournamentRequest;
 use App\Http\Requests\Admin\UpdateTournamentRequest;
 use App\Http\Resources\Admin\TournamentResource;
 use App\Models\Tournament;
+use App\Services\Tournament\TournamentCreationService;
 use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 
@@ -13,8 +14,9 @@ class TournamentController extends BaseAdminController
 {
     private const TOURNAMENTS_IMAGE_DIR = 'tournaments';
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly TournamentCreationService $tournamentCreation,
+    ) {
         parent::__construct(Tournament::class, TournamentResource::class, 'tournament');
     }
 
@@ -39,9 +41,12 @@ class TournamentController extends BaseAdminController
     {
         $user = $request->user();
 
-        $data = $request->validated();
+        $data = $this->tournamentCreation->applyAdminDefaults($request->validated());
         if ($user) {
             $data['created_by'] = $user->id;
+        }
+        if (! isset($data['status'])) {
+            $data['status'] = 'active';
         }
 
         $record = $this->model->create($data);

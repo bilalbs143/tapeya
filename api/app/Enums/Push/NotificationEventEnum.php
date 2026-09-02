@@ -20,7 +20,6 @@ enum NotificationEventEnum: string
     case POST_REPOSTED = 'post_reposted';
     case POST_PUBLISHED = 'post_published';
     case USER_FOLLOWED = 'user_followed';
-    case USER_REFERRED = 'user_referred';
 
     public function label(): string
     {
@@ -37,7 +36,6 @@ enum NotificationEventEnum: string
             self::POST_REPOSTED => 'Post Reposted',
             self::POST_PUBLISHED => 'Post Published',
             self::USER_FOLLOWED => 'User Followed',
-            self::USER_REFERRED => 'User Referred',
         };
     }
 }

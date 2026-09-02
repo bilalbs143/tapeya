@@ -5,15 +5,13 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
-import { AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { toApiDate } from '@/lib/utils/dateUtils';
-import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
+import { buildCreateTournamentPayload, createCreateTournamentSchema } from '@/lib/validations/createTournament';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import { useCreateTournamentRequestMutation } from '@/store/api/tournamentRequestApi';
+import { useCreateTournamentMutation } from '@/store/api/tournamentApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
@@ -24,51 +22,35 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { PhoneInput } from '@/ui/PhoneInput';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
-const pickerInputBase =
-  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-brand/50 cursor-pointer';
-
 const DEFAULT_VALUES = {
-  contact_person_name: '',
-  contact_phone: '+92',
   tournament_name: '',
   short_name: '',
-  tournament_type: '',
-  cricket_format: '',
+  tournament_type: 'open_tournament',
   venue_name: '',
   start_date: '',
   end_date: '',
   number_of_teams: '',
   country: DEFAULT_COUNTRY,
   city: '',
-  match_timings: '',
   prize: '',
   group_mode: 'open',
   number_of_groups: '',
 };
 
-export default function TournamentRequest() {
+export default function CreateTournament() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { openDialog } = useDialog();
   const user = useAppSelector(selectUser);
 
   const { data: enums = {}, isLoading: enumsLoading } = useGetEnumsQuery();
-
   const tournamentTypeOptions = enums.tournament_type ?? [];
-  const cricketFormatOptions = enums.cricket_format ?? [];
-  const matchTimingsOptions = enums.match_timings ?? [];
   const groupModeOptions = Array.isArray(enums.group_mode) ? enums.group_mode : [];
 
-  const tournamentRequestSchema = useMemo(
-    () => createTournamentRequestSchema(groupModeOptions.map((o) => o.value)),
-    // enums is stable per query result; groupModeOptions is derived from it.
-    [enums],
-  );
+  const schema = useMemo(() => createCreateTournamentSchema(groupModeOptions.map((o) => o.value)), [enums]);
 
-  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] = useCreateTournamentRequestMutation();
+  const [createTournament, { isLoading: isSubmitting }] = useCreateTournamentMutation();
 
   const {
     register,
@@ -79,7 +61,7 @@ export default function TournamentRequest() {
     setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(tournamentRequestSchema),
+    resolver: zodResolver(schema),
     defaultValues: DEFAULT_VALUES,
     mode: 'onChange',
   });
@@ -87,54 +69,32 @@ export default function TournamentRequest() {
   const groupMode = watch('group_mode');
   const country = watch('country');
   const city = watch('city');
-  const cricketFormat = watch('cricket_format');
 
-  // Pre-fill contact details and default enum selections once enums are loaded.
-  // Depends on `enums` (not derived arrays) to avoid re-firing on reference changes.
   useEffect(() => {
     if (enumsLoading || tournamentTypeOptions.length === 0) return;
     reset({
       ...DEFAULT_VALUES,
-      contact_person_name: user?.name ?? '',
-      contact_phone: user?.phone ?? '+92',
       country: user?.country?.trim() || DEFAULT_COUNTRY,
       city: user?.city ?? '',
-      tournament_type: tournamentTypeOptions[0]?.value ?? '',
-      cricket_format: cricketFormatOptions[0]?.value ?? '',
-      match_timings: matchTimingsOptions[0]?.value ?? '',
+      tournament_type: tournamentTypeOptions[0]?.value ?? 'open_tournament',
       group_mode: groupModeOptions[0]?.value ?? 'open',
-      prize: '',
     });
-  }, [enumsLoading, enums, user?.name, user?.phone, user?.country, user?.city]);
+  }, [enumsLoading, enums, user?.country, user?.city, reset]);
 
   const onSubmit = async (data) => {
-    resetApiError();
     try {
-      const number_of_groups =
-        data.group_mode === 'group_wise' && data.number_of_groups !== '' ? Number(data.number_of_groups) : 1;
-
       const payload = {
-        ...data,
+        ...buildCreateTournamentPayload(data),
         start_date: toApiDate(data.start_date),
         end_date: toApiDate(data.end_date),
-        number_of_teams: Number(data.number_of_teams),
-        number_of_groups,
-        ...(data.prize?.trim() ? { prize: data.prize.trim() } : {}),
-        ...(data.short_name?.trim() ? { short_name: data.short_name.trim() } : {}),
       };
 
-      const res = await createTournamentRequest(payload).unwrap();
-      const tournament = res.data?.tournament;
-
-      logEvent(AppEvents.SUBMIT_APPLICATION);
-      if (tournament?.id != null) {
-        if (res.message) toast.success(res.message);
-        navigate('/organizer/tournaments', { replace: true });
-      } else {
-        navigate('/tournament-request/success');
-      }
+      const res = await createTournament(payload).unwrap();
+      toast.success('Tournament created.');
+      const id = res?.data?.id ?? res?.id;
+      navigate(id ? `/organizer/tournaments/${id}/create-team-intro` : '/organizer/tournaments', { replace: true });
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to submit request. Please try again.'));
+      toast.error(getApiErrorMessage(err, 'Could not create tournament.'));
     }
   };
 
@@ -142,45 +102,13 @@ export default function TournamentRequest() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader title="REQUEST TOURNAMENT" />
+      <AppSubpageHeader title="CREATE TOURNAMENT" />
       <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
-          Please fill in the details below to request tournament services. Our team will review your request and contact you
-          shortly.
+          Fill in your tournament details below. Once created, you can add teams and start scoring right away.
         </p>
 
-        <FormStack
-          as="form"
-          layout="grid-3"
-          className="pb-8 lg:items-start lg:gap-y-4"
-          onSubmit={handleSubmit(onSubmit)}
-          onFocus={resetApiError}
-        >
-          <FormField label="Contact Person Name" htmlFor="contact_person_name" required>
-            <Input
-              id="contact_person_name"
-              placeholder="Enter Name"
-              autoComplete="name"
-              error={errors.contact_person_name?.message}
-              {...register('contact_person_name')}
-            />
-          </FormField>
-
-          <FormField label="Mobile / WhatsApp Number" htmlFor="contact_phone" required>
-            <Controller
-              name="contact_phone"
-              control={control}
-              render={({ field }) => (
-                <PhoneInput
-                  id="contact_phone"
-                  placeholder="Enter Phone Number"
-                  error={errors.contact_phone?.message}
-                  {...field}
-                />
-              )}
-            />
-          </FormField>
-
+        <FormStack as="form" layout="grid-3" className="pb-8 lg:items-start lg:gap-y-4" onSubmit={handleSubmit(onSubmit)}>
           <FormField label="Tournament Name" htmlFor="tournament_name" required>
             <Input
               id="tournament_name"
@@ -190,7 +118,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Short Name" htmlFor="short_name">
+          <FormField label="Short Name" htmlFor="short_name" required>
             <Input
               id="short_name"
               placeholder="e.g. PSL"
@@ -208,32 +136,6 @@ export default function TournamentRequest() {
             error={errors.tournament_type?.message}
             required
           />
-
-          <FormField label="Cricket Format" required>
-            <button
-              type="button"
-              className={`${pickerInputBase} ${errors.cricket_format ? 'ring-2 ring-red-500' : ''}`}
-              onClick={() =>
-                openDialog('startMatchBallType', {
-                  title: 'Select Cricket Format',
-                  initialValue: cricketFormat,
-                  options: cricketFormatOptions.map((o) => ({
-                    value: o.value,
-                    label: o.label ?? o.value,
-                  })),
-                  onSelect: (v) => setValue('cricket_format', v, { shouldValidate: true }),
-                })
-              }
-            >
-              {cricketFormatOptions.find((o) => o.value === cricketFormat)?.label ??
-                (cricketFormat ? String(cricketFormat) : 'Select Cricket Format')}
-            </button>
-            {errors.cricket_format?.message ? (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.cricket_format.message}
-              </p>
-            ) : null}
-          </FormField>
 
           <FormField label="Number of Teams" htmlFor="number_of_teams" required>
             <Input
@@ -267,17 +169,6 @@ export default function TournamentRequest() {
               </FormField>
             </div>
           )}
-
-          <div className="max-lg:order-11">
-            <ToggleGroupField
-              name="match_timings"
-              control={control}
-              label="Match Timings"
-              options={matchTimingsOptions}
-              error={errors.match_timings?.message}
-              required
-            />
-          </div>
 
           <FormField label="Ground / Venue Name" htmlFor="venue_name" required className="max-lg:order-12">
             <Input
@@ -335,13 +226,13 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Prize (optional)" htmlFor="prize" className="max-lg:order-15">
+          <FormField label="Prize" htmlFor="prize" className="max-lg:order-15">
             <Input id="prize" placeholder="e.g. Car, Bike, 1 Lakh" error={errors.prize?.message} {...register('prize')} />
           </FormField>
 
           <FormActions align="start" className="max-lg:order-16 lg:col-span-3">
-            <Button type="submit" disabled={busy} loading={isSubmitting} variant="orange" className="w-full lg:w-[150px]">
-              {isSubmitting ? 'Submitting…' : 'Submit'}
+            <Button type="submit" disabled={busy} loading={isSubmitting} variant="orange" className="w-full lg:w-[180px]">
+              {isSubmitting ? 'Creating…' : 'Create Tournament'}
             </Button>
           </FormActions>
         </FormStack>

@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
-use App\Models\TournamentRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -84,27 +83,25 @@ class CricketDashboardController extends Controller
             'cancelled' => (int) ($matchStatusCounts['cancelled'] ?? 0),
         ];
 
-        // ── Tournaments by Cricket Format ─────────────────────────────────────
-        $tournamentsByFormat = Tournament::query()
-            ->selectRaw('cricket_format, COUNT(*) as cnt')
-            ->whereNotNull('cricket_format')
-            ->groupBy('cricket_format')
+        // ── Tournaments by Type ─────────────────────────────────────────────
+        $tournamentsByType = Tournament::query()
+            ->selectRaw('tournament_type, COUNT(*) as cnt')
+            ->groupBy('tournament_type')
             ->orderByDesc('cnt')
             ->get()
             ->map(fn ($r) => [
-                'format' => $r->cricket_format,
-                'label' => $this->formatLabel($r->cricket_format),
+                'type' => $r->tournament_type,
+                'label' => $this->tournamentTypeLabel($r->tournament_type),
                 'count' => (int) $r->cnt,
             ])
             ->values()
             ->all();
 
-        // ── Matches by Cricket Format (via tournament join) ───────────────────
+        // ── Matches by Cricket Format (quick matches + match-level format) ─
         $matchesByFormat = DB::table('matches')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
-            ->whereNotNull('tournaments.cricket_format')
-            ->selectRaw('tournaments.cricket_format, COUNT(*) as cnt')
-            ->groupBy('tournaments.cricket_format')
+            ->whereNotNull('cricket_format')
+            ->selectRaw('cricket_format, COUNT(*) as cnt')
+            ->groupBy('cricket_format')
             ->orderByDesc('cnt')
             ->get()
             ->map(fn ($r) => [
@@ -170,8 +167,8 @@ class CricketDashboardController extends Controller
             $playerGrowthCounts[] = (int) ($playerGrowthRaw->get($key)?->cnt ?? 0);
         }
 
-        // ── Tournament Requests — last 6 months (monthly) ────────────────────
-        $requestsRaw = DB::table('tournament_requests')
+        // ── Tournaments Created — last 6 months (monthly) ────────────────────
+        $tournamentsCreatedRaw = DB::table('tournaments')
             ->where('created_at', '>=', $sixMonths)
             ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as cnt")
             ->groupBy('month')
@@ -179,27 +176,14 @@ class CricketDashboardController extends Controller
             ->get()
             ->keyBy('month');
 
-        $requestsMonthlyCounts = [];
-        $requestsMonthlyLabels = [];
+        $tournamentsMonthlyCounts = [];
+        $tournamentsMonthlyLabels = [];
         for ($i = 5; $i >= 0; $i--) {
             $key = $now->copy()->subMonths($i)->format('Y-m');
             $label = $now->copy()->subMonths($i)->format('M');
-            $requestsMonthlyLabels[] = $label;
-            $requestsMonthlyCounts[] = (int) ($requestsRaw->get($key)?->cnt ?? 0);
+            $tournamentsMonthlyLabels[] = $label;
+            $tournamentsMonthlyCounts[] = (int) ($tournamentsCreatedRaw->get($key)?->cnt ?? 0);
         }
-
-        // ── Tournament Request Pipeline (by status) ───────────────────────────
-        $requestsByStatus = TournamentRequest::query()
-            ->selectRaw('status, COUNT(*) as cnt')
-            ->groupBy('status')
-            ->pluck('cnt', 'status')
-            ->all();
-
-        $requestPipeline = [
-            'pending' => (int) ($requestsByStatus['pending'] ?? 0),
-            'approved' => (int) ($requestsByStatus['approved'] ?? 0),
-            'rejected' => (int) ($requestsByStatus['rejected'] ?? 0),
-        ];
 
         // ── Active platform breakdown (app users) ─────────────────────────────
         $appUsersTotal = (int) DB::table('users')->where('type', 'user')->count();
@@ -277,21 +261,20 @@ class CricketDashboardController extends Controller
             ->values()
             ->all();
 
-        // ── Recent Tournament Requests ────────────────────────────────────────
-        $recentRequests = TournamentRequest::query()
-            ->with('user:id,name')
+        // ── Recent Tournaments ────────────────────────────────────────────────
+        $recentTournaments = Tournament::query()
+            ->with(['organizer:id,name,nickname'])
             ->orderByDesc('created_at')
             ->limit(8)
             ->get()
-            ->map(fn ($r) => [
-                'id' => $r->id,
-                'tournament_name' => $r->tournament_name,
-                'status' => $r->status?->value,
-                'status_label' => $r->status?->label(),
-                'user_name' => $r->user?->name ?? '—',
-                'cricket_format' => $r->cricket_format?->value,
-                'format_label' => $r->cricket_format?->label(),
-                'created_at' => $r->created_at?->toIso8601String(),
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'tournament_name' => $t->tournament_name,
+                'type_label' => $this->tournamentTypeLabel($t->tournament_type),
+                'organizer_name' => $t->organizer?->nickname ?? $t->organizer?->name,
+                'status' => $t->status?->value,
+                'status_label' => $t->status?->label(),
+                'created_at' => $t->created_at?->toIso8601String(),
             ])
             ->values()
             ->all();
@@ -315,8 +298,8 @@ class CricketDashboardController extends Controller
             // Match status breakdown
             'match_status_counts' => $matchStatus,
 
-            // Format breakdowns
-            'tournaments_by_format' => $tournamentsByFormat,
+            // Type breakdown
+            'tournaments_by_type' => $tournamentsByType,
             'matches_by_format' => $matchesByFormat,
 
             // Top teams
@@ -330,12 +313,9 @@ class CricketDashboardController extends Controller
             'player_growth_labels' => $playerGrowthLabels,
             'player_growth_counts' => $playerGrowthCounts,
 
-            // Tournament requests trend (last 6 months)
-            'requests_monthly_labels' => $requestsMonthlyLabels,
-            'requests_monthly_counts' => $requestsMonthlyCounts,
-
-            // Request pipeline by status
-            'request_pipeline' => $requestPipeline,
+            // Tournaments created trend (last 6 months)
+            'tournaments_monthly_labels' => $tournamentsMonthlyLabels,
+            'tournaments_monthly_counts' => $tournamentsMonthlyCounts,
 
             // Active client platform (web / iOS / Android / untracked)
             'users_by_active_platform' => $usersByActivePlatform,
@@ -348,9 +328,18 @@ class CricketDashboardController extends Controller
             // Recent completed matches
             'recent_matches' => $recentMatches,
 
-            // Recent tournament requests
-            'recent_tournament_requests' => $recentRequests,
+            // Recent tournaments
+            'recent_tournaments' => $recentTournaments,
         ];
+    }
+
+    private function tournamentTypeLabel(mixed $value): string
+    {
+        if ($value instanceof \BackedEnum) {
+            return method_exists($value, 'label') ? $value->label() : ucwords(str_replace('_', ' ', $value->value));
+        }
+
+        return ucwords(str_replace('_', ' ', (string) $value));
     }
 
     private function formatLabel(mixed $value): string

@@ -59,6 +59,11 @@ app/www/
 app/.capacitor/
 
 # ===================
+# App Next (scaffold / WIP)
+# ===================
+app-next/
+
+# ===================
 # Build artifacts
 # ===================
 *.tgz

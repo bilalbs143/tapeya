@@ -6,7 +6,6 @@ use App\Enums\Common\StatusEnum;
 use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchStatusEnum;
-use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Push\PushNotificationStatusEnum;
@@ -23,7 +22,6 @@ use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
-use App\Enums\Tournament\TournamentRequestStatusEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\ActivePlatformEnum;
@@ -49,7 +47,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v20', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v21', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -79,9 +77,7 @@ class EnumController extends Controller
             'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
-            'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
             'match_status' => $this->toOptions(MatchStatusEnum::cases()),
-            'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
             'tournament_interest_form_field' => $this->toOptions(TournamentInterestFormFieldEnum::cases()),

@@ -20,31 +20,28 @@ class TeamController extends BaseAdminController
 
     protected function baseQuery()
     {
-        return Team::query()->with(['sponsor', 'creator', 'iconPlayers']);
+        return Team::query()->with(['owner', 'creator']);
     }
 
     public function store(StoreTeamRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $sponsorId = (int) $data['sponsor_user_id'];
-        $iconPlayerIds = $data['icon_player_ids'] ?? [];
+        $ownerId = (int) $data['owner_user_id'];
 
-        unset($data['sponsor_user_id'], $data['icon_player_ids']);
+        unset($data['owner_user_id'], $data['logo']);
 
-        User::findOrFail($sponsorId);
+        User::findOrFail($ownerId);
 
         $team = Team::create([
             'name' => $data['name'],
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
-            'user_id' => $sponsorId,
+            'sponsor' => Team::normalizeFreeText($data['sponsor'] ?? null),
+            'icon_players' => Team::normalizeFreeText($data['icon_players'] ?? null),
+            'user_id' => $ownerId,
             'created_by' => $request->user()?->id,
         ]);
-
-        if (! empty($iconPlayerIds)) {
-            $team->iconPlayers()->sync($iconPlayerIds);
-        }
 
         $team = $this->refresh($team);
 
@@ -59,25 +56,27 @@ class TeamController extends BaseAdminController
     public function update(UpdateTeamRequest $request, Team $team): JsonResponse
     {
         $data = $request->validated();
-        $iconPlayerIds = array_key_exists('icon_player_ids', $data) ? $data['icon_player_ids'] : null;
-        $sponsorId = $data['sponsor_user_id'] ?? null;
+        $ownerId = $data['owner_user_id'] ?? null;
+        $hasSponsor = array_key_exists('sponsor', $data);
+        $hasIcons = array_key_exists('icon_players', $data);
 
-        unset($data['icon_player_ids'], $data['sponsor_user_id'], $data['logo']);
+        unset($data['owner_user_id'], $data['sponsor'], $data['icon_players'], $data['logo']);
 
         $team = $this->refresh($team);
         $team->fill($data);
 
-        if ($sponsorId !== null) {
-            User::findOrFail((int) $sponsorId);
-            $team->user_id = (int) $sponsorId;
+        if ($ownerId !== null) {
+            User::findOrFail((int) $ownerId);
+            $team->user_id = (int) $ownerId;
+        }
+        if ($hasSponsor) {
+            $team->sponsor = Team::normalizeFreeText($request->validated('sponsor'));
+        }
+        if ($hasIcons) {
+            $team->icon_players = Team::normalizeFreeText($request->validated('icon_players'));
         }
 
         $team->save();
-
-        if (is_array($iconPlayerIds)) {
-            $team->iconPlayers()->sync($iconPlayerIds);
-        }
-
         $team = $this->refresh($team);
 
         return $this->success(new TeamResource($team), 'Team updated.');

@@ -66,14 +66,12 @@ class Phase0QuickMatchCrashGuardTest extends TestCase
             'organizer_id' => $organizer->id,
             'created_by' => $organizer->id,
             'tournament_name' => 'Venue Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
+            'tournament_type' => 'open_tournament',
             'venue_name' => 'Main Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'Lahore',
-            'match_timings' => 'day',
         ]);
 
         $this->actingAs($organizer, 'api')

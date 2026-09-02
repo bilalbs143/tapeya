@@ -9,7 +9,6 @@ use App\Enums\Event\InningsEndReasonEnum;
 use App\Enums\Event\MatchBreakTypeEnum;
 use App\Enums\Event\MatchEndReasonEnum;
 use App\Enums\Event\MatchOversEnum;
-use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\NoBallRunsTypeEnum;
 use App\Enums\Event\NoBallTypeEnum;
 use App\Enums\Event\OverthrowDeliveryTypeEnum;
@@ -44,7 +43,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('user:enums:v13', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('user:enums:v14', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -58,7 +57,6 @@ class EnumController extends Controller
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'stat_category' => $this->toOptions(StatCategoryEnum::cases()),
-            'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'toss_choice' => $this->toOptions(TossChoiceEnum::cases()),
             'dismissal_type' => $this->toDismissalOptions(DismissalTypeEnum::cases()),

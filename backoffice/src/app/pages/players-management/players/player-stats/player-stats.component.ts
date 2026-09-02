@@ -55,7 +55,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
-  private readonly statsTrigger$ = new Subject<{ tournament_type: string; cricket_format: string }>();
+  private readonly statsTrigger$ = new Subject<{ tournament_type: string }>();
 
   public readonly emptyCell = EMPTY_CELL;
 
@@ -66,24 +66,20 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
   public activeTab: 'batting' | 'bowling' | 'fielding' = 'batting';
 
   public tournamentTypeOptions: EnumOption[] = [];
-  public cricketFormatOptions: EnumOption[] = [];
 
   public filterForm: FormGroup = this.fb.group({
     tournament_type: ['all'],
-    cricket_format: ['all'],
   });
 
   public get bucketLabel(): string {
-    const type = this.tournamentTypeOptions.find((o) => o.value === this.filterForm.value.tournament_type)?.label ?? 'All';
-    const format = this.cricketFormatOptions.find((o) => o.value === this.filterForm.value.cricket_format)?.label ?? 'All';
-    return `${type} · ${format}`;
+    return this.tournamentTypeOptions.find((o) => o.value === this.filterForm.value.tournament_type)?.label ?? 'All';
   }
 
   public ngOnInit(): void {
     this.sub.add(
       this.statsTrigger$
         .pipe(
-          switchMap(({ tournament_type, cricket_format }) => {
+          switchMap(({ tournament_type }) => {
             if (!this.player) {
               return EMPTY;
             }
@@ -91,7 +87,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
             this.isLoadingStats = true;
             this.stats = null;
 
-            return this.playersService.getStats(this.player.id, { tournament_type, cricket_format }).pipe(
+            return this.playersService.getStats(this.player.id, { tournament_type, cricket_format: 'all' }).pipe(
               catchError(() => {
                 this.isLoadingStats = false;
                 this.messageService.error('Failed to load player stats.');
@@ -110,7 +106,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
       this.filterForm.valueChanges
         .pipe(
           debounceTime(LIST_SEARCH_LIVE_DEBOUNCE_MS),
-          distinctUntilChanged((a, b) => a.tournament_type === b.tournament_type && a.cricket_format === b.cricket_format)
+          distinctUntilChanged((a, b) => a.tournament_type === b.tournament_type)
         )
         .subscribe(() => this.loadStats())
     );
@@ -121,7 +117,6 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
           { value: 'all', label: 'All' },
           ...(enums['stats_bucket'] ?? enums['tournament_type'] ?? []),
         ];
-        this.cricketFormatOptions = [{ value: 'all', label: 'All' }, ...(enums['cricket_format'] ?? [])];
       })
     );
 
@@ -164,7 +159,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
   }
 
   public resetFilters(): void {
-    this.filterForm.reset({ tournament_type: 'all', cricket_format: 'all' }, { emitEvent: false });
+    this.filterForm.reset({ tournament_type: 'all' }, { emitEvent: false });
     this.loadStats();
   }
 
@@ -194,7 +189,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.statsTrigger$.next(this.filterForm.value as { tournament_type: string; cricket_format: string });
+    this.statsTrigger$.next(this.filterForm.value as { tournament_type: string });
   }
 
   public battingRows(b: PlayerBattingStats): StatRow[] {

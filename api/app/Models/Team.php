@@ -16,11 +16,16 @@ class Team extends BaseModel
         'code',
         'country',
         'city',
+        'sponsor',
+        'icon_players',
         'user_id',
         'created_by',
     ];
 
-    public function sponsor(): BelongsTo
+    /**
+     * App user who owns/manages this team (capability), not the free-text sponsor.
+     */
+    public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -28,16 +33,6 @@ class Team extends BaseModel
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Icon / star players for this team (order preserved by pivot insert order).
-     */
-    public function iconPlayers(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'team_icon_players')
-            ->orderBy('team_icon_players.id')
-            ->withTimestamps();
     }
 
     /**
@@ -60,6 +55,31 @@ class Team extends BaseModel
             ->withTimestamps();
     }
 
+    /** Trim free-text field; empty → null. Comma-separated values are left as typed. */
+    public static function normalizeFreeText(mixed $raw): ?string
+    {
+        if ($raw === null) {
+            return null;
+        }
+        if (is_array($raw)) {
+            $parts = [];
+            foreach ($raw as $item) {
+                if (! is_string($item) && ! is_numeric($item)) {
+                    continue;
+                }
+                $part = trim((string) $item);
+                if ($part !== '') {
+                    $parts[] = $part;
+                }
+            }
+            $raw = implode(', ', $parts);
+        }
+
+        $value = trim((string) $raw);
+
+        return $value === '' ? null : mb_substr($value, 0, 500);
+    }
+
     /**
      * @return array<int, string|AllowedFilter>
      */
@@ -70,7 +90,9 @@ class Team extends BaseModel
                 $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
                 $query->where(function ($q) use ($term) {
                     $q->whereRaw('LOWER(name) LIKE ?', [$term])
-                        ->orWhereRaw('LOWER(code) LIKE ?', [$term]);
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$term])
+                        ->orWhereRaw('LOWER(COALESCE(sponsor, \'\')) LIKE ?', [$term])
+                        ->orWhereRaw('LOWER(COALESCE(icon_players, \'\')) LIKE ?', [$term]);
                 });
             }),
         ];

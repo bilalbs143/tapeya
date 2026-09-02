@@ -23,7 +23,7 @@ class PlayerStatsController extends Controller
     /**
      * Accumulative stats for a player (profile), optionally by tournament_type and cricket_format.
      *
-     * Query: tournament_type = league | open_tournament | emerging | quick | all (default: all)
+     * Query: tournament_type = open_tournament | private_tournament | quick | all (default: all)
      *        cricket_format = hard_ball | tape_ball | tennis_ball | hard_tennis | all (default: all)
      *
      * `all` = tournament career only (excludes quick). Use tournament_type=quick for casual career.

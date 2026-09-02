@@ -31,6 +31,15 @@ export const tournamentApi = baseApi.injectEndpoints({
           ? [...result.data.map((t) => ({ type: 'Tournament', id: t.id })), { type: 'Tournament', id: 'LIST' }]
           : [{ type: 'Tournament', id: 'LIST' }],
     }),
+    createTournament: builder.mutation({
+      query: (body) => ({
+        url: '/tournaments',
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response) => response,
+      invalidatesTags: [{ type: 'Tournament', id: 'LIST' }],
+    }),
     getTournament: builder.query({
       query: ({ id, with_matches }) => ({
         url: `/tournaments/${id}`,
@@ -181,6 +190,7 @@ export const tournamentApi = baseApi.injectEndpoints({
 
 export const {
   useGetTournamentsQuery,
+  useCreateTournamentMutation,
   useGetTournamentQuery,
   useLazyGetTournamentQuery,
   useGetTournamentTeamsQuery,

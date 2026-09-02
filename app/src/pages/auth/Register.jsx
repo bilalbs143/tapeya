@@ -18,12 +18,6 @@ import { PhoneInput } from '@/ui/PhoneInput';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
-const normalizeOptionalString = (value) => {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  return trimmed === '' ? undefined : trimmed;
-};
-
 export default function Register() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -35,7 +29,7 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { phone: '+92', name: '', nickname: '', email: '', referral_nickname: '' },
+    defaultValues: { phone: '+92', name: '', nickname: '' },
     mode: 'onChange',
   });
 
@@ -47,8 +41,6 @@ export default function Register() {
         name: data.name,
         nickname: data.nickname,
         phone: data.phone,
-        email: normalizeOptionalString(data.email),
-        referral_nickname: normalizeOptionalString(data.referral_nickname),
       }).unwrap();
 
       const otp = extractOtpFromAuthResponse(result);
@@ -124,32 +116,10 @@ export default function Register() {
             <Input
               id="nickname"
               type="text"
-              placeholder="Example: ali07"
+              placeholder="Enter Nickname"
               autoComplete="username"
               error={errors.nickname?.message}
               {...register('nickname')}
-            />
-          </FormField>
-
-          <FormField label="Referral Nickname" htmlFor="referral_nickname">
-            <Input
-              id="referral_nickname"
-              type="text"
-              placeholder="Friend's nickname"
-              autoComplete="off"
-              error={errors.referral_nickname?.message}
-              {...register('referral_nickname')}
-            />
-          </FormField>
-
-          <FormField label="Email" htmlFor="email">
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter Your Email"
-              autoComplete="email"
-              error={errors.email?.message}
-              {...register('email')}
             />
           </FormField>
 

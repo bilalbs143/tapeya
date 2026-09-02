@@ -105,7 +105,7 @@
                 mat-cell
                 *matCellDef="let row"
               >
-                {{ row.sponsor?.nickname || row.sponsor?.name || emptyCell }}
+                {{ row.sponsor || emptyCell }}
               </td>
             </ng-container>
             <ng-container matColumnDef="group">

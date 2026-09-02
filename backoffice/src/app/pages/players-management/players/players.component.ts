@@ -95,7 +95,6 @@ export class PlayersComponent implements OnInit, OnDestroy {
     'sr',
     'name',
     'nickname',
-    'referral_nickname',
     'email',
     'phone',
     'date_of_birth',

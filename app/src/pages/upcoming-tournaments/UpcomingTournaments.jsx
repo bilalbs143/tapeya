@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -10,24 +10,19 @@ import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
-import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
-const MONTH_TABS_COUNT = 6;
 const FALLBACK_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
-const upcomingTriggerClass =
-  'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black lg:min-w-[96px]';
-
-function UpcomingTournamentCard({ tournament, onClick, disabled }) {
+function UpcomingTournamentCard({ tournament, onClick }) {
   const imageUrl = getTournamentDisplayImage(tournament, FALLBACK_IMAGE);
   const title = getTournamentTitle(tournament);
+  const location = [tournament.city, tournament.country].filter(Boolean).join(', ');
 
   return (
     <button
       type="button"
-      onClick={() => !disabled && onClick(tournament)}
-      disabled={disabled}
-      className="bg-surface focus-visible:ring-brand flex w-full flex-col overflow-hidden rounded-[17px] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
+      onClick={() => onClick(tournament)}
+      className="bg-surface focus-visible:ring-brand flex w-full flex-col overflow-hidden rounded-[17px] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90"
     >
       <div className="bg-surface-deep h-[148px] w-full overflow-hidden">
         <img
@@ -35,7 +30,6 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
           alt={title}
           className="h-full w-full object-cover"
           onError={(e) => {
-            // Guard prevents an infinite error loop if FALLBACK_IMAGE also fails.
             if (e.currentTarget.src !== FALLBACK_IMAGE) {
               e.currentTarget.src = FALLBACK_IMAGE;
             }
@@ -45,6 +39,10 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
       <div className="flex flex-col gap-1 p-3">
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
         <p className="text-muted text-[12px]">{formatDateRange(tournament.start_date, tournament.end_date)}</p>
+        {location ? <p className="text-muted text-[12px]">{location}</p> : null}
+        {(tournament.matches_count ?? 0) > 0 ? (
+          <p className="text-brand text-[11px] font-medium">{tournament.matches_count} fixtures — tap for schedule</p>
+        ) : null}
       </div>
     </button>
   );
@@ -52,60 +50,20 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
 
 export default function UpcomingTournaments() {
   const navigate = useNavigate();
+  const todayStr = toDateStr(new Date());
 
-  const nowRef = useRef(new Date());
-  const now = nowRef.current;
+  const { data, isLoading, isError, refetch } = useGetTournamentsQuery({ all: true, with_matches: true });
 
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const [activeMonth, setActiveMonth] = useState(currentMonth);
-
-  const { data, isLoading, isError, refetch } = useGetTournamentsQuery({ all: true });
-  const todayStr = toDateStr(now);
-
-  const monthTabs = useMemo(() => {
-    const tabs = [];
-    for (let i = 0; i < MONTH_TABS_COUNT; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      tabs.push({
-        value: toDateStr(d).slice(0, 7),
-        monthShort: d.toLocaleDateString('en-GB', { month: 'short' }),
-        year: d.getFullYear(),
-      });
-    }
-    return tabs;
-  }, [now]);
-
-  const upcomingByMonth = useMemo(() => {
+  const upcoming = useMemo(() => {
     const list = data?.data ?? [];
-    const byMonth = {};
-    monthTabs.forEach(({ value }) => {
-      byMonth[value] = [];
-    });
-
-    list.forEach((t) => {
-      const start = parseDate(t.start_date);
-      const end = parseDate(t.end_date);
-      const startStr = start ? toDateStr(start) : '';
-      const endStr = end ? toDateStr(end) : '';
-      // Skip tournaments that ended before today.
-      if (endStr && endStr < todayStr && startStr < todayStr) return;
-
-      monthTabs.forEach(({ value }) => {
-        const [y, m] = value.split('-').map(Number);
-        const monthStart = new Date(y, m - 1, 1);
-        const monthEnd = new Date(y, m, 0);
-        const inMonth =
-          (start && start <= monthEnd && (!end || end >= monthStart)) ||
-          (end && end >= monthStart && (!start || start <= monthEnd));
-        if (inMonth) byMonth[value].push(t);
-      });
-    });
-
-    return byMonth;
-  }, [data?.data, monthTabs, todayStr]);
-
-  const cardsToShow = upcomingByMonth[activeMonth] ?? [];
-  const isEmpty = cardsToShow.length === 0;
+    return list
+      .filter((t) => {
+        const end = parseDate(t.end_date);
+        const endStr = end ? toDateStr(end) : '';
+        return !endStr || endStr >= todayStr;
+      })
+      .sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)));
+  }, [data?.data, todayStr]);
 
   const handleCardClick = (tournament) => {
     if (tournament.id == null) return;
@@ -121,40 +79,22 @@ export default function UpcomingTournaments() {
 
   return (
     <div>
-      <AppSubpageHeader title="UPCOMING TOURNAMENTS" />
+      <AppSubpageHeader title="Upcoming Tournaments" />
       <Container>
-        <Tabs value={activeMonth} onValueChange={setActiveMonth} className="w-full">
-          <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
-              {monthTabs.map(({ value, monthShort, year }) => (
-                <TabsTrigger key={value} value={value} className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}>
-                  <span className="block text-[12px] leading-tight font-bold uppercase">{monthShort}</span>
-                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">{year}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        {isLoading ? <LoaderBlock label="Loading tournaments" className="py-16" /> : null}
+        {isError ? <ListError message="Could not load tournaments." onRetry={() => refetch()} /> : null}
+
+        {!isLoading && !isError ? (
+          <div className="grid grid-cols-2 gap-3 pb-6 lg:grid-cols-3">
+            {upcoming.map((tournament) => (
+              <UpcomingTournamentCard key={tournament.id} tournament={tournament} onClick={handleCardClick} />
+            ))}
           </div>
+        ) : null}
 
-          {isLoading ? (
-            <LoaderBlock label="Loading tournaments" className="py-16" />
-          ) : (
-            <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
-              {cardsToShow.map((tournament) => (
-                <UpcomingTournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  onClick={handleCardClick}
-                  disabled={tournament.id == null}
-                />
-              ))}
-            </div>
-          )}
-
-          {isError ? <ListError message="Could not load tournaments." onRetry={() => refetch()} /> : null}
-          {isEmpty && !isLoading && !isError ? (
-            <ListEmpty title="No Upcoming Tournaments." description="Nothing scheduled for this month." />
-          ) : null}
-        </Tabs>
+        {!isLoading && !isError && upcoming.length === 0 ? (
+          <ListEmpty title="No upcoming tournaments." description="Open tournaments with active schedules appear here." />
+        ) : null}
       </Container>
     </div>
   );

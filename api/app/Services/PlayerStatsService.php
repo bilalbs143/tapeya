@@ -563,10 +563,11 @@ class PlayerStatsService
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
         $cricketFormatValue = $this->normalizeCricketFormat($cricketFormat);
-        if ($eventTypeValue !== null && $cricketFormatValue !== null) {
+        $materializedFormat = $this->materializedCricketFormatKey($eventTypeValue, $cricketFormatValue);
+        if ($eventTypeValue !== null && $materializedFormat !== null) {
             $row = PlayerBattingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventTypeValue)
-                ->where('cricket_format', $cricketFormatValue)
+                ->where('cricket_format', $materializedFormat)
                 ->first();
             if ($row) {
                 return [
@@ -605,10 +606,11 @@ class PlayerStatsService
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
         $cricketFormatValue = $this->normalizeCricketFormat($cricketFormat);
-        if ($eventTypeValue !== null && $cricketFormatValue !== null) {
+        $materializedFormat = $this->materializedCricketFormatKey($eventTypeValue, $cricketFormatValue);
+        if ($eventTypeValue !== null && $materializedFormat !== null) {
             $row = PlayerBowlingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventTypeValue)
-                ->where('cricket_format', $cricketFormatValue)
+                ->where('cricket_format', $materializedFormat)
                 ->first();
             if ($row) {
                 return [
@@ -649,10 +651,11 @@ class PlayerStatsService
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
         $cricketFormatValue = $this->normalizeCricketFormat($cricketFormat);
-        if ($eventTypeValue !== null && $cricketFormatValue !== null) {
+        $materializedFormat = $this->materializedCricketFormatKey($eventTypeValue, $cricketFormatValue);
+        if ($eventTypeValue !== null && $materializedFormat !== null) {
             $row = PlayerFieldingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventTypeValue)
-                ->where('cricket_format', $cricketFormatValue)
+                ->where('cricket_format', $materializedFormat)
                 ->first();
             if ($row) {
                 return [
@@ -794,10 +797,11 @@ class PlayerStatsService
      *             per player — one query each — producing an N+1 pattern.
      *
      * FIX (arch): use TournamentTypeEnum::from() so unknown event type strings throw a
-     *             ValueError instead of silently defaulting to EMERGING.
+     *             ValueError instead of silently accepting invalid buckets.
      *
-     * When cricket_format is "all", materialized rows are not used — stats are computed from balls.
-     * Acceptable for profile rollups; avoid cricket_format=all on high-traffic ranking queries.
+     * Tournament rankings use materialized rows with cricket_format=all (one row per type).
+     * When cricket_format query is "all", materialized rows are used; quick stats still
+     * key by match format when tournament_type=quick on profile.
      *
      * @param  string  $sort  e.g. runs, average, strike_rate, wickets, economy, catches
      * @param  int  $minQualifyingCount  minimum innings (batting) or matches (bowling/fielding) to qualify
@@ -849,37 +853,24 @@ class PlayerStatsService
         ?string $cricketFormat,
     ): array {
         $et = TournamentTypeEnum::from($eventType);
-        $formatEnum = null;
-        if ($cricketFormat !== null && $cricketFormat !== 'all') {
-            $formatEnum = CricketFormatEnum::tryFrom($cricketFormat);
-            if ($formatEnum === null) {
-                throw new \InvalidArgumentException('Invalid cricket_format.');
-            }
-        }
-        $playerIds = $this->playerIdsWithActivity($et, $formatEnum, $categoryEnum);
+        $playerIds = $this->playerIdsWithActivity($et, null, $categoryEnum);
 
         $materialized = match ($categoryEnum) {
-            StatCategoryEnum::BATTING => $formatEnum !== null
-                ? PlayerBattingStats::where('tournament_type', $et->value)
-                    ->where('cricket_format', $formatEnum->value)
-                    ->whereIn('player_id', $playerIds)
-                    ->get()
-                    ->keyBy('player_id')
-                : collect(),
-            StatCategoryEnum::BOWLING => $formatEnum !== null
-                ? PlayerBowlingStats::where('tournament_type', $et->value)
-                    ->where('cricket_format', $formatEnum->value)
-                    ->whereIn('player_id', $playerIds)
-                    ->get()
-                    ->keyBy('player_id')
-                : collect(),
-            StatCategoryEnum::FIELDING => $formatEnum !== null
-                ? PlayerFieldingStats::where('tournament_type', $et->value)
-                    ->where('cricket_format', $formatEnum->value)
-                    ->whereIn('player_id', $playerIds)
-                    ->get()
-                    ->keyBy('player_id')
-                : collect(),
+            StatCategoryEnum::BATTING => PlayerBattingStats::where('tournament_type', $et->value)
+                ->where('cricket_format', 'all')
+                ->whereIn('player_id', $playerIds)
+                ->get()
+                ->keyBy('player_id'),
+            StatCategoryEnum::BOWLING => PlayerBowlingStats::where('tournament_type', $et->value)
+                ->where('cricket_format', 'all')
+                ->whereIn('player_id', $playerIds)
+                ->get()
+                ->keyBy('player_id'),
+            StatCategoryEnum::FIELDING => PlayerFieldingStats::where('tournament_type', $et->value)
+                ->where('cricket_format', 'all')
+                ->whereIn('player_id', $playerIds)
+                ->get()
+                ->keyBy('player_id'),
         };
 
         $out = [];
@@ -903,7 +894,7 @@ class PlayerStatsService
                         'average' => self::battingAverage((int) $row->runs, (int) $row->innings, (int) $row->not_outs),
                         'strike_rate' => $row->strike_rate,
                     ]
-                    : $this->computeBattingForPlayer($pid, $et, $formatEnum);
+                    : $this->computeBattingForPlayer($pid, $et, null);
 
                 if ($minQualifyingCount > 0 && $s['innings'] < $minQualifyingCount) {
                     continue;
@@ -928,7 +919,7 @@ class PlayerStatsService
                         'economy' => $row->economy,
                         'strike_rate' => $row->strike_rate,
                     ]
-                    : $this->computeBowlingForPlayer($pid, $et, $formatEnum);
+                    : $this->computeBowlingForPlayer($pid, $et, null);
 
                 if ($minQualifyingCount > 0 && $s['matches'] < $minQualifyingCount) {
                     continue;
@@ -942,7 +933,7 @@ class PlayerStatsService
                         'run_outs' => $row->run_outs,
                         'stumpings' => $row->stumpings,
                     ]
-                    : $this->computeFieldingForPlayer($pid, $et, $formatEnum);
+                    : $this->computeFieldingForPlayer($pid, $et, null);
 
                 if ($minQualifyingCount > 0 && $s['matches'] < $minQualifyingCount) {
                     continue;
@@ -1182,7 +1173,7 @@ class PlayerStatsService
         }
 
         if ($formatVal !== null) {
-            $query->where('tournaments.cricket_format', $formatVal);
+            $query->where('matches.cricket_format', $formatVal);
         }
     }
 
@@ -1208,6 +1199,23 @@ class PlayerStatsService
         }
 
         return $cricketFormat instanceof CricketFormatEnum ? $cricketFormat->value : (string) $cricketFormat;
+    }
+
+    /**
+     * Materialized stats key: tournament buckets use a single "all" row per type;
+     * quick buckets remain keyed by match cricket_format.
+     */
+    private function materializedCricketFormatKey(?string $eventTypeValue, ?string $cricketFormatValue): ?string
+    {
+        if ($eventTypeValue === null) {
+            return null;
+        }
+
+        if ($eventTypeValue === StatsBucketEnum::QUICK->value) {
+            return $cricketFormatValue;
+        }
+
+        return 'all';
     }
 
     private function matchIdsForStatBucket(
@@ -1241,7 +1249,7 @@ class PlayerStatsService
             $q->where('tournaments.tournament_type', $typeVal);
         }
         if ($formatVal !== null) {
-            $q->where('tournaments.cricket_format', $formatVal);
+            $q->where('matches.cricket_format', $formatVal);
         }
 
         return $q->pluck('matches.id')->all();
@@ -1402,7 +1410,7 @@ class PlayerStatsService
             ->join('matches', 'innings.match_id', '=', 'matches.id')
             ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->where('tournaments.tournament_type', $eventType->value)
-            ->when($cricketFormat !== null, fn ($q) => $q->where('tournaments.cricket_format', $cricketFormat->value));
+            ->when($cricketFormat !== null, fn ($q) => $q->where('matches.cricket_format', $cricketFormat->value));
 
         return match ($category) {
             StatCategoryEnum::BATTING => $base()->distinct()->pluck('balls.striker_id')->filter()->values()->all(),

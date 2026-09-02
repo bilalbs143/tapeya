@@ -95,11 +95,14 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     this.form = this.fb.group({
       id: [user?.id ?? null],
       name: [user?.name ?? '', [Validators.required]],
-      nickname: [user?.nickname ?? '', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+      nickname: [
+        user?.nickname ?? '',
+        [Validators.required, Validators.maxLength(50), Validators.pattern(/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/)],
+      ],
       email: [user?.email ?? ''],
       phone: [user?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [user?.date_of_birth ?? null],
-      status: [normalizeEnumValue(user?.status_enum, 'verification_pending'), [Validators.required]],
+      status: [normalizeEnumValue(user?.status_enum, 'active'), [Validators.required]],
       admin_role_ids: [adminRoleIds],
       playing_role: [normalizeEnumValue(user?.playing_role_enum ?? undefined, '')],
       bowling_style: [normalizeEnumValue(user?.bowling_style_enum ?? undefined, '')],

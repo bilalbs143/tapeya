@@ -45,7 +45,7 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
   const [updateToss, { isLoading: isTossing }] = useUpdateTossMutation();
 
   const canOperate = Boolean(match.can_operate);
-  const [cricketFormat, setCricketFormat] = useState(match.cricket_format ?? 'tape_ball');
+  const [cricketFormat, setCricketFormat] = useState(match.cricket_format ?? '');
   const [overs, setOvers] = useState(match.overs ?? 20);
   const [playersPerSide, setPlayersPerSide] = useState(match.players_per_side ?? 11);
 

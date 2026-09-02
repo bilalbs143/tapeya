@@ -41,14 +41,12 @@ trait BuildsScoringMatch
         $tournament = Tournament::create([
             'organizer_id' => $this->organizer->id,
             'tournament_name' => 'Test Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
+            'tournament_type' => 'open_tournament',
             'venue_name' => 'Test Ground',
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
             'number_of_teams' => 2,
             'city' => 'Test City',
-            'match_timings' => 'day',
         ]);
 
         $teamA = Team::create([

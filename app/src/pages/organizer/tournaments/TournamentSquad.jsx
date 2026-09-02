@@ -54,15 +54,9 @@ function comparePlayerName(a, b) {
 }
 
 function teamDisplayMeta(team) {
-  const owner = team?.sponsor?.name ?? (team?.owner != null ? String(team.owner) : '—');
-  const iconPlayers =
-    Array.isArray(team?.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : (team?.iconPlayer ?? '—');
-  return { owner, iconPlayers };
+  const sponsor = typeof team?.sponsor === 'string' && team.sponsor.trim() ? team.sponsor.trim() : '—';
+  const iconPlayers = typeof team?.icon_players === 'string' && team.icon_players.trim() ? team.icon_players.trim() : '—';
+  return { sponsor, iconPlayers };
 }
 
 function TeamSelectItem({ team, hasGroups }) {
@@ -236,7 +230,7 @@ export default function TournamentSquad() {
 
   const showPlayerSearchResults = trimmedFindPlayer.length > 0;
 
-  const { owner, iconPlayers } = teamDisplayMeta(selectedTeam);
+  const { sponsor, iconPlayers } = teamDisplayMeta(selectedTeam);
 
   const handleTeamChange = (nextTeamId) => {
     if (!nextTeamId || nextTeamId === selectedTeamId) return;
@@ -357,7 +351,7 @@ export default function TournamentSquad() {
           <TeamLogo team={selectedTeam} variant="organizerCard" />
           <div className="min-w-0 flex-1">
             <h2 className="text-[16px] font-bold text-white">{selectedTeam.name ?? '—'}</h2>
-            <p className="text-brand mt-0.5 text-[14px]">Owner: {owner}</p>
+            <p className="text-brand mt-0.5 text-[14px]">Sponsor: {sponsor}</p>
             <p className="mt-0.5 text-[12px] text-white">
               Icon Players: <span className="text-muted">{iconPlayers}</span>
             </p>

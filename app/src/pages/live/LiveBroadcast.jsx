@@ -26,7 +26,7 @@ import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStrea
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { setLiveViewerHeroMode } from '@/features/stream/liveViewerChromeStore';
-import { shouldShowStreamDebugOverlay, StreamDebugOverlay } from '@/features/stream/StreamDebugOverlay';
+import { StreamDebugOverlay } from '@/features/stream/StreamDebugOverlay';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
@@ -45,7 +45,7 @@ import {
   isInteractiveStreamUrl,
   isSelfServeLiveBroadcast,
 } from '@/lib/utils/liveStreamUtils';
-import { streamDebugLog } from '@/lib/utils/streamDebugLog';
+import { isStreamDebugEnabled, streamDebugLog } from '@/lib/utils/streamDebugLog';
 import { hideYoutubeStreamOverlay } from '@/native/youtubeStreamOverlay';
 import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
@@ -224,7 +224,7 @@ export default function LiveBroadcast() {
             selfServeChrome={isPortraitSelfServe && !isWatchUrlStream}
           />
         )}
-        <StreamDebugOverlay enabled={shouldShowStreamDebugOverlay()} />
+        <StreamDebugOverlay enabled={isStreamDebugEnabled()} />
       </div>
     </div>
   );

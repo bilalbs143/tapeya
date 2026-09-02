@@ -126,7 +126,6 @@ export function ProfileStats({ userId: userIdProp } = {}) {
   const navigate = useNavigate();
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [tournamentType, setTournamentType] = useState('all');
-  const [cricketFormat, setCricketFormat] = useState('all');
   const currentUser = useAppSelector(selectUser);
   const userId = userIdProp ?? currentUser?.id ?? null;
   const isOwnStats = currentUser?.id != null && userId != null && Number(currentUser.id) === Number(userId);
@@ -136,10 +135,9 @@ export function ProfileStats({ userId: userIdProp } = {}) {
     () => withAllOption(enums.stats_bucket ?? enums.tournament_type ?? []),
     [enums.stats_bucket, enums.tournament_type],
   );
-  const cricketFormatOptions = useMemo(() => withAllOption(enums.cricket_format ?? []), [enums.cricket_format]);
 
   const { data: statsData, isLoading: statsLoading } = useGetPlayerStatsQuery(
-    { userId, tournament_type: tournamentType, cricket_format: cricketFormat },
+    { userId, tournament_type: tournamentType, cricket_format: 'all' },
     { skip: !userId },
   );
   const { data: teamsData = [], isLoading: teamsLoading } = useGetPlayerTeamsQuery(userId, { skip: !userId });
@@ -186,19 +184,11 @@ export function ProfileStats({ userId: userIdProp } = {}) {
       <FilterPillSelectGroup>
         <FilterPillSelect
           label="Type"
-          segment="left"
+          segment="single"
           value={tournamentType}
           onValueChange={setTournamentType}
           options={tournamentTypeOptions}
           ariaLabel="Tournament type"
-        />
-        <FilterPillSelect
-          label="Format"
-          segment="right"
-          value={cricketFormat}
-          onValueChange={setCricketFormat}
-          options={cricketFormatOptions}
-          ariaLabel="Cricket format"
         />
       </FilterPillSelectGroup>
 

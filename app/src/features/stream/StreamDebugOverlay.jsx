@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { isStreamDebugEnabled } from '@/lib/utils/streamDebugLog';
+import { STREAM_DEBUG_PANEL_PX } from '@/lib/utils/streamDebugLog';
 import { clearStreamDebugLines, getStreamDebugLinesText, subscribeStreamDebugLines } from '@/lib/utils/streamDebugStore';
-
-/** Reserved strip below the status bar — native overlay is pushed down by this amount. */
-export const STREAM_DEBUG_PANEL_PX = 120;
 
 /**
  * On-device stream debug console — portaled above app chrome.
@@ -92,9 +89,4 @@ export function StreamDebugOverlay({ enabled = true }) {
   );
 
   return createPortal(panel, document.body);
-}
-
-/** Whether the live page should mount {@link StreamDebugOverlay}. */
-export function shouldShowStreamDebugOverlay() {
-  return isStreamDebugEnabled();
 }
