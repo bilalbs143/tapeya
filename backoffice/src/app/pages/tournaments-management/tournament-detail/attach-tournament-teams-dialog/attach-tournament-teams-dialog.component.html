@@ -127,6 +127,14 @@
       >
         Cancel
       </app-ui-button>
+      <app-ui-button
+        type="button"
+        variant="secondary"
+        [disabled]="isSubmitting"
+        (click)="openCreateTeam()"
+      >
+        Create New Team
+      </app-ui-button>
       <app-submit-button
         [disabled]="attachPrimaryDisabled"
         [isSubmitting]="isSubmitting"

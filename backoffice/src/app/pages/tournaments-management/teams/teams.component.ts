@@ -133,7 +133,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
   }
 
   public openCreateDialog(): void {
-    this.messageService.openDialog<ManageTeamDialogComponent, boolean>(
+    this.messageService.openDialog<ManageTeamDialogComponent, TeamRow>(
       ManageTeamDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
@@ -145,7 +145,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
   }
 
   public openEditDialog(team: TeamRow): void {
-    this.messageService.openDialog<ManageTeamDialogComponent, boolean>(
+    this.messageService.openDialog<ManageTeamDialogComponent, TeamRow>(
       ManageTeamDialogComponent,
       { mode: 'edit', team },
       (result) => result && this.loadHttpData(),

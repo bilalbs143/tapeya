@@ -30,7 +30,7 @@ export interface ManageTeamDialogData {
 })
 export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManageTeamDialogData>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(MatDialogRef<ManageTeamDialogComponent, boolean>);
+  private readonly dialogRef = inject(MatDialogRef<ManageTeamDialogComponent, TeamRow | null>);
   private readonly fb = inject(FormBuilder);
   private readonly teamsService = inject(TeamsService);
   private readonly mediaService = inject(MediaService);
@@ -234,18 +234,22 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     const logoVal = this.form.getRawValue().logo as FileUploadValue | null;
 
     this.isSubmitting = true;
+    let savedTeam: TeamRow | null = null;
     const request$ =
       this.data.mode === 'create' ? this.teamsService.create(payload) : this.teamsService.update(this.data.team!.id, payload);
 
     request$
       .pipe(
-        switchMap((res) => this.mediaService.applyField('team', res.data.id, 'logo', logoVal, this.originalHasLogo)),
+        switchMap((res) => {
+          savedTeam = res.data ?? null;
+          return this.mediaService.applyField('team', res.data.id, 'logo', logoVal, this.originalHasLogo);
+        }),
         finalize(() => (this.isSubmitting = false))
       )
       .subscribe({
         next: () => {
           this.messageService.success(this.data.mode === 'create' ? 'Team created.' : 'Team updated.');
-          this.dialogRef.close(true);
+          this.dialogRef.close(savedTeam);
         },
         error: () => this.messageService.error('Could not save team.'),
       });

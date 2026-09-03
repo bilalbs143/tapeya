@@ -6,6 +6,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, switchMap } from 'rxjs/operators';
 
+import { ManageTeamDialogComponent } from '../../teams/manage-team-dialog/manage-team-dialog.component';
+
 import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { type TeamRow, TeamsService } from 'src/app/services/teams.service';
@@ -97,6 +99,31 @@ export class AttachTournamentTeamsDialogComponent implements OnInit, OnDestroy {
 
   public get title(): string {
     return 'Attach Teams to Tournament';
+  }
+
+  public get searchTerm(): string {
+    return String(this.searchControl.value ?? '').trim();
+  }
+
+  public openCreateTeam(): void {
+    if (this.isSubmitting) return;
+
+    this.messageService.openDialog<ManageTeamDialogComponent, TeamRow>(
+      ManageTeamDialogComponent,
+      { mode: 'create' },
+      (created) => {
+        const createdId = created?.id;
+        if (createdId == null) return;
+
+        if (this.selected.some((t) => t.id === createdId)) return;
+        if (this.isAtCapacity) return;
+
+        this.selected = [...this.selected, created];
+        this.searchControl.setValue('', { emitEvent: false });
+        this.applyCandidateFilter();
+      },
+      { widthSize: 'md', disableClose: true }
+    );
   }
 
   public get groupOptions(): number[] {

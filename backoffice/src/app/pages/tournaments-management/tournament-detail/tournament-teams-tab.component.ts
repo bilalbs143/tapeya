@@ -262,7 +262,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   }
 
   public openEditTeam(team: TournamentTeamRow): void {
-    this.messageService.openDialog<ManageTeamDialogComponent, boolean>(
+    this.messageService.openDialog<ManageTeamDialogComponent, TeamRow>(
       ManageTeamDialogComponent,
       { mode: 'edit', team: this.toTeamRow(team) },
       (saved) => saved && this.load(),
