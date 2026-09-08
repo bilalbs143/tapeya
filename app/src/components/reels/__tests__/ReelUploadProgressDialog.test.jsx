@@ -27,7 +27,7 @@ describe('ReelUploadProgressDialog', () => {
       status: 'uploading',
       percent: 42,
       stage: 'uploading',
-      previewUrl: null,
+      posterUrl: null,
       error: null,
     });
 
@@ -43,7 +43,7 @@ describe('ReelUploadProgressDialog', () => {
       status: 'error',
       percent: 40,
       stage: 'uploading',
-      previewUrl: null,
+      posterUrl: null,
       error: 'Disk full',
     });
 

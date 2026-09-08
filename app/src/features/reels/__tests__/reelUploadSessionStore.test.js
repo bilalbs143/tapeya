@@ -22,6 +22,11 @@ vi.mock('@/store/api/baseApi', () => ({
   },
 }));
 
+vi.mock('@/features/reels/clientReelPoster', () => ({
+  rememberClientReelPoster: vi.fn(),
+  rememberClientReelVideo: vi.fn(),
+}));
+
 describe('reelUploadSessionStore', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -37,15 +42,15 @@ describe('reelUploadSessionStore', () => {
     vi.useRealTimers();
   });
 
-  it('forwards posterBlob to publishReel', async () => {
+  it('keeps posterUrl on the session (client-only, not sent to publishReel)', async () => {
     publishReel.mockResolvedValue({ id: 9 });
 
-    const { startReelUpload } = await import('../reelUploadSessionStore');
+    const { startReelUpload, getReelUploadSession } = await import('../reelUploadSessionStore');
     const file = new File(['x'], 'a.mp4', { type: 'video/mp4' });
-    const posterBlob = new Blob(['p'], { type: 'image/jpeg' });
     const mutations = { createReel: vi.fn() };
 
-    expect(startReelUpload({ file, mutations, previewUrl: null, posterBlob })).toBe(true);
+    expect(startReelUpload({ file, mutations, posterUrl: 'blob:poster' })).toBe(true);
+    expect(getReelUploadSession().posterUrl).toBe('blob:poster');
     await Promise.resolve();
     await Promise.resolve();
 
@@ -53,9 +58,10 @@ describe('reelUploadSessionStore', () => {
       mutations,
       expect.objectContaining({
         file,
-        posterBlob,
       }),
     );
+    expect(publishReel.mock.calls[0][1].posterBlob).toBeUndefined();
+    expect(publishReel.mock.calls[0][1].posterUrl).toBeUndefined();
   });
 
   it('refuses a second upload while one is in flight', async () => {

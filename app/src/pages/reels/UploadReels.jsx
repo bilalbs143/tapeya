@@ -1,12 +1,6 @@
 /**
- * UploadReels
- *
- * Mobile-first TikTok-style flow: empty → portrait preview → details → post.
- * Route: /reels/upload
- *
- * After Post, a blocking progress dialog stays open until the upload finishes.
- *
- * Coding guidelines: docs/Coding guidelines.md (§2 selectors)
+ * UploadReels — empty → portrait preview → details → post.
+ * Client still is for UI only; server generates the real poster later.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -14,7 +8,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getReelUploadSession, startReelUpload, useReelUploadSession } from '@/features/reels/reelUploadSessionStore';
-import { awaitReelPosterBriefly, extractReelPosterJpeg } from '@/lib/utils/extractReelPoster';
 import {
   formatReelMaxUploadLabel,
   probeReelVideoDuration,
@@ -28,7 +21,6 @@ import {
   useCreateReelMutation,
   useDeleteReelMutation,
   useInitReelMultipartMutation,
-  useUploadReelMultipartPartMutation,
 } from '@/store/api/reelsApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 
@@ -65,7 +57,7 @@ export default function UploadReels() {
   const location = useLocation();
   const fileInputRef = useRef(null);
   const previewUrlRef = useRef(null);
-  const posterPromiseRef = useRef(/** @type {Promise<Blob|null>|null} */ (null));
+  const posterUrlRef = useRef(null);
   const seededFromComposeRef = useRef(false);
   const uploadSession = useReelUploadSession();
 
@@ -82,7 +74,6 @@ export default function UploadReels() {
   const [createReel] = useCreateReelMutation();
   const [uploadMedia] = useUploadMediaMutation();
   const [initMultipart] = useInitReelMultipartMutation();
-  const [uploadPart] = useUploadReelMultipartPartMutation();
   const [completeMultipart] = useCompleteReelMultipartMutation();
   const [abortMultipart] = useAbortReelMultipartMutation();
   const [deleteReel] = useDeleteReelMutation();
@@ -91,6 +82,7 @@ export default function UploadReels() {
   const [caption, setCaption] = useState(() => (typeof location.state?.caption === 'string' ? location.state.caption : ''));
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [posterUrl, setPosterUrl] = useState(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isValidatingFile, setIsValidatingFile] = useState(false);
   const [error, setError] = useState(null);
@@ -122,11 +114,12 @@ export default function UploadReels() {
     }
   }, []);
 
-  /** Clear local video UI without revoking — session owns the object URL after Post. */
-  const detachPreviewWithoutRevoke = useCallback(() => {
-    previewUrlRef.current = null;
-    setSelectedFile(null);
-    setPreviewUrl(null);
+  const revokePosterUrl = useCallback(() => {
+    if (posterUrlRef.current) {
+      URL.revokeObjectURL(posterUrlRef.current);
+      posterUrlRef.current = null;
+    }
+    setPosterUrl(null);
   }, []);
 
   const openPicker = useCallback(() => {
@@ -137,33 +130,39 @@ export default function UploadReels() {
   const commitSelectedFile = useCallback(
     (file) => {
       revokePreviewUrl();
+      revokePosterUrl();
       const nextUrl = URL.createObjectURL(file);
       previewUrlRef.current = nextUrl;
-      posterPromiseRef.current = null;
       setSelectedFile(file);
       setPreviewUrl(nextUrl);
       setStep(STEPS.PREVIEW);
     },
-    [revokePreviewUrl],
+    [revokePreviewUrl, revokePosterUrl],
   );
 
-  /** Poster extract after preview has a frame — avoids iOS blank first paint. */
-  const handlePreviewReady = useCallback(() => {
-    if (!selectedFile || posterPromiseRef.current) return;
-    posterPromiseRef.current = extractReelPosterJpeg(selectedFile).catch(() => null);
-  }, [selectedFile]);
+  const handlePosterCapture = useCallback((blob) => {
+    if (!blob) return;
+    if (posterUrlRef.current) URL.revokeObjectURL(posterUrlRef.current);
+    const url = URL.createObjectURL(blob);
+    posterUrlRef.current = url;
+    setPosterUrl(url);
+  }, []);
 
   const clearVideo = useCallback(() => {
     revokePreviewUrl();
-    posterPromiseRef.current = null;
+    revokePosterUrl();
     setSelectedFile(null);
     setPreviewUrl(null);
-  }, [revokePreviewUrl]);
+  }, [revokePreviewUrl, revokePosterUrl]);
 
   useEffect(() => {
     return () => {
-      // Only revoke if we still own the URL (not handed off to the upload session).
       revokePreviewUrl();
+      // Poster may have been handed to the upload session — only revoke if we still own it.
+      if (posterUrlRef.current) {
+        URL.revokeObjectURL(posterUrlRef.current);
+        posterUrlRef.current = null;
+      }
     };
   }, [revokePreviewUrl]);
 
@@ -181,7 +180,6 @@ export default function UploadReels() {
           setError(result.error);
           return;
         }
-
         commitSelectedFile(file);
       } finally {
         setIsValidatingFile(false);
@@ -190,8 +188,6 @@ export default function UploadReels() {
     [commitSelectedFile, isBusyPublishing, uploadLimits],
   );
 
-  // Support legacy handoffs that included a File. The current compose flow
-  // intentionally hands off only caption, then opens this picker.
   useEffect(() => {
     if (seededFromComposeRef.current) return;
     const file = location.state?.file;
@@ -220,27 +216,6 @@ export default function UploadReels() {
     })();
   }, [commitSelectedFile, location.state, uploadLimits]);
 
-  const handleBackFromEmpty = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
-
-  const handleBackFromPreview = useCallback(() => {
-    if (isBusyPublishing) return;
-    clearVideo();
-    setError(null);
-    setStep(STEPS.EMPTY);
-  }, [clearVideo, isBusyPublishing]);
-
-  const handleBackFromDetails = useCallback(() => {
-    if (isBusyPublishing) return;
-    setError(null);
-    setStep(STEPS.PREVIEW);
-  }, [isBusyPublishing]);
-
-  const handleInsertHashtag = useCallback(() => {
-    setCaption((prev) => appendHashtagToken(prev));
-  }, []);
-
   const handlePublish = useCallback(async () => {
     if (!selectedFile || isBusyPublishing) return;
     if (getReelUploadSession().status === 'uploading') {
@@ -252,7 +227,7 @@ export default function UploadReels() {
     setError(null);
 
     const file = selectedFile;
-    const sessionPreviewUrl = previewUrl;
+    const sessionPosterUrl = posterUrl;
     const postCaption = caption.trim() || undefined;
 
     try {
@@ -262,7 +237,6 @@ export default function UploadReels() {
         return;
       }
 
-      // Re-check after await — another upload may have started (e.g. second tab / race).
       if (getReelUploadSession().status === 'uploading') {
         setError('Another reel is still uploading. Please wait.');
         return;
@@ -273,28 +247,18 @@ export default function UploadReels() {
         const duration = precheck.durationSec != null ? precheck.durationSec : await probeReelVideoDuration(file);
         if (duration != null) clientDurationMs = Math.round(duration * 1000);
       } catch {
-        // optional — server can probe during transcode
+        // optional
       }
-
-      const posterBlob = await awaitReelPosterBriefly(posterPromiseRef.current, 2000);
-      posterPromiseRef.current = null;
-
-      // Hand ownership of the object URL to the session before navigating away.
-      detachPreviewWithoutRevoke();
-      setCaption('');
-      setStep(STEPS.EMPTY);
 
       const started = startReelUpload({
         file,
         caption: postCaption,
         clientDurationMs,
-        previewUrl: sessionPreviewUrl,
-        posterBlob,
+        posterUrl: sessionPosterUrl,
         mutations: {
           createReel,
           uploadMedia,
           initMultipart,
-          uploadPart,
           completeMultipart,
           abortMultipart,
           deleteReel,
@@ -302,23 +266,19 @@ export default function UploadReels() {
       });
 
       if (!started) {
-        // Re-attach for retry if session refused (should be rare).
-        previewUrlRef.current = sessionPreviewUrl;
-        setSelectedFile(file);
-        setPreviewUrl(sessionPreviewUrl);
-        setCaption(postCaption || '');
-        setStep(STEPS.DETAILS);
         setError('Another reel is still uploading. Please wait.');
+        return;
       }
+
+      // Hand poster to session; drop local video UI.
+      revokePreviewUrl();
+      posterUrlRef.current = null;
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setPosterUrl(null);
+      setCaption('');
+      setStep(STEPS.EMPTY);
     } catch (err) {
-      // If we already detached the preview, restore so the user can retry.
-      if (!previewUrlRef.current && sessionPreviewUrl) {
-        previewUrlRef.current = sessionPreviewUrl;
-        setSelectedFile(file);
-        setPreviewUrl(sessionPreviewUrl);
-        setCaption(postCaption || '');
-        setStep(STEPS.DETAILS);
-      }
       const message = err?.data?.message || err?.error || err?.message || 'Could not publish reel. Please try again.';
       setError(typeof message === 'string' ? message : 'Could not publish reel. Please try again.');
     } finally {
@@ -329,16 +289,14 @@ export default function UploadReels() {
     isBusyPublishing,
     uploadLimits,
     caption,
-    previewUrl,
+    posterUrl,
     createReel,
     uploadMedia,
     initMultipart,
-    uploadPart,
     completeMultipart,
     abortMultipart,
     deleteReel,
-    navigate,
-    detachPreviewWithoutRevoke,
+    revokePreviewUrl,
   ]);
 
   return (
@@ -356,7 +314,7 @@ export default function UploadReels() {
       {step === STEPS.EMPTY || !previewUrl ? (
         <UploadEmptyStep
           onSelectVideo={openPicker}
-          onBack={handleBackFromEmpty}
+          onBack={() => navigate(-1)}
           error={error}
           limitsHint={limitsHint}
           isBusy={isValidatingFile || uploadSession.status === 'uploading'}
@@ -370,25 +328,34 @@ export default function UploadReels() {
       {step === STEPS.PREVIEW && previewUrl ? (
         <UploadPreviewStep
           previewUrl={previewUrl}
-          onBack={handleBackFromPreview}
+          onBack={() => {
+            if (isBusyPublishing) return;
+            clearVideo();
+            setError(null);
+            setStep(STEPS.EMPTY);
+          }}
           onNext={() => {
             setError(null);
             setStep(STEPS.DETAILS);
           }}
           onChangeVideo={openPicker}
-          onPreviewReady={handlePreviewReady}
+          onPosterCapture={handlePosterCapture}
           error={error}
           isBusy={isValidatingFile}
         />
       ) : null}
 
-      {step === STEPS.DETAILS && previewUrl ? (
+      {step === STEPS.DETAILS && (previewUrl || posterUrl) ? (
         <UploadDetailsStep
-          previewUrl={previewUrl}
+          posterUrl={posterUrl}
           caption={caption}
           onCaptionChange={setCaption}
-          onInsertHashtag={handleInsertHashtag}
-          onBack={handleBackFromDetails}
+          onInsertHashtag={() => setCaption((prev) => appendHashtagToken(prev))}
+          onBack={() => {
+            if (isBusyPublishing) return;
+            setError(null);
+            setStep(STEPS.PREVIEW);
+          }}
           onPost={handlePublish}
           isPublishing={isBusyPublishing}
           error={error}

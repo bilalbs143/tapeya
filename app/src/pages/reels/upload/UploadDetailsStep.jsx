@@ -1,15 +1,15 @@
 /**
  * Caption, hashtag helper, and Post for reel upload.
- * Page chrome matches Support: sticky AppSubpageHeader + Container inside MainLayout.
  */
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { ReelLocalPreviewThumb } from '@/components/reels/ReelLocalPreviewThumb';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { Textarea } from '@/ui/Textarea';
 
 export function UploadDetailsStep({
-  previewUrl,
+  posterUrl = null,
   caption,
   onCaptionChange,
   onInsertHashtag,
@@ -40,11 +40,7 @@ export function UploadDetailsStep({
             className="min-h-[96px] flex-1 resize-none bg-transparent! px-0! py-0! text-[15px] focus:ring-0!"
           />
           <div className="bg-surface relative h-[120px] w-[84px] shrink-0 overflow-hidden rounded-xl">
-            {previewUrl ? (
-              <video src={previewUrl} muted playsInline preload="metadata" className="h-full w-full object-cover">
-                <track kind="captions" />
-              </video>
-            ) : null}
+            <ReelLocalPreviewThumb posterUrl={posterUrl} />
             <span className="absolute inset-x-0 top-0 bg-black/45 py-0.5 text-center text-[10px] font-medium text-white">
               Preview
             </span>

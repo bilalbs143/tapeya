@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
+import { ReelLocalPreviewThumb } from '@/components/reels/ReelLocalPreviewThumb';
 import { clearReelUploadSession, useReelUploadSession } from '@/features/reels/reelUploadSessionStore';
 import { buildReelSharePath } from '@/lib/share';
 import {
@@ -18,34 +19,6 @@ import {
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-
-function PreviewThumb({ src }) {
-  if (!src) {
-    return <span className="bg-surface block h-full w-full" />;
-  }
-
-  return (
-    <video
-      src={src}
-      muted
-      playsInline
-      preload="metadata"
-      className="h-full w-full object-cover"
-      onLoadedMetadata={(event) => {
-        try {
-          const video = event.currentTarget;
-          if (video.currentTime < 0.05) {
-            video.currentTime = Math.min(0.1, (video.duration || 1) * 0.01);
-          }
-        } catch {
-          // ignore seek failures on some platforms
-        }
-      }}
-    >
-      <track kind="captions" />
-    </video>
-  );
-}
 
 function uploadCopy(status, stage) {
   if (status === 'error') {
@@ -113,8 +86,8 @@ export function ReelUploadProgressDialog() {
           }`}
           style={{ aspectRatio: '9 / 16' }}
         >
-          <PreviewThumb src={session.previewUrl} />
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-black/45 to-black/30">
+          <ReelLocalPreviewThumb posterUrl={session.posterUrl} />
+          <div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/80 via-black/45 to-black/30">
             <span
               className={`text-[28px] leading-none font-extrabold tabular-nums drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] ${
                 isError ? 'text-[#FF453A]' : 'text-white'

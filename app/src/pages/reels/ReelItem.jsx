@@ -14,6 +14,7 @@ import ReelCommentsSheet from '@/components/reels/ReelCommentsSheet';
 import { ReelCoverImage } from '@/components/reels/ReelCoverImage';
 import ReelReportDialog from '@/components/reels/ReelReportDialog';
 import { UserAvatar } from '@/components/UserAvatar';
+import { getClientReelVideo } from '@/features/reels/clientReelPoster';
 import { toggleReelsFocusMode, useReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelHls } from '@/features/reels/useReelHls';
 import { useViewTracker } from '@/features/reels/useViewTracker';
@@ -194,7 +195,9 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const lastTapRef = useRef(0);
   const currentUser = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const [paused, setPaused] = useState(false);
+  // Just-uploaded: local file this visit (server URL is mid-processing and plays poorly).
+  const localVideoUrl = getClientReelVideo(reel.id);
+  const [paused, setPaused] = useState(() => Boolean(localVideoUrl));
   const [progress, setProgress] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -226,6 +229,14 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const visibleCaption =
     captionNeedsCollapse && !captionExpanded ? `${caption.slice(0, CAPTION_COLLAPSE_LIMIT).trimEnd()}…` : caption;
 
+  const playbackForPlayer = localVideoUrl
+    ? { url: localVideoUrl, type: 'original', hlsUrl: null }
+    : {
+        url: reel.playback?.url ?? reel.videoUrl,
+        type: reel.playback?.type,
+        hlsUrl: reel.playback?.hlsUrl,
+      };
+
   const requireAuth = useCallback(
     (action) => {
       if (!isAuthenticated) {
@@ -241,25 +252,21 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     setCaptionExpanded(false);
     setReportOpen(false);
     setMutedByPolicy(false);
+    setPaused(Boolean(getClientReelVideo(reel.id)));
   }, [reel.id]);
-
-  useEffect(() => {
-    setVideoReady(false);
-  }, [reel.id, inPlayerWindow]);
 
   const {
     failed: playbackFailed,
     retry: retryPlayback,
     readyToken,
-  } = useReelHls(
-    videoRef,
-    {
-      url: reel.playback?.url ?? reel.videoUrl,
-      type: reel.playback?.type,
-      hlsUrl: reel.playback?.hlsUrl,
-    },
-    { enabled: inPlayerWindow, role: isActive ? 'active' : 'warm' },
-  );
+  } = useReelHls(videoRef, playbackForPlayer, {
+    enabled: inPlayerWindow,
+    role: isActive ? 'active' : 'warm',
+  });
+
+  useEffect(() => {
+    setVideoReady(false);
+  }, [reel.id, inPlayerWindow, readyToken]);
 
   const getCurrentTimeMs = useCallback(() => {
     const video = videoRef.current;
@@ -519,7 +526,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
             preload="auto"
             poster={reel.posterUrl || undefined}
             onPlaying={revealVideo}
-            className={`${MEDIA_LAYER} ${videoReady ? '' : 'invisible'}`}
+            className={`${MEDIA_LAYER} transition-opacity duration-300 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
           >
             <track kind="captions" />
           </video>

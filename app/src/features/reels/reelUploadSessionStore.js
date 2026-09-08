@@ -1,19 +1,19 @@
 import { useSyncExternalStore } from 'react';
 
+import { rememberClientReelPoster, rememberClientReelVideo } from '@/features/reels/clientReelPoster';
 import { baseApi } from '@/store/api/baseApi';
 import { publishReel } from '@/store/api/reelsApi';
 import { store } from '@/store/store';
 
 /**
  * In-flight reel upload session (module store).
- * Survives navigation away from /reels/upload so the blocking progress dialog can stay open.
  *
  * @typedef {'idle' | 'uploading' | 'success' | 'error'} ReelUploadStatus
  * @typedef {{
  *   status: ReelUploadStatus,
  *   percent: number,
  *   stage: string,
- *   previewUrl: string | null,
+ *   posterUrl: string | null,
  *   error: string | null,
  *   reelId: number | null,
  * }} ReelUploadSession
@@ -24,7 +24,7 @@ const IDLE = {
   status: 'idle',
   percent: 0,
   stage: 'preparing',
-  previewUrl: null,
+  posterUrl: null,
   error: null,
   reelId: null,
 };
@@ -34,12 +34,10 @@ let session = { ...IDLE };
 const listeners = new Set();
 let clearTimer = null;
 let beforeUnloadAttached = false;
-/** Object URL owned by the session (revoked on clear). */
-let ownedPreviewUrl = null;
-/** Bumps on each start/clear so late async completions cannot resurrect a cleared session. */
+/** Local still object URL owned by the session (revoked on clear unless transferred). */
+let ownedPosterUrl = null;
 let uploadGeneration = 0;
 
-/** How long the success state stays visible in the blocking dialog before auto-dismiss. */
 export const REEL_UPLOAD_SUCCESS_CLEAR_MS = 2200;
 
 function emit() {
@@ -69,10 +67,10 @@ function onBeforeUnload(event) {
   event.returnValue = '';
 }
 
-function revokeOwnedPreview() {
-  if (ownedPreviewUrl) {
-    URL.revokeObjectURL(ownedPreviewUrl);
-    ownedPreviewUrl = null;
+function revokeOwnedPoster() {
+  if (ownedPosterUrl) {
+    URL.revokeObjectURL(ownedPosterUrl);
+    ownedPosterUrl = null;
   }
 }
 
@@ -82,15 +80,11 @@ function cancelClearTimer() {
   clearTimer = null;
 }
 
-/**
- * Clear session state. Revokes preview object URL if we own it.
- * Invalidates any in-flight upload completion for the previous generation.
- */
 export function clearReelUploadSession() {
   cancelClearTimer();
   uploadGeneration += 1;
   detachBeforeUnload();
-  revokeOwnedPreview();
+  revokeOwnedPoster();
   session = { ...IDLE };
   emit();
 }
@@ -113,31 +107,28 @@ function isCurrentGeneration(generation) {
 }
 
 /**
- * Start a reel upload. Progress lives in this session so the blocking dialog can stay open.
- *
  * @param {{
  *   file: File,
  *   caption?: string,
  *   clientDurationMs?: number,
- *   previewUrl?: string | null,
- *   posterBlob?: Blob | File | null,
+ *   posterUrl?: string | null,
  *   mutations: {
  *     createReel: Function,
  *     uploadMedia: Function,
  *     initMultipart?: Function,
- *     uploadPart?: Function,
  *     completeMultipart?: Function,
  *     abortMultipart?: Function,
+ *     deleteReel?: Function,
  *   },
  * }} opts
- * @returns {boolean} false if an upload is already in progress
+ * @returns {boolean}
  */
 export function startReelUpload(opts) {
   if (session.status === 'uploading') {
     return false;
   }
 
-  const { file, caption, clientDurationMs, previewUrl, posterBlob, mutations } = opts;
+  const { file, caption, clientDurationMs, posterUrl, mutations } = opts;
   if (!file || !mutations?.createReel) {
     return false;
   }
@@ -146,15 +137,14 @@ export function startReelUpload(opts) {
   uploadGeneration += 1;
   const generation = uploadGeneration;
 
-  // Take ownership of the preview URL so UploadReels can reset without revoking it.
-  revokeOwnedPreview();
-  ownedPreviewUrl = previewUrl || null;
+  revokeOwnedPoster();
+  ownedPosterUrl = posterUrl || null;
 
   setSession({
     status: 'uploading',
     percent: 0,
     stage: 'preparing',
-    previewUrl: ownedPreviewUrl,
+    posterUrl: ownedPosterUrl,
     error: null,
     reelId: null,
   });
@@ -166,7 +156,6 @@ export function startReelUpload(opts) {
         file,
         caption,
         clientDurationMs,
-        posterBlob: posterBlob || null,
         onProgress: ({ stage, percent }) => {
           if (!isCurrentGeneration(generation) || session.status !== 'uploading') return;
           setSession({
@@ -181,6 +170,19 @@ export function startReelUpload(opts) {
       const reelId = Number(created?.id);
       const nextReelId = Number.isFinite(reelId) && reelId > 0 ? reelId : null;
 
+      // Local still + original file for this tab. Server media is used after refresh.
+      if (nextReelId) {
+        if (ownedPosterUrl) {
+          rememberClientReelPoster(nextReelId, ownedPosterUrl);
+          ownedPosterUrl = null;
+        }
+        try {
+          rememberClientReelVideo(nextReelId, URL.createObjectURL(file));
+        } catch {
+          // Playback can fall back to the server original.
+        }
+      }
+
       try {
         store.dispatch(
           baseApi.util.invalidateTags([
@@ -190,7 +192,7 @@ export function startReelUpload(opts) {
           ]),
         );
       } catch {
-        // Upload already succeeded — do not surface cache invalidation failures as upload errors.
+        // ignore
       }
 
       setSession({

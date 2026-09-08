@@ -1,12 +1,13 @@
 /**
  * Listen for reel.processing.updated on the user's private channel.
- * Patches poster URLs into open reel lists immediately, then invalidates so
- * poster-gated discovery can refetch. Mounted app-wide (ConsumerRouterEffects).
+ * Patches poster/playback into open reel lists. Broad-invalidates only when
+ * the reel was not already cached. Mounted app-wide (ConsumerRouterEffects).
  */
 
 import { useEffect, useRef } from 'react';
 
 import { createEcho } from '@/config/reverb';
+import { forgetClientReelPoster } from '@/features/reels/clientReelPoster';
 import { REELS_LIST_ARG, safeUpdateQueryData } from '@/store/api/postEngagementCache';
 import { reelsApi } from '@/store/api/reelsApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -15,18 +16,32 @@ function sameId(a, b) {
   return a != null && b != null && String(a) === String(b);
 }
 
-function applyPoster(reel, posterUrl) {
-  if (!reel || !posterUrl) return reel;
+function applyPlayback(reel, posterUrl, playback) {
+  if (!reel) return reel;
+  const nextPlayback = reel.playback
+    ? {
+        ...reel.playback,
+        ...(posterUrl ? { posterUrl } : null),
+        ...(playback?.url != null ? { url: playback.url } : null),
+        ...(playback?.hls_url != null ? { hlsUrl: playback.hls_url } : null),
+        ...(playback?.type != null ? { type: playback.type } : null),
+        ...(playback?.is_processed != null ? { isProcessed: Boolean(playback.is_processed) } : null),
+      }
+    : reel.playback;
+
   return {
     ...reel,
-    posterUrl,
-    coverUrl: posterUrl,
-    playback: reel.playback ? { ...reel.playback, posterUrl } : reel.playback,
+    ...(posterUrl ? { posterUrl, coverUrl: posterUrl } : null),
+    playback: nextPlayback,
   };
 }
 
-function patchPoster(dispatch, reelId, posterUrl) {
-  if (reelId == null || reelId === '' || !posterUrl) return;
+/**
+ * @returns {boolean} true if at least one cached reel entry was patched
+ */
+function patchReelPlayback(dispatch, reelId, posterUrl, playback) {
+  if (reelId == null || reelId === '') return false;
+  let patched = false;
 
   for (const [endpointName, arg] of [
     ['getReelsFeed', REELS_LIST_ARG],
@@ -37,14 +52,20 @@ function patchPoster(dispatch, reelId, posterUrl) {
     safeUpdateQueryData(dispatch, endpointName, arg, (draft) => {
       if (!draft?.items) return;
       draft.items.forEach((reel, idx) => {
-        if (sameId(reel.id, reelId)) draft.items[idx] = applyPoster(reel, posterUrl);
+        if (!sameId(reel.id, reelId)) return;
+        draft.items[idx] = applyPlayback(reel, posterUrl, playback);
+        patched = true;
       });
     });
   }
 
   safeUpdateQueryData(dispatch, 'getReel', reelId, (draft) => {
-    if (draft) Object.assign(draft, applyPoster(draft, posterUrl));
+    if (!draft) return;
+    Object.assign(draft, applyPlayback(draft, posterUrl, playback));
+    patched = true;
   });
+
+  return patched;
 }
 
 export function useReelProcessingChannel() {
@@ -63,22 +84,29 @@ export function useReelProcessingChannel() {
     const channel = echo.private(`App.Models.User.${userId}`);
     const handler = (payload) => {
       const reelId = payload?.post_id ?? payload?.reel_id;
-      const posterUrl = payload?.playback?.poster_url ?? null;
-      if (posterUrl && reelId != null && reelId !== '') {
-        patchPoster(dispatch, reelId, posterUrl);
+      const playback = payload?.playback ?? null;
+      const posterUrl = playback?.poster_url ?? null;
+      if (posterUrl) {
+        forgetClientReelPoster(reelId);
       }
+      const patched = patchReelPlayback(dispatch, reelId, posterUrl, playback);
 
-      const tags = [
-        { type: 'Reel', id: 'MINE' },
-        { type: 'Reel', id: 'FEED' },
-        { type: 'Post', id: 'FEED' },
-        { type: 'Post', id: 'FOLLOWING' },
-        { type: 'Reel', id: `USER-${userId}` },
-      ];
+      const tags = [];
       if (reelId != null && reelId !== '') {
         tags.push({ type: 'Reel', id: reelId }, { type: 'Post', id: reelId });
       }
-      dispatch(reelsApi.util.invalidateTags(tags));
+      if (!patched) {
+        tags.push(
+          { type: 'Reel', id: 'MINE' },
+          { type: 'Reel', id: 'FEED' },
+          { type: 'Post', id: 'FEED' },
+          { type: 'Post', id: 'FOLLOWING' },
+          { type: 'Reel', id: `USER-${userId}` },
+        );
+      }
+      if (tags.length) {
+        dispatch(reelsApi.util.invalidateTags(tags));
+      }
     };
 
     channel.listen('.reel.processing.updated', handler);
