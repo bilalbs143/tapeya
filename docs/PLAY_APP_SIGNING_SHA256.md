@@ -1,5 +1,8 @@
 # Copy Play App Signing SHA-256 into assetlinks.json
 
+This is the **app signing** certificate (held by Play), used for App Links. For Play uploads, the **upload key**, new-machine setup, and `bundleRelease` steps are in [`ANDROID_PLAY_RELEASE.md`](./ANDROID_PLAY_RELEASE.md).
+
+
 Source of truth (preferred):
 
 - Play Console → Your app → **Protected with Play** (App integrity moved here)

@@ -113,7 +113,7 @@ npm run cap:android
 # npm run cap:android:dev
 ```
 
-Then archive in Xcode / Android Studio as usual.
+Then archive in Xcode as usual. For Play Android App Bundles (upload key, new machine, `bundleRelease`), see [`ANDROID_PLAY_RELEASE.md`](./ANDROID_PLAY_RELEASE.md).
 
 ## Graphics Site Deployment (`graphics.tapeya.com`)
 
