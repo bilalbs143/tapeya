@@ -90,16 +90,11 @@
         }
       </div>
       @if (notificationsLoading) {
-        <div
-          class="flex items-center gap-3 px-6 py-4"
-          role="status"
-          aria-label="Loading Notifications"
-        >
-          <app-loader
-            [diameter]="20"
-            [label]="null"
-          />
-        </div>
+        <app-loader-block
+          label="Loading Notifications"
+          [diameter]="20"
+          class="px-6 py-4"
+        />
       } @else if (apiNotifications.length === 0) {
         <div class="px-6 py-4 text-muted text-sm">No notifications</div>
       } @else {

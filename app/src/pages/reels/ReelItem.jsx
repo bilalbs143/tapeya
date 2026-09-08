@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { OfficialBadge } from '@/components/OfficialBadge';
 import ReelCommentsSheet from '@/components/reels/ReelCommentsSheet';
+import { ReelCoverImage } from '@/components/reels/ReelCoverImage';
 import ReelReportDialog from '@/components/reels/ReelReportDialog';
 import { UserAvatar } from '@/components/UserAvatar';
 import { toggleReelsFocusMode, useReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
@@ -502,18 +503,12 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   return (
     <div className="relative h-screen w-full shrink-0 snap-start overflow-hidden bg-black">
       <div className="absolute inset-0" onClick={inPlayerWindow ? handleVideoTap : undefined}>
-        {reel.posterUrl ? (
-          <img
-            src={reel.posterUrl}
-            alt=""
-            className={MEDIA_LAYER}
-            loading={inPlayerWindow ? 'eager' : 'lazy'}
-            decoding="async"
-            draggable={false}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-black" aria-hidden />
-        )}
+        <ReelCoverImage
+          src={reel.posterUrl}
+          className={MEDIA_LAYER}
+          fetchPriority={inPlayerWindow ? 'high' : undefined}
+          fallback={<div className="absolute inset-0 bg-black" aria-hidden />}
+        />
 
         {inPlayerWindow ? (
           <video

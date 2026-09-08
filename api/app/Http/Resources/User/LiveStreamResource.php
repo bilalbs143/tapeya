@@ -14,6 +14,7 @@ class LiveStreamResource extends JsonResource
     public function toArray(Request $request): array
     {
         $stream = $this->resource;
+        $canWatch = $request->user('api') !== null;
 
         return [
             'id' => $stream->id,
@@ -23,7 +24,8 @@ class LiveStreamResource extends JsonResource
             'orientation' => $stream->resolvedOrientation(),
             'title' => $stream->displayTitle(),
             'description' => $stream->displayDescription(),
-            'streaming_url' => $stream->streaming_url,
+            // Guests get the teaser (title + thumbnail) only — playback requires login.
+            'streaming_url' => $this->when($canWatch, $stream->streaming_url),
             'thumbnail_url' => $stream->thumbnailUrl(),
             'broadcaster' => $this->when(
                 $stream->isSelfServe() && $stream->relationLoaded('owner') && $stream->owner,
@@ -37,10 +39,10 @@ class LiveStreamResource extends JsonResource
             ),
             'stream' => [
                 'status' => $stream->status,
-                'provider' => $stream->provider,
-                'embed_id' => $stream->provider_playback_id,
+                'provider' => $this->when($canWatch, $stream->provider),
+                'embed_id' => $this->when($canWatch, $stream->provider_playback_id),
                 'playback' => $this->when(
-                    in_array($stream->status, ['live', 'ended'], true),
+                    $canWatch && in_array($stream->status, ['live', 'ended'], true),
                     fn () => $stream->playbackForApp(),
                 ),
                 'started_at' => $stream->started_at?->toIso8601String(),

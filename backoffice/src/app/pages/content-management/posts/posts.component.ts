@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
-import type { PostType, AdminPost, PostStatus, PostVisibility } from 'src/app/services/post.service';
+import type { PostType, AdminPost, PostStatus } from 'src/app/services/post.service';
 import { PostService } from 'src/app/services/post.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
@@ -33,7 +33,6 @@ const DEFAULT_FILTERS = {
   search: '',
   type: '',
   status: '',
-  visibility: '',
   has_reports: '',
 } as const;
 
@@ -55,13 +54,6 @@ const POST_STATUS_OPTIONS: { value: '' | PostStatus; label: string }[] = [
   { value: 'removed', label: 'Removed' },
 ];
 
-const POST_VISIBILITY_OPTIONS: { value: '' | PostVisibility; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'public', label: 'Public' },
-  { value: 'followers', label: 'Followers' },
-  { value: 'private', label: 'Private' },
-];
-
 const STATUS_LABELS: Record<PostStatus, string> = {
   uploading: 'Uploading',
   processing: 'Processing',
@@ -69,12 +61,6 @@ const STATUS_LABELS: Record<PostStatus, string> = {
   failed: 'Failed',
   rejected: 'Rejected',
   removed: 'Removed',
-};
-
-const VISIBILITY_LABELS: Record<PostVisibility, string> = {
-  public: 'Public',
-  followers: 'Followers',
-  private: 'Private',
 };
 
 const TYPE_LABELS: Record<PostType, string> = {
@@ -129,7 +115,6 @@ export class PostsComponent implements OnInit, OnDestroy {
     'caption',
     'creator',
     'status',
-    'visibility',
     'views',
     'likes',
     'reports',
@@ -140,7 +125,6 @@ export class PostsComponent implements OnInit, OnDestroy {
   public readonly emptyCell = EMPTY_CELL;
   public readonly typeOptions = POST_TYPE_OPTIONS;
   public readonly statusOptions = POST_STATUS_OPTIONS;
-  public readonly visibilityOptions = POST_VISIBILITY_OPTIONS;
 
   public totalRecords = 0;
   public currentPage = 0;
@@ -151,7 +135,6 @@ export class PostsComponent implements OnInit, OnDestroy {
       search: [DEFAULT_FILTERS.search],
       type: [DEFAULT_FILTERS.type],
       status: [DEFAULT_FILTERS.status],
-      visibility: [DEFAULT_FILTERS.visibility],
       has_reports: [DEFAULT_FILTERS.has_reports],
     });
     this.pageSize = this.paginatorConfig.pageSize;
@@ -191,9 +174,6 @@ export class PostsComponent implements OnInit, OnDestroy {
     if ((filters.type ?? '').trim() !== '') {
       params = { ...params, 'filter[type]': (filters.type as string).trim() };
     }
-    if ((filters.visibility ?? '').trim() !== '') {
-      params = { ...params, 'filter[visibility]': (filters.visibility as string).trim() };
-    }
     if ((filters.has_reports ?? '') !== '') {
       params = { ...params, 'filter[has_reports]': filters.has_reports };
     }
@@ -215,11 +195,6 @@ export class PostsComponent implements OnInit, OnDestroy {
   public statusLabel(status: PostStatus | null | undefined): string {
     if (!status) return this.emptyCell;
     return STATUS_LABELS[status] ?? status;
-  }
-
-  public visibilityLabel(visibility: PostVisibility | null | undefined): string {
-    if (!visibility) return this.emptyCell;
-    return VISIBILITY_LABELS[visibility] ?? visibility;
   }
 
   public typeLabel(type: PostType | null | undefined): string {

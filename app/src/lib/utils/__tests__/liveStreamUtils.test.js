@@ -6,10 +6,62 @@ import {
   isInteractiveIframePlayback,
   isInteractiveStreamUrl,
   isSelfServeLiveBroadcast,
+  liveNowHost,
+  liveNowLabel,
   resolveStreamIframeSrc,
   resolveYoutubeEmbed,
+  TAPEYA_PLATFORM_AVATAR,
+  TAPEYA_PLATFORM_NAME,
   withIosNativeEmbedParams,
 } from '../liveStreamUtils';
+
+describe('liveNowLabel', () => {
+  it('uses the broadcaster full name', () => {
+    expect(
+      liveNowLabel({
+        title: 'Match Title',
+        broadcaster: { name: 'Alex Host' },
+      }),
+    ).toBe('Alex Host is live now');
+  });
+
+  it('uses Tapeya when there is no broadcaster (admin / match streams)', () => {
+    expect(liveNowLabel({ title: 'Team A vs Team B' })).toBe('Tapeya is live now');
+    expect(liveNowLabel(null)).toBe('Tapeya is live now');
+    expect(liveNowLabel({})).toBe('Tapeya is live now');
+  });
+});
+
+describe('liveNowHost', () => {
+  it('returns the broadcaster when present', () => {
+    expect(
+      liveNowHost({
+        broadcaster: {
+          id: 9,
+          name: 'Alex Host',
+          avatar_url: 'https://cdn.example.com/a.jpg',
+          is_official: false,
+        },
+      }),
+    ).toEqual({
+      name: 'Alex Host',
+      avatarUrl: 'https://cdn.example.com/a.jpg',
+      userId: 9,
+      isOfficial: false,
+      isPlatform: false,
+    });
+  });
+
+  it('falls back to the Tapeya platform host for admin streams', () => {
+    expect(liveNowHost({ title: 'Cup Final' })).toEqual({
+      name: TAPEYA_PLATFORM_NAME,
+      avatarUrl: TAPEYA_PLATFORM_AVATAR,
+      userId: null,
+      isOfficial: true,
+      isPlatform: true,
+    });
+  });
+});
 
 describe('getStreamOrientation', () => {
   it('returns the API orientation value when present', () => {

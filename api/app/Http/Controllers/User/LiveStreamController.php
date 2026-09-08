@@ -7,20 +7,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\User\LiveStreamResource;
 use App\Models\LiveStream;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class LiveStreamController extends Controller
 {
     use BaseControllerTrait;
 
     /**
-     * Live and starting streams for the app hub (standalone + open-tournament match streams).
+     * Live hub listing — on-air streams only (standalone + open-tournament match streams).
      */
     public function index(): JsonResponse
     {
         $streams = LiveStream::query()
             ->visibleInApp()
             ->with(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner'])
-            ->orderByRaw("CASE status WHEN 'live' THEN 0 WHEN 'starting' THEN 1 ELSE 2 END")
             ->orderByDesc('started_at')
             ->orderByDesc('id')
             ->get();
@@ -30,9 +30,16 @@ class LiveStreamController extends Controller
 
     /**
      * Single stream viewer payload keyed by stream id.
+     *
+     * Public for share / deep links (title + thumbnail teaser). Guests may only open
+     * live, starting, or ended streams. Playback fields require auth (see resource).
      */
-    public function show(LiveStream $stream): JsonResponse
+    public function show(Request $request, LiveStream $stream): JsonResponse
     {
+        if (! $request->user('api') && ! in_array($stream->status, ['live', 'starting', 'ended'], true)) {
+            abort(404);
+        }
+
         $stream->loadMissing(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner']);
 
         return $this->success(new LiveStreamResource($stream));

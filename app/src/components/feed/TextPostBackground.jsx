@@ -50,7 +50,7 @@ export default function TextPostBackground({ background, className = '', content
         <div className={`pointer-events-none absolute inset-0 ${background.overlayClassName}`} aria-hidden />
       ) : null}
       {background.pattern ? <CricketIconScatter patternId={background.pattern} /> : null}
-      <div className={`relative z-10 w-full px-8 py-10 sm:px-12 sm:py-12 ${contentClassName}`.trim()}>{children}</div>
+      <div className={`relative z-10 w-full ${contentClassName || 'px-8 py-10 sm:px-12 sm:py-12'}`.trim()}>{children}</div>
     </div>
   );
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin\Post;
 
 use App\Enums\Post\PostStatusEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,7 +28,6 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'status' => ['sometimes', 'string', Rule::in(array_column(PostStatusEnum::cases(), 'value'))],
-            'visibility' => ['sometimes', 'string', Rule::in(array_column(PostVisibilityEnum::cases(), 'value'))],
             'body' => ['sometimes', 'nullable', 'string', 'max:2200'],
             'caption' => ['sometimes', 'nullable', 'string', 'max:2200'],
         ];

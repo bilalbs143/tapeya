@@ -19,7 +19,6 @@ class PostApiTest extends TestCase
 
         $response = $this->actingAs($user, 'api')->postJson('/api/v1/reels', [
             'body' => 'Cover drive #cricket',
-            'visibility' => 'public',
             'client_duration_ms' => 12000,
         ]);
 

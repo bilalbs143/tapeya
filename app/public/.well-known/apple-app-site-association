@@ -10,6 +10,7 @@
           "/feed",
           "/feed/*",
           "/live/go-live/*",
+          "/live/broadcast/*",
           "/scorecard",
           "/scorecard/*"
         ]

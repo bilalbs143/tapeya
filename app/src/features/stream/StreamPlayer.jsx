@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
-
 import { isInteractiveIframePlayback, youtubeStreamThumbnail } from '@/lib/utils/liveStreamUtils';
-import { streamDebugLog } from '@/lib/utils/streamDebugLog';
 
 import { HlsStreamPlayer } from './adapters/HlsStreamPlayer';
 import { IframeStreamPlayer } from './adapters/IframeStreamPlayer';
@@ -24,17 +21,6 @@ const PLAYERS = {
  */
 export function StreamPlayer({ stream, className = '', fill = false, isLandscape = false, posterUrl = null }) {
   const interactiveIframe = stream?.playback ? isInteractiveIframePlayback(stream.playback) : false;
-
-  useEffect(() => {
-    if (!stream || !['live', 'ended'].includes(stream.status) || !stream.playback) {
-      return;
-    }
-    streamDebugLog('StreamPlayer', {
-      status: stream.status,
-      playback: stream.playback,
-      interactiveIframe,
-    });
-  }, [stream, interactiveIframe]);
 
   if (!stream || !['live', 'ended'].includes(stream.status) || !stream.playback) {
     return <StreamOfflineSlate status={stream?.status} fill={fill} />;

@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { resolveStreamIframeSrc, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
-import { streamDebugLog } from '@/lib/utils/streamDebugLog';
 
 import { useStreamVideoLoading } from '../hooks/useStreamVideoLoading';
 import { StreamVideoLoading } from '../StreamVideoLoading';
@@ -34,18 +33,6 @@ export function IframeStreamPlayer({
   const showTapToPlayHint = !waitForPlaying;
   const [sessionKey, setSessionKey] = useState(0);
   const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    streamDebugLog('IframeStreamPlayer', {
-      src,
-      usesNativeOverlay,
-      waitForPlaying,
-      showControls,
-      interactive,
-      provider: playback?.provider,
-      mode: playback?.mode,
-    });
-  }, [src, usesNativeOverlay, waitForPlaying, showControls, interactive, playback?.provider, playback?.mode, sessionKey]);
 
   // Native overlay owns its loader. While failed, pause this hook until Try again.
   const [isLoading, markReady] = useStreamVideoLoading(usesNativeOverlay || failed ? null : src, {
@@ -84,14 +71,7 @@ export function IframeStreamPlayer({
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
         // Proxy embeds wait for PLAYING; direct iframes clear on load so play buttons stay tappable.
-        onLoad={
-          waitForPlaying
-            ? undefined
-            : () => {
-                streamDebugLog('IframeStreamPlayer.iframeOnLoad', { src });
-                markReady();
-              }
-        }
+        onLoad={waitForPlaying ? undefined : () => markReady()}
       />
       <StreamVideoLoading
         visible={isLoading && !failed}

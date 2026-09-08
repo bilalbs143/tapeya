@@ -8,10 +8,12 @@ const TAPEYA_LOGO_FULL = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.
  * Logo width classes are literal Tailwind utilities (not template/`min()` strings)
  * so the scanner emits them — otherwise the img can collapse to 0×0.
  */
-export function LiveStreamThumbnailFallback({ compact = false, className = '' }) {
+export function LiveStreamThumbnailFallback({ compact = false, large = false, className = '' }) {
   const logoClass = compact
     ? 'relative z-10 h-auto w-28 max-w-[70%] opacity-95'
-    : 'relative z-10 h-auto w-40 max-w-[75%] opacity-95 md:w-44';
+    : large
+      ? 'relative z-10 h-auto w-52 max-w-[82%] opacity-95 md:w-56'
+      : 'relative z-10 h-auto w-40 max-w-[75%] opacity-95 md:w-44';
 
   return (
     <div

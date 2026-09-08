@@ -18,6 +18,9 @@ class FakeStreamProvider implements StreamProviderContract
     /** Captured for assertions — e.g. confirming self-serve always passes privacy: 'unlisted'. */
     public ?CreateStreamData $lastCreateData = null;
 
+    /** Override syncStatus write — default promotes the row to live. */
+    public string $syncToStatus = 'live';
+
     public function createStream(LiveStream $stream, CreateStreamData $data): void
     {
         $this->lastCreateData = $data;
@@ -26,6 +29,7 @@ class FakeStreamProvider implements StreamProviderContract
             'provider_stream_id' => 'fake-broadcast-id',
             'provider_ingest_id' => 'fake-ingest-id',
             'provider_playback_id' => 'fake-broadcast-id',
+            'youtube_stream_key_id' => $data->youtubeStreamKeyId,
             'ingest_rtmp_url' => 'rtmp://fake.example.com/live',
             'embed_url' => 'https://www.youtube.com/embed/fake-broadcast-id',
             'status' => 'idle',
@@ -34,7 +38,7 @@ class FakeStreamProvider implements StreamProviderContract
 
     public function syncStatus(LiveStream $stream): void
     {
-        $stream->update(['status' => 'live']);
+        $this->syncStatuses(collect([$stream]));
     }
 
     /**
@@ -42,7 +46,16 @@ class FakeStreamProvider implements StreamProviderContract
      */
     public function syncStatuses(Collection $streams): void
     {
-        $streams->each(fn (LiveStream $stream) => $this->syncStatus($stream));
+        $streams->each(function (LiveStream $stream) {
+            $updates = ['status' => $this->syncToStatus];
+            if ($this->syncToStatus === 'live') {
+                $updates['started_at'] = $stream->started_at ?? now();
+            }
+            if ($this->syncToStatus === 'ended') {
+                $updates['ended_at'] = $stream->ended_at ?? now();
+            }
+            $stream->update($updates);
+        });
     }
 
     public function endStream(LiveStream $stream): void

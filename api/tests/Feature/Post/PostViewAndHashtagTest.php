@@ -27,7 +27,6 @@ class PostViewAndHashtagTest extends TestCase
         return $this->makeVideoPost($owner, array_merge([
             'body' => 'What a cover #cricket #tapeya',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
             'ready_at' => now(),
             'duration_ms' => 15000,

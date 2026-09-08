@@ -4,12 +4,10 @@ namespace Tests\Feature\Post;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Post;
 use App\Models\User;
-use App\Models\UserFollow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesVideoPosts;
 use Tests\TestCase;
@@ -82,17 +80,12 @@ class OfficialAccountBadgeTest extends TestCase
         $author = User::factory()->create(['is_official' => true]);
         $reposter = User::factory()->create();
         $stranger = User::factory()->create();
-        $followerOfAuthor = User::factory()->create();
-        UserFollow::query()->create([
-            'follower_id' => $followerOfAuthor->id,
-            'followed_user_id' => $author->id,
-        ]);
 
+        // Unpublished original is hidden from non-owners → nested repost_of redacts.
         $original = $this->makeVideoPost($author, [
             'body' => 'Secret official',
-            'visibility' => PostVisibilityEnum::Followers,
             'status' => PostStatusEnum::Ready,
-            'published_at' => now(),
+            'published_at' => null,
         ]);
 
         $wrapper = Post::query()->create([
@@ -100,7 +93,6 @@ class OfficialAccountBadgeTest extends TestCase
             'type' => PostTypeEnum::Repost,
             'body' => 'Seen this?',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
             'repost_of_post_id' => $original->id,
         ]);
@@ -113,7 +105,7 @@ class OfficialAccountBadgeTest extends TestCase
 
         $this->assertNull($redacted['creator'] ?? null);
 
-        $this->actingAs($followerOfAuthor, 'api')
+        $this->actingAs($author, 'api')
             ->getJson('/api/v1/posts/'.$wrapper->id)
             ->assertOk()
             ->assertJsonPath('data.repost_of.creator.is_official', true);

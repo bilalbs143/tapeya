@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   buildCreatorProfileShareUrl,
+  buildLiveBroadcastPath,
+  buildLiveBroadcastShareUrl,
   buildPostDetailPath,
   buildPostShareUrl,
   buildQuickMatchScorecardPath,
@@ -112,5 +114,10 @@ describe('share URL builders', () => {
   it('builds quick match scorecard share urls', () => {
     expect(buildQuickMatchScorecardPath(901)).toBe('/scorecard/match/901');
     expect(buildQuickMatchScorecardShareUrl(901)).toMatch(/\/scorecard\/match\/901$/);
+  });
+
+  it('builds live broadcast share urls', () => {
+    expect(buildLiveBroadcastPath(44)).toBe('/live/broadcast/44');
+    expect(buildLiveBroadcastShareUrl(44)).toMatch(/\/live\/broadcast\/44$/);
   });
 });

@@ -6,12 +6,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
 import { MaterialModule } from 'src/app/material.module';
+import { CreateYoutubeStreamKeyDialogComponent } from 'src/app/pages/live-streams-management/youtube-stream-keys/create-youtube-stream-key-dialog/create-youtube-stream-key-dialog.component';
 import { liveStreamStatusLabel } from 'src/app/pages/tournaments-management/match-controller/live-stream.utils';
 import {
   LiveStreamService,
   type LiveStreamListItem,
   type LiveStreamPayload,
   type LiveStreamStatus,
+  type YoutubeStreamKey,
 } from 'src/app/services/live-stream.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
@@ -53,6 +55,8 @@ export class LiveStreamManageDialogComponent implements OnInit {
   public copiedField: CopyField | null = null;
   public mutated = false;
   public readonly streamThumbnailHint = LIVE_STREAM_THUMBNAIL_UPLOAD_HINT;
+  public availableKeys: YoutubeStreamKey[] = [];
+  public loadingKeys = false;
   private originalHasThumbnail = false;
 
   public ngOnInit(): void {
@@ -60,10 +64,34 @@ export class LiveStreamManageDialogComponent implements OnInit {
       title: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', Validators.maxLength(500)],
       streaming_url: ['', Validators.maxLength(2048)],
+      youtube_stream_key_id: [null as number | null],
       thumbnail: [null as FileUploadValue | null],
     });
 
     this.loadStream();
+  }
+
+  public loadAvailableKeys(): void {
+    this.loadingKeys = true;
+    this.streamApi.listYoutubeStreamKeys().subscribe({
+      next: (keys) => {
+        const currentId = this.form?.get('youtube_stream_key_id')?.value as number | null;
+        this.availableKeys = keys.filter((key) => key.is_active && (!key.in_use || key.id === currentId));
+        this.loadingKeys = false;
+      },
+      error: () => {
+        this.loadingKeys = false;
+      },
+    });
+  }
+
+  public openCreateKeyDialog(): void {
+    this.messageService.openDialog<CreateYoutubeStreamKeyDialogComponent, boolean>(
+      CreateYoutubeStreamKeyDialogComponent,
+      {},
+      (saved) => saved && this.loadAvailableKeys(),
+      { widthSize: 'sm', disableClose: true }
+    );
   }
 
   public get stream() {
@@ -125,6 +153,7 @@ export class LiveStreamManageDialogComponent implements OnInit {
         this.patchForm(payload);
         this.applyProviderValidators();
         this.loading = false;
+        this.loadAvailableKeys();
       },
       error: () => {
         this.loading = false;
@@ -228,6 +257,12 @@ export class LiveStreamManageDialogComponent implements OnInit {
       return;
     }
 
+    if (!this.form.getRawValue().youtube_stream_key_id) {
+      this.form.get('youtube_stream_key_id')?.markAsTouched();
+      this.messageService.error('Select which encoder/rig this session will use first.');
+      return;
+    }
+
     const runSetup = () => {
       this.activeAction = 'setup';
       const value = this.form.getRawValue();
@@ -236,6 +271,7 @@ export class LiveStreamManageDialogComponent implements OnInit {
         .setupYoutubeStream(this.data.stream.id, {
           title: value.title.trim(),
           description: value.description?.trim() || null,
+          youtube_stream_key_id: value.youtube_stream_key_id,
         })
         .pipe(finalize(() => (this.activeAction = null)))
         .subscribe({
@@ -253,7 +289,7 @@ export class LiveStreamManageDialogComponent implements OnInit {
       this.messageService
         .prompt(
           'Replace Stream Setup?',
-          'This will delete the current YouTube broadcast and create a new one with fresh RTMP credentials.',
+          'This will delete the current YouTube broadcast and create a new one bound to the selected key.',
           'Replace',
           'Cancel'
         )
@@ -320,6 +356,7 @@ export class LiveStreamManageDialogComponent implements OnInit {
       title: stream.title ?? '',
       description: stream.description ?? '',
       streaming_url: stream.streaming_url ?? '',
+      youtube_stream_key_id: stream.youtube_stream_key_id ?? null,
       thumbnail:
         payload.thumbnail_url && payload.has_custom_thumbnail
           ? ({ files: [], existingUrls: [payload.thumbnail_url] } as FileUploadValue)

@@ -13,15 +13,21 @@ class StreamProviderResolver
 
     public function forMatch(TournamentMatch $match): StreamProviderContract
     {
+        return $this->manager->driver($this->slugForMatch($match));
+    }
+
+    /**
+     * Provider slug for a match without constructing the driver.
+     */
+    public function slugForMatch(TournamentMatch $match): string
+    {
         if ($match->stream?->provider) {
-            return $this->manager->driver($match->stream->provider);
+            return $match->stream->provider;
         }
 
-        $slug = $match->stream_provider_override
+        return $match->stream_provider_override
             ?? $match->tournament?->stream_provider
             ?? app(StreamingSettings::class)->defaultProvider;
-
-        return $this->manager->driver($slug);
     }
 
     public function forStream(LiveStream $stream): StreamProviderContract

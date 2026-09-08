@@ -118,6 +118,29 @@ Use the sections below as a gate. Mark each item `[x]` when verified on **stagin
 ### Pipeline smoke (one reel)
 
 - [ ] Upload → status becomes `processing`
+- [ ] Poster appears (reels-poster)
+- [ ] HLS ready (reels-transcode) → status `ready`
+- [ ] Playback URL is CDN host
+
+### Mobile multipart upload (2026-09 production incident)
+
+**Symptom:** Many posts stuck `uploading` (create OK, complete never ran). Workers were healthy.
+
+**Root cause:** Capacitor WebView `FETCH_ERROR` mid-part → client aborted after weak retries; 1MB parts + CORS `max_age: 0` multiplied round trips.
+
+**Ship checklist:**
+
+- [ ] App: `publishReel` retries transient errors (8× backoff); aborts + deletes shell only after terminal failure
+- [ ] API: `cors.max_age = 7200`; multipart part size floored at **5MB**; `UPLOAD_FAILED` → **503** (retryable)
+- [ ] Nginx `api.conf`: `client_body_timeout` / `send_timeout` **180s**; `client_max_body_size` / PHP upload limits **128M**
+- [ ] Deploy API + reload php-fpm/opcache + `nginx -t && reload`
+- [ ] Ship app web/native build with updated `reelsApi.js`
+- [ ] Smoke: Android + iOS Capacitor upload ≥30MB reel to `processing` → `ready`
+
+---
+
+
+- [ ] Upload → status becomes `processing`
 - [ ] Poster appears (`ExtractPostPosterJob` / thumbnail URL)
 - [ ] ABR completes (`ProcessPostVideoJob`) → status `ready` / `abr_complete`
 - [ ] Playback URL plays from CDN (HLS or progressive)

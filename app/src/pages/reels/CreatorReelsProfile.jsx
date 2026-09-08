@@ -3,7 +3,7 @@
  * Edit / account details live at `/profile`.
  *
  * Other users: Reels / Posts / Stats.
- * Own profile: Reels / Posts / Liked / Saved (+ Edit Profile). Career stats via sidebar My Stats.
+ * Own profile: Reels / Posts / Saved (+ Edit Profile). Career stats via sidebar My Stats.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -22,11 +22,9 @@ import PostCard from '@/pages/feed/PostCard';
 import { useGetUserPostsQuery, useLazyGetUserPostsQuery } from '@/store/api/feedApi';
 import {
   useFollowReelCreatorMutation,
-  useGetLikedReelsQuery,
   useGetSavedReelsQuery,
   useGetUserProfileQuery,
   useGetUserReelsQuery,
-  useLazyGetLikedReelsQuery,
   useLazyGetSavedReelsQuery,
   useLazyGetUserReelsQuery,
   useUnfollowReelCreatorMutation,
@@ -41,7 +39,6 @@ import { Loader, LoaderBlock, PageLoader } from '@/ui/Loader';
 const TAB_REELS = 'reels';
 const TAB_POSTS = 'posts';
 const TAB_STATS = 'stats';
-const TAB_LIKED = 'liked';
 const TAB_SAVED = 'saved';
 
 const PUBLIC_CONTENT_TABS = new Set([TAB_REELS, TAB_POSTS, TAB_STATS]);
@@ -83,23 +80,6 @@ function ReelsTabIcon({ className = 'size-4' }) {
     >
       <rect x="3" y="4" width="18" height="16" rx="2" />
       <path d="m10 9 5 3-5 3V9Z" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function LikedTabIcon({ className = 'size-4' }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
     </svg>
   );
 }
@@ -167,11 +147,7 @@ const BASE_TABS = [
 
 const OTHER_TABS = [...BASE_TABS, { id: TAB_STATS, label: 'Stats', Icon: StatsTabIcon }];
 
-const OWN_TABS = [
-  ...BASE_TABS,
-  { id: TAB_LIKED, label: 'Liked', Icon: LikedTabIcon },
-  { id: TAB_SAVED, label: 'Saved', Icon: SavedTabIcon },
-];
+const OWN_TABS = [...BASE_TABS, { id: TAB_SAVED, label: 'Saved', Icon: SavedTabIcon }];
 
 export default function CreatorReelsProfile() {
   const { userId: userIdParam } = useParams();
@@ -207,12 +183,10 @@ export default function CreatorReelsProfile() {
 
   const reelsQuery = useGetUserReelsQuery({ userId, perPage: 18 }, { skip: !validUserId || activeTab !== TAB_REELS });
   const postsQuery = useGetUserPostsQuery({ userId, perPage: 10 }, { skip: !validUserId || activeTab !== TAB_POSTS });
-  const likedQuery = useGetLikedReelsQuery({ perPage: 18 }, { skip: !isOwnProfile || !isAuthed || activeTab !== TAB_LIKED });
   const savedQuery = useGetSavedReelsQuery({ perPage: 18 }, { skip: !isOwnProfile || !isAuthed || activeTab !== TAB_SAVED });
 
   const [fetchMoreReels] = useLazyGetUserReelsQuery();
   const [fetchMorePosts] = useLazyGetUserPostsQuery();
-  const [fetchMoreLiked] = useLazyGetLikedReelsQuery();
   const [fetchMoreSaved] = useLazyGetSavedReelsQuery();
   const [followCreator, { isLoading: isFollowing }] = useFollowReelCreatorMutation();
   const [unfollowCreator, { isLoading: isUnfollowing }] = useUnfollowReelCreatorMutation();
@@ -271,11 +245,9 @@ export default function CreatorReelsProfile() {
     ? null
     : activeTab === TAB_POSTS
       ? postsQuery
-      : activeTab === TAB_LIKED
-        ? likedQuery
-        : activeTab === TAB_SAVED
-          ? savedQuery
-          : reelsQuery;
+      : activeTab === TAB_SAVED
+        ? savedQuery
+        : reelsQuery;
 
   const items = activeQuery?.data?.items ?? [];
   const nextCursor = activeQuery?.data?.nextCursor ?? null;
@@ -283,14 +255,7 @@ export default function CreatorReelsProfile() {
   const isFetching = Boolean(activeQuery?.isFetching);
   const isError = Boolean(activeQuery?.isError);
 
-  const emptyCopy =
-    activeTab === TAB_POSTS
-      ? 'No Posts Yet.'
-      : activeTab === TAB_LIKED
-        ? 'No Liked Reels Yet.'
-        : activeTab === TAB_SAVED
-          ? 'No Saved Reels Yet.'
-          : 'No Reels Yet.';
+  const emptyCopy = activeTab === TAB_POSTS ? 'No Posts Yet.' : activeTab === TAB_SAVED ? 'No Saved Reels Yet.' : 'No Reels Yet.';
 
   const emptyAction =
     activeTab === TAB_REELS && isOwnProfile
@@ -337,8 +302,8 @@ export default function CreatorReelsProfile() {
   };
 
   const selectTab = (tabId) => {
-    if ((tabId === TAB_LIKED || tabId === TAB_SAVED) && !isOwnProfile) return;
-    if ((tabId === TAB_LIKED || tabId === TAB_SAVED) && !isAuthed) {
+    if (tabId === TAB_SAVED && !isOwnProfile) return;
+    if (tabId === TAB_SAVED && !isAuthed) {
       requireAuth();
       return;
     }
@@ -349,10 +314,6 @@ export default function CreatorReelsProfile() {
     if (!nextCursor || isFetching) return;
     if (activeTab === TAB_POSTS) {
       await fetchMorePosts({ userId, cursor: nextCursor, perPage: 10 });
-      return;
-    }
-    if (activeTab === TAB_LIKED) {
-      await fetchMoreLiked({ cursor: nextCursor, perPage: 18 });
       return;
     }
     if (activeTab === TAB_SAVED) {

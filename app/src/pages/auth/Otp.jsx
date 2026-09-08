@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -9,13 +9,16 @@ import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { consumeJustRegistered, markPendingCompleteProfilePrompt } from '@/lib/completeProfilePrompt';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { isClientTestOtpPhone } from '@/lib/isClientTestOtpPhone';
 import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
 import { isReturningUser, markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { getRedirectPath } from '@/lib/utils/routeUtils';
+import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { otpSchema } from '@/lib/validations/auth';
 import { useRequestOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
@@ -56,6 +59,11 @@ export default function Otp() {
   const phoneRaw = state?.phone ?? null;
   const phone = formatPhoneFull(phoneRaw ?? '');
 
+  const { data: settingsRows, isSuccess: settingsReady, isError: settingsFailed } = useGetPublicSystemSettingsQuery();
+  const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
+  const testPhonesReady = settingsReady || settingsFailed;
+  const isTestPhone = isClientTestOtpPhone(phoneRaw, settingsByKey.test_otp_phones);
+
   const [latestOtp, setLatestOtp] = useState(() => {
     // state?.otp is set by non-production environments only (APP_DEBUG / TEST_OTP_PHONES).
     if (state?.otp != null && state.otp !== '') return String(state.otp);
@@ -65,9 +73,11 @@ export default function Otp() {
   const [serverError, setServerError] = useState(null);
   const [resendError, setResendError] = useState(null);
   const [resendCooldown, setResendCooldown] = useState(() => getStoredCooldownRemaining());
+  const [autoSigningIn, setAutoSigningIn] = useState(false);
 
   const refs = useRef([]);
   const submitRef = useRef(null);
+  const autoSubmitAttemptedForOtpRef = useRef(null);
 
   const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
   const [requestOtp, { isLoading: isResendLoading }] = useRequestOtpMutation();
@@ -112,13 +122,15 @@ export default function Otp() {
 
   const code = watch('code') || '';
 
-  const onSubmit = useCallback(
-    async ({ code: submittedCode }) => {
+  const submitOtp = useCallback(
+    async (submittedCode, { minMs = 0 } = {}) => {
       if (!phoneRaw) {
+        setAutoSigningIn(false);
         setServerError('Session expired. Please start from Login or Register.');
         return;
       }
       setServerError(null);
+      const startedAt = Date.now();
 
       try {
         const result = await verifyOtp({
@@ -150,16 +162,26 @@ export default function Otp() {
             accessToken: token,
           });
           bumpSavedProfile(phoneRaw);
+          if (minMs > 0) {
+            const remaining = minMs - (Date.now() - startedAt);
+            if (remaining > 0) {
+              await new Promise((resolve) => setTimeout(resolve, remaining));
+            }
+          }
           navigate(getRedirectPath(state), { replace: true });
         } else {
+          setAutoSigningIn(false);
           setServerError('Unexpected response. Please try again.');
         }
       } catch (err) {
+        setAutoSigningIn(false);
         setServerError(getApiErrorMessage(err, 'Invalid OTP. Please try again.'));
       }
     },
     [phoneRaw, verifyOtp, dispatch, navigate, state],
   );
+
+  const onSubmit = useCallback(({ code: submittedCode }) => submitOtp(submittedCode), [submitOtp]);
 
   const scheduleAutoSubmit = useCallback(() => {
     if (submitRef.current) clearTimeout(submitRef.current);
@@ -168,6 +190,20 @@ export default function Otp() {
       handleSubmit(onSubmit)();
     }, 300);
   }, [handleSubmit, onSubmit]);
+
+  // Non-test phones: when API returned OTP (debug / SMS log), fill + verify without typing.
+  // Hold the signing UI for at least 2s so it does not flash away.
+  useEffect(() => {
+    if (!testPhonesReady || !latestOtp || isTestPhone || !phoneRaw) return;
+    if (autoSubmitAttemptedForOtpRef.current === latestOtp) return;
+    const digits = String(latestOtp).replace(/\D/g, '');
+    if (digits.length !== OTP_LENGTH) return;
+
+    autoSubmitAttemptedForOtpRef.current = latestOtp;
+    setValue('code', digits);
+    setAutoSigningIn(true);
+    void submitOtp(digits, { minMs: 2000 });
+  }, [testPhonesReady, latestOtp, isTestPhone, phoneRaw, setValue, submitOtp]);
 
   const setDigit = (index, value) => {
     const digit = value.replace(/\D/g, '').slice(0, 1);
@@ -207,6 +243,7 @@ export default function Otp() {
       const otp = extractOtpFromAuthResponse(result);
       if (otp) {
         setOtpPreview(phoneRaw, otp);
+        autoSubmitAttemptedForOtpRef.current = null;
         setLatestOtp(otp);
       }
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -216,7 +253,8 @@ export default function Otp() {
     }
   };
 
-  const busy = isSubmitting || isLoading || isResendLoading;
+  const busy = isSubmitting || isLoading || isResendLoading || autoSigningIn;
+  const showOtpBanner = testPhonesReady && Boolean(latestOtp) && isTestPhone;
 
   return (
     <>
@@ -250,15 +288,15 @@ export default function Otp() {
             )}
           </p>
 
-          {/* Shown in non-production environments when the API returns the OTP directly */}
-          {latestOtp && (
+          {/* Test phones only — same banner UX as today */}
+          {showOtpBanner ? (
             <p
               className="border-surface-border bg-brand/20 rounded-[6px] border px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
               Use this OTP Below: <strong className="tabular-nums">{latestOtp}</strong>
             </p>
-          )}
+          ) : null}
 
           <div className="flex justify-between" role="group" aria-label="OTP digits">
             {Array.from({ length: OTP_LENGTH }, (_, i) => (
@@ -273,6 +311,7 @@ export default function Otp() {
                   onChange={(e) => setDigit(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
                   onPaste={onPaste}
+                  disabled={autoSigningIn}
                   className="border-surface-border !h-[55px] !max-w-full rounded-full border text-center text-lg tabular-nums"
                   aria-label={`Digit ${i + 1}`}
                 />
@@ -292,7 +331,7 @@ export default function Otp() {
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
+                disabled={!phoneRaw || isResendLoading || resendCooldown > 0 || autoSigningIn}
                 className="text-brand inline-flex items-center gap-1.5 font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isResendLoading ? <Loader size="xs" /> : null}
@@ -306,7 +345,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} loading={isLoading} variant="orange" className="mt-4 w-full">
+          <Button type="submit" disabled={busy} loading={isLoading || autoSigningIn} variant="orange" className="mt-4 w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

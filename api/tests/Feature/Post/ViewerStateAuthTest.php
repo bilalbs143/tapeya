@@ -23,7 +23,6 @@ class ViewerStateAuthTest extends TestCase
         return $this->makeVideoPost($owner, [
             'body' => 'Ready reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
             'ready_at' => now(),
         ]);

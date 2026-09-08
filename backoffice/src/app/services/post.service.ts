@@ -8,7 +8,6 @@ import type { ListParams } from 'src/app/shared/functions/list-params.function';
 import { MessageService } from './message.service';
 
 export type PostStatus = 'uploading' | 'processing' | 'ready' | 'failed' | 'rejected' | 'removed';
-export type PostVisibility = 'public' | 'followers' | 'private';
 export type PostType = 'text' | 'image' | 'video' | 'repost';
 
 export interface PostPlayback {
@@ -56,7 +55,6 @@ export interface AdminPost {
   caption: string | null;
   background_id?: string | null;
   status: PostStatus;
-  visibility: PostVisibility;
   duration_ms: number | null;
   width: number | null;
   height: number | null;
@@ -88,7 +86,6 @@ export interface PostsListResponse {
 
 export interface UpdatePostPayload {
   status?: PostStatus;
-  visibility?: PostVisibility;
   caption?: string | null;
   body?: string | null;
 }

@@ -7,8 +7,8 @@ use App\Settings\StreamingSettings;
 use Carbon\Carbon;
 
 /**
- * Maps provider-reported signals (live / starting / idle) onto persisted stream
- * status, with a grace period before auto-ending idle sessions.
+ * Maps provider signals onto Tapeya status:
+ * live → recoverable idle on disconnect → live again on reconnect → ended only after idle grace.
  */
 final class LiveStreamStatusTransition
 {

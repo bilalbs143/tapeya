@@ -178,7 +178,7 @@ class SystemSettingsSeeder extends Seeder
         $reels->viewMinCompletionRatePercent ??= 25;
         $reels->viewAllowAnonymous ??= 0;
         $reels->viewRedisBuffer ??= 1;
-        $reels->multipartPartSizeMb ??= 1;
+        $reels->multipartPartSizeMb ??= 5;
         $reels->multipartMaxParts ??= 0;
         $reels->autoEngagementEnabled ??= 0;
         $reels->reelsEngagementPerDay ??= 5;

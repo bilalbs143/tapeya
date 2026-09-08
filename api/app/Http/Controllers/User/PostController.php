@@ -118,20 +118,6 @@ class PostController extends Controller
     }
 
     /**
-     * Liked reels for the authenticated user.
-     */
-    public function liked(Request $request): JsonResponse
-    {
-        $paginator = $this->feedService->liked(
-            (int) $request->user()->id,
-            $request->query('cursor'),
-            (int) $request->query('per_page', 10),
-        );
-
-        return $this->cursorSuccess($paginator, $request);
-    }
-
-    /**
      * Public reels for a user profile.
      */
     public function forUser(Request $request, User $user): JsonResponse
@@ -199,7 +185,7 @@ class PostController extends Controller
 
     public function update(UpdatePostRequest $request, Post $post): JsonResponse
     {
-        $post = $this->postService->updateCaptionAndVisibility($post, $request->validated());
+        $post = $this->postService->updateCaption($post, $request->validated());
         $post->load([User::socialSummaryWith(), 'hashtags:id,name']);
         $this->interactions->attachViewerState($post, $request->user());
 

@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\TournamentTeamsController;
 use App\Http\Controllers\Admin\TournamentTeamSquadController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserSearchController;
+use App\Http\Controllers\Admin\YoutubeStreamKeyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -128,6 +129,8 @@ Route::prefix('admin')->group(function () {
         Route::post('live-streams/{stream}/end', [LiveStreamController::class, 'end']);
         Route::post('live-streams/{stream}/sync', [LiveStreamController::class, 'sync']);
         Route::post('live-streams/{stream}/setup', [LiveStreamController::class, 'setup']);
+        Route::apiResource('youtube-stream-keys', YoutubeStreamKeyController::class)
+            ->only(['index', 'store', 'show', 'update', 'destroy']);
 
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);

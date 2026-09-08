@@ -4,6 +4,7 @@
 
 import { Link } from 'react-router-dom';
 
+import { ReelCoverImage } from '@/components/reels/ReelCoverImage';
 import { formatCount } from '@/lib/format';
 import { Button } from '@/ui/Button';
 import { ListEmpty } from '@/ui/ListState';
@@ -57,11 +58,10 @@ export function ReelPosterGrid({ items, emptyMessage = 'No Reels Yet.', emptyAct
     <div className="grid grid-cols-3 gap-1">
       {items.map((reel) => (
         <Link key={reel.id} to={`/reels/${reel.id}`} className="relative aspect-9/16 overflow-hidden bg-black/40">
-          {reel.posterUrl ? (
-            <img src={reel.posterUrl} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="text-muted flex h-full w-full items-center justify-center text-[10px]">Reel</div>
-          )}
+          <ReelCoverImage
+            src={reel.posterUrl}
+            fallback={<div className="text-muted flex h-full w-full items-center justify-center text-[10px]">Reel</div>}
+          />
           <span className="absolute top-1.5 left-1.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
             <PlayGlyph />
           </span>

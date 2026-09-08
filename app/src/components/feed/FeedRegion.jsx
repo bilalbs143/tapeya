@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { buildFeedTimelineRows, FEED_TIMELINE_ROW_GAP_PX } from '@/components/feed/buildFeedTimelineRows';
 import ComposerTrigger from '@/components/feed/ComposerTrigger';
 import { FeedHighlightWidget } from '@/components/feed/FeedHighlightWidget';
+import { FeedLiveNowWidget } from '@/components/feed/FeedLiveNowWidget';
 import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
@@ -17,6 +18,7 @@ import { useStickyUnderNavbar } from '@/hooks/useStickyUnderNavbar';
 import { NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { composeDestination } from '@/lib/feed/composeDestination';
 import { useTabReselect } from '@/lib/navigation/tabReselect';
+import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import PostCard from '@/pages/feed/PostCard';
 import {
   FEED_LIST_ARG,
@@ -31,6 +33,7 @@ import {
   useLazyPeekHomeFeedQuery,
 } from '@/store/api/feedApi';
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
+import { useGetLiveStreamsQuery } from '@/store/api/liveApi';
 import { REELS_LIST_ARG } from '@/store/api/postEngagementCache';
 import { useGetReelsFeedQuery } from '@/store/api/reelsApi';
 import { useGetProductsQuery } from '@/store/api/shopApi';
@@ -150,6 +153,9 @@ function TimelineRow({ row, onSuggestedFollowed }) {
   if (row.type === 'shop') {
     return <FeedShopWidget title={row.title} products={row.products} />;
   }
+  if (row.type === 'live') {
+    return <FeedLiveNowWidget stream={row.stream} />;
+  }
   if (row.type === 'suggested') {
     return <FeedSuggestedFollowsWidget users={row.users} onFollowed={onSuggestedFollowed} />;
   }
@@ -219,6 +225,10 @@ export default function FeedRegion({ className = '', top = null }) {
     },
   );
   const highlights = highlightsData ?? EMPTY_LIST;
+  const { data: liveStreamsRaw } = useGetLiveStreamsQuery(undefined, {
+    skip: tab !== 'explore' || !isAuthenticated,
+  });
+  const liveStreams = useMemo(() => normaliseLiveStreams(liveStreamsRaw), [liveStreamsRaw]);
   const shouldLoadSuggestions = tab === 'explore';
   const { data: suggestedUsersData, refetch: refetchSuggestions } = useGetSuggestedUsersQuery(SUGGESTED_USERS_ARG, {
     skip: !shouldLoadSuggestions,
@@ -304,11 +314,12 @@ export default function FeedRegion({ className = '', top = null }) {
         shopCollections,
         suggestedUsers,
         highlights,
+        liveStreams,
         cycles: displayCycles,
         freshItems,
         freshFromCycle,
       }),
-    [items, tab, shopCollections, suggestedUsers, highlights, displayCycles, freshItems, freshFromCycle],
+    [items, tab, shopCollections, suggestedUsers, highlights, liveStreams, displayCycles, freshItems, freshFromCycle],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;

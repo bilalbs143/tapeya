@@ -38,6 +38,11 @@ export const DEEP_LINK_ROUTES = [
     build: ({ streamId }) => `/live/go-live/${streamId}`,
   },
   {
+    id: 'liveBroadcast',
+    pattern: /^\/live\/broadcast\/[^/]+$/,
+    build: ({ streamId }) => `/live/broadcast/${streamId}`,
+  },
+  {
     id: 'quickMatchScorecard',
     pattern: /^\/scorecard\/match\/\d+$/,
     build: ({ matchId }) => `/scorecard/match/${matchId}`,

@@ -264,8 +264,6 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
 function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
     <FormStack as="form" density="compact" className="lg:mx-auto lg:max-w-[400px]" onSubmit={onSubmit} onFocus={onFocus}>
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login With Your Account</h2>
-
       {hasSavedProfiles && (
         <button type="button" onClick={onBack} className="text-muted text-[14px] font-medium transition-colors hover:text-white">
           ← Back to Saved Accounts

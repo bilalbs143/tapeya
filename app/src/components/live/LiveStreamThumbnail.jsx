@@ -14,6 +14,7 @@ export function LiveStreamThumbnail({
   placeholder = null,
   eager = false,
   compactFallback = false,
+  largeFallback = false,
   aspectClass = LIVE_STREAM_THUMBNAIL_ASPECT_CLASS,
 }) {
   const trimmed = src?.trim() || '';
@@ -24,7 +25,7 @@ export function LiveStreamThumbnail({
   }, [trimmed]);
 
   const showPlaceholder = !trimmed || failed;
-  const fallback = placeholder ?? <LiveStreamThumbnailFallback compact={compactFallback} />;
+  const fallback = placeholder ?? <LiveStreamThumbnailFallback compact={compactFallback} large={largeFallback} />;
 
   return (
     <div className={`bg-surface-deep relative w-full overflow-hidden ${aspectClass} ${className}`}>

@@ -76,20 +76,6 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Visibility</mat-label>
-            <mat-select formControlName="visibility">
-              @for (opt of visibilityOptions; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <div>
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
             <mat-label>Has Reports</mat-label>
             <mat-select formControlName="has_reports">
               <mat-option value="">All</mat-option>
@@ -237,23 +223,6 @@
                   [status]="row.status"
                   [label]="statusLabel(row.status)"
                 />
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="visibility">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="font-semibold"
-              >
-                Visibility
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="whitespace-nowrap"
-              >
-                {{ visibilityLabel(row.visibility) }}
               </td>
             </ng-container>
 

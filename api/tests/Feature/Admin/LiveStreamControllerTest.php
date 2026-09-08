@@ -4,11 +4,16 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\User\UserTypeEnum;
 use App\Models\LiveStream;
+use App\Models\PushNotificationLog;
 use App\Models\User;
+use App\Models\YoutubeStreamKey;
+use App\Services\Push\PushNotificationService;
 use App\Streaming\StreamProviderManager;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Mockery;
 use Tests\Support\Streaming\CreatesTestMatch;
 use Tests\Support\Streaming\FakeStreamProvider;
 use Tests\TestCase;
@@ -24,11 +29,27 @@ class LiveStreamControllerTest extends TestCase
 
         $this->seed(SystemSettingsSeeder::class);
         $this->app->make(StreamProviderManager::class)->extend('youtube', fn () => new FakeStreamProvider);
+
+        $push = Mockery::mock(PushNotificationService::class);
+        $push->shouldReceive('notifyLiveStreamCreated')->andReturn(Mockery::mock(PushNotificationLog::class))->byDefault();
+        $this->app->instance(PushNotificationService::class, $push);
     }
 
     private function admin(): User
     {
         return User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
+    }
+
+    private function youtubeKey(User $admin): YoutubeStreamKey
+    {
+        return YoutubeStreamKey::create([
+            'title' => 'Test Rig',
+            'youtube_stream_id' => 'fake-yt-stream-'.uniqid(),
+            'ingest_rtmp_url' => 'rtmp://a.rtmp.youtube.com/live2',
+            'stream_key_encrypted' => Crypt::encryptString('fake-stream-key'),
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
     }
 
     public function test_store_creates_standalone_stream_with_streaming_url(): void
@@ -57,12 +78,14 @@ class LiveStreamControllerTest extends TestCase
     public function test_store_creates_standalone_youtube_stream_with_ingest(): void
     {
         $admin = $this->admin();
+        $key = $this->youtubeKey($admin);
 
         $response = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
             'provider' => 'youtube',
             'title' => 'Tapeya Studio Show',
             'description' => 'Weekly cricket talk',
             'privacy' => 'unlisted',
+            'youtube_stream_key_id' => $key->id,
         ]);
 
         $response->assertCreated()
@@ -83,18 +106,22 @@ class LiveStreamControllerTest extends TestCase
     public function test_setup_replaces_youtube_credentials_on_standalone_stream(): void
     {
         $admin = $this->admin();
+        $key = $this->youtubeKey($admin);
 
         $create = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
             'provider' => 'youtube',
             'title' => 'First Setup',
+            'youtube_stream_key_id' => $key->id,
         ])->assertCreated();
 
         $streamId = $create->json('data.stream.id');
 
+        // Reusing the same key on setup must not be rejected as "in use by itself".
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$streamId}/setup", [
                 'title' => 'Refreshed Setup',
                 'privacy' => 'public',
+                'youtube_stream_key_id' => $key->id,
             ])
             ->assertOk()
             ->assertJsonPath('data.stream.title', 'Refreshed Setup')
@@ -104,10 +131,12 @@ class LiveStreamControllerTest extends TestCase
     public function test_setup_accepts_null_description_when_stream_description_is_null(): void
     {
         $admin = $this->admin();
+        $key = $this->youtubeKey($admin);
 
         $create = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
             'provider' => 'youtube',
             'title' => 'Null Description Stream',
+            'youtube_stream_key_id' => $key->id,
         ])->assertCreated();
 
         $streamId = $create->json('data.stream.id');
@@ -118,6 +147,7 @@ class LiveStreamControllerTest extends TestCase
                 'title' => 'Still Works',
                 'description' => null,
                 'privacy' => 'public',
+                'youtube_stream_key_id' => $key->id,
             ])
             ->assertOk()
             ->assertJsonPath('data.stream.title', 'Still Works');
@@ -127,13 +157,14 @@ class LiveStreamControllerTest extends TestCase
     {
         $admin = $this->admin();
         $match = $this->createMatch();
+        $key = $this->youtubeKey($admin);
         $stream = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
         ]);
 
         $this->actingAs($admin, 'api')
-            ->postJson("/api/v1/admin/live-streams/{$stream->id}/setup")
+            ->postJson("/api/v1/admin/live-streams/{$stream->id}/setup", ['youtube_stream_key_id' => $key->id])
             ->assertUnprocessable();
     }
 

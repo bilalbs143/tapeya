@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { withIosNativeEmbedParams } from '@/lib/utils/liveStreamUtils';
-import { isStreamDebugEnabled, STREAM_DEBUG_PANEL_PX, streamDebugLog } from '@/lib/utils/streamDebugLog';
 import {
   hideYoutubeStreamOverlay,
   showYoutubeStreamOverlay,
@@ -22,21 +21,6 @@ function afterLayout(callback) {
 
 function hasValidPortraitFrame(layout) {
   return layout.width > 0 && layout.height > 0;
-}
-
-function applyDebugTopInset(layout, skipInset = false) {
-  if (skipInset || !isStreamDebugEnabled() || layout.immersiveFullscreen) {
-    return layout;
-  }
-  const inset = STREAM_DEBUG_PANEL_PX;
-  if (layout.height <= inset + 80) {
-    return layout;
-  }
-  return {
-    ...layout,
-    y: layout.y + inset,
-    height: layout.height - inset,
-  };
 }
 
 /**
@@ -90,10 +74,7 @@ export function IosNativeStreamOverlay({
 
     const landscape = isLandscapeRef.current;
     const canInteract = interactiveRef.current;
-    const layout = applyDebugTopInset(
-      buildNativeOverlayLayout(element, { isLandscape: landscape, interactive: canInteract }),
-      !canInteract,
-    );
+    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape, interactive: canInteract });
     const embedUrl = waitForPlayingRef.current
       ? withIosNativeEmbedParams(baseUrl, {
           landscape,
@@ -105,7 +86,6 @@ export function IosNativeStreamOverlay({
     const hasFrame = layout.immersiveFullscreen || hasValidPortraitFrame(layout);
 
     if (!hasFrame) {
-      streamDebugLog('IosNativeOverlay.skipFrame', { layout, stack, stackChanged, shown: shownRef.current });
       if (stackChanged && shownRef.current) {
         stackRef.current = stack;
         await updateYoutubeStreamOverlayLayout({
@@ -126,28 +106,16 @@ export function IosNativeStreamOverlay({
     };
 
     const needsShow = !shownRef.current || reload || stackChanged;
-    streamDebugLog('IosNativeOverlay.syncLayout', {
-      embedUrl,
-      payload,
-      needsShow,
-      reload,
-      stackChanged,
-      waitForPlaying: waitForPlayingRef.current,
-    });
     if (needsShow) {
       shownRef.current = true;
-      const result = await showYoutubeStreamOverlay({ ...payload, reload: true });
-      streamDebugLog('IosNativeOverlay.show', result);
+      await showYoutubeStreamOverlay({ ...payload, reload: true });
       return;
     }
 
-    const updateResult = await updateYoutubeStreamOverlayLayout(payload);
-    streamDebugLog('IosNativeOverlay.update', updateResult);
+    await updateYoutubeStreamOverlayLayout(payload);
   }, []);
 
   useEffect(() => {
-    streamDebugLog('IosNativeOverlay.mount', { src, interactive, waitForPlaying, isLandscape, fill });
-
     let cancelled = false;
     shownRef.current = false;
     stackRef.current = null;
@@ -166,7 +134,6 @@ export function IosNativeStreamOverlay({
     // Retry only when the first show never got a valid frame — avoid reload cancelling embed load.
     const retryId = window.setTimeout(() => {
       if (!cancelled && !shownRef.current) {
-        streamDebugLog('IosNativeOverlay.layoutRetry', { src });
         void syncLayout(true);
       }
     }, 400);

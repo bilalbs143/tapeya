@@ -162,9 +162,8 @@ class PostMultipartUploadService
                 'ContentType' => $contentType,
             ]);
         } catch (MediaWriteException $e) {
-            throw ValidationException::withMessages([
-                'file' => ['Video upload to storage failed. Please try again.'],
-            ]);
+            // Let the global UPLOAD_FAILED → 503 renderer handle this so clients retry.
+            throw $e;
         }
 
         $post->fillVideo(['original_path' => $key]);

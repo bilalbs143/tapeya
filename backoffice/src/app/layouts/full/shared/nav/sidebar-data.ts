@@ -85,7 +85,16 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Live Streams',
     iconName: 'solar:videocamera-record-line-duotone',
-    route: '/live-streams-management/live-streams',
+    children: [
+      {
+        displayName: 'Live Streams',
+        route: '/live-streams-management/live-streams',
+      },
+      {
+        displayName: 'YouTube Stream Keys',
+        route: '/live-streams-management/youtube-stream-keys',
+      },
+    ],
   },
   {
     displayName: 'Shop',
@@ -178,7 +187,16 @@ export const broadcastStaffNavItems: NavItem[] = [
   {
     displayName: 'Live Streams',
     iconName: 'solar:videocamera-record-line-duotone',
-    route: '/live-streams-management/live-streams',
+    children: [
+      {
+        displayName: 'Live Streams',
+        route: '/live-streams-management/live-streams',
+      },
+      {
+        displayName: 'YouTube Stream Keys',
+        route: '/live-streams-management/youtube-stream-keys',
+      },
+    ],
   },
 ];
 

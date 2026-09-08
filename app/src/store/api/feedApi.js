@@ -46,7 +46,6 @@ export function normalizePost(raw) {
     body: unavailable ? '' : (raw.body ?? raw.caption ?? ''),
     backgroundId: unavailable ? null : (raw.background_id ?? null),
     status: raw.status ?? 'ready',
-    visibility: raw.visibility ?? 'public',
     imageUrl: unavailable ? null : coverUrl,
     coverUrl: unavailable ? null : coverUrl,
     publishedAt: unavailable ? null : (raw.published_at ?? raw.created_at ?? null),
@@ -268,12 +267,11 @@ export const feedApi = baseApi.injectEndpoints({
     }),
 
     repostPost: builder.mutation({
-      query: ({ id, body, visibility }) => ({
+      query: ({ id, body }) => ({
         url: `/posts/${id}/repost`,
         method: 'POST',
         body: {
           body: body || undefined,
-          visibility: visibility || undefined,
         },
       }),
       transformResponse: (response) => normalizePost(response?.data),

@@ -21,7 +21,6 @@ class PostInteractionTest extends TestCase
         return $this->makeVideoPost($owner, [
             'body' => 'Ready reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
             'ready_at' => now(),
         ]);
@@ -204,26 +203,6 @@ class PostInteractionTest extends TestCase
         $captions = collect($response->json('data.items'))->pluck('body')->all();
         $this->assertContains('From followed', $captions);
         $this->assertNotContains('From stranger', $captions);
-    }
-
-    public function test_user_can_list_liked_reels(): void
-    {
-        $owner = User::factory()->create();
-        $viewer = User::factory()->create();
-        $liked = $this->readyReel($owner);
-        $this->readyReel($owner);
-
-        $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/posts/'.$liked->id.'/like')
-            ->assertOk();
-
-        $response = $this->actingAs($viewer, 'api')
-            ->getJson('/api/v1/reels/liked')
-            ->assertOk();
-
-        $ids = collect($response->json('data.items'))->pluck('id')->all();
-        $this->assertContains($liked->id, $ids);
-        $this->assertCount(1, $ids);
     }
 
     public function test_user_can_report_reel_once(): void

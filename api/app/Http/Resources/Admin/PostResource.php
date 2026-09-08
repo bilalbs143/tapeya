@@ -33,7 +33,6 @@ class PostResource extends JsonResource
             'caption' => $this->body,
             'background_id' => $this->background_id,
             'status' => $this->status?->value,
-            'visibility' => $this->visibility?->value,
             'duration_ms' => $video?->duration_ms,
             'width' => $video?->width,
             'height' => $video?->height,

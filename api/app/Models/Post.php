@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Services\Post\PostPlaybackUrlService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,7 +32,6 @@ class Post extends BaseModel
         'body',
         'background_id',
         'status',
-        'visibility',
         'repost_of_post_id',
         'cover_path',
         'likes_count',
@@ -54,7 +52,6 @@ class Post extends BaseModel
         return [
             'type' => PostTypeEnum::class,
             'status' => PostStatusEnum::class,
-            'visibility' => PostVisibilityEnum::class,
             'likes_count' => 'integer',
             'comments_count' => 'integer',
             'views_count' => 'integer',
@@ -150,12 +147,11 @@ class Post extends BaseModel
         return $this->hasMany(self::class, 'repost_of_post_id');
     }
 
-    /** Public explore / Home Explore tab. */
+    /** Published posts eligible for explore / Home Explore tab. */
     public function scopeExplore(Builder $query): Builder
     {
         return $query
             ->whereNotNull('published_at')
-            ->where('visibility', PostVisibilityEnum::Public)
             ->whereNotIn('status', [
                 PostStatusEnum::Uploading,
                 PostStatusEnum::Failed,
@@ -167,23 +163,11 @@ class Post extends BaseModel
 
     /**
      * Following feed eligibility (authors already filtered to follow graph).
-     * Public OR followers — does NOT force public-only (fixes reel following bug).
+     * Same publish/status bar as explore — all posts are public.
      */
     public function scopeFollowingFeed(Builder $query): Builder
     {
-        return $query
-            ->whereNotNull('published_at')
-            ->whereIn('visibility', [
-                PostVisibilityEnum::Public,
-                PostVisibilityEnum::Followers,
-            ])
-            ->whereNotIn('status', [
-                PostStatusEnum::Uploading,
-                PostStatusEnum::Failed,
-                PostStatusEnum::Rejected,
-                PostStatusEnum::Removed,
-            ])
-            ->withDiscoveryPoster();
+        return $query->explore();
     }
 
     /**
@@ -301,7 +285,6 @@ class Post extends BaseModel
     {
         return [
             AllowedFilter::exact('status'),
-            AllowedFilter::exact('visibility'),
             AllowedFilter::exact('type'),
             AllowedFilter::exact('user_id'),
             AllowedFilter::partial('body'),

@@ -6,7 +6,7 @@ import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
-import type { PostStatus, PostType, PostVisibility } from './post.service';
+import type { PostStatus, PostType } from './post.service';
 
 export type PostReportStatus = 'open' | 'reviewed' | 'dismissed' | 'actioned';
 export type PostReportReason = 'spam' | 'harassment' | 'inappropriate' | 'violence' | 'copyright' | 'other';
@@ -20,7 +20,6 @@ export interface PostReportPost {
   background_id?: string | null;
   cover_url?: string | null;
   status: PostStatus;
-  visibility: PostVisibility;
   reports_count: number;
   user_id: number;
 }

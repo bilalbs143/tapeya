@@ -118,7 +118,6 @@ function isCurrentGeneration(generation) {
  * @param {{
  *   file: File,
  *   caption?: string,
- *   visibility?: string,
  *   clientDurationMs?: number,
  *   previewUrl?: string | null,
  *   posterBlob?: Blob | File | null,
@@ -138,7 +137,7 @@ export function startReelUpload(opts) {
     return false;
   }
 
-  const { file, caption, visibility, clientDurationMs, previewUrl, posterBlob, mutations } = opts;
+  const { file, caption, clientDurationMs, previewUrl, posterBlob, mutations } = opts;
   if (!file || !mutations?.createReel) {
     return false;
   }
@@ -166,7 +165,6 @@ export function startReelUpload(opts) {
       const created = await publishReel(mutations, {
         file,
         caption,
-        visibility,
         clientDurationMs,
         posterBlob: posterBlob || null,
         onProgress: ({ stage, percent }) => {
@@ -212,7 +210,10 @@ export function startReelUpload(opts) {
     } catch (err) {
       if (!isCurrentGeneration(generation)) return;
 
-      const message = err?.data?.message || err?.error || err?.message || 'Could not publish reel. Please try again.';
+      const isNetworkError = err?.status === 'FETCH_ERROR' || err?.status === 'TIMEOUT_ERROR';
+      const message = isNetworkError
+        ? 'Connection lost. Check your network and try again.'
+        : err?.data?.message || err?.error || err?.message || 'Could not publish reel. Please try again.';
       setSession({
         status: 'error',
         error: typeof message === 'string' ? message : 'Could not publish reel. Please try again.',

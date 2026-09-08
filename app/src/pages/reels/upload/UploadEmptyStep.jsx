@@ -80,23 +80,6 @@ function TrimIcon({ className = '' }) {
   );
 }
 
-function ShieldIcon({ className = '' }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
 const TIPS = [
   { Icon: AspectIcon, label: 'Vertical 9:16 looks best' },
   { Icon: QualityIcon, label: 'Keep it clear and steady' },
@@ -181,19 +164,6 @@ export function UploadEmptyStep({
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="border-border bg-surface mt-6 flex items-start gap-3 rounded-[12px] border px-3.5 py-3.5">
-          <span className="text-brand bg-brand/15 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full">
-            <ShieldIcon className="size-4" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-white">You control who sees it</p>
-            <p className="text-muted mt-0.5 text-[12px] leading-relaxed">
-              Choose Everyone, Followers, or Only Me before you post. Caption and privacy choices carry over when you start from
-              Create post.
-            </p>
-          </div>
         </div>
       </Container>
     </div>

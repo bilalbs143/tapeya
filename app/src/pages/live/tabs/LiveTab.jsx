@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { LiveEventCard } from '@/components/live/LiveEventCard';
-import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
+import { liveBroadcastPath, liveNowHost } from '@/lib/utils/liveStreamUtils';
 import { ListEmpty } from '@/ui/ListState';
 
 export function LiveTab({ streams = [] }) {
@@ -17,7 +17,13 @@ export function LiveTab({ streams = [] }) {
           to={liveBroadcastPath(item.streamId)}
           className="block h-full transition-opacity active:opacity-90"
         >
-          <LiveEventCard image={item.thumbnail_url} title={item.title} line2={item.subtitle} isLive />
+          <LiveEventCard
+            image={item.thumbnail_url}
+            title={item.title}
+            description={item.description}
+            host={liveNowHost(item)}
+            isLive
+          />
         </Link>
       ))}
     </div>

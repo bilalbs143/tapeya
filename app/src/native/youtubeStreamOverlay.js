@@ -1,7 +1,6 @@
 import { registerPlugin } from '@capacitor/core';
 
 import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
-import { streamDebugLog } from '@/lib/utils/streamDebugLog';
 
 const YoutubeStreamOverlay = registerPlugin('YoutubeStreamOverlay');
 
@@ -32,10 +31,7 @@ export async function showYoutubeStreamOverlay(options) {
   if (!usesIosNativeStreamPlayer()) {
     return { shown: false };
   }
-  streamDebugLog('NativeOverlay.show', options);
-  const result = await enqueueOverlay(() => YoutubeStreamOverlay.show(options));
-  streamDebugLog('NativeOverlay.show.result', result);
-  return result;
+  return enqueueOverlay(() => YoutubeStreamOverlay.show(options));
 }
 
 /**
@@ -45,17 +41,13 @@ export async function updateYoutubeStreamOverlayLayout(layout) {
   if (!usesIosNativeStreamPlayer()) {
     return { updated: false };
   }
-  streamDebugLog('NativeOverlay.updateLayout', layout);
-  const result = await enqueueOverlay(() => YoutubeStreamOverlay.updateLayout(layout));
-  streamDebugLog('NativeOverlay.updateLayout.result', result);
-  return result;
+  return enqueueOverlay(() => YoutubeStreamOverlay.updateLayout(layout));
 }
 
 export async function hideYoutubeStreamOverlay() {
   if (!usesIosNativeStreamPlayer()) {
     return { hidden: false };
   }
-  streamDebugLog('NativeOverlay.hide');
   return enqueueOverlay(() => YoutubeStreamOverlay.hide());
 }
 

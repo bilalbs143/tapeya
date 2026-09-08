@@ -17,13 +17,10 @@
         </div>
 
         @if (loading) {
-          <div
-            class="col-span-12 flex items-center gap-3 py-1"
-            role="status"
-            aria-label="Loading Stream"
-          >
-            <app-loader [label]="null" />
-          </div>
+          <app-loader-block
+            label="Loading Stream"
+            class="col-span-12 py-6"
+          />
         } @else {
           <div class="col-span-12">
             <mat-form-field
@@ -121,6 +118,48 @@
             </div>
           }
 
+          @if (isYoutube && !isLive) {
+            <div class="col-span-12">
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <mat-label>Stream Key</mat-label>
+                <mat-select
+                  formControlName="youtube_stream_key_id"
+                  placeholder="Select Encoder/Rig"
+                >
+                  @for (key of availableKeys; track key.id) {
+                    <mat-option [value]="key.id">{{ key.title }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              @if (!loadingKeys && !availableKeys.length) {
+                <p class="text-muted m-0 text-xs">
+                  No keys available right now — every key is either inactive or already streaming.
+                  <button
+                    type="button"
+                    class="text-primary font-semibold hover:underline"
+                    (click)="openCreateKeyDialog()"
+                  >
+                    Create one
+                  </button>
+                </p>
+              } @else {
+                <p class="text-muted m-0 text-xs">
+                  Key for <strong>New RTMP Setup</strong>.
+                  <button
+                    type="button"
+                    class="text-primary font-semibold hover:underline"
+                    (click)="openCreateKeyDialog()"
+                  >
+                    Create a new key
+                  </button>
+                </p>
+              }
+            </div>
+          }
+
           @if (isYoutube) {
             @for (row of copyFields; track row.field) {
               <div class="col-span-12">
@@ -154,87 +193,99 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions class="dialog-actions">
-      <app-ui-button
-        type="button"
-        [mat-dialog-close]="mutated"
-        variant="secondary"
-      >
-        Close
-      </app-ui-button>
+    <mat-dialog-actions class="dialog-actions dialog-actions--multi">
+      <div class="dialog-actions__row dialog-actions__row--primary">
+        <app-ui-button
+          type="button"
+          [mat-dialog-close]="mutated"
+          variant="secondary"
+        >
+          Close
+        </app-ui-button>
+
+        @if (!loading) {
+          <app-submit-button
+            [disabled]="form.invalid || !!activeAction"
+            [isSubmitting]="activeAction === 'save'"
+            text="Save Changes"
+            color="primary"
+          />
+        }
+      </div>
 
       @if (!loading) {
-        <app-submit-button
-          [disabled]="form.invalid || !!activeAction"
-          [isSubmitting]="activeAction === 'save'"
-          text="Save Changes"
-          color="primary"
-        />
+        @if (
+          (isExternal && status !== 'live' && status !== 'starting') || isYoutube || status === 'live' || status === 'starting'
+        ) {
+          <div class="dialog-actions__row dialog-actions__row--ops">
+            @if (isExternal && status !== 'live' && status !== 'starting') {
+              <app-submit-button
+                buttonType="button"
+                className="!m-0"
+                color="primary"
+                text="Go Live"
+                [disabled]="form.invalid || !!activeAction"
+                [isSubmitting]="activeAction === 'start'"
+                (action)="goLive()"
+              />
+            }
 
-        @if (isExternal && status !== 'live' && status !== 'starting') {
-          <app-submit-button
-            buttonType="button"
-            className="!m-0"
-            color="primary"
-            text="Go Live"
-            [disabled]="form.invalid || !!activeAction"
-            [isSubmitting]="activeAction === 'start'"
-            (action)="goLive()"
-          />
-        }
+            @if (isYoutube) {
+              <app-submit-button
+                buttonType="button"
+                className="!m-0"
+                color="accent"
+                text="Sync Status"
+                [disabled]="!!activeAction"
+                [isSubmitting]="activeAction === 'sync'"
+                (action)="syncStatus()"
+              />
 
-        @if (isYoutube) {
-          <app-submit-button
-            buttonType="button"
-            className="!m-0"
-            color="primary"
-            text="Sync Status"
-            [disabled]="!!activeAction"
-            [isSubmitting]="activeAction === 'sync'"
-            (action)="syncStatus()"
-          />
+              @if (!isLive) {
+                <app-submit-button
+                  buttonType="button"
+                  className="!m-0"
+                  color="accent"
+                  text="New RTMP Setup"
+                  [disabled]="!!activeAction"
+                  [isSubmitting]="activeAction === 'setup'"
+                  (action)="newRtmpSetup()"
+                />
+              }
+            }
 
-          @if (!isLive) {
-            <app-submit-button
-              buttonType="button"
-              className="!m-0"
-              color="primary"
-              text="New RTMP Setup"
-              [disabled]="!!activeAction"
-              [isSubmitting]="activeAction === 'setup'"
-              (action)="newRtmpSetup()"
-            />
-          }
-        }
-
-        @if (status === 'live' || status === 'starting') {
-          <app-submit-button
-            buttonType="button"
-            className="!m-0"
-            color="warn"
-            text="End Stream"
-            [disabled]="!!activeAction"
-            [isSubmitting]="activeAction === 'end'"
-            (action)="end()"
-          />
+            @if (status === 'live' || status === 'starting') {
+              <app-submit-button
+                buttonType="button"
+                className="!m-0"
+                color="warn"
+                text="End Stream"
+                [disabled]="!!activeAction"
+                [isSubmitting]="activeAction === 'end'"
+                (action)="end()"
+              />
+            }
+          </div>
         }
 
         @if (status !== 'live' && status !== 'starting') {
-          <app-ui-button
-            variant="danger"
-            type="button"
-            [disabled]="!!activeAction"
-            (click)="remove()"
-          >
-            @if (activeAction === 'delete') {
-              <app-loader
-                [diameter]="20"
-                [label]="null"
-              />
-            } @else {
-              Delete Stream
-            }
-          </app-ui-button>
+          <div class="dialog-actions__row dialog-actions__row--danger">
+            <app-ui-button
+              variant="danger"
+              type="button"
+              [disabled]="!!activeAction"
+              (click)="remove()"
+            >
+              @if (activeAction === 'delete') {
+                <app-loader
+                  [diameter]="20"
+                  [label]="null"
+                />
+              } @else {
+                Delete Stream
+              }
+            </app-ui-button>
+          </div>
         }
       }
     </mat-dialog-actions>

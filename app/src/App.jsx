@@ -151,6 +151,9 @@ function App() {
                     <Route path="/shop/:vendorSlug/:productSlug" element={<ShopProductDetail />} />
                     <Route path="/shop/:slug" element={<ShopSlugPage />} />
 
+                    {/* Public live watch — share / deep links; chat actions still need auth */}
+                    <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
+
                     <Route element={<RequireAuth />}>
                       <Route path="/home" element={<Home />} />
                       <Route path="/profile" element={<Profile />} />
@@ -201,7 +204,6 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
                       <Route path="/live/streaming" element={<LiveStreaming />} />
                       <Route path="/live/streaming/create" element={<LiveStreamingCreate />} />
                       <Route path="/live/streaming/:streamId" element={<LiveStreamingManage />} />

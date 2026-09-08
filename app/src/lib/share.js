@@ -120,3 +120,11 @@ export function buildQuickMatchScorecardPath(matchId) {
 export function buildQuickMatchScorecardShareUrl(matchId) {
   return buildHttpsDeepLink(buildQuickMatchScorecardPath(matchId));
 }
+
+export function buildLiveBroadcastPath(streamId) {
+  return buildDeepLinkPath('liveBroadcast', { streamId });
+}
+
+export function buildLiveBroadcastShareUrl(streamId) {
+  return buildHttpsDeepLink(buildLiveBroadcastPath(streamId));
+}

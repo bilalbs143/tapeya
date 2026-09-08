@@ -19,7 +19,7 @@ class UpdateLiveStreamRequest extends FormRequest
         return [
             'title' => ['sometimes', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:500'],
-            'streaming_url' => ['sometimes', 'url', 'starts_with:https', 'max:2048'],
+            'streaming_url' => ['sometimes', 'nullable', 'url', 'starts_with:https', 'max:2048'],
             'status' => ['sometimes', 'in:idle,starting,live,ended'],
         ];
     }

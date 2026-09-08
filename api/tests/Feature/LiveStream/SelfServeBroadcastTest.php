@@ -116,6 +116,11 @@ class SelfServeBroadcastTest extends TestCase
 
         // Never public — see "Ingest & playback provider" in the design doc.
         $this->assertSame('unlisted', $this->fakeProvider->lastCreateData->privacy);
+
+        // Self-serve must mint its own throwaway key rather than requiring one of the
+        // admin-managed reusable keys — see YouTubeStreamProvider::createStream().
+        $this->assertTrue($this->fakeProvider->lastCreateData->mintOwnKey);
+        $this->assertNull($this->fakeProvider->lastCreateData->youtubeStreamKeyId);
     }
 
     public function test_store_defaults_orientation_to_portrait_when_omitted(): void

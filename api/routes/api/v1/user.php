@@ -103,6 +103,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [UserAuthController::class, 'logout'])->middleware('auth:api');
 });
 
+// Public live watch teaser — share links load metadata; playback stays behind auth:api.
+Route::get('live/streams/{stream}', [LiveStreamController::class, 'show'])->middleware('throttle:60,1');
+
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::post('device-tokens', [DeviceTokenController::class, 'store']);
@@ -138,7 +141,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('reels/search', [PostController::class, 'search']);
     Route::get('reels/mine', [PostController::class, 'mine']);
     Route::get('reels/saved', [PostController::class, 'saved']);
-    Route::get('reels/liked', [PostController::class, 'liked']);
     Route::get('reels/feed/following', [PostController::class, 'following']);
     Route::get('reels/{post}', [PostController::class, 'show']);
     Route::post('reels', [PostController::class, 'store']);
@@ -248,7 +250,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('live/matches', [LiveStreamController::class, 'index']);
     Route::get('live/scores', [LiveScoreController::class, 'index']);
-    Route::get('live/streams/{stream}', [LiveStreamController::class, 'show']);
+    Route::get('live/streams/{stream}/live-comments', [LiveStreamCommentController::class, 'index']);
     Route::post('live/streams/{stream}/live-comments', [LiveStreamCommentController::class, 'store']);
     Route::post('live/streams/{stream}/live-hearts', [LiveStreamHeartController::class, 'store']);
 

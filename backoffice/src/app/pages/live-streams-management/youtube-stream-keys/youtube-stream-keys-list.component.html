@@ -1,0 +1,240 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content>
+    <app-page-header
+      title="YouTube Stream Keys"
+      subtitle="Reusable RTMP keys for OBS/vMix"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <app-ui-button
+          type="button"
+          (click)="resetSearchForm()"
+          variant="secondary"
+        >
+          Clear Search
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
+          type="button"
+          (click)="openCreateDialog()"
+        >
+          Create Key
+        </app-ui-button>
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content>
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter YouTube Stream Keys"
+    >
+      <app-search-filter-bar>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              type="search"
+              placeholder="Search by Title"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="is_active">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Availability</mat-label>
+            <mat-select formControlName="in_use">
+              @for (opt of availabilityOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </app-search-filter-bar>
+    </form>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading YouTube Stream Keys"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="YouTube Stream Keys List"
+            matSortActive="id"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="title">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Title
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-xs truncate font-medium"
+                [title]="row.title"
+              >
+                {{ row.title }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="availability">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                <div class="flex items-center gap-1.5">
+                  <app-status-chip [status]="row.is_active" />
+                  @if (row.is_active) {
+                    <app-status-chip
+                      [status]="row.in_use"
+                      trueLabel="In Use"
+                      falseLabel="Available"
+                      [pulse]="row.in_use"
+                    />
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="in_use_by">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Current Session
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-xs truncate"
+              >
+                {{ row.in_use_by?.title || emptyCell }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Created
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.created_at) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Manage Stream Key"
+                    (click)="openManageDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
+    <app-paginator
+      [loading]="isLoading"
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      noRecMessage="No Stream Keys Yet"
+      noRecDescription="Create one key per encoder — configure OBS once, reuse across sessions."
+      noRecActionLabel="Create Key"
+      (page)="onPaginationChange($event)"
+      (noRecAction)="openCreateDialog()"
+    />
+  </mat-card-content>
+</mat-card>

@@ -29,13 +29,10 @@
             <p class="text-xs text-muted m-0">Save settings to generate your graphics URL.</p>
           </div>
         } @else if (signedLinkLoading()) {
-          <div
-            class="col-span-12 flex items-center gap-3 py-1"
-            role="status"
-            aria-label="Generating Signed Graphics Link"
-          >
-            <app-loader [label]="null" />
-          </div>
+          <app-loader-block
+            label="Generating Signed Graphics Link"
+            class="col-span-12 py-6"
+          />
         } @else if (signedLinkError()) {
           <div class="col-span-12 flex flex-col gap-2 sm:flex-row sm:items-center">
             <span class="text-sm text-error"

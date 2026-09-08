@@ -3,7 +3,6 @@
 namespace App\Http\Requests\User\Post;
 
 use App\Enums\Post\PostBackgroundId;
-use App\Enums\Post\PostVisibilityEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +25,6 @@ class StoreComposePostRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:200'],
             'body' => ['nullable', 'string', 'max:2200'],
             'caption' => ['nullable', 'string', 'max:2200'],
-            'visibility' => ['nullable', 'string', Rule::in(PostVisibilityEnum::values())],
             'client_duration_ms' => ['nullable', 'integer', 'min:1'],
         ];
 

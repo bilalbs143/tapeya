@@ -28,6 +28,7 @@ class LiveStream extends BaseModel
         'created_by',
         'provider_stream_id',
         'provider_ingest_id',
+        'youtube_stream_key_id',
         'provider_playback_id',
         'provider_recording_id',
         'ingest_rtmp_url',
@@ -61,6 +62,11 @@ class LiveStream extends BaseModel
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_user_id');
+    }
+
+    public function youtubeStreamKey(): BelongsTo
+    {
+        return $this->belongsTo(YoutubeStreamKey::class);
     }
 
     public function isStandalone(): bool
@@ -215,7 +221,7 @@ class LiveStream extends BaseModel
 
     public function scopeVisibleInApp(Builder $query): void
     {
-        $query->whereIn('status', ['live', 'starting'])
+        $query->where('status', 'live')
             ->where(function (Builder $q) {
                 $q->whereNull('match_id')
                     ->orWhereHas('match.tournament', fn ($t) => $t->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT));
@@ -249,6 +255,6 @@ class LiveStream extends BaseModel
      */
     public static function getSorts(): array
     {
-        return ['id', 'status', 'provider', 'started_at', 'created_at'];
+        return ['id', 'status', 'provider', 'started_at', 'ended_at', 'created_at'];
     }
 }

@@ -89,13 +89,3 @@ export function sortHighlightsByRecent(highlights) {
     return bTime - aTime;
   });
 }
-
-/**
- * Sort a copy of the array by views_count descending (most viewed first).
- *
- * @param {Array<{ viewsCount?: number }>} highlights
- * @returns {typeof highlights}
- */
-export function sortHighlightsByViews(highlights) {
-  return [...highlights].sort((a, b) => (b.viewsCount ?? 0) - (a.viewsCount ?? 0));
-}

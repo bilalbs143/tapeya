@@ -6,6 +6,7 @@ use App\Events\Broadcast\LiveStreamChatMessageReceived;
 use App\Models\LiveStream;
 use App\Settings\LiveChatSettings;
 use App\Support\LiveChat\LiveChatRedisKeys;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
@@ -73,6 +74,52 @@ class LiveStreamCommentService
             sentAt: $sentAt,
         );
 
+        $this->appendToLog($stream->id, [
+            'id' => $id,
+            'name' => $displayName,
+            'text' => $body,
+            'sent_at' => $sentAt,
+        ]);
+
         return $id;
+    }
+
+    /**
+     * Trailing comment history for a stream, oldest first.
+     *
+     * @return list<array{id: string, name: string, text: string, sent_at: string}>
+     */
+    public function recent(LiveStream $stream): array
+    {
+        $key = LiveChatRedisKeys::commentLog($stream->id);
+        $raw = Redis::lrange($key, 0, -1);
+
+        $messages = [];
+
+        foreach ($raw as $entry) {
+            $decoded = json_decode($entry, true);
+
+            if (is_array($decoded)) {
+                $messages[] = $decoded;
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * @param  array{id: string, name: string, text: string, sent_at: string}  $payload
+     */
+    private function appendToLog(int $streamId, array $payload): void
+    {
+        try {
+            $key = LiveChatRedisKeys::commentLog($streamId);
+
+            Redis::rpush($key, json_encode($payload));
+            Redis::ltrim($key, -LiveChatRedisKeys::LOG_MAX_LENGTH, -1);
+            Redis::expire($key, LiveChatRedisKeys::LOG_TTL_SECONDS);
+        } catch (\Throwable $e) {
+            Log::warning('Live chat history append failed: '.$e->getMessage(), ['stream_id' => $streamId]);
+        }
     }
 }

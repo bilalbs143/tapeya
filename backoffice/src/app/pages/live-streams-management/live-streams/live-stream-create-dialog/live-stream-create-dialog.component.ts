@@ -5,8 +5,10 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
+import { CreateYoutubeStreamKeyDialogComponent } from '../../youtube-stream-keys/create-youtube-stream-key-dialog/create-youtube-stream-key-dialog.component';
+
 import { MaterialModule } from 'src/app/material.module';
-import { LiveStreamService, type LiveStreamProvider } from 'src/app/services/live-stream.service';
+import { LiveStreamService, type LiveStreamProvider, type YoutubeStreamKey } from 'src/app/services/live-stream.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
@@ -40,6 +42,8 @@ export class LiveStreamCreateDialogComponent {
   public form: FormGroup;
   public isSubmitting = false;
   public readonly streamThumbnailHint = LIVE_STREAM_THUMBNAIL_UPLOAD_HINT;
+  public availableKeys: YoutubeStreamKey[] = [];
+  public loadingKeys = false;
 
   constructor() {
     this.form = this.fb.group({
@@ -48,15 +52,39 @@ export class LiveStreamCreateDialogComponent {
       description: ['', Validators.maxLength(500)],
       streaming_url: ['', Validators.maxLength(2048)],
       privacy: ['public' as 'public' | 'unlisted'],
+      youtube_stream_key_id: [null as number | null],
       thumbnail: [null as FileUploadValue | null],
     });
 
     this.form.get('provider')?.valueChanges.subscribe(() => this.applyProviderValidators());
     this.applyProviderValidators();
+    this.loadAvailableKeys();
   }
 
   public get isYoutube(): boolean {
     return this.form.get('provider')?.value === 'youtube';
+  }
+
+  public loadAvailableKeys(): void {
+    this.loadingKeys = true;
+    this.streamApi.listYoutubeStreamKeys().subscribe({
+      next: (keys) => {
+        this.availableKeys = keys.filter((key) => key.is_active && !key.in_use);
+        this.loadingKeys = false;
+      },
+      error: () => {
+        this.loadingKeys = false;
+      },
+    });
+  }
+
+  public openCreateKeyDialog(): void {
+    this.messageService.openDialog<CreateYoutubeStreamKeyDialogComponent, boolean>(
+      CreateYoutubeStreamKeyDialogComponent,
+      {},
+      (saved) => saved && this.loadAvailableKeys(),
+      { widthSize: 'sm', disableClose: true }
+    );
   }
 
   public submit(): void {
@@ -78,6 +106,7 @@ export class LiveStreamCreateDialogComponent {
             title: value.title.trim(),
             description: value.description?.trim() || null,
             privacy: value.privacy,
+            youtube_stream_key_id: value.youtube_stream_key_id,
           }
         : {
             provider,
@@ -118,17 +147,21 @@ export class LiveStreamCreateDialogComponent {
 
   private applyProviderValidators(): void {
     const urlControl = this.form.get('streaming_url');
-    if (!urlControl) {
+    const keyControl = this.form.get('youtube_stream_key_id');
+    if (!urlControl || !keyControl) {
       return;
     }
 
     if (this.isYoutube) {
       urlControl.clearValidators();
       urlControl.setValidators([Validators.maxLength(2048)]);
+      keyControl.setValidators([Validators.required]);
     } else {
       urlControl.setValidators([Validators.required, Validators.maxLength(2048)]);
+      keyControl.clearValidators();
     }
 
     urlControl.updateValueAndValidity({ emitEvent: false });
+    keyControl.updateValueAndValidity({ emitEvent: false });
   }
 }

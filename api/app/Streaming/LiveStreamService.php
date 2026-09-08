@@ -86,7 +86,7 @@ class LiveStreamService
     /**
      * Standalone YouTube RTMP stream (no match) — same provider flow as match-linked streams.
      *
-     * @param  array{title: string, description?: ?string, streaming_url?: ?string, privacy?: string, owner_user_id?: ?int, orientation?: string|StreamOrientationEnum}  $data
+     * @param  array{title: string, description?: ?string, streaming_url?: ?string, privacy?: string, owner_user_id?: ?int, orientation?: string|StreamOrientationEnum, youtube_stream_key_id?: ?int, mint_own_key?: bool}  $data
      */
     public function createStandaloneYoutube(array $data, int $createdBy): LiveStream
     {
@@ -98,6 +98,8 @@ class LiveStreamService
             description: $data['description'] ?? '',
             privacy: $data['privacy'] ?? $settings->youtubeDefaultPrivacy ?? 'public',
             streamingUrl: $data['streaming_url'] ?? null,
+            youtubeStreamKeyId: isset($data['youtube_stream_key_id']) ? (int) $data['youtube_stream_key_id'] : null,
+            mintOwnKey: (bool) ($data['mint_own_key'] ?? false),
         );
 
         $orientation = LiveStream::normalizeOrientation($data['orientation'] ?? StreamOrientationEnum::Portrait);
@@ -127,13 +129,9 @@ class LiveStreamService
     }
 
     /**
-     * Self-serve mobile broadcast — thin wrapper over createStandaloneYoutube() enforcing
-     * the rules that only apply to user-initiated broadcasts: one active stream at a time,
-     * always unlisted, always YouTube (never silently falls back to another provider).
-     *
+     * Self-serve mobile Go Live — unlisted YouTube, one active stream, mints its own key.
      *
      * @see LiveBroadcastController::store()
-     * @see docs/LIVE_STREAM_ORIENTATION.md
      */
     public function createSelfServe(
         int $ownerUserId,
@@ -143,8 +141,6 @@ class LiveStreamService
     ): LiveStream {
         $this->assertNoActiveSelfServeStream($ownerUserId);
 
-        // Self-serve's entire design (iframe playback, RTMP ingest shape) assumes YouTube.
-        // Fail loudly rather than silently provisioning against a different default provider.
         abort_unless(
             app(StreamingSettings::class)->defaultProvider === 'youtube',
             503,
@@ -157,6 +153,7 @@ class LiveStreamService
             'privacy' => 'unlisted',
             'owner_user_id' => $ownerUserId,
             'orientation' => LiveStream::normalizeOrientation($orientation),
+            'mint_own_key' => true,
         ], $ownerUserId);
     }
 
@@ -309,7 +306,7 @@ class LiveStreamService
     /**
      * Batch equivalent of syncStatus() — groups by provider so each vendor driver can poll many
      * streams in as few API calls as possible (see YouTubeStreamProvider::syncStatuses()) instead
-     * of one round-trip per stream, since `streams:sync` runs every minute against every active
+     * of one round-trip per stream, since `streams:sync` runs every 5 minutes against every active
      * stream and vendor quota is shared across the whole app.
      *
      * @param  Collection<int, LiveStream>  $streams
@@ -343,6 +340,8 @@ class LiveStreamService
 
         if ($stream->status === 'ended') {
             LiveChatRedisKeys::purgeStream($stream->id);
+            // Sync auto-end must complete the YouTube broadcast — same finalize path as manual end.
+            FinalizeEndedBroadcastJob::dispatch($stream->id, notifyClients: false);
         }
 
         $this->broadcastStatusChange($stream);

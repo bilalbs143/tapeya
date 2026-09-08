@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import { ReelCoverImage } from '@/components/reels/ReelCoverImage';
+
 const CARD_CLASS =
   'relative block w-[112px] shrink-0 snap-start overflow-hidden rounded-[16px] aspect-9/16 bg-surface-deep sm:w-[120px]';
 
@@ -24,7 +26,7 @@ function ChevronRightIcon({ className = '' }) {
   );
 }
 
-function ReelCard({ reel }) {
+function ReelCard({ reel, eagerPriority }) {
   const name = reel.creator?.name || reel.username || reel.handle || 'Reel';
   const handle = reel.handle || (reel.creator?.nickname ? `@${reel.creator.nickname}` : '');
   const showHandle = Boolean(handle) && handle !== name;
@@ -32,16 +34,12 @@ function ReelCard({ reel }) {
 
   return (
     <Link to={`/reels/${reel.id}`} className={`${CARD_CLASS} group`} aria-label={`Watch reel by ${name}`}>
-      {poster ? (
-        <img
-          src={poster}
-          alt=""
-          className="h-full w-full object-cover transition-transform duration-300 group-active:scale-[1.02]"
-          loading="lazy"
-        />
-      ) : (
-        <div className="bg-surface-raised h-full w-full" aria-hidden />
-      )}
+      <ReelCoverImage
+        src={poster}
+        className="h-full w-full object-cover transition-transform duration-300 group-active:scale-[1.02]"
+        fetchPriority={eagerPriority ? 'high' : undefined}
+        fallback={<div className="bg-surface-raised h-full w-full" aria-hidden />}
+      />
       <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/80 via-black/15 to-transparent" />
       <div className="absolute right-2 bottom-2 left-2">
         <p className="truncate text-[11px] font-semibold text-white sm:text-[12px]">{name}</p>
@@ -90,8 +88,8 @@ export function FeedReelsWidget({ reels = [] }) {
 
       <div className="px-4">
         <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-0.5">
-          {visible.map((reel) => (
-            <ReelCard key={reel.id} reel={reel} />
+          {visible.map((reel, index) => (
+            <ReelCard key={reel.id} reel={reel} eagerPriority={index === 0} />
           ))}
 
           <ViewAllCard />

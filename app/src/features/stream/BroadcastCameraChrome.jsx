@@ -8,6 +8,7 @@ import {
 } from '@/features/stream/BroadcastCaptureControls';
 import { CommentInputRow } from '@/features/stream/CommentInputRow';
 import CommentList from '@/features/stream/CommentList';
+import { LiveShareButton } from '@/features/stream/LiveShareButton';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import {
   LIVE_BROADCAST_BOTTOM_SCRIM,
@@ -77,6 +78,7 @@ export function BroadcastCameraHeader({
   presenceEnabled,
   viewerCount,
   orientation,
+  onShare,
 }) {
   const { data: enums = {} } = useGetEnumsQuery();
   const orientationLabel = getStreamOrientationLabel(orientation, getStreamOrientationOptions(enums));
@@ -110,7 +112,8 @@ export function BroadcastCameraHeader({
             {orientationLabel}
           </span>
         </div>
-        <div className="flex h-7 min-w-7 shrink-0 items-center justify-end">
+        <div className="flex h-7 min-w-7 shrink-0 items-center justify-end gap-1.5">
+          {onShare ? <LiveShareButton onClick={onShare} /> : null}
           {presenceEnabled ? <LiveViewerCountBadge viewerCount={viewerCount} /> : <span className="h-7 w-7" aria-hidden />}
         </div>
       </div>

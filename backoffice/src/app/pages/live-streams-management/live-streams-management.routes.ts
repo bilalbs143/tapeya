@@ -12,6 +12,17 @@ export const LiveStreamsManagementRoutes: Routes = [
     },
   },
   {
+    path: 'youtube-stream-keys',
+    loadComponent: () =>
+      import('./youtube-stream-keys/youtube-stream-keys-list.component').then((m) => m.YoutubeStreamKeysListComponent),
+    data: {
+      title: 'YouTube Stream Keys',
+      icon: 'solar:key-line-duotone',
+      hideBreadcrumb: true,
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'YouTube Stream Keys' }],
+    },
+  },
+  {
     path: 'live-streams/:streamId',
     loadComponent: () =>
       import('./live-stream-detail/live-stream-detail-shell.component').then((m) => m.LiveStreamDetailShellComponent),

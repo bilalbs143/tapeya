@@ -18,7 +18,6 @@ import { buildCycledReelRows } from '@/features/reels/buildCycledReelRows';
 import { isInPlayerWindow } from '@/features/reels/reelPlayerWindow';
 import { setReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelPrefetch } from '@/features/reels/useReelPrefetch';
-import { useReelProcessingChannel } from '@/features/reels/useReelProcessingChannel';
 import { useCatalogCycle } from '@/hooks/useCatalogCycle';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { NAVBAR_HERO_CONTROL_OFFSET, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
@@ -156,7 +155,6 @@ export default function Reels() {
   const { reelId: reelIdParam } = useParams();
   const deepReelId = reelIdParam && /^\d+$/.test(reelIdParam) ? Number(reelIdParam) : null;
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  useReelProcessingChannel();
 
   useEffect(() => {
     return () => setReelsFocusMode(false);

@@ -7,6 +7,7 @@ use App\Enums\Push\PushNotificationStatusEnum;
 use App\Enums\Push\PushTargetTypeEnum;
 use App\Enums\Push\PushTriggeredByEnum;
 use App\Jobs\SendPushNotificationJob;
+use App\Models\LiveStream;
 use App\Models\PushNotificationLog;
 use App\Models\PushNotificationTemplate;
 use App\Settings\PushSettings;
@@ -69,6 +70,20 @@ class PushNotificationService
         return $log;
     }
 
+    public function notifyLiveStreamCreated(LiveStream $stream, int $createdByUserId): PushNotificationLog
+    {
+        return $this->dispatch(
+            NotificationEventEnum::LIVE_STREAM_CREATED,
+            [
+                'stream_title' => $stream->title ?: 'A new stream',
+                'stream_id' => $stream->id,
+                'deep_link' => "/live/broadcast/{$stream->id}",
+            ],
+            userId: null,
+            sentByUserId: $createdByUserId,
+        );
+    }
+
     /**
      * Resolve title and body together so the template is only fetched once.
      *
@@ -124,6 +139,10 @@ class PushNotificationService
 
         if (isset($data['post_id'])) {
             $payload['post_id'] = $data['post_id'];
+        }
+
+        if (isset($data['stream_id'])) {
+            $payload['stream_id'] = $data['stream_id'];
         }
 
         if (isset($data['comment_id'])) {

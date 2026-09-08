@@ -16,7 +16,6 @@ return new class extends Migration
             $table->text('body')->nullable();
             $table->string('background_id', 32)->nullable();
             $table->string('status', 32)->default('uploading');
-            $table->string('visibility', 16)->default('public');
             $table->string('distribution', 32)->default('organic');
             $table->foreignId('repost_of_post_id')->nullable()->constrained('posts')->nullOnDelete();
             $table->string('cover_path')->nullable();
@@ -34,7 +33,6 @@ return new class extends Migration
 
             $table->index(['user_id', 'status', 'published_at']);
             $table->index(['status', 'published_at']);
-            $table->index(['visibility', 'status', 'published_at']);
             $table->index(['type', 'published_at', 'id']);
             $table->index(['user_id', 'published_at', 'id']);
             $table->index(['user_id', 'pinned_at']);

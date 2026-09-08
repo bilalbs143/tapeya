@@ -6,7 +6,7 @@ use App\Enums\BaseEnumTrait;
 
 /**
  * Pipeline status for upload / FFmpeg compression (video) or immediate publish (text/image/repost).
- * Feed eligibility uses published_at + visibility — not Ready vs Processing.
+ * Feed eligibility uses published_at — not Ready vs Processing.
  */
 enum PostStatusEnum: string
 {

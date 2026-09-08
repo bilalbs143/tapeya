@@ -15,9 +15,11 @@ class LiveStreamCommentController extends Controller
 
     public function __construct(private readonly LiveStreamCommentService $service) {}
 
-    /**
-     * POST /api/v1/live/streams/{stream}/live-comments
-     */
+    public function index(LiveStream $stream): JsonResponse
+    {
+        return $this->success($this->service->recent($stream));
+    }
+
     public function store(SendLiveCommentRequest $request, LiveStream $stream): JsonResponse
     {
         $user = $request->user();

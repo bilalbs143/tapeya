@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\User\Post;
 
-use App\Enums\Post\PostVisibilityEnum;
 use App\Models\Post;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePostRequest extends FormRequest
 {
@@ -24,7 +22,6 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'body' => ['sometimes', 'nullable', 'string', 'max:2200'],
-            'visibility' => ['sometimes', 'string', Rule::in(PostVisibilityEnum::values())],
         ];
     }
 }

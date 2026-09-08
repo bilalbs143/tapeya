@@ -15,6 +15,7 @@ export interface LiveStreamRow {
   status: LiveStreamStatus;
   provider_stream_id: string | null;
   provider_playback_id: string | null;
+  youtube_stream_key_id?: number | null;
   embed_url: string | null;
   started_at: string | null;
   ended_at: string | null;
@@ -60,11 +61,29 @@ export interface CreateStandaloneStreamBody {
   description?: string | null;
   streaming_url?: string | null;
   privacy?: 'public' | 'unlisted';
+  /** Required when provider is youtube. */
+  youtube_stream_key_id?: number;
 }
 
 export interface CreateMatchLinkedStreamBody {
   title?: string;
   privacy?: 'public' | 'unlisted';
+  /** Required when the match uses the youtube provider. */
+  youtube_stream_key_id?: number;
+}
+
+/** Admin-managed reusable YouTube RTMP key. `in_use` = live/starting session. */
+export interface YoutubeStreamKey {
+  id: number;
+  title: string;
+  is_active: boolean;
+  in_use: boolean;
+  in_use_by: { id: number; title: string | null; status: LiveStreamStatus } | null;
+  created_at: string | null;
+}
+
+export interface YoutubeStreamKeyDetail extends YoutubeStreamKey {
+  ingest: StreamIngestCredentials;
 }
 
 export interface LiveStreamListItem {
@@ -76,6 +95,8 @@ export interface LiveStreamListItem {
   provider: string;
   match_id: number | null;
   started_at: string | null;
+  ended_at?: string | null;
+  created_at?: string | null;
   /** Set only for self-serve mobile broadcasts (LIVE_STREAM_MOBILE_BROADCAST.md) — null for admin-created rows. */
   owner_user_id?: number | null;
   /** Authenticated Reverb presence members; populated for live/starting rows. */
@@ -106,7 +127,13 @@ export class LiveStreamService {
 
   public setupYoutubeStream(
     streamId: number,
-    body: { title?: string; description?: string | null; privacy?: 'public' | 'unlisted'; streaming_url?: string | null } = {}
+    body: {
+      title?: string;
+      description?: string | null;
+      privacy?: 'public' | 'unlisted';
+      streaming_url?: string | null;
+      youtube_stream_key_id: number;
+    }
   ): Observable<LiveStreamPayload> {
     return this.http
       .post<{ data: LiveStreamPayload }>(`v1/admin/live-streams/${streamId}/setup`, body)
@@ -186,5 +213,35 @@ export class LiveStreamService {
 
   public syncStream(matchId: number): Observable<{ status: LiveStreamStatus }> {
     return this.syncStreamForMatch(matchId);
+  }
+
+  // ── Reusable YouTube stream keys ──────────────────────────────────────────
+
+  public listYoutubeStreamKeys(params: Record<string, string | number> = { all: 1 }): Observable<YoutubeStreamKey[]> {
+    return this.http.get<{ data: YoutubeStreamKey[] }>('v1/admin/youtube-stream-keys', { params }).pipe(map((res) => res.data));
+  }
+
+  public listYoutubeStreamKeysPaged(
+    params: Record<string, string | number> = {}
+  ): Observable<{ data: YoutubeStreamKey[]; meta?: PaginatedLiveStreams['meta'] }> {
+    return this.http.get<{ data: YoutubeStreamKey[]; meta?: PaginatedLiveStreams['meta'] }>('v1/admin/youtube-stream-keys', {
+      params,
+    });
+  }
+
+  public createYoutubeStreamKey(title: string): Observable<YoutubeStreamKeyDetail> {
+    return this.http
+      .post<{ data: YoutubeStreamKeyDetail }>('v1/admin/youtube-stream-keys', { title })
+      .pipe(map((res) => res.data));
+  }
+
+  public getYoutubeStreamKey(keyId: number): Observable<YoutubeStreamKeyDetail> {
+    return this.http.get<{ data: YoutubeStreamKeyDetail }>(`v1/admin/youtube-stream-keys/${keyId}`).pipe(map((res) => res.data));
+  }
+
+  public updateYoutubeStreamKey(keyId: number, body: { title?: string; is_active?: boolean }): Observable<YoutubeStreamKey> {
+    return this.http
+      .patch<{ data: YoutubeStreamKey }>(`v1/admin/youtube-stream-keys/${keyId}`, body)
+      .pipe(map((res) => res.data));
   }
 }

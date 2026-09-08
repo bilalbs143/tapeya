@@ -38,7 +38,6 @@ class PostPhase4Test extends TestCase
         return $this->makeVideoPost($owner, array_merge([
             'body' => 'Phase 4 reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
             'ready_at' => now(),
             'duration_ms' => 12000,
@@ -162,12 +161,10 @@ class PostPhase4Test extends TestCase
 
         $this->actingAs($admin, 'api')
             ->patchJson('/api/v1/admin/posts/'.$reel->id, [
-                'visibility' => 'private',
                 'status' => 'rejected',
                 'caption' => 'Moderated caption',
             ])
             ->assertOk()
-            ->assertJsonPath('data.visibility', 'private')
             ->assertJsonPath('data.status', 'rejected')
             ->assertJsonPath('data.body', 'Moderated caption')
             ->assertJsonPath('data.caption', 'Moderated caption');
@@ -199,7 +196,6 @@ class PostPhase4Test extends TestCase
             'body' => 'Hello text moderation',
             'background_id' => 'bats',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
         ]);
 
@@ -209,7 +205,6 @@ class PostPhase4Test extends TestCase
             'body' => 'Image post body',
             'cover_path' => 'posts/images/covers/cover.webp',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
         ]);
         PostMedia::query()->create([

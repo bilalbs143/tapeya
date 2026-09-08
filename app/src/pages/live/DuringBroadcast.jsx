@@ -30,6 +30,7 @@ import { useAppBack } from '@/hooks/useAppBack';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { LIVE_BROADCAST_CAMERA_BANNER_TOP, LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
+import { buildLiveBroadcastShareUrl, shareLink } from '@/lib/share';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { getStreamOrientation } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
@@ -89,9 +90,12 @@ export default function DuringBroadcast({ streamId }) {
     // don't flash "Failed to load broadcast" over the ended / leave flow.
     skip: sessionFinished,
   });
-  const { data: publicBroadcast } = useGetLiveStreamQuery(streamId, {
-    skip: sessionFinished,
-  });
+  const { data: publicBroadcast } = useGetLiveStreamQuery(
+    { streamId, authed: true },
+    {
+      skip: sessionFinished,
+    },
+  );
   const { data: settingsRows } = useGetPublicSystemSettingsQuery();
   const { data: enums = {} } = useGetEnumsQuery();
   const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
@@ -138,6 +142,16 @@ export default function DuringBroadcast({ streamId }) {
   const { messages, addMessage } = useStreamComments(streamId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
+
+  const handleShare = useCallback(async () => {
+    if (!streamId) return;
+    const result = await shareLink({
+      url: buildLiveBroadcastShareUrl(streamId),
+    });
+    if (result === 'copy_link') {
+      toast.success('Link copied.');
+    }
+  }, [streamId, toast]);
 
   useEffect(() => {
     setPeakViewers((prev) => Math.max(prev, realViewerCount));
@@ -534,6 +548,7 @@ export default function DuringBroadcast({ streamId }) {
             presenceEnabled={presenceEnabled}
             viewerCount={viewerCount}
             orientation={streamOrientation}
+            onShare={handleShare}
           />
           {needsLandscapeRotate && landscapeValue && (
             <div

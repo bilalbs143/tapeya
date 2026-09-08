@@ -3,7 +3,6 @@
 namespace Tests\Unit\Jobs;
 
 use App\Enums\Post\PostStatusEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Jobs\ExtractPostPosterJob;
 use App\Models\Post;
 use App\Models\User;
@@ -32,7 +31,6 @@ class ExtractPostPosterJobTest extends TestCase
         $post = $this->makeVideoPost($user, [
             'body' => 'Has poster',
             'status' => PostStatusEnum::Processing,
-            'visibility' => PostVisibilityEnum::Public,
             'original_path' => 'posts/videos/original/1/a.mp4',
             'thumbnail_path' => 'posts/videos/thumbs/1/poster.webp',
         ]);
@@ -49,7 +47,6 @@ class ExtractPostPosterJobTest extends TestCase
         $post = $this->makeVideoPost($user, [
             'body' => 'Needs poster',
             'status' => PostStatusEnum::Processing,
-            'visibility' => PostVisibilityEnum::Public,
             'original_path' => 'posts/videos/original/1/a.mp4',
             'thumbnail_path' => null,
         ]);
@@ -69,7 +66,6 @@ class ExtractPostPosterJobTest extends TestCase
         $post = $this->makeVideoPost($user, [
             'body' => 'Provisional poster',
             'status' => PostStatusEnum::Processing,
-            'visibility' => PostVisibilityEnum::Public,
             'original_path' => 'posts/videos/original/1/a.mp4',
             'thumbnail_path' => 'posts/videos/thumbs/1/client.jpg',
         ]);

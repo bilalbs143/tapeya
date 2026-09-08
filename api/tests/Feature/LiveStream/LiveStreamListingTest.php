@@ -68,6 +68,29 @@ class LiveStreamListingTest extends TestCase
         $this->assertCount(0, $response->json('data'));
     }
 
+    public function test_index_excludes_starting_streams(): void
+    {
+        $user = User::factory()->create();
+
+        LiveStream::factory()->create([
+            'title' => 'Going live soon',
+            'status' => 'starting',
+            'started_at' => now(),
+        ]);
+
+        $live = LiveStream::factory()->create([
+            'title' => 'On air',
+            'status' => 'live',
+            'started_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user, 'api')->getJson('/api/v1/live/matches')->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($live->id));
+        $this->assertCount(1, $ids);
+    }
+
     public function test_show_returns_playback_for_standalone_stream(): void
     {
         $user = User::factory()->create();
@@ -84,6 +107,65 @@ class LiveStreamListingTest extends TestCase
             ->assertJsonPath('data.is_self_serve', false)
             ->assertJsonPath('data.stream.playback.mode', 'iframe')
             ->assertJsonPath('data.stream.playback.embed_id', 'dQw4w9WgXcQ');
+    }
+
+    public function test_guest_can_show_live_stream_teaser_for_share_links(): void
+    {
+        $stream = LiveStream::factory()->create([
+            'streaming_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'status' => 'live',
+            'started_at' => now(),
+        ]);
+
+        $this->getJson("/api/v1/live/streams/{$stream->id}")
+            ->assertOk()
+            ->assertJsonPath('data.title', $stream->title)
+            ->assertJsonMissingPath('data.streaming_url')
+            ->assertJsonMissingPath('data.stream.playback')
+            ->assertJsonMissingPath('data.stream.embed_id');
+    }
+
+    public function test_bearer_token_on_public_show_returns_playback(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test')->plainTextToken;
+        $stream = LiveStream::factory()->create([
+            'streaming_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'status' => 'live',
+            'started_at' => now(),
+        ]);
+
+        $this->withToken($token)
+            ->getJson("/api/v1/live/streams/{$stream->id}")
+            ->assertOk()
+            ->assertJsonPath('data.stream.playback.mode', 'iframe')
+            ->assertJsonPath('data.streaming_url', $stream->streaming_url);
+    }
+
+    public function test_guest_cannot_show_idle_stream(): void
+    {
+        $stream = LiveStream::factory()->create([
+            'status' => 'idle',
+        ]);
+
+        $this->getJson("/api/v1/live/streams/{$stream->id}")
+            ->assertNotFound();
+    }
+
+    public function test_guest_cannot_read_live_comments(): void
+    {
+        $stream = LiveStream::factory()->create(['status' => 'live', 'started_at' => now()]);
+
+        $this->getJson("/api/v1/live/streams/{$stream->id}/live-comments")
+            ->assertUnauthorized();
+    }
+
+    public function test_guest_cannot_post_live_comments(): void
+    {
+        $stream = LiveStream::factory()->create(['status' => 'live', 'started_at' => now()]);
+
+        $this->postJson("/api/v1/live/streams/{$stream->id}/live-comments", ['body' => 'Nope'])
+            ->assertUnauthorized();
     }
 
     public function test_show_marks_self_serve_streams(): void

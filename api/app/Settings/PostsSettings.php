@@ -150,7 +150,9 @@ class PostsSettings extends Settings
     /** Multipart chunk size in bytes (minimum 256 KB). */
     public function multipartPartSizeBytes(): int
     {
-        $mb = max(1, $this->multipartPartSizeMb);
+        // Floor at 5MB: 1MB parts force a CORS preflight per chunk on Capacitor
+        // WebViews and amplify mid-upload FETCH_ERROR aborts on mobile.
+        $mb = max(5, $this->multipartPartSizeMb);
 
         return max(256 * 1024, $mb * 1024 * 1024);
     }

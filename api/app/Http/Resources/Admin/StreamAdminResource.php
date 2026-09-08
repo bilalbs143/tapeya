@@ -23,6 +23,7 @@ class StreamAdminResource extends JsonResource
             'status' => $this->status,
             'provider_stream_id' => $this->provider_stream_id,
             'provider_playback_id' => $this->provider_playback_id,
+            'youtube_stream_key_id' => $this->youtube_stream_key_id,
             'embed_url' => $this->embed_url,
             'started_at' => $this->started_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),

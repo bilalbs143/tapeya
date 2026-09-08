@@ -4,7 +4,6 @@ namespace Tests\Feature\Post;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Post;
@@ -71,7 +70,6 @@ class AutoEngagementTest extends TestCase
         return $this->makeVideoPost($owner, array_merge([
             'body' => 'Auto engage reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now()->subDays(10),
             'likes_count' => 0,
             'views_count' => 0,
@@ -85,7 +83,6 @@ class AutoEngagementTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'Auto engage text',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now()->subDays(10),
             'likes_count' => 0,
             'views_count' => 0,
@@ -127,7 +124,29 @@ class AutoEngagementTest extends TestCase
         $this->assertFalse($service->isComplete());
         $this->assertSame(0, $service->process());
 
-        Notification::assertSentTo($owner, PostLikedUserNotification::class);
+        // Auto engagement must not spam like push / in-app notifications.
+        Notification::assertNotSentTo($owner, PostLikedUserNotification::class);
+    }
+
+    public function test_auto_engagement_likes_do_not_dispatch_push(): void
+    {
+        Notification::fake();
+        $this->enable(1);
+
+        $owner = $this->activeUser();
+        foreach (range(1, 4) as $_) {
+            $this->activeUser();
+        }
+
+        $post = $this->publishedReel($owner);
+        $push = Mockery::mock(PushNotificationService::class);
+        $push->shouldReceive('dispatch')->never();
+        $this->app->instance(PushNotificationService::class, $push);
+
+        app(AutoEngagementService::class)->process();
+
+        $this->assertSame(1, (int) $post->fresh()->likes_count);
+        Notification::assertNotSentTo($owner, PostLikedUserNotification::class);
     }
 
     public function test_simple_posts_only_get_likes_not_views(): void

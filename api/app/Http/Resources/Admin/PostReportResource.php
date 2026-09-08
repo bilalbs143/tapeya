@@ -29,7 +29,6 @@ class PostReportResource extends JsonResource
                 'background_id' => $this->post->background_id,
                 'cover_url' => MediaDisk::url($this->post->cover_path) ?? $this->post->thumbnailUrl(),
                 'status' => $this->post->status?->value,
-                'visibility' => $this->post->visibility?->value,
                 'reports_count' => (int) $this->post->reports_count,
                 'user_id' => $this->post->user_id,
             ] : null),

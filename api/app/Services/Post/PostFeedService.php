@@ -3,7 +3,6 @@
 namespace App\Services\Post;
 
 use App\Enums\Post\PostStatusEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\UserFollow;
@@ -50,7 +49,7 @@ class PostFeedService
     }
 
     /**
-     * Following feed — public OR followers visibility (not public-only).
+     * Following feed — published posts from accounts the viewer follows.
      *
      * @return CursorPaginator<int, Post>
      */
@@ -191,26 +190,8 @@ class PostFeedService
     }
 
     /**
-     * Reels the viewer has liked (explore-visible only).
-     *
-     * @return CursorPaginator<int, Post>
-     */
-    public function liked(int $userId, ?string $cursor, int $perPage = 10): CursorPaginator
-    {
-        $perPage = max(1, min($perPage, 20));
-
-        return Post::query()
-            ->explore()
-            ->videosOnly()
-            ->whereHas('likes', fn ($q) => $q->where('user_id', $userId))
-            ->with(self::withRelations())
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->cursorPaginate($perPage, ['*'], 'cursor', $cursor);
-    }
-
-    /**
-     * Profile grid: published reels visible to the viewer (processing + ready).
+     * Profile grid: published reels (processing + ready).
+     * $viewerId retained for call-site compatibility; posts are always public when published.
      *
      * @return CursorPaginator<int, Post>
      */
@@ -218,7 +199,7 @@ class PostFeedService
     {
         $perPage = max(1, min($perPage, 20));
 
-        return $this->profileReelsQuery($userId, $viewerId)
+        return $this->profileReelsQuery($userId)
             ->with(self::withRelations())
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -226,7 +207,8 @@ class PostFeedService
     }
 
     /**
-     * Profile list: published non-video posts visible to the viewer.
+     * Profile list: published non-video posts.
+     * $viewerId retained for call-site compatibility; posts are always public when published.
      *
      * @return CursorPaginator<int, Post>
      */
@@ -234,7 +216,7 @@ class PostFeedService
     {
         $perPage = max(1, min($perPage, 20));
 
-        return $this->profilePostsQuery($userId, $viewerId)
+        return $this->profilePostsQuery($userId)
             ->with(self::withRelations())
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -242,43 +224,43 @@ class PostFeedService
     }
 
     /**
-     * Same visibility rules as {@see forUser}, for the profile reels_count badge.
+     * Same publish/status rules as {@see forUser}, for the profile reels_count badge.
      */
-    public function countForUser(int $userId, ?int $viewerId): int
+    public function countForUser(int $userId, ?int $viewerId = null): int
     {
-        return $this->profileReelsQuery($userId, $viewerId)->count();
+        return $this->profileReelsQuery($userId)->count();
     }
 
     /**
-     * Same visibility rules as {@see forUserPosts}, for the profile posts_count badge.
+     * Same publish/status rules as {@see forUserPosts}, for the profile posts_count badge.
      */
-    public function countPostsForUser(int $userId, ?int $viewerId): int
+    public function countPostsForUser(int $userId, ?int $viewerId = null): int
     {
-        return $this->profilePostsQuery($userId, $viewerId)->count();
-    }
-
-    /**
-     * @return Builder<Post>
-     */
-    private function profileReelsQuery(int $userId, ?int $viewerId)
-    {
-        return $this->profilePublishedQuery($userId, $viewerId)->videosOnly();
+        return $this->profilePostsQuery($userId)->count();
     }
 
     /**
      * @return Builder<Post>
      */
-    private function profilePostsQuery(int $userId, ?int $viewerId)
+    private function profileReelsQuery(int $userId)
     {
-        return $this->profilePublishedQuery($userId, $viewerId)->nonVideos();
+        return $this->profilePublishedQuery($userId)->videosOnly();
     }
 
     /**
      * @return Builder<Post>
      */
-    private function profilePublishedQuery(int $userId, ?int $viewerId)
+    private function profilePostsQuery(int $userId)
     {
-        $query = Post::query()
+        return $this->profilePublishedQuery($userId)->nonVideos();
+    }
+
+    /**
+     * @return Builder<Post>
+     */
+    private function profilePublishedQuery(int $userId)
+    {
+        return Post::query()
             ->ownedBy($userId)
             ->whereNotNull('published_at')
             ->whereNotIn('status', [
@@ -287,23 +269,6 @@ class PostFeedService
                 PostStatusEnum::Rejected,
                 PostStatusEnum::Removed,
             ]);
-
-        if ($viewerId !== null && $viewerId === $userId) {
-            // Owner sees their published posts regardless of visibility.
-            return $query;
-        }
-
-        $follows = $viewerId !== null && UserFollow::query()
-            ->where('follower_id', $viewerId)
-            ->where('followed_user_id', $userId)
-            ->exists();
-
-        return $query->where(function ($q) use ($follows) {
-            $q->where('visibility', PostVisibilityEnum::Public);
-            if ($follows) {
-                $q->orWhere('visibility', PostVisibilityEnum::Followers);
-            }
-        });
     }
 
     public function findVisible(int $postId, ?int $viewerId = null): ?Post

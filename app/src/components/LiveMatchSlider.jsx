@@ -4,13 +4,17 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+import { LiveStreamChip } from '@/components/live/LiveStreamChip';
 import { LiveStreamThumbnail } from '@/components/live/LiveStreamThumbnail';
+import { OfficialBadge } from '@/components/OfficialBadge';
 import { LIVE_STREAM_SLIDER_ASPECT_CLASS } from '@/lib/constants/streamThumbnail.constants';
-import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
+import { liveBroadcastPath, liveNowHost } from '@/lib/utils/liveStreamUtils';
 
 /**
+ * Home “Live Now” carousel — compact cards with creator (or Tapeya) + stream title.
+ *
  * @param {object} props
- * @param {Array<{ streamId: number, thumbnail_url?: string|null, title: string, stream?: { status?: string } }>} props.streams
+ * @param {Array<object>} props.streams — rows from {@link normaliseLiveStreams}
  * @param {boolean} [props.showViewMore]
  */
 export function LiveMatchSlider({ streams = [], showViewMore = true }) {
@@ -25,11 +29,11 @@ export function LiveMatchSlider({ streams = [], showViewMore = true }) {
           <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
           <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase md:text-[16px]">Live Now</h2>
         </div>
-        {showViewMore && (
+        {showViewMore ? (
           <Link to="/live" className="text-brand text-[12px] font-bold transition-opacity active:opacity-80 md:text-[16px]">
             View More
           </Link>
-        )}
+        ) : null}
       </header>
 
       <Swiper
@@ -48,26 +52,35 @@ export function LiveMatchSlider({ streams = [], showViewMore = true }) {
       >
         {streams.map((item) => {
           const isLive = item.stream?.status === 'live';
-          const watchPath = liveBroadcastPath(item.streamId);
+          const host = liveNowHost(item);
+          const title = item.title?.trim() || '';
+          const headline = `${host.name} is live now`;
 
           return (
             <SwiperSlide key={item.streamId}>
-              <Link to={watchPath} className="group relative block w-full overflow-hidden rounded-[17px]">
+              <Link
+                to={liveBroadcastPath(item.streamId)}
+                className="group relative block w-full overflow-hidden rounded-[17px]"
+                aria-label={headline}
+              >
                 <LiveStreamThumbnail
                   src={item.thumbnail_url}
-                  alt={item.title}
+                  alt={title || headline}
                   aspectClass={LIVE_STREAM_SLIDER_ASPECT_CLASS}
                   compactFallback
                   imageClassName="transition-transform duration-300 group-active:scale-[1.02]"
                 />
-                <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/85 via-black/25 to-transparent" />
+                {isLive ? <LiveStreamChip className="absolute top-2 left-2 z-20" /> : null}
                 <div className="pointer-events-none absolute right-2 bottom-2 left-2 z-20">
-                  {isLive && (
-                    <span className="mb-1 inline-block rounded bg-[#E53935] px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">
-                      Live
-                    </span>
-                  )}
-                  <p className="line-clamp-2 text-[12px] font-semibold text-white md:text-[14px]">{item.title}</p>
+                  <div className="flex min-w-0 items-center gap-1">
+                    <p className="truncate text-[12px] text-white md:text-[13px]">
+                      <span className="font-bold">{host.name}</span>
+                      {isLive ? <span className="font-normal text-white/80"> is live now</span> : null}
+                    </p>
+                    <OfficialBadge isOfficial={host.isOfficial} size="sm" />
+                  </div>
+                  {title ? <p className="mt-0.5 line-clamp-1 text-[11px] text-white/75 md:text-[12px]">{title}</p> : null}
                 </div>
               </Link>
             </SwiperSlide>

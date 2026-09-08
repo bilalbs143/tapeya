@@ -154,24 +154,6 @@
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="description">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="font-semibold"
-              >
-                Description
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="max-w-xs truncate"
-                [title]="row.description || ''"
-              >
-                {{ row.description || emptyCell }}
-              </td>
-            </ng-container>
-
             <ng-container matColumnDef="streaming_url">
               <th
                 mat-header-cell
@@ -300,6 +282,42 @@
                 class="whitespace-nowrap"
               >
                 {{ formatDate(row.started_at) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="created_at"
+                class="font-semibold"
+              >
+                Created At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.created_at) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="ended_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header="ended_at"
+                class="font-semibold"
+              >
+                Ended At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ formatDate(row.ended_at) }}
               </td>
             </ng-container>
 

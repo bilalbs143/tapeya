@@ -129,6 +129,7 @@ enum SystemSettingKeyEnum: string
             self::SUPPORT_PHONE,
             self::PUBLIC_WEBSITE_URL,
             self::CDN_PUBLIC_BASE_URL,
+            self::TEST_OTP_PHONES,
             self::LIVE_CHAT_ENABLED,
             self::REELS_MAX_DURATION_SECONDS,
             self::REELS_MIN_DURATION_SECONDS,

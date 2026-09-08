@@ -24,14 +24,15 @@ export function useLiveStreamChannel(streamId) {
     const channelName = `live-stream.${streamId}`;
 
     echo.channel(channelName).listen('.live-stream.status.updated', ({ status, playback }) => {
-      dispatch(
-        liveApi.util.updateQueryData('getLiveStream', String(streamId), (draft) => {
-          if (draft?.stream) {
-            draft.stream.status = status;
-            draft.stream.playback = playback ?? draft.stream.playback;
-          }
-        }),
-      );
+      const patch = (draft) => {
+        if (draft?.stream) {
+          draft.stream.status = status;
+          draft.stream.playback = playback ?? draft.stream.playback;
+        }
+      };
+
+      dispatch(liveApi.util.updateQueryData('getLiveStream', { streamId: String(streamId), authed: true }, patch));
+      dispatch(liveApi.util.updateQueryData('getLiveStream', { streamId: String(streamId), authed: false }, patch));
 
       dispatch(
         liveApi.util.updateQueryData('getLiveStreams', undefined, (draft) => {

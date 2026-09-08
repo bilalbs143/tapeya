@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\LiveStream;
 
+use App\Rules\AvailableYoutubeStreamKey;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -32,6 +33,11 @@ class StoreLiveStreamRequest extends FormRequest
             ],
             'privacy' => ['sometimes', 'in:public,unlisted'],
             'status' => ['sometimes', 'in:idle,starting,live,ended'],
+            'youtube_stream_key_id' => [
+                Rule::requiredIf($provider === 'youtube'),
+                'integer',
+                new AvailableYoutubeStreamKey,
+            ],
         ];
     }
 }

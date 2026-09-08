@@ -69,6 +69,49 @@
               </mat-select>
             </mat-form-field>
           </div>
+
+          <div class="col-span-12">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Stream Key</mat-label>
+              <mat-select
+                formControlName="youtube_stream_key_id"
+                placeholder="Select Encoder/Rig"
+              >
+                @for (key of availableKeys; track key.id) {
+                  <mat-option [value]="key.id">{{ key.title }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('youtube_stream_key_id')?.hasError('required') && form.get('youtube_stream_key_id')?.touched) {
+                <mat-error>Select which encoder/rig this session will use</mat-error>
+              }
+            </mat-form-field>
+            @if (!loadingKeys && !availableKeys.length) {
+              <p class="text-muted m-0 mt-1 text-xs">
+                No keys available right now — every key is either inactive or already streaming.
+                <button
+                  type="button"
+                  class="text-primary font-semibold hover:underline"
+                  (click)="openCreateKeyDialog()"
+                >
+                  Create one
+                </button>
+              </p>
+            } @else {
+              <p class="text-muted m-0 mt-1 text-xs">
+                One key per encoder. Reused across sessions — configure OBS once.
+                <button
+                  type="button"
+                  class="text-primary font-semibold hover:underline"
+                  (click)="openCreateKeyDialog()"
+                >
+                  Create a new key
+                </button>
+              </p>
+            }
+          </div>
         } @else {
           <div class="col-span-12">
             <mat-form-field

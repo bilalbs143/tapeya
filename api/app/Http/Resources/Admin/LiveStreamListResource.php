@@ -15,11 +15,12 @@ class LiveStreamListResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->displayTitle(),
-            'description' => $this->displayDescription(),
             'streaming_url' => $this->streaming_url,
             'status' => $this->status,
             'provider' => $this->provider,
             'started_at' => $this->started_at?->toIso8601String(),
+            'ended_at' => $this->ended_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
             'match_id' => $this->match_id,
             'owner_user_id' => $this->owner_user_id,
             'watching_count' => (int) ($this->watching_count ?? 0),

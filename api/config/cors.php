@@ -44,7 +44,8 @@ return [
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    // Cache preflight so Capacitor WebViews do not OPTIONS every reel upload part.
+    'max_age' => 7200,
 
     'supports_credentials' => false,
 

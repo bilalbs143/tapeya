@@ -67,12 +67,58 @@ html {
         display: flex;
       }
 
+      > app-ui-button > .ui-btn,
       > app-submit-button > app-ui-button {
         width: 100%;
       }
 
       > app-ui-button:has(.ui-btn--danger),
       > app-ui-button:has(.ui-btn--danger-solid) {
+        flex: 1 1 100%;
+      }
+    }
+  }
+
+  /*
+   * Multi-action footers (e.g. manage live stream): group into rows so mobile
+   * does not cram Close/Save/Sync/RTMP/End/Delete into one overflowing wrap.
+   * Desktop uses display:contents so rows stay a single end-aligned strip.
+   */
+  .mat-mdc-dialog-actions.dialog-actions--multi {
+    .dialog-actions__row {
+      display: contents;
+    }
+
+    @media (max-width: 767px) {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: 8px;
+
+      .dialog-actions__row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+
+        > app-ui-button,
+        > app-submit-button {
+          flex: 1 1 calc(50% - 4px);
+          min-width: 0;
+          display: flex;
+        }
+
+        > app-ui-button > .ui-btn,
+        > app-submit-button > app-ui-button {
+          width: 100%;
+        }
+      }
+
+      .dialog-actions__row--ops > app-ui-button,
+      .dialog-actions__row--ops > app-submit-button,
+      .dialog-actions__row--danger > app-ui-button,
+      .dialog-actions__row--danger > app-submit-button {
         flex: 1 1 100%;
       }
     }

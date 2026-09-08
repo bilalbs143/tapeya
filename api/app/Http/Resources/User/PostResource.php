@@ -15,7 +15,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Fields:
  * - id, type (text|image|video|repost), title, body, caption (=body)
  * - background_id (nullable; text posts only)
- * - status, visibility
+ * - status
  * - cover_url, media[] (when loaded), playback (video)
  * - repost_of (nested PostResource when type=repost)
  * - counts.{likes,comments,views,saves,shares,reposts}
@@ -46,7 +46,6 @@ class PostResource extends JsonResource
             'body' => $this->body,
             'background_id' => $this->background_id,
             'status' => $this->status?->value ?? PostStatusEnum::Uploading->value,
-            'visibility' => $this->visibility?->value ?? 'public',
             'duration_ms' => $video?->duration_ms,
             'width' => $video?->width,
             'height' => $video?->height,

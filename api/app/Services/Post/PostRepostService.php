@@ -4,7 +4,6 @@ namespace App\Services\Post;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Events\PostPublished;
 use App\Events\PostReposted;
 use App\Models\Post;
@@ -17,7 +16,7 @@ class PostRepostService
     /**
      * Create a feed repost pointing at the root original (unwrap chains).
      *
-     * @param  array{body?: string|null, visibility?: string|null}  $data
+     * @param  array{body?: string|null}  $data
      */
     public function repost(User $actor, Post $target, array $data = []): Post
     {
@@ -34,25 +33,17 @@ class PostRepostService
             // Allow quoting own posts; still fine.
         }
 
-        $requested = PostVisibilityEnum::tryFrom($data['visibility'] ?? '')
-            ?? PostVisibilityEnum::Public;
-        $originalVisibility = $original->visibility instanceof PostVisibilityEnum
-            ? $original->visibility
-            : PostVisibilityEnum::tryFrom((string) $original->visibility) ?? PostVisibilityEnum::Public;
-        $visibility = $requested->capTo($originalVisibility);
-
         $body = isset($data['body']) ? trim((string) $data['body']) : null;
         if ($body === '') {
             $body = null;
         }
 
-        $repost = DB::transaction(function () use ($actor, $original, $body, $visibility) {
+        $repost = DB::transaction(function () use ($actor, $original, $body) {
             $repost = Post::query()->create([
                 'user_id' => $actor->id,
                 'type' => PostTypeEnum::Repost,
                 'body' => $body,
                 'status' => PostStatusEnum::Ready,
-                'visibility' => $visibility,
                 'repost_of_post_id' => $original->id,
                 'published_at' => now(),
             ]);

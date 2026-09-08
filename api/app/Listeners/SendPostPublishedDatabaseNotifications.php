@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Enums\Post\PostVisibilityEnum;
 use App\Events\PostPublished;
 use App\Models\User;
 use App\Models\UserFollow;
@@ -20,11 +19,8 @@ class SendPostPublishedDatabaseNotifications implements ShouldQueue
     {
         try {
             $post = $event->post->fresh() ?? $event->post;
-            $visibility = $post->visibility instanceof PostVisibilityEnum
-                ? $post->visibility
-                : PostVisibilityEnum::tryFrom((string) $post->visibility);
 
-            if ($visibility === PostVisibilityEnum::Private || $post->user_id === null) {
+            if ($post->user_id === null) {
                 return;
             }
 

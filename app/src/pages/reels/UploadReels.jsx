@@ -26,6 +26,7 @@ import {
   useAbortReelMultipartMutation,
   useCompleteReelMultipartMutation,
   useCreateReelMutation,
+  useDeleteReelMutation,
   useInitReelMultipartMutation,
   useUploadReelMultipartPartMutation,
 } from '@/store/api/reelsApi';
@@ -84,12 +85,10 @@ export default function UploadReels() {
   const [uploadPart] = useUploadReelMultipartPartMutation();
   const [completeMultipart] = useCompleteReelMultipartMutation();
   const [abortMultipart] = useAbortReelMultipartMutation();
+  const [deleteReel] = useDeleteReelMutation();
 
   const [step, setStep] = useState(STEPS.EMPTY);
   const [caption, setCaption] = useState(() => (typeof location.state?.caption === 'string' ? location.state.caption : ''));
-  const [visibility, setVisibility] = useState(() =>
-    location.state?.visibility === 'followers' || location.state?.visibility === 'private' ? location.state.visibility : 'public',
-  );
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -99,7 +98,7 @@ export default function UploadReels() {
     const state = location.state;
     if (!state || typeof state !== 'object') return null;
     if (state.fromCompose && !(state.file instanceof File)) {
-      return 'Your caption and privacy selection are ready. Choose a video to continue.';
+      return 'Your caption is ready. Choose a video to continue.';
     }
     return null;
   });
@@ -192,7 +191,7 @@ export default function UploadReels() {
   );
 
   // Support legacy handoffs that included a File. The current compose flow
-  // intentionally hands off only caption and visibility, then opens this picker.
+  // intentionally hands off only caption, then opens this picker.
   useEffect(() => {
     if (seededFromComposeRef.current) return;
     const file = location.state?.file;
@@ -255,7 +254,6 @@ export default function UploadReels() {
     const file = selectedFile;
     const sessionPreviewUrl = previewUrl;
     const postCaption = caption.trim() || undefined;
-    const postVisibility = visibility;
 
     try {
       const precheck = await validateReelVideoForUpload(file, uploadLimits);
@@ -284,13 +282,11 @@ export default function UploadReels() {
       // Hand ownership of the object URL to the session before navigating away.
       detachPreviewWithoutRevoke();
       setCaption('');
-      setVisibility('public');
       setStep(STEPS.EMPTY);
 
       const started = startReelUpload({
         file,
         caption: postCaption,
-        visibility: postVisibility,
         clientDurationMs,
         previewUrl: sessionPreviewUrl,
         posterBlob,
@@ -301,6 +297,7 @@ export default function UploadReels() {
           uploadPart,
           completeMultipart,
           abortMultipart,
+          deleteReel,
         },
       });
 
@@ -310,7 +307,6 @@ export default function UploadReels() {
         setSelectedFile(file);
         setPreviewUrl(sessionPreviewUrl);
         setCaption(postCaption || '');
-        setVisibility(postVisibility || 'public');
         setStep(STEPS.DETAILS);
         setError('Another reel is still uploading. Please wait.');
       }
@@ -321,7 +317,6 @@ export default function UploadReels() {
         setSelectedFile(file);
         setPreviewUrl(sessionPreviewUrl);
         setCaption(postCaption || '');
-        setVisibility(postVisibility || 'public');
         setStep(STEPS.DETAILS);
       }
       const message = err?.data?.message || err?.error || err?.message || 'Could not publish reel. Please try again.';
@@ -334,7 +329,6 @@ export default function UploadReels() {
     isBusyPublishing,
     uploadLimits,
     caption,
-    visibility,
     previewUrl,
     createReel,
     uploadMedia,
@@ -342,6 +336,7 @@ export default function UploadReels() {
     uploadPart,
     completeMultipart,
     abortMultipart,
+    deleteReel,
     navigate,
     detachPreviewWithoutRevoke,
   ]);
@@ -392,8 +387,6 @@ export default function UploadReels() {
           previewUrl={previewUrl}
           caption={caption}
           onCaptionChange={setCaption}
-          visibility={visibility}
-          onVisibilityChange={setVisibility}
           onInsertHashtag={handleInsertHashtag}
           onBack={handleBackFromDetails}
           onPost={handlePublish}

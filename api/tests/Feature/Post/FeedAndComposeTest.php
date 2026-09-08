@@ -4,7 +4,6 @@ namespace Tests\Feature\Post;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\PostMedia;
@@ -37,7 +36,6 @@ class FeedAndComposeTest extends TestCase
             ->postJson('/api/v1/posts', [
                 'type' => 'text',
                 'body' => 'Hello timeline',
-                'visibility' => 'public',
             ])
             ->assertCreated()
             ->assertJsonPath('data.type', 'text')
@@ -61,7 +59,6 @@ class FeedAndComposeTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'Comment preview post',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'comments_count' => 3,
             'published_at' => now(),
         ]);
@@ -99,9 +96,10 @@ class FeedAndComposeTest extends TestCase
         $this->assertTrue($feedPost->latestComment->relationLoaded('user'));
     }
 
-    public function test_following_feed_includes_followers_only_posts(): void
+    public function test_following_feed_includes_posts_from_followed_users(): void
     {
         $creator = User::factory()->create();
+        $stranger = User::factory()->create();
         $follower = User::factory()->create();
         UserFollow::query()->create([
             'follower_id' => $follower->id,
@@ -109,20 +107,25 @@ class FeedAndComposeTest extends TestCase
         ]);
 
         $this->makeVideoPost($creator, [
-            'body' => 'Followers only',
-            'visibility' => PostVisibilityEnum::Followers,
+            'body' => 'From followed creator',
             'status' => PostStatusEnum::Ready,
             'published_at' => now(),
         ]);
+        $this->makeVideoPost($stranger, [
+            'body' => 'From stranger',
+            'status' => PostStatusEnum::Ready,
+            'published_at' => now()->subSecond(),
+        ]);
 
-        $this->actingAs($follower, 'api')
-            ->getJson('/api/v1/feed/following')
-            ->assertOk()
-            ->assertJsonPath('data.items.0.caption', 'Followers only');
+        $captions = collect(
+            $this->actingAs($follower, 'api')
+                ->getJson('/api/v1/feed/following')
+                ->assertOk()
+                ->json('data.items')
+        )->pluck('caption')->all();
 
-        // Explore must NOT include followers-only
-        $captions = collect($this->getJson('/api/v1/feed')->json('data.items'))->pluck('caption')->all();
-        $this->assertNotContains('Followers only', $captions);
+        $this->assertContains('From followed creator', $captions);
+        $this->assertNotContains('From stranger', $captions);
     }
 
     public function test_saved_feed_returns_mixed_bookmarked_posts(): void
@@ -133,7 +136,6 @@ class FeedAndComposeTest extends TestCase
         $video = $this->makeVideoPost($owner, [
             'body' => 'Saved video',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
@@ -142,7 +144,6 @@ class FeedAndComposeTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'Saved text',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
@@ -171,7 +172,6 @@ class FeedAndComposeTest extends TestCase
         $video = $this->makeVideoPost($owner, [
             'body' => 'My video',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
@@ -180,14 +180,12 @@ class FeedAndComposeTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'My text',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
         $this->makeVideoPost($other, [
             'body' => 'Someone else',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
@@ -272,7 +270,6 @@ class FeedAndComposeTest extends TestCase
                 'type' => 'text',
                 'body' => 'What a boundary',
                 'background_id' => 'bats',
-                'visibility' => 'public',
             ])
             ->assertCreated()
             ->assertJsonPath('data.type', 'text')
@@ -346,15 +343,14 @@ class FeedAndComposeTest extends TestCase
         $this->assertCount(2, $media);
     }
 
-    public function test_show_hides_private_post_from_strangers(): void
+    public function test_show_hides_unpublished_post_from_strangers(): void
     {
         $author = User::factory()->create();
         $stranger = User::factory()->create();
         $post = $this->makeVideoPost($author, [
-            'body' => 'Secret',
-            'visibility' => PostVisibilityEnum::Private,
+            'body' => 'Not published yet',
             'status' => PostStatusEnum::Ready,
-            'published_at' => now(),
+            'published_at' => null,
         ]);
 
         $this->actingAs($stranger, 'api')
@@ -364,32 +360,19 @@ class FeedAndComposeTest extends TestCase
         $this->actingAs($author, 'api')
             ->getJson('/api/v1/posts/'.$post->id)
             ->assertOk()
-            ->assertJsonPath('data.body', 'Secret');
+            ->assertJsonPath('data.body', 'Not published yet');
     }
 
-    public function test_show_allows_followers_visibility_for_follower(): void
+    public function test_show_hides_removed_post_from_everyone(): void
     {
-        $creator = User::factory()->create();
-        $follower = User::factory()->create();
-        $stranger = User::factory()->create();
-        UserFollow::query()->create([
-            'follower_id' => $follower->id,
-            'followed_user_id' => $creator->id,
-        ]);
-
-        $post = $this->makeVideoPost($creator, [
-            'body' => 'Followers clip',
-            'visibility' => PostVisibilityEnum::Followers,
-            'status' => PostStatusEnum::Ready,
+        $author = User::factory()->create();
+        $post = $this->makeVideoPost($author, [
+            'body' => 'Taken down',
+            'status' => PostStatusEnum::Removed,
             'published_at' => now(),
         ]);
 
-        $this->actingAs($follower, 'api')
-            ->getJson('/api/v1/posts/'.$post->id)
-            ->assertOk()
-            ->assertJsonPath('data.body', 'Followers clip');
-
-        $this->actingAs($stranger, 'api')
+        $this->actingAs($author, 'api')
             ->getJson('/api/v1/posts/'.$post->id)
             ->assertNotFound();
     }
@@ -410,16 +393,14 @@ class FeedAndComposeTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'Public text',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
         ]);
 
         Post::query()->create([
             'user_id' => $author->id,
             'type' => PostTypeEnum::Image,
-            'body' => 'Followers image',
+            'body' => 'Gallery image',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Followers,
             'published_at' => now()->subSecond(),
         ]);
 
@@ -428,8 +409,8 @@ class FeedAndComposeTest extends TestCase
             ->assertOk()
             ->json('data.items');
 
-        $this->assertSame(['text'], collect($strangerPosts)->pluck('type')->all());
-        $this->assertSame(['Public text'], collect($strangerPosts)->pluck('body')->all());
+        $this->assertEqualsCanonicalizing(['text', 'image'], collect($strangerPosts)->pluck('type')->all());
+        $this->assertEqualsCanonicalizing(['Public text', 'Gallery image'], collect($strangerPosts)->pluck('body')->all());
 
         $ownerPosts = $this->actingAs($author, 'api')
             ->getJson('/api/v1/users/'.$author->id.'/posts')
@@ -447,7 +428,7 @@ class FeedAndComposeTest extends TestCase
         $this->actingAs($stranger, 'api')
             ->getJson('/api/v1/users/'.$author->id.'/profile')
             ->assertOk()
-            ->assertJsonPath('data.posts_count', 1)
+            ->assertJsonPath('data.posts_count', 2)
             ->assertJsonPath('data.reels_count', 1);
     }
 
@@ -459,7 +440,6 @@ class FeedAndComposeTest extends TestCase
             ->postJson('/api/v1/posts', [
                 'type' => 'video',
                 'body' => 'Shell',
-                'visibility' => 'public',
             ])
             ->assertCreated()
             ->assertJsonPath('data.type', 'video')

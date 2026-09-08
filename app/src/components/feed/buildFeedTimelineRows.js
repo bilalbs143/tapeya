@@ -3,12 +3,14 @@ import { CATALOG_CYCLE_MAX_CYCLES, itemsForCycle } from '@/lib/catalogCycle';
 export { CATALOG_CYCLE_MAX_CYCLES, CATALOG_CYCLE_MAX_ROWS, maxCyclesForCatalogSize } from '@/lib/catalogCycle';
 
 const SHOP_WIDGET_FIRST_POST_COUNT = 3;
+const LIVE_WIDGET_FIRST_POST_COUNT = 4;
 const SUGGESTED_FOLLOWS_FIRST_POST_COUNT = 5;
 const HIGHLIGHT_WIDGET_FIRST_POST_COUNT = 7;
 const FEED_WIDGET_POST_INTERVAL = 8;
 const SUGGESTED_FOLLOWS_VISIBLE_COUNT = 3;
 
 const EMPTY_FRESH_ITEMS = Object.freeze([]);
+const EMPTY_LIVE_STREAMS = Object.freeze([]);
 
 function getWidgetSlot(postIndex, firstPostCount) {
   const postsSeen = postIndex + 1;
@@ -38,6 +40,7 @@ function getItemWindow(items, windowIndex, size = 3) {
  *   shopCollections: Array<{ id: string, title: string, products: Array<object> }>,
  *   suggestedUsers: Array<object>,
  *   highlights: Array<object>,
+ *   liveStreams?: Array<object>,
  *   cycles?: number,
  *   freshItems?: Array<object>,
  *   freshFromCycle?: number|null,
@@ -49,6 +52,7 @@ export function buildFeedTimelineRows({
   shopCollections,
   suggestedUsers,
   highlights,
+  liveStreams = EMPTY_LIVE_STREAMS,
   cycles = 1,
   freshItems = EMPTY_FRESH_ITEMS,
   freshFromCycle = null,
@@ -78,6 +82,7 @@ export function buildFeedTimelineRows({
       if (!isExplore || cycle > 0) continue;
 
       const shopSlot = getWidgetSlot(index, SHOP_WIDGET_FIRST_POST_COUNT);
+      const liveSlot = getWidgetSlot(index, LIVE_WIDGET_FIRST_POST_COUNT);
       const suggestedSlot = getWidgetSlot(index, SUGGESTED_FOLLOWS_FIRST_POST_COUNT);
       const highlightSlot = getWidgetSlot(index, HIGHLIGHT_WIDGET_FIRST_POST_COUNT);
 
@@ -92,6 +97,18 @@ export function buildFeedTimelineRows({
           title: collection.title,
           products: getItemWindow(collection.products, collectionWindow),
         });
+      }
+
+      if (liveSlot !== null && liveStreams.length > 0) {
+        const stream = getItemWindow(liveStreams, liveSlot, 1)[0];
+        if (stream) {
+          rows.push({
+            key: `live-${post.id}-${liveSlot}`,
+            type: 'live',
+            estimateSize: 320,
+            stream,
+          });
+        }
       }
 
       if (suggestedSlot !== null && suggestedUsers.length > 0) {

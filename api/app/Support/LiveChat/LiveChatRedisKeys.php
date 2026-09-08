@@ -7,6 +7,17 @@ use Illuminate\Support\Facades\Redis;
 
 final class LiveChatRedisKeys
 {
+    /** Trailing comment history cap (matches frontend MAX_MESSAGES). */
+    public const LOG_MAX_LENGTH = 100;
+
+    /** Safety-net TTL; primary cleanup is purgeStream() on end. */
+    public const LOG_TTL_SECONDS = 86400;
+
+    public static function commentLog(int $streamId): string
+    {
+        return "chat:stream:{$streamId}:log";
+    }
+
     public static function intervalForStream(int $streamId, int|string $userId): string
     {
         return "chat:stream:{$streamId}:interval:{$userId}";
@@ -54,18 +65,20 @@ final class LiveChatRedisKeys
     private static function purgeByPattern(string $pattern): void
     {
         try {
+            // SCAN MATCH sees server keys (already prefixed); del() re-applies the prefix.
+            $prefix = (string) config('database.redis.options.prefix', '');
+
             $cursor = null;
             $iterations = 0;
-            // Cap iterations so a stuck SCAN cannot run unbounded.
             $maxIterations = 50;
 
             do {
-                $result = Redis::scan($cursor ?? 0, [
-                    'match' => $pattern,
+                // phpredis 6.x: first cursor must be null (literal 0 means "done").
+                $result = Redis::scan($cursor, [
+                    'match' => $prefix.$pattern,
                     'count' => 100,
                 ]);
 
-                // Laravel phpredis returns false when the scan is finished with no keys.
                 if ($result === false) {
                     break;
                 }
@@ -74,6 +87,13 @@ final class LiveChatRedisKeys
                 $cursor = $cursor === null || $cursor === false ? 0 : $cursor;
 
                 if (! empty($keys)) {
+                    $keys = $prefix === ''
+                        ? $keys
+                        : array_map(
+                            fn (string $key) => str_starts_with($key, $prefix) ? substr($key, strlen($prefix)) : $key,
+                            $keys,
+                        );
+
                     Redis::del(...$keys);
                 }
 
@@ -88,7 +108,6 @@ final class LiveChatRedisKeys
                 ]);
             }
         } catch (\Throwable $e) {
-            // Ending a broadcast must not fatal on Redis — keys expire via TTL anyway.
             Log::warning('Live chat Redis purge failed: '.$e->getMessage(), [
                 'pattern' => $pattern,
             ]);

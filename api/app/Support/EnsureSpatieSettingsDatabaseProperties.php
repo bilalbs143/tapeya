@@ -100,7 +100,7 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'viewMinCompletionRatePercent' => 25,
                         'viewAllowAnonymous' => 0,
                         'viewRedisBuffer' => 1,
-                        'multipartPartSizeMb' => 1,
+                        'multipartPartSizeMb' => 5,
                         'multipartMaxParts' => 0,
                         'autoEngagementEnabled' => 0,
                         'reelsEngagementPerDay' => 5,

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Post;
 
 use App\Enums\Post\PostStatusEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Jobs\ExtractPostPosterJob;
 use App\Jobs\ProcessPostVideoJob;
@@ -36,7 +35,6 @@ class PostE2ECompletionTest extends TestCase
         return $this->makeVideoPost($owner, array_merge([
             'body' => 'E2E reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
             'ready_at' => now(),
             'duration_ms' => 10000,
@@ -75,26 +73,20 @@ class PostE2ECompletionTest extends TestCase
             ->assertJsonPath('data.is_following', true);
     }
 
-    public function test_followers_visibility_is_enforced(): void
+    public function test_unpublished_reel_is_hidden_from_strangers(): void
     {
         $owner = User::factory()->create();
-        $follower = User::factory()->create();
         $stranger = User::factory()->create();
-        $reel = $this->readyReel($owner, ['visibility' => PostVisibilityEnum::Followers]);
-
-        UserFollow::query()->create([
-            'follower_id' => $follower->id,
-            'followed_user_id' => $owner->id,
-        ]);
-
-        $this->actingAs($follower, 'api')
-            ->getJson('/api/v1/reels/'.$reel->id)
-            ->assertOk()
-            ->assertJsonPath('data.id', $reel->id);
+        $reel = $this->readyReel($owner, ['published_at' => null]);
 
         $this->actingAs($stranger, 'api')
             ->getJson('/api/v1/reels/'.$reel->id)
             ->assertJsonPath('type', 'NOT_FOUND');
+
+        $this->actingAs($owner, 'api')
+            ->getJson('/api/v1/reels/'.$reel->id)
+            ->assertOk()
+            ->assertJsonPath('data.id', $reel->id);
     }
 
     public function test_saved_feed_returns_bookmarked_reels(): void
@@ -125,13 +117,15 @@ class PostE2ECompletionTest extends TestCase
             'user_id' => $user->id,
             'body' => 'Chunked',
             'status' => PostStatusEnum::Uploading,
-            'visibility' => PostVisibilityEnum::Public,
         ]);
 
         $init = $this->actingAs($user, 'api')
             ->postJson('/api/v1/reels/'.$reel->id.'/upload/init')
             ->assertOk()
             ->json('data');
+
+        $this->assertArrayHasKey('part_size', $init);
+        $this->assertGreaterThanOrEqual(5 * 1024 * 1024, (int) $init['part_size']);
 
         $uploadId = $init['upload_id'];
         // Minimal ISO BMFF (ftyp/isom) so mobile-format sniff accepts the assembly.

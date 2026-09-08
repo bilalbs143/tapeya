@@ -4,7 +4,6 @@ namespace Tests\Concerns;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Models\Post;
 use App\Models\User;
 
@@ -44,7 +43,6 @@ trait CreatesVideoPosts
             'user_id' => $user->id,
             'type' => PostTypeEnum::Video,
             'status' => PostStatusEnum::Ready,
-            'visibility' => PostVisibilityEnum::Public,
             'published_at' => now(),
             'body' => null,
         ], $attrs));

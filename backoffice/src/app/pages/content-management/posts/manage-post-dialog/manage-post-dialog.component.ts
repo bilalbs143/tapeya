@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
 
 import { MaterialModule } from 'src/app/material.module';
-import type { PostType, AdminPost, PostStatus, PostVisibility } from 'src/app/services/post.service';
+import type { PostType, AdminPost, PostStatus } from 'src/app/services/post.service';
 import { PostService } from 'src/app/services/post.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
@@ -22,12 +22,6 @@ const POST_STATUS_OPTIONS: { value: PostStatus; label: string }[] = [
   { value: 'failed', label: 'Failed' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'removed', label: 'Removed' },
-];
-
-const POST_VISIBILITY_OPTIONS: { value: PostVisibility; label: string }[] = [
-  { value: 'public', label: 'Public' },
-  { value: 'followers', label: 'Followers' },
-  { value: 'private', label: 'Private' },
 ];
 
 const TYPE_LABELS: Record<PostType, string> = {
@@ -53,7 +47,6 @@ export class ManagePostDialogComponent {
   public isSubmitting = false;
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusOptions = POST_STATUS_OPTIONS;
-  public readonly visibilityOptions = POST_VISIBILITY_OPTIONS;
 
   public get post(): AdminPost {
     return this.data.post;
@@ -63,7 +56,6 @@ export class ManagePostDialogComponent {
     const post = this.data.post;
     this.form = this.fb.group({
       status: [post.status, [Validators.required]],
-      visibility: [post.visibility, [Validators.required]],
       caption: [post.body ?? post.caption ?? '', [Validators.maxLength(2200)]],
     });
   }
@@ -89,7 +81,6 @@ export class ManagePostDialogComponent {
     const raw = this.form.getRawValue();
     const payload = {
       status: raw.status as PostStatus,
-      visibility: raw.visibility as PostVisibility,
       body: raw.caption?.trim() || null,
     };
 

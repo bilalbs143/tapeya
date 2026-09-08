@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\User\Post;
 
-use App\Enums\Post\PostVisibilityEnum;
 use App\Settings\PostsSettings;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StorePostRequest extends FormRequest
 {
@@ -22,7 +20,6 @@ class StorePostRequest extends FormRequest
         $rules = [
             'body' => ['nullable', 'string', 'max:2200'],
             'caption' => ['nullable', 'string', 'max:2200'],
-            'visibility' => ['nullable', 'string', Rule::in(PostVisibilityEnum::values())],
             'client_duration_ms' => ['nullable', 'integer', 'min:1'],
         ];
 

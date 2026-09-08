@@ -1,52 +1,51 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
+
+import { useGetLiveCommentsQuery } from '@/store/api/liveApi';
 
 import { useStreamChatChannel } from './useStreamChatChannel';
 
 const MAX_MESSAGES = 100;
 
-function makeReducer() {
-  const seenIds = new Set();
+function reducer(state, action) {
+  switch (action.type) {
+    case 'RESET':
+      return [];
 
-  return function reducer(state, action) {
-    switch (action.type) {
-      case 'RESET':
-        seenIds.clear();
-        return [];
-
-      case 'ADD': {
-        if (seenIds.has(action.msg.id)) {
-          return state;
-        }
-        seenIds.add(action.msg.id);
-
-        const next = [...state, action.msg];
-        return next.length > MAX_MESSAGES ? next.slice(next.length - MAX_MESSAGES) : next;
+    case 'ADD': {
+      if (!action.msg?.id || state.some((m) => m.id === action.msg.id)) {
+        return state;
       }
 
-      default:
-        return state;
+      const next = [...state, action.msg];
+      return next.length > MAX_MESSAGES ? next.slice(next.length - MAX_MESSAGES) : next;
     }
-  };
+
+    default:
+      return state;
+  }
 }
 
 /**
- * Local ephemeral comment state keyed by stream id.
- * `enabled` gates the chat WebSocket (comments + hearts on `live-stream.{id}.chat`).
- * Messages are kept when `enabled` flips false so a brief disable does not wipe the feed.
+ * Local comment feed for a stream. `enabled` gates the chat WebSocket.
  */
 export function useStreamComments(streamId, enabled = true, onHeart) {
-  const reducerRef = useRef(makeReducer());
-  const [messages, dispatch] = useReducer((state, action) => reducerRef.current(state, action), []);
+  const [messages, dispatch] = useReducer(reducer, []);
 
-  const reset = useCallback(() => {
-    reducerRef.current = makeReducer();
-    dispatch({ type: 'RESET' });
-  }, []);
+  const reset = useCallback(() => dispatch({ type: 'RESET' }), []);
 
   useEffect(() => {
-    reducerRef.current = makeReducer();
     dispatch({ type: 'RESET' });
   }, [streamId]);
+
+  const { data: history } = useGetLiveCommentsQuery(streamId, {
+    skip: !enabled || !streamId,
+    refetchOnMountOrArgChange: true,
+  });
+
+  useEffect(() => {
+    if (!history?.length) return;
+    history.forEach((msg) => dispatch({ type: 'ADD', msg }));
+  }, [history]);
 
   const handleMessage = useCallback((msg) => {
     if (!msg?.id) return;

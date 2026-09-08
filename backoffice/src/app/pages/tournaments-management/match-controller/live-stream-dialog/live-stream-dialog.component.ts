@@ -8,7 +8,8 @@ import { finalize, type Observable } from 'rxjs';
 import { liveStreamStatusLabel } from '../live-stream.utils';
 
 import { MaterialModule } from 'src/app/material.module';
-import { LiveStreamService, type LiveStreamPayload } from 'src/app/services/live-stream.service';
+import { CreateYoutubeStreamKeyDialogComponent } from 'src/app/pages/live-streams-management/youtube-stream-keys/create-youtube-stream-key-dialog/create-youtube-stream-key-dialog.component';
+import { LiveStreamService, type LiveStreamPayload, type YoutubeStreamKey } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 
@@ -40,11 +41,37 @@ export class LiveStreamDialogComponent implements OnInit {
   public activeAction: StreamAction | null = null;
   public privacy: 'public' | 'unlisted' = 'public';
   public copiedField: CopyField | null = null;
+  public availableKeys: YoutubeStreamKey[] = [];
+  public loadingKeys = false;
+  public youtubeStreamKeyId: number | null = null;
 
   private mutated = false;
 
   public ngOnInit(): void {
     this.loadStream();
+  }
+
+  public loadAvailableKeys(): void {
+    this.loadingKeys = true;
+    this.streamApi.listYoutubeStreamKeys().subscribe({
+      next: (keys) => {
+        const currentId = this.youtubeStreamKeyId;
+        this.availableKeys = keys.filter((key) => key.is_active && (!key.in_use || key.id === currentId));
+        this.loadingKeys = false;
+      },
+      error: () => {
+        this.loadingKeys = false;
+      },
+    });
+  }
+
+  public openCreateKeyDialog(): void {
+    this.messageService.openDialog<CreateYoutubeStreamKeyDialogComponent, boolean>(
+      CreateYoutubeStreamKeyDialogComponent,
+      {},
+      (saved) => saved && this.loadAvailableKeys(),
+      { widthSize: 'sm', disableClose: true }
+    );
   }
 
   public get stream() {
@@ -83,7 +110,9 @@ export class LiveStreamDialogComponent implements OnInit {
     this.streamApi.getStream(this.data.matchId).subscribe({
       next: (payload) => {
         this.payload = payload;
+        this.youtubeStreamKeyId = payload.stream?.youtube_stream_key_id ?? null;
         this.loading = false;
+        this.loadAvailableKeys();
       },
       error: (err: unknown) => {
         this.loading = false;
@@ -97,7 +126,7 @@ export class LiveStreamDialogComponent implements OnInit {
       this.messageService
         .prompt(
           'Replace Stream Setup?',
-          'This will delete the current YouTube broadcast and create a new one with fresh RTMP credentials.',
+          'This will delete the current YouTube broadcast and create a new one bound to the selected key.',
           'Replace',
           'Cancel'
         )
@@ -177,12 +206,18 @@ export class LiveStreamDialogComponent implements OnInit {
   }
 
   private createStream(): void {
+    if (!this.youtubeStreamKeyId) {
+      this.messageService.error('Select which encoder/rig this session will use first.');
+      return;
+    }
+
     this.runAction(
       'start',
       () =>
         this.streamApi.createStream(this.data.matchId, {
           title: `${this.data.homeTeamName} vs ${this.data.awayTeamName}`,
           privacy: this.privacy,
+          youtube_stream_key_id: this.youtubeStreamKeyId!,
         }),
       (payload) => {
         this.payload = payload;

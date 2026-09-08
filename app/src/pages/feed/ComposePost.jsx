@@ -17,24 +17,9 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
 import { Loader } from '@/ui/Loader';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemInputClass,
-  SelectTrigger,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
 
 const POST_BODY_MAX_CHARS = 2200;
 const PLAIN_EDITOR_BACKGROUND = { className: 'bg-transparent' };
-const VISIBILITY_OPTIONS = [
-  { value: 'public', label: 'Public' },
-  { value: 'followers', label: 'Followers' },
-  { value: 'private', label: 'Private' },
-];
 
 function ImageIcon({ className = '' }) {
   return (
@@ -57,13 +42,14 @@ function ImageIcon({ className = '' }) {
   );
 }
 
-function FilmIcon({ className = '' }) {
+/** Same paths as bottom-nav `reels-navigation-b.svg`, colored via currentColor. */
+function ReelsIcon({ className = '' }) {
   return (
     <svg
       className={className}
       width="20"
-      height="20"
-      viewBox="0 0 24 24"
+      height="14"
+      viewBox="0 0 22 14.5"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -71,8 +57,8 @@ function FilmIcon({ className = '' }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <rect x="2" y="2" width="20" height="20" rx="2.18" />
-      <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5" />
+      <path d="M1 11.5V3C1 1.89543 1.89543 1 3 1H12.75C13.8546 1 14.75 1.89543 14.75 3V11.5C14.75 12.6046 13.8546 13.5 12.75 13.5H3C1.89543 13.5 1 12.6046 1 11.5Z" />
+      <path d="M19.3753 2.2998L15.1253 5.6998C14.8881 5.8895 14.75 6.1768 14.75 6.4806V8.0194C14.75 8.3232 14.8881 8.6105 15.1253 8.8002L19.3753 12.2002C20.0301 12.7241 21 12.2579 21 11.4194V3.0806C21 2.24212 20.0301 1.77594 19.3753 2.2998Z" />
     </svg>
   );
 }
@@ -105,7 +91,6 @@ export default function ComposePost() {
   const imageInputRef = useRef(null);
 
   const [body, setBody] = useState('');
-  const [visibility, setVisibility] = useState('public');
   const [images, setImages] = useState([]); // { file, url }[]
   const [bgId, setBgId] = useState('plain');
   const [error, setError] = useState('');
@@ -195,7 +180,6 @@ export default function ComposePost() {
         const payload = new FormData();
         payload.append('type', 'image');
         if (body.trim()) payload.append('body', body.trim());
-        payload.append('visibility', visibility);
         images.forEach((img) => payload.append('images[]', img.file));
         const post = await createPost(payload).unwrap();
         navigate(`/feed/${post.id}`);
@@ -214,7 +198,6 @@ export default function ComposePost() {
       const post = await createPost({
         type: 'text',
         body: body.trim(),
-        visibility,
         ...(background_id ? { background_id } : {}),
       }).unwrap();
       navigate(`/feed/${post.id}`);
@@ -255,32 +238,7 @@ export default function ComposePost() {
             <UserAvatar src={user?.avatar_url || user?.avatarUrl} name={displayName} userId={user?.id} size="xl" ring="brand" />
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-white">{displayName}</p>
-              <div className="mt-1">
-                <Select value={visibility} onValueChange={setVisibility}>
-                  <SelectTrigger
-                    aria-label="Post privacy"
-                    className="bg-surface-raised! text-muted! focus:ring-brand/50! [&>span]:text-muted! [&_svg]:text-muted! h-7! w-auto! min-w-24 rounded-md! border-0! px-2! py-0.5! text-[12px]! font-semibold! [&>span]:text-[12px]!"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                    sideOffset={6}
-                  >
-                    {VISIBILITY_OPTIONS.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className={`${selectItemInputClass} py-2! text-[13px]!`}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {user?.nickname ? <p className="text-muted truncate text-[12px]">@{user.nickname}</p> : null}
             </div>
           </div>
 
@@ -301,7 +259,6 @@ export default function ComposePost() {
                   navigate('/reels/upload', {
                     state: {
                       caption: body,
-                      visibility,
                       fromCompose: true,
                     },
                   })
@@ -309,7 +266,7 @@ export default function ComposePost() {
                 aria-label="Add reel"
                 className="text-brand-hover hover:bg-surface-raised grid h-9 w-9 place-items-center rounded-full transition-colors"
               >
-                <FilmIcon />
+                <ReelsIcon />
               </button>
             </div>
           </div>
@@ -317,8 +274,12 @@ export default function ComposePost() {
           <div className="pt-4">
             <TextPostBackground
               background={editorBackground}
-              className={`h-56 ${usingBg ? '' : 'ring-0!'}`}
-              contentClassName={`flex h-full flex-col justify-center ${usingBg ? '' : '!px-0 !py-0 sm:!px-0 sm:!py-0'}`}
+              className={`h-40 ${usingBg ? '' : 'ring-0!'}`}
+              contentClassName={
+                usingBg
+                  ? 'relative box-border flex h-full flex-col justify-center px-3 py-2.5'
+                  : 'relative box-border flex h-full flex-col justify-center p-0'
+              }
             >
               <textarea
                 ref={textareaRef}
@@ -329,12 +290,12 @@ export default function ComposePost() {
                 rows={1}
                 className={`mx-auto block w-full resize-none bg-transparent outline-none ${
                   usingBg
-                    ? `overflow-hidden placeholder:opacity-70 ${activeBg.textClassName}`
-                    : 'placeholder:text-muted/47 bg-surface! min-h-[144px] flex-1 overflow-y-auto rounded-[6px] px-4 py-3 text-left text-base text-white transition-colors placeholder:text-base focus:ring-2 focus:ring-[#FF9700]/50'
+                    ? `max-h-full overflow-hidden placeholder:opacity-70 ${activeBg.textClassName}`
+                    : 'placeholder:text-muted/47 bg-surface! min-h-[104px] flex-1 overflow-y-auto rounded-[6px] px-4 py-3 text-left text-base text-white transition-colors placeholder:text-base focus:ring-2 focus:ring-[#FF9700]/50'
                 }`}
               />
               {usingBg && (
-                <p className="pointer-events-none absolute right-3 bottom-2 text-[10px] font-medium text-current opacity-55">
+                <p className="pointer-events-none absolute right-2.5 bottom-1.5 text-[10px] font-medium text-current opacity-55">
                   {body.length}/{COMPOSE_BACKGROUND_MAX_CHARS}
                 </p>
               )}

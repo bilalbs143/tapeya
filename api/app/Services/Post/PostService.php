@@ -5,7 +5,6 @@ namespace App\Services\Post;
 use App\Enums\Post\PostBackgroundId;
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Events\Broadcast\Post\PostProcessingUpdated;
 use App\Events\PostPublished;
 use App\Jobs\CleanupPostMediaJob;
@@ -22,22 +21,18 @@ class PostService
     /**
      * Create a video post shell awaiting original upload.
      *
-     * @param  array{caption?: string|null, body?: string|null, visibility?: string|null, client_duration_ms?: int|null}  $data
+     * @param  array{caption?: string|null, body?: string|null, client_duration_ms?: int|null}  $data
      */
     public function create(User $user, array $data): Post
     {
-        $visibility = PostVisibilityEnum::tryFrom($data['visibility'] ?? '')
-            ?? PostVisibilityEnum::Public;
-
         $body = $data['body'] ?? $data['caption'] ?? null;
 
-        $post = DB::transaction(function () use ($user, $body, $visibility, $data) {
+        $post = DB::transaction(function () use ($user, $body, $data) {
             $post = Post::query()->create([
                 'user_id' => $user->id,
                 'type' => PostTypeEnum::Video,
                 'body' => isset($body) ? trim((string) $body) : null,
                 'status' => PostStatusEnum::Uploading,
-                'visibility' => $visibility,
             ]);
 
             $post->video()->create([
@@ -55,7 +50,7 @@ class PostService
     /**
      * Immediate-publish text post.
      *
-     * @param  array{body: string, title?: string|null, visibility?: string|null, background_id?: string|null}  $data
+     * @param  array{body: string, title?: string|null, background_id?: string|null}  $data
      */
     public function createText(User $user, array $data): Post
     {
@@ -64,12 +59,9 @@ class PostService
             throw new \InvalidArgumentException('Text posts require a body.');
         }
 
-        $visibility = PostVisibilityEnum::tryFrom($data['visibility'] ?? '')
-            ?? PostVisibilityEnum::Public;
-
         $backgroundId = PostBackgroundId::normalize($data['background_id'] ?? null);
 
-        $post = DB::transaction(function () use ($user, $body, $visibility, $backgroundId, $data) {
+        $post = DB::transaction(function () use ($user, $body, $backgroundId, $data) {
             $post = Post::query()->create([
                 'user_id' => $user->id,
                 'type' => PostTypeEnum::Text,
@@ -77,7 +69,6 @@ class PostService
                 'body' => $body,
                 'background_id' => $backgroundId,
                 'status' => PostStatusEnum::Ready,
-                'visibility' => $visibility,
                 'published_at' => now(),
             ]);
 
@@ -95,7 +86,7 @@ class PostService
     /**
      * Immediate-publish image post (paths already stored or passed).
      *
-     * @param  array{body?: string|null, title?: string|null, visibility?: string|null, images: list<array{path: string, disk?: string|null, mime?: string|null, width?: int|null, height?: int|null, size_bytes?: int|null}>}  $data
+     * @param  array{body?: string|null, title?: string|null, images: list<array{path: string, disk?: string|null, mime?: string|null, width?: int|null, height?: int|null, size_bytes?: int|null}>}  $data
      */
     public function createImage(User $user, array $data): Post
     {
@@ -104,14 +95,12 @@ class PostService
             throw new \InvalidArgumentException('Image posts require at least one image.');
         }
 
-        $visibility = PostVisibilityEnum::tryFrom($data['visibility'] ?? '')
-            ?? PostVisibilityEnum::Public;
         $body = isset($data['body']) ? trim((string) $data['body']) : null;
         if ($body === '') {
             $body = null;
         }
 
-        $post = DB::transaction(function () use ($user, $body, $visibility, $data, $images) {
+        $post = DB::transaction(function () use ($user, $body, $data, $images) {
             $cover = MediaDisk::requirePath($images[0]['path'] ?? null);
             $post = Post::query()->create([
                 'user_id' => $user->id,
@@ -119,7 +108,6 @@ class PostService
                 'title' => isset($data['title']) ? trim((string) $data['title']) : null,
                 'body' => $body,
                 'status' => PostStatusEnum::Ready,
-                'visibility' => $visibility,
                 'cover_path' => $cover,
                 'published_at' => now(),
             ]);
@@ -199,21 +187,13 @@ class PostService
     }
 
     /**
-     * @param  array{caption?: string|null, body?: string|null, visibility?: string|null}  $data
+     * @param  array{caption?: string|null, body?: string|null}  $data
      */
-    public function updateCaptionAndVisibility(Post $post, array $data): Post
+    public function updateCaption(Post $post, array $data): Post
     {
         if (array_key_exists('body', $data) || array_key_exists('caption', $data)) {
             $post->body = $data['body'] ?? $data['caption'];
-        }
-
-        if (array_key_exists('visibility', $data)) {
-            $this->applyVisibility($post, PostVisibilityEnum::from($data['visibility']));
-        } else {
             $post->save();
-        }
-
-        if (array_key_exists('body', $data) || array_key_exists('caption', $data)) {
             app(PostHashtagParser::class)->syncForPost($post);
             $this->syncCaptionMentions($post);
         }
@@ -222,9 +202,9 @@ class PostService
     }
 
     /**
-     * Admin moderation update — status/body/visibility with the same repost cap + cascade as user updates.
+     * Admin moderation update — status/body.
      *
-     * @param  array{status?: string|null, body?: string|null, caption?: string|null, visibility?: string|null}  $data
+     * @param  array{status?: string|null, body?: string|null, caption?: string|null}  $data
      */
     public function adminUpdate(Post $post, array $data): Post
     {
@@ -237,11 +217,7 @@ class PostService
             $post->status = PostStatusEnum::from($data['status']);
         }
 
-        if (array_key_exists('visibility', $data) && $data['visibility'] !== null && $data['visibility'] !== '') {
-            $this->applyVisibility($post, PostVisibilityEnum::from($data['visibility']));
-        } else {
-            $post->save();
-        }
+        $post->save();
 
         if ($bodyTouched) {
             app(PostHashtagParser::class)->syncForPost($post);
@@ -249,62 +225,6 @@ class PostService
         }
 
         return $post->fresh(['video', 'media', 'user']) ?? $post;
-    }
-
-    /**
-     * Cap repost visibility ≤ original; cascade-tighten child reposts when an original is closed down.
-     */
-    public function applyVisibility(Post $post, PostVisibilityEnum $requested): Post
-    {
-        $previousVisibility = $post->visibility instanceof PostVisibilityEnum
-            ? $post->visibility
-            : PostVisibilityEnum::tryFrom((string) $post->visibility);
-
-        if ($post->type === PostTypeEnum::Repost) {
-            $post->loadMissing('repostOf');
-            $original = $post->repostOf;
-            $max = $original?->visibility instanceof PostVisibilityEnum
-                ? $original->visibility
-                : PostVisibilityEnum::tryFrom((string) ($original?->visibility ?? '')) ?? PostVisibilityEnum::Private;
-            $post->visibility = $requested->capTo($max);
-        } else {
-            $post->visibility = $requested;
-        }
-
-        $post->save();
-
-        if (
-            $post->type !== PostTypeEnum::Repost
-            && $previousVisibility !== null
-            && $post->visibility->opennessRank() < $previousVisibility->opennessRank()
-        ) {
-            $this->cascadeCapChildReposts($post);
-        }
-
-        return $post;
-    }
-
-    /**
-     * When an original is tightened, child reposts must not stay more open.
-     */
-    public function cascadeCapChildReposts(Post $original): void
-    {
-        $max = $original->visibility instanceof PostVisibilityEnum
-            ? $original->visibility
-            : PostVisibilityEnum::Public;
-
-        Post::query()
-            ->where('repost_of_post_id', $original->id)
-            ->where('type', PostTypeEnum::Repost)
-            ->each(function (Post $repost) use ($max) {
-                $current = $repost->visibility instanceof PostVisibilityEnum
-                    ? $repost->visibility
-                    : PostVisibilityEnum::tryFrom((string) $repost->visibility) ?? PostVisibilityEnum::Public;
-                $capped = $current->capTo($max);
-                if ($capped !== $current) {
-                    $repost->forceFill(['visibility' => $capped])->save();
-                }
-            });
     }
 
     /**

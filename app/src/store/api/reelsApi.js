@@ -32,7 +32,6 @@ export function normalizeReel(raw) {
     id: raw.id,
     caption: raw.caption ?? '',
     status: raw.status ?? 'uploading',
-    visibility: raw.visibility ?? 'public',
     durationMs: raw.duration_ms ?? null,
     width: raw.width ?? null,
     height: raw.height ?? null,
@@ -214,34 +213,6 @@ export const reelsApi = baseApi.injectEndpoints({
           : [{ type: 'Reel', id: 'SAVED' }],
     }),
 
-    getLikedReels: builder.query({
-      query: ({ cursor, perPage = 10 } = {}) => ({
-        url: '/reels/liked',
-        params: {
-          cursor: cursor || undefined,
-          per_page: perPage,
-        },
-      }),
-      transformResponse: (response) => normalizeCursorPage(response?.data),
-      serializeQueryArgs: ({ endpointName }) => endpointName,
-      merge: (currentCache, newItems, { arg }) => {
-        if (!arg?.cursor) {
-          return newItems;
-        }
-        const seen = new Set(currentCache.items.map((r) => r.id));
-        const appended = newItems.items.filter((r) => !seen.has(r.id));
-        return {
-          ...newItems,
-          items: [...currentCache.items, ...appended],
-        };
-      },
-      forceRefetch: ({ currentArg, previousArg }) => currentArg?.cursor !== previousArg?.cursor,
-      providesTags: (result) =>
-        result
-          ? [...result.items.map((r) => ({ type: 'Reel', id: r.id })), { type: 'Reel', id: 'LIKED' }]
-          : [{ type: 'Reel', id: 'LIKED' }],
-    }),
-
     getUserReels: builder.query({
       query: ({ userId, cursor, perPage = 12 } = {}) => ({
         url: `/users/${userId}/reels`,
@@ -407,7 +378,6 @@ export const reelsApi = baseApi.injectEndpoints({
         url: `/posts/${id}/like`,
         method: 'POST',
       }),
-      invalidatesTags: [{ type: 'Reel', id: 'LIKED' }],
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patches = optimisticLikePatches(dispatch, id, true);
         try {
@@ -427,7 +397,6 @@ export const reelsApi = baseApi.injectEndpoints({
         url: `/posts/${id}/like`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Reel', id: 'LIKED' }],
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patches = optimisticLikePatches(dispatch, id, false);
         try {
@@ -675,7 +644,8 @@ export const reelsApi = baseApi.injectEndpoints({
         const fd = new FormData();
         fd.append('upload_id', uploadId);
         fd.append('part_number', String(partNumber));
-        fd.append('file', file);
+        // Prefer Blob over re-wrapping as File — some WebViews fail on synthetic Files.
+        fd.append('file', file, file.name || `part-${partNumber}`);
         return {
           url: `/reels/${id}/upload/part`,
           method: 'POST',
@@ -875,7 +845,6 @@ export const {
   useGetMyReelsQuery,
   useGetFollowingReelsQuery,
   useGetSavedReelsQuery,
-  useGetLikedReelsQuery,
   useGetUserReelsQuery,
   useGetUserProfileQuery,
   useGetTrendingReelsQuery,
@@ -912,20 +881,46 @@ export const {
   useLazyGetMyReelsQuery,
   useLazyGetFollowingReelsQuery,
   useLazyGetSavedReelsQuery,
-  useLazyGetLikedReelsQuery,
   useLazyGetUserReelsQuery,
   useLazyGetTrendingReelsQuery,
 } = reelsApi;
 
 /**
+ * Retry transient upload failures (WebKit "Load failed", timeouts, gateway blips).
+ * Hard 4xx validation errors fail immediately.
+ */
+export function isTransientUploadError(err) {
+  if (err?.status === 'FETCH_ERROR' || err?.status === 'TIMEOUT_ERROR') return true;
+  if (err?.data?.type === 'UPLOAD_FAILED' || err?.data?.type === 'SERVICE_UNAVAILABLE') return true;
+  const code = Number(err?.status);
+  return code === 408 || code === 429 || code === 500 || code === 502 || code === 503 || code === 504;
+}
+
+async function withRetry(fn, attempts = 8) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= attempts || !isTransientUploadError(err)) throw err;
+      const delayMs = Math.min(8000, 400 * 2 ** (attempt - 1));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
+/**
  * Create reel metadata then upload the original video file.
  * Uses chunked multipart when those mutations are provided (default).
  *
- * @param {{ createReel: Function, uploadMedia: Function, initMultipart?: Function, uploadPart?: Function, completeMultipart?: Function, abortMultipart?: Function }} mutations
- * @param {{ file: File, caption?: string, visibility?: string, clientDurationMs?: number, onProgress?: (p: { stage: string, percent: number }) => void }} opts
+ * When `posterBlob` is provided, uploads a provisional thumbnail BEFORE the original
+ * lands so grids show a cover immediately. Server ExtractPostPosterJob may refine later;
+ * thumb uploads after original_path exists are ignored by the API.
+ *
+ * @param {{ createReel: Function, uploadMedia: Function, initMultipart?: Function, uploadPart?: Function, completeMultipart?: Function, abortMultipart?: Function, deleteReel?: Function }} mutations
+ * @param {{ file: File, caption?: string, clientDurationMs?: number, posterBlob?: Blob|null, onProgress?: (p: { stage: string, percent: number }) => void }} opts
  */
-export async function publishReel(mutations, { file, caption, visibility, clientDurationMs, onProgress }) {
-  const { createReel, uploadMedia, initMultipart, uploadPart, completeMultipart, abortMultipart } = mutations;
+export async function publishReel(mutations, { file, caption, clientDurationMs, posterBlob, onProgress }) {
+  const { createReel, uploadMedia, initMultipart, uploadPart, completeMultipart, abortMultipart, deleteReel } = mutations;
 
   const report = (stage, percent) => {
     onProgress?.({ stage, percent: Math.min(100, Math.max(0, Math.round(percent))) });
@@ -933,31 +928,43 @@ export async function publishReel(mutations, { file, caption, visibility, client
 
   report('preparing', 2);
 
-  const created = await createReel({
-    caption: caption || undefined,
-    visibility: visibility || undefined,
-    client_duration_ms: clientDurationMs || undefined,
-  }).unwrap();
+  const created = await withRetry(() =>
+    createReel({
+      caption: caption || undefined,
+      client_duration_ms: clientDurationMs || undefined,
+    }).unwrap(),
+  );
 
   report('preparing', 8);
+
+  // Kick off provisional cover ASAP (must finish before original_path is set).
+  const posterPromise = uploadProvisionalReelPoster(uploadMedia, created.id, posterBlob);
 
   const useMultipart = Boolean(initMultipart && uploadPart && completeMultipart);
 
   if (!useMultipart) {
-    report('uploading', 15);
-    await uploadMediaFile(uploadMedia, {
-      type: 'reel',
-      id: created.id,
-      field: 'original',
-      file,
-    });
-    report('finishing', 100);
-    return created;
+    try {
+      await posterPromise;
+      report('uploading', 15);
+      await withRetry(() =>
+        uploadMediaFile(uploadMedia, {
+          type: 'reel',
+          id: created.id,
+          field: 'original',
+          file,
+        }),
+      );
+      report('finishing', 100);
+      return created;
+    } catch (err) {
+      await bestEffortDeleteShell(deleteReel, created?.id);
+      throw err;
+    }
   }
 
-  const init = await initMultipart(created.id).unwrap();
+  const init = await withRetry(() => initMultipart(created.id).unwrap());
   const uploadId = init.upload_id;
-  const partSize = init.part_size || 1 * 1024 * 1024;
+  const partSize = init.part_size || 5 * 1024 * 1024;
   const totalParts = Math.max(1, Math.ceil(file.size / partSize));
 
   report('uploading', 10);
@@ -966,25 +973,34 @@ export async function publishReel(mutations, { file, caption, visibility, client
     for (let partNumber = 1; partNumber <= totalParts; partNumber += 1) {
       const start = (partNumber - 1) * partSize;
       const blob = file.slice(start, start + partSize);
-      await uploadPart({
-        id: created.id,
-        uploadId,
-        partNumber,
-        file: new File([blob], `part-${partNumber}`, { type: file.type || 'application/octet-stream' }),
-      }).unwrap();
+      // Same part_number can be retried — server overwrites the tmp part file.
+      await withRetry(() =>
+        uploadPart({
+          id: created.id,
+          uploadId,
+          partNumber,
+          file: blob,
+        }).unwrap(),
+      );
       // Leave 10–92% for bytes; finalizing uses the rest.
       report('uploading', 10 + (partNumber / totalParts) * 82);
     }
+    // Ensure provisional poster lands before completeMultipart sets original_path.
+    await posterPromise;
     report('finishing', 94);
-    await completeMultipart({
-      id: created.id,
-      uploadId,
-      totalParts,
-      filename: file.name,
-      contentType: file.type || undefined,
-    }).unwrap();
+    await withRetry(() =>
+      completeMultipart({
+        id: created.id,
+        uploadId,
+        totalParts,
+        filename: file.name,
+        contentType: file.type || undefined,
+      }).unwrap(),
+    );
     report('finishing', 100);
   } catch (err) {
+    // Clean multipart tmp always on terminal failure. Delete the uploading shell so a
+    // user retry creates a fresh post instead of leaving status=uploading forever.
     if (abortMultipart && uploadId) {
       try {
         await abortMultipart({ id: created.id, uploadId }).unwrap();
@@ -992,8 +1008,35 @@ export async function publishReel(mutations, { file, caption, visibility, client
         // ignore abort errors
       }
     }
+    await bestEffortDeleteShell(deleteReel, created?.id);
     throw err;
   }
 
   return created;
+}
+
+/** Best-effort client cover — single attempt, never fails / delays publish. */
+async function uploadProvisionalReelPoster(uploadMedia, reelId, posterBlob) {
+  if (!uploadMedia || !posterBlob || reelId == null) return null;
+  try {
+    const type = posterBlob.type && posterBlob.type.startsWith('image/') ? posterBlob.type : 'image/jpeg';
+    const file = posterBlob instanceof File ? posterBlob : new File([posterBlob], 'poster.jpg', { type });
+    return await uploadMediaFile(uploadMedia, {
+      type: 'reel',
+      id: reelId,
+      field: 'thumbnail',
+      file,
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function bestEffortDeleteShell(deleteReel, id) {
+  if (!deleteReel || id == null) return;
+  try {
+    await deleteReel(id).unwrap();
+  } catch {
+    // ignore — upload error is what the UI should show
+  }
 }

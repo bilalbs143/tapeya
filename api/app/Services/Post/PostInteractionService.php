@@ -27,9 +27,10 @@ class PostInteractionService
     }
 
     /**
+     * @param  bool  $notify  When false, skips PostLiked (push + in-app). Used by auto engagement.
      * @return array{liked: bool, likes_count: int}
      */
-    public function like(Post $post, User $user): array
+    public function like(Post $post, User $user, bool $notify = true): array
     {
         $wasCreated = false;
 
@@ -47,7 +48,7 @@ class PostInteractionService
 
         $post->refresh();
 
-        if ($wasCreated) {
+        if ($wasCreated && $notify) {
             event(new PostLiked($post, $user));
         }
 

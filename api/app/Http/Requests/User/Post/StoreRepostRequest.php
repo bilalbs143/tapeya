@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\User\Post;
 
-use App\Enums\Post\PostVisibilityEnum;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreRepostRequest extends FormRequest
 {
@@ -20,7 +18,6 @@ class StoreRepostRequest extends FormRequest
     {
         return [
             'body' => ['nullable', 'string', 'max:2200'],
-            'visibility' => ['nullable', 'string', Rule::in(PostVisibilityEnum::values())],
         ];
     }
 }

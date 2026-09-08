@@ -34,6 +34,7 @@ export const baseApi = createApi({
 
     if (isUnauthorizedError(result.error)) {
       api.dispatch(clearCredentials());
+      api.dispatch(baseApi.util.invalidateTags(['LiveStreams']));
     }
 
     return result;

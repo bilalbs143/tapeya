@@ -26,11 +26,19 @@ export const liveApi = baseApi.injectEndpoints({
           : [{ type: 'LiveScores', id: 'LIST' }],
     }),
     getLiveStream: builder.query({
-      query: (streamId) => ({
+      // Guest vs authed are separate cache entries — teaser and full playback never collide.
+      query: ({ streamId }) => ({
         url: `/live/streams/${streamId}`,
       }),
+      serializeQueryArgs: ({ queryArgs }) => `${queryArgs.streamId}:${queryArgs.authed ? 'auth' : 'guest'}`,
       transformResponse: (response) => response?.data ?? response,
-      providesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: streamId }],
+      providesTags: (_result, _err, { streamId }) => [{ type: 'LiveStreams', id: streamId }],
+    }),
+    getLiveComments: builder.query({
+      query: (streamId) => ({
+        url: `/live/streams/${streamId}/live-comments`,
+      }),
+      transformResponse: (response) => response?.data ?? [],
     }),
     sendLiveComment: builder.mutation({
       query: ({ streamId, body }) => ({
@@ -211,6 +219,7 @@ export const {
   useGetLiveStreamsQuery,
   useGetLiveScoresQuery,
   useGetLiveStreamQuery,
+  useGetLiveCommentsQuery,
   useSendLiveCommentMutation,
   useSendLiveHeartMutation,
   useAcceptBroadcastTermsMutation,

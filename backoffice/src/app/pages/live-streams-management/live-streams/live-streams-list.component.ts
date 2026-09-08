@@ -117,13 +117,14 @@ export class LiveStreamsListComponent implements OnInit, OnDestroy {
   public readonly displayedColumns = [
     'sr',
     'title',
-    'description',
     'streaming_url',
     'status',
     'watching',
     'provider',
     'match',
     'started_at',
+    'created_at',
+    'ended_at',
     'actions',
   ];
   public readonly statusOptions = STATUS_OPTIONS;

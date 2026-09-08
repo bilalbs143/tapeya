@@ -3,7 +3,6 @@
 namespace Tests\Unit\Services\Post;
 
 use App\Enums\Post\PostStatusEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Models\User;
 use App\Services\Post\PostPlaybackUrlService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,7 +21,6 @@ class PostPlaybackUrlServiceTest extends TestCase
 
         $owner = User::factory()->create();
         $post = $this->makeVideoPost($owner, [
-            'visibility' => PostVisibilityEnum::Followers,
             'status' => PostStatusEnum::Ready,
             'published_at' => now(),
             'thumbnail_path' => 'posts/videos/thumbs/1/clip.webp',

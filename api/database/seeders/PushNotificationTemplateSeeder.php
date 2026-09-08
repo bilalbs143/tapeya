@@ -94,6 +94,13 @@ class PushNotificationTemplateSeeder extends Seeder
                 'body_template' => '{{actor_name}} started following you',
                 'available_variables' => ['actor_name', 'actor_id', 'deep_link'],
             ],
+            [
+                'key' => 'live_stream_created',
+                'name' => 'Live Stream Created',
+                'title_template' => '{{stream_title}} is live on Tapeya',
+                'body_template' => 'Open the Tapeya app now and enjoy endless live action.',
+                'available_variables' => ['stream_title', 'stream_id', 'deep_link'],
+            ],
         ];
 
         foreach ($templates as $template) {

@@ -105,7 +105,8 @@ export const authApi = baseApi.injectEndpoints({
         url: '/auth/logout',
         method: 'POST',
       }),
-      invalidatesTags: ['Auth', 'User'],
+      // Drop auth-scoped playback caches so a later guest session cannot reuse them.
+      invalidatesTags: ['Auth', 'User', 'LiveStreams'],
     }),
     /** DELETE /profile — permanently closes the authenticated app account. */
     deleteAccount: builder.mutation({
@@ -113,7 +114,7 @@ export const authApi = baseApi.injectEndpoints({
         url: '/profile',
         method: 'DELETE',
       }),
-      invalidatesTags: ['Auth', 'User'],
+      invalidatesTags: ['Auth', 'User', 'LiveStreams'],
     }),
   }),
 });

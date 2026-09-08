@@ -828,7 +828,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Multipart Part Size (MB)',
-                'description' => 'Chunk size for reel original uploads in megabytes (e.g. 1 = 1 MB).',
+                'description' => 'Chunk size for reel original uploads in megabytes (minimum effective size is 5 MB for mobile reliability).',
                 'settings_class' => PostsSettings::class,
                 'property' => 'multipartPartSizeMb',
                 'nullable_string' => false,

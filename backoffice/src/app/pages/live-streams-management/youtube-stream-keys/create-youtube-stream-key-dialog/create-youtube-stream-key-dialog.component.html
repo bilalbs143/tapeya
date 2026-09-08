@@ -1,0 +1,126 @@
+<app-dialog-wrapper title="Create YouTube Stream Key">
+  @if (!created) {
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      aria-label="Create YouTube Stream Key Form"
+    >
+      <mat-dialog-content>
+        <div class="dialog-form">
+          <div class="col-span-12">
+            <p class="text-muted m-0 mb-2 text-xs leading-snug">
+              One RTMP key per encoder. Configure OBS/vMix once; reuse across sessions.
+            </p>
+          </div>
+
+          <div class="col-span-12">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Title</mat-label>
+              <input
+                matInput
+                formControlName="title"
+                maxlength="100"
+                placeholder="e.g. Gulshan Ground - Camera 1"
+              />
+              <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/100</mat-hint>
+              @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+                <mat-error>Title is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-dialog-content>
+
+      <mat-divider></mat-divider>
+      <mat-dialog-actions class="dialog-actions">
+        <app-ui-button
+          type="button"
+          [mat-dialog-close]="false"
+          variant="secondary"
+        >
+          Cancel
+        </app-ui-button>
+
+        <app-submit-button
+          [disabled]="form.invalid"
+          [isSubmitting]="isSubmitting"
+          text="Create Key"
+          color="primary"
+        />
+      </mat-dialog-actions>
+    </form>
+  } @else {
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12">
+          <p class="text-muted m-0 mb-2 text-xs leading-snug">
+            <strong>"{{ created.title }}"</strong> is ready. Copy into OBS/vMix — credentials don't change.
+          </p>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>RTMP URL</mat-label>
+            <input
+              matInput
+              readonly
+              [value]="created.ingest.rtmp_url"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [matTooltip]="copiedField === 'rtmp' ? 'Copied!' : 'Copy RTMP URL'"
+              aria-label="Copy RTMP URL"
+              (click)="copyField('rtmp', created.ingest.rtmp_url)"
+            >
+              <mat-icon>{{ copiedField === 'rtmp' ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Stream Key</mat-label>
+            <input
+              matInput
+              readonly
+              [value]="created.ingest.stream_key"
+              class="text-xs"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [matTooltip]="copiedField === 'key' ? 'Copied!' : 'Copy Stream Key'"
+              aria-label="Copy Stream Key"
+              (click)="copyField('key', created.ingest.stream_key)"
+            >
+              <mat-icon>{{ copiedField === 'key' ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        variant="primary"
+        (click)="done()"
+      >
+        Done
+      </app-ui-button>
+    </mat-dialog-actions>
+  }
+</app-dialog-wrapper>

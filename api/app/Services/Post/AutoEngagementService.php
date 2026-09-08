@@ -4,7 +4,6 @@ namespace App\Services\Post;
 
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
-use App\Enums\Post\PostVisibilityEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Post;
@@ -28,6 +27,8 @@ use Throwable;
  * Video posts: likes + views toward the same soft lifetime (each like also records a view).
  * Text/image/repost: likes only.
  *
+ * Synthetic likes are silent (no push / in-app) so creators do not get burst notifications.
+ *
  * Cursor: cache key {@see self::CURSOR_CACHE_KEY} via {@see Cache::forever()}.
  * Daily state: {@see self::dailyStateCacheKey()} (TTL ~2 days).
  */
@@ -42,7 +43,7 @@ class AutoEngagementService
     private const MAX_CHUNK = 200;
 
     /** Max likes/views applied to one post in a single process() tick. */
-    private const MAX_DRIP_PER_TICK = 3;
+    private const MAX_DRIP_PER_TICK = 1;
 
     public function __construct(
         private PostsSettings $settings,
@@ -221,7 +222,7 @@ class AutoEngagementService
             }
 
             try {
-                $this->interactions->like($post, $actor);
+                $this->interactions->like($post, $actor, notify: false);
                 if ($this->isVideo($post)) {
                     try {
                         $this->views->recordCountedForUser($post->fresh() ?? $post, $actor);
@@ -329,7 +330,6 @@ class AutoEngagementService
     {
         return Post::query()
             ->whereNotNull('published_at')
-            ->where('visibility', PostVisibilityEnum::Public)
             ->where('status', PostStatusEnum::Ready)
             ->count();
     }
@@ -341,7 +341,6 @@ class AutoEngagementService
     {
         $query = Post::query()
             ->whereNotNull('published_at')
-            ->where('visibility', PostVisibilityEnum::Public)
             ->where('status', PostStatusEnum::Ready);
 
         $freshDays = $this->settings->autoEngagementFreshDays();

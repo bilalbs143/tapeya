@@ -56,7 +56,6 @@ class PostEngagementNotificationTest extends TestCase
         return $this->makeVideoPost($owner, [
             'body' => 'Ready reel',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
             'ready_at' => now(),
         ]);
@@ -69,7 +68,6 @@ class PostEngagementNotificationTest extends TestCase
             'type' => 'text',
             'body' => 'Ready text post',
             'status' => PostStatusEnum::Ready,
-            'visibility' => 'public',
             'published_at' => now(),
         ]);
     }
@@ -116,14 +114,14 @@ class PostEngagementNotificationTest extends TestCase
     {
         Notification::fake();
 
-        $owner = $this->activeUser(['name' => 'Owner', 'nickname' => 'owner_nick']);
-        $viewer = $this->activeUser(['name' => 'Viewer', 'nickname' => 'viewer_nick']);
-        $mentioned = $this->activeUser(['name' => 'Mentioned', 'nickname' => 'star_player']);
+        $owner = $this->activeUser(['name' => 'Owner', 'nickname' => 'ownernick']);
+        $viewer = $this->activeUser(['name' => 'Viewer', 'nickname' => 'viewernick']);
+        $mentioned = $this->activeUser(['name' => 'Mentioned', 'nickname' => 'starplayer']);
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
             ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
-                'body' => 'Nice one @star_player',
+                'body' => 'Nice one @starplayer',
             ])
             ->assertCreated();
 
@@ -142,13 +140,13 @@ class PostEngagementNotificationTest extends TestCase
     {
         Notification::fake();
 
-        $owner = $this->activeUser(['name' => 'Shoaib Malik', 'nickname' => 'shoaib_malik']);
-        $commenter = $this->activeUser(['name' => 'Younas Khan', 'nickname' => 'younas_khan']);
+        $owner = $this->activeUser(['name' => 'Shoaib Malik', 'nickname' => 'shoaibmalik']);
+        $commenter = $this->activeUser(['name' => 'Younas Khan', 'nickname' => 'younaskhan']);
         $post = $this->readyTextPost($owner);
 
         $this->actingAs($commenter, 'api')
             ->postJson('/api/v1/posts/'.$post->id.'/comments', [
-                'body' => 'Great point @shoaib_malik',
+                'body' => 'Great point @shoaibmalik',
             ])
             ->assertCreated();
 
@@ -190,14 +188,13 @@ class PostEngagementNotificationTest extends TestCase
     {
         Notification::fake();
 
-        $author = $this->activeUser(['name' => 'Author', 'nickname' => 'author_nick']);
-        $mentioned = $this->activeUser(['name' => 'Mentioned', 'nickname' => 'star_player']);
+        $author = $this->activeUser(['name' => 'Author', 'nickname' => 'authornick']);
+        $mentioned = $this->activeUser(['name' => 'Mentioned', 'nickname' => 'starplayer']);
 
         $this->actingAs($author, 'api')
             ->postJson('/api/v1/posts', [
                 'type' => 'text',
-                'body' => 'Big shoutout @star_player',
-                'visibility' => 'public',
+                'body' => 'Big shoutout @starplayer',
             ])
             ->assertCreated();
 
@@ -214,37 +211,35 @@ class PostEngagementNotificationTest extends TestCase
         ]);
     }
 
-    public function test_caption_mention_skips_self_and_private_unreachable_users(): void
+    public function test_caption_mention_skips_self(): void
     {
         Notification::fake();
 
-        $author = $this->activeUser(['name' => 'Author', 'nickname' => 'author_nick']);
-        $stranger = $this->activeUser(['name' => 'Stranger', 'nickname' => 'stranger_nick']);
+        $author = $this->activeUser(['name' => 'Author', 'nickname' => 'authornick']);
+        $other = $this->activeUser(['name' => 'Other', 'nickname' => 'othernick']);
 
         $this->actingAs($author, 'api')
             ->postJson('/api/v1/posts', [
                 'type' => 'text',
-                'body' => 'Only me @author_nick and @stranger_nick',
-                'visibility' => 'private',
+                'body' => 'Only me @authornick and @othernick',
             ])
             ->assertCreated();
 
         Notification::assertNotSentTo($author, PostMentionedUserNotification::class);
-        Notification::assertNotSentTo($stranger, PostMentionedUserNotification::class);
+        Notification::assertSentTo($other, PostMentionedUserNotification::class);
     }
 
     public function test_caption_update_notifies_newly_mentioned_user_once(): void
     {
         Notification::fake();
 
-        $author = $this->activeUser(['nickname' => 'author_nick']);
-        $mentioned = $this->activeUser(['nickname' => 'star_player']);
+        $author = $this->activeUser(['nickname' => 'authornick']);
+        $mentioned = $this->activeUser(['nickname' => 'starplayer']);
 
         $create = $this->actingAs($author, 'api')
             ->postJson('/api/v1/posts', [
                 'type' => 'text',
                 'body' => 'Hello world',
-                'visibility' => 'public',
             ])
             ->assertCreated();
 
@@ -254,7 +249,7 @@ class PostEngagementNotificationTest extends TestCase
 
         $this->actingAs($author, 'api')
             ->patchJson('/api/v1/posts/'.$postId, [
-                'body' => 'Hello @star_player',
+                'body' => 'Hello @starplayer',
             ])
             ->assertOk();
 
@@ -264,7 +259,7 @@ class PostEngagementNotificationTest extends TestCase
 
         $this->actingAs($author, 'api')
             ->patchJson('/api/v1/posts/'.$postId, [
-                'body' => 'Hello again @star_player',
+                'body' => 'Hello again @starplayer',
             ])
             ->assertOk();
 
@@ -275,13 +270,13 @@ class PostEngagementNotificationTest extends TestCase
     {
         Notification::fake();
 
-        $owner = $this->activeUser(['name' => 'Owner', 'nickname' => 'owner_nick']);
+        $owner = $this->activeUser(['name' => 'Owner', 'nickname' => 'ownernick']);
         $viewer = $this->activeUser(['name' => 'Viewer']);
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
             ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
-                'body' => 'Great @owner_nick',
+                'body' => 'Great @ownernick',
             ])
             ->assertCreated();
 
@@ -568,7 +563,6 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->makeVideoPost($creator, [
             'body' => 'Fresh upload',
             'status' => PostStatusEnum::Uploading,
-            'visibility' => 'public',
             'published_at' => null,
             'original_path' => 'posts/videos/original/1/a.mp4',
         ]);
@@ -586,30 +580,6 @@ class PostEngagementNotificationTest extends TestCase
         Notification::assertSentTo($followerB, PostPublishedFollowerNotification::class);
         Notification::assertNotSentTo($stranger, PostPublishedFollowerNotification::class);
         Notification::assertNotSentTo($creator, PostPublishedFollowerNotification::class);
-    }
-
-    public function test_private_reel_publish_does_not_notify_followers(): void
-    {
-        Notification::fake();
-
-        $creator = $this->activeUser();
-        $follower = $this->activeUser();
-        UserFollow::query()->create([
-            'follower_id' => $follower->id,
-            'followed_user_id' => $creator->id,
-        ]);
-
-        $reel = $this->makeVideoPost($creator, [
-            'body' => 'Secret',
-            'status' => PostStatusEnum::Uploading,
-            'visibility' => 'private',
-            'published_at' => null,
-            'original_path' => 'posts/videos/original/1/a.mp4',
-        ]);
-
-        app(PostService::class)->markOriginalUploaded($reel);
-
-        Notification::assertNothingSent();
     }
 
     public function test_publishing_reel_dispatches_push_to_each_follower(): void
@@ -631,7 +601,6 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->makeVideoPost($creator, [
             'body' => 'Push me',
             'status' => PostStatusEnum::Uploading,
-            'visibility' => 'public',
             'published_at' => null,
             'original_path' => 'posts/videos/original/1/a.mp4',
         ]);
@@ -661,9 +630,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($reposter, 'api')
-            ->postJson('/api/v1/posts/'.$reel->id.'/repost', [
-                'visibility' => 'public',
-            ])
+            ->postJson('/api/v1/posts/'.$reel->id.'/repost')
             ->assertCreated();
 
         Notification::assertSentTo($owner, PostRepostedUserNotification::class, function ($notification) use ($reel, $reposter) {
@@ -698,9 +665,7 @@ class PostEngagementNotificationTest extends TestCase
         $this->app->instance(PushNotificationService::class, $push);
 
         $this->actingAs($reposter, 'api')
-            ->postJson('/api/v1/posts/'.$reel->id.'/repost', [
-                'visibility' => 'public',
-            ])
+            ->postJson('/api/v1/posts/'.$reel->id.'/repost')
             ->assertCreated();
     }
 
@@ -712,9 +677,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($owner, 'api')
-            ->postJson('/api/v1/posts/'.$reel->id.'/repost', [
-                'visibility' => 'public',
-            ])
+            ->postJson('/api/v1/posts/'.$reel->id.'/repost')
             ->assertCreated();
 
         Notification::assertNotSentTo($owner, PostRepostedUserNotification::class);

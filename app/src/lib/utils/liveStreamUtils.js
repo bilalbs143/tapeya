@@ -2,6 +2,10 @@ import { Capacitor } from '@capacitor/core';
 
 import { getApiOrigin } from '@/store/api/baseApi';
 
+/** Platform host shown for admin / match streams without a self-serve broadcaster. */
+export const TAPEYA_PLATFORM_NAME = 'Tapeya';
+export const TAPEYA_PLATFORM_AVATAR = 'https://cdn.tapeya.com/app/images/logos/tapya-t.svg';
+
 /**
  * Trusted origin for YouTube embed `origin` on web/Android direct embeds.
  * Set `VITE_APP_URL` at build time (Public Website URL from system settings in prod).
@@ -276,7 +280,7 @@ export function getStreamOrientation(broadcast) {
 }
 
 /**
- * Normalise GET /live/matches rows for Live hub UI.
+ * Normalise GET /live/matches rows for Live hub UI and Explore feed live cards.
  *
  * @param {Array<object>} [streams]
  * @returns {Array<object>}
@@ -284,18 +288,62 @@ export function getStreamOrientation(broadcast) {
 export function normaliseLiveStreams(streams) {
   return (streams ?? []).map((row) => {
     const thumbnailUrl = row.thumbnail_url?.trim() || null;
+    const broadcaster = row.broadcaster ?? null;
 
     return {
       streamId: row.id,
       linkedMatchId: row.match_id ?? null,
       tournamentId: row.tournament_id ?? null,
       title: row.title ?? 'Live Stream',
+      description: row.description?.trim() || '',
       subtitle: liveStreamCardSubtitle(row),
       stream: row.stream ?? null,
       thumbnail_url: thumbnailUrl,
+      broadcaster,
     };
   });
 }
+
+/**
+ * Header host for feed + Live hub cards.
+ * Self-serve → broadcaster. Admin/match (no owner) → Tapeya + brand mark.
+ *
+ * @param {{
+ *   broadcaster?: {
+ *     id?: number|string,
+ *     name?: string|null,
+ *     avatar_url?: string|null,
+ *     is_official?: boolean,
+ *   }|null,
+ * }|null|undefined} stream
+ */
+export function liveNowHost(stream) {
+  const broadcaster = stream?.broadcaster;
+  const name = broadcaster?.name?.trim();
+  if (name) {
+    return {
+      name,
+      avatarUrl: broadcaster.avatar_url?.trim() || '',
+      userId: broadcaster.id ?? null,
+      isOfficial: Boolean(broadcaster.is_official),
+      isPlatform: false,
+    };
+  }
+
+  return {
+    name: TAPEYA_PLATFORM_NAME,
+    avatarUrl: TAPEYA_PLATFORM_AVATAR,
+    userId: null,
+    isOfficial: true,
+    isPlatform: true,
+  };
+}
+
+/** @param {Parameters<typeof liveNowHost>[0]} stream */
+export function liveNowLabel(stream) {
+  return `${liveNowHost(stream).name} is live now`;
+}
+
 /**
  * @param {number|string} streamId
  * @returns {string}

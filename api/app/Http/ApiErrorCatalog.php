@@ -31,6 +31,7 @@ final class ApiErrorCatalog
         'TOO_MANY_REQUESTS' => 429,
         'SERVER_ERROR' => 500,
         'SERVICE_UNAVAILABLE' => 503,
+        'UPLOAD_FAILED' => 503,
         'BAD_REQUEST' => 400,
     ];
 

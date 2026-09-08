@@ -90,15 +90,22 @@ export class FullComponent implements OnDestroy {
 
   private layoutChangesSubscription = Subscription.EMPTY;
   private overlayScrollY = 0;
+  private hasObservedLayout = false;
   public isOver = false;
 
   constructor() {
     this.layoutChangesSubscription = this.breakpointObserver.observe([OVERLAY_VIEW, TABLET_VIEW]).subscribe((state) => {
       const overlay = state.breakpoints[OVERLAY_VIEW];
-      if (overlay !== this.isOver) {
-        // Crossing desktop ↔ overlay: desktop starts open, overlay starts closed.
+      if (!this.hasObservedLayout || overlay !== this.isOver) {
+        // Crossing desktop ↔ overlay (or first real reading on boot): desktop starts open,
+        // overlay starts closed. `isOver`'s hardcoded initial `false` is not a real reading —
+        // without `hasObservedLayout`, a stale `sidenavOpened: false` persisted from a past
+        // narrow/overlay session would never get corrected on a fresh desktop-width load,
+        // leaving the sidenav permanently translated off-screen with no visible way to reopen it
+        // (the desktop toggle button only flips the mini-collapse width, not `opened`).
         this.options.sidenavOpened = !overlay;
       }
+      this.hasObservedLayout = true;
       this.isOver = overlay;
       if (!this.options.sidenavCollapsed) {
         this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];

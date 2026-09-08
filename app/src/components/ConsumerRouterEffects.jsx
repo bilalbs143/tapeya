@@ -1,3 +1,4 @@
+import { useReelProcessingChannel } from '@/features/reels/useReelProcessingChannel';
 import { useAppDeepLink } from '@/hooks/useAppDeepLink';
 import { useLiveHubChannel } from '@/hooks/useLiveHubChannel';
 import { useNativeAppBackButton } from '@/hooks/useNativeAppBackButton';
@@ -11,5 +12,6 @@ export function ConsumerRouterEffects() {
   useAppDeepLink();
   useNativeAppBackButton();
   useLiveHubChannel();
+  useReelProcessingChannel();
   return null;
 }

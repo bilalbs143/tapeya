@@ -28,7 +28,6 @@ class PostReportController extends BaseAdminController
                 'background_id',
                 'cover_path',
                 'status',
-                'visibility',
                 'reports_count',
             ])->with('video'),
             'reporter:id,name,nickname',

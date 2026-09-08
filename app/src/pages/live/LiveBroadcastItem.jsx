@@ -5,6 +5,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { CommentInputRow } from '@/features/stream/CommentInputRow';
 import CommentList from '@/features/stream/CommentList';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
@@ -31,20 +33,35 @@ import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/liveApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/store/selectors';
 
 import LandscapeRotatedStage from './LandscapeRotatedStage';
 
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
+const shareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 
-function LandscapeExitToggle({ onClick }) {
+function ShareToggleButton({ onClick }) {
+  return (
+    <button type="button" onClick={onClick} className={LIVE_BROADCAST_TOGGLE_BTN} aria-label="Share live stream">
+      <img src={shareIcon} alt="" className="h-5 w-5 shrink-0 object-contain brightness-0 invert" aria-hidden />
+    </button>
+  );
+}
+
+function LandscapeExitToggle({ onClick, onShare }) {
   if (typeof document === 'undefined') return null;
 
   return createPortal(
     <div
-      className="pointer-events-none fixed right-0 bottom-0 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+      className="pointer-events-none fixed right-0 bottom-0 flex items-center gap-2 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]"
       style={{ zIndex: LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z }}
     >
+      {onShare ? (
+        <div className="pointer-events-auto">
+          <ShareToggleButton onClick={onShare} />
+        </div>
+      ) : null}
       <button
         type="button"
         onClick={onClick}
@@ -62,7 +79,14 @@ function LandscapeExitToggle({ onClick }) {
 // BroadcastFloatingToggles
 // ---------------------------------------------------------------------------
 
-function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout, bottomPanelVisible, onToggleBottomPanel }) {
+function BroadcastFloatingToggles({
+  className = '',
+  isLandscape,
+  onToggleLayout,
+  bottomPanelVisible,
+  onToggleBottomPanel,
+  onShare,
+}) {
   return (
     <div className={`flex shrink-0 items-center gap-2 ${className}`}>
       <button
@@ -79,6 +103,7 @@ function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout,
           aria-hidden
         />
       </button>
+      {onShare ? <ShareToggleButton onClick={onShare} /> : null}
       <button
         type="button"
         onClick={onToggleLayout}
@@ -107,6 +132,7 @@ function BroadcastBottomPanel({
   bottomPanelVisible,
   onToggleBottomPanel,
   hideFloatingToggles = false,
+  onShare,
 }) {
   const showChat = bottomPanelVisible || hideFloatingToggles;
 
@@ -120,7 +146,13 @@ function BroadcastBottomPanel({
         </div>
       )}
 
-      {!hideFloatingToggles && (
+      {hideFloatingToggles ? (
+        onShare ? (
+          <div className="flex justify-end">
+            <ShareToggleButton onClick={onShare} />
+          </div>
+        ) : null
+      ) : (
         <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
           <BroadcastFloatingToggles
             className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
@@ -128,11 +160,53 @@ function BroadcastBottomPanel({
             onToggleLayout={onToggleLayout}
             bottomPanelVisible={bottomPanelVisible}
             onToggleBottomPanel={onToggleBottomPanel}
+            onShare={onShare}
           />
         </div>
       )}
 
       {showChat && chatEnabled && <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />}
+    </div>
+  );
+}
+
+function GuestWatchGate({ posterUrl, title, streamStatus, onPlay, pending = false }) {
+  const ended = streamStatus === 'ended';
+  const cta = ended ? 'Sign in to open' : 'Sign in to watch live';
+  const hint = ended ? 'This stream has ended' : null;
+
+  return (
+    <div className="absolute inset-0 bg-black">
+      {posterUrl ? (
+        <img src={posterUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-800 to-black" aria-hidden />
+      )}
+      <div className="absolute inset-0 bg-black/50" aria-hidden />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">
+        {pending ? (
+          <div
+            className="h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white"
+            role="status"
+            aria-label="Loading stream"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={onPlay}
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95"
+            aria-label={cta}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="ml-1">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
+        )}
+        {title ? <p className="max-w-[16rem] text-center text-[13px] font-semibold text-white drop-shadow">{title}</p> : null}
+        {!pending && hint ? <p className="text-[12px] font-medium text-white/75">{hint}</p> : null}
+        {!pending ? <p className="text-[12px] font-medium text-white/75">{cta}</p> : null}
+        {pending ? <p className="text-[12px] font-medium text-white/75">Loading stream…</p> : null}
+      </div>
     </div>
   );
 }
@@ -161,12 +235,26 @@ function BroadcastViewport({
   fillPortrait = false,
   /** Non-YouTube iframe embeds — keep iframe tappable (incl. landscape). */
   allowVideoInteraction = false,
+  guestPreview = false,
+  guestTitle = null,
+  guestStreamStatus = null,
+  guestPending = false,
+  onGuestPlay,
+  onShare,
 }) {
   const blockLandscapeVideoPointer = !isDesktop && isLandscape && !allowVideoInteraction;
-  const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction;
+  const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction || guestPreview;
   const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
 
-  const videoLayer = fillVideo ? (
+  const videoLayer = guestPreview ? (
+    <GuestWatchGate
+      posterUrl={posterUrl}
+      title={guestTitle}
+      streamStatus={guestStreamStatus}
+      onPlay={onGuestPlay}
+      pending={guestPending}
+    />
+  ) : fillVideo ? (
     <div className={`absolute inset-0 ${blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : ''}`}>
       <StreamPlayer stream={stream} posterUrl={posterUrl} className="h-full w-full" fill isLandscape={isLandscape} />
     </div>
@@ -179,7 +267,7 @@ function BroadcastViewport({
   // Classic portrait: under solid navbar. Hero: clear transparent navbar height.
   // Landscape: owns top safe area (no app navbar).
   const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
-  const showMobileChrome = !isDesktop && !immersiveLandscape;
+  const showMobileChrome = !isDesktop && !immersiveLandscape && !guestPreview;
 
   return (
     <div className={`relative size-full overflow-hidden ${surfaceClass}`}>
@@ -213,9 +301,17 @@ function BroadcastViewport({
         </div>
       )}
 
-      {!isDesktop && !isLandscape && (
+      {!guestPreview && !isDesktop && !isLandscape && (
         <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
           <div className="pointer-events-auto">{bottomPanel}</div>
+        </div>
+      )}
+
+      {guestPreview && onShare && !isDesktop && (
+        <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
+          <div className="pointer-events-auto flex justify-end">
+            <ShareToggleButton onClick={onShare} />
+          </div>
         </div>
       )}
     </div>
@@ -241,8 +337,12 @@ export default function LiveBroadcastItem({
   selfServeChrome = false,
   /** Interactive iframe embed — keep video tappable and fill portrait shell. */
   allowVideoInteraction = false,
+  onShare,
 }) {
   const toast = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
   const myAvatar = useAppSelector((s) => s.auth?.user?.avatar_url ?? s.auth?.user?.avatar ?? null);
   const myInitials = useAppSelector((s) => getInitials(s.auth?.user?.name, s.auth?.user?.nickname));
@@ -254,12 +354,16 @@ export default function LiveBroadcastItem({
   const streamId = broadcast?.id ?? null;
   const streamStatus = broadcast?.stream?.status;
   const streamChatActive = streamStatus === 'live' || streamStatus === 'starting';
+  const isGuest = !isAuthenticated;
+  const stream = broadcast?.stream ?? null;
+  const awaitingPlayback = isAuthenticated && (streamStatus === 'live' || streamStatus === 'ended') && !stream?.playback;
+  const showWatchGate = isGuest || awaitingPlayback;
 
   const { data: settingsRows } = useGetPublicSystemSettingsQuery();
   const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
 
-  const chatEnabled = liveChatGloballyEnabled && streamChatActive;
+  const chatEnabled = !showWatchGate && liveChatGloballyEnabled && streamChatActive;
   const handleRemoteHeart = useCallback(
     (payload) => {
       if (isMobileLandscape) return;
@@ -286,6 +390,10 @@ export default function LiveBroadcastItem({
     },
     [],
   );
+
+  const handleSignIn = useCallback(() => {
+    navigate('/login', { state: { from: location } });
+  }, [location, navigate]);
 
   const handleSendHeart = useCallback(() => {
     if (!streamId || !chatEnabled) return;
@@ -319,10 +427,9 @@ export default function LiveBroadcastItem({
 
   const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
-  const stream = broadcast?.stream ?? null;
   const posterUrl = broadcast?.thumbnail_url?.trim() || null;
   const inputDisabled = isSending || sendCooldown;
-  const usesIosNativePlayer = streamUsesIosNativeYoutubePlayer(stream);
+  const usesIosNativePlayer = !showWatchGate && streamUsesIosNativeYoutubePlayer(stream);
   const isIosNativeLandscape = usesIosNativePlayer && isLandscape;
   const isIosNativeUnderlay = usesIosNativePlayer && !isDesktop;
   const panelVisible = selfServeChrome || bottomPanelVisible;
@@ -341,6 +448,7 @@ export default function LiveBroadcastItem({
       bottomPanelVisible={panelVisible}
       onToggleBottomPanel={toggleBottomPanel}
       hideFloatingToggles={selfServeChrome}
+      onShare={onShare}
     />
   );
 
@@ -358,8 +466,14 @@ export default function LiveBroadcastItem({
       immersiveLandscape={isMobileLandscape}
       isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
-      fillPortrait={fillPortrait}
+      fillPortrait={fillPortrait || showWatchGate}
       allowVideoInteraction={allowVideoInteraction}
+      guestPreview={showWatchGate}
+      guestTitle={broadcast?.title ?? null}
+      guestStreamStatus={streamStatus}
+      guestPending={awaitingPlayback}
+      onGuestPlay={handleSignIn}
+      onShare={onShare}
     />
   );
 
@@ -379,7 +493,7 @@ export default function LiveBroadcastItem({
         {viewport}
       </LandscapeRotatedStage>
 
-      {showFixedLandscapeToggle && <LandscapeExitToggle onClick={onToggleLandscape} />}
+      {showFixedLandscapeToggle && <LandscapeExitToggle onClick={onToggleLandscape} onShare={onShare} />}
     </div>
   );
 }

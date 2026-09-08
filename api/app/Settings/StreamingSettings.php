@@ -38,8 +38,8 @@ class StreamingSettings extends Settings
     public ?string $youtubeDefaultPrivacy;
 
     /**
-     * Minutes to keep a match stream in idle after OBS/vMix stops before auto-ending.
-     * Manual "End Stream" in backoffice always ends immediately.
+     * Minutes a session may stay recoverable-idle (OBS/vMix stopped) before auto-end.
+     * Manual End always ends immediately. Reconnect within this window returns to live.
      */
     public int $idleEndGraceMinutes;
 

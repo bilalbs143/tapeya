@@ -13,18 +13,14 @@ vi.mock('../mediaApi', async (importOriginal) => {
 describe('publishReel provisional poster', () => {
   beforeEach(() => {
     uploadMediaFile.mockReset();
-    uploadMediaFile.mockResolvedValue('https://cdn.example/poster.webp');
-  });
-
-  it('uploads thumbnail in parallel after create and does not fail publish when thumb fails', async () => {
-    const { publishReel } = await import('../reelsApi');
-
-    uploadMediaFile.mockImplementation(async (_fn, opts) => {
-      if (opts.field === 'thumbnail') {
-        throw new Error('thumb failed');
-      }
+    uploadMediaFile.mockImplementation(async (_upload, opts) => {
+      if (opts.field === 'thumbnail') return 'https://cdn.example/poster.jpg';
       return 'https://cdn.example/original.mp4';
     });
+  });
+
+  it('uploads poster as thumbnail before the original in single-file mode', async () => {
+    const { publishReel } = await import('../reelsApi');
 
     const createReel = vi.fn(() => ({
       unwrap: async () => ({ id: 77 }),
@@ -36,16 +32,15 @@ describe('publishReel provisional poster', () => {
     const created = await publishReel({ createReel, uploadMedia }, { file, caption: 'hi', posterBlob });
 
     expect(created.id).toBe(77);
-    expect(uploadMediaFile).toHaveBeenCalledWith(
-      uploadMedia,
+    expect(uploadMediaFile).toHaveBeenCalledTimes(2);
+    expect(uploadMediaFile.mock.calls[0][1]).toEqual(
       expect.objectContaining({
         type: 'reel',
         id: 77,
         field: 'thumbnail',
       }),
     );
-    expect(uploadMediaFile).toHaveBeenCalledWith(
-      uploadMedia,
+    expect(uploadMediaFile.mock.calls[1][1]).toEqual(
       expect.objectContaining({
         type: 'reel',
         id: 77,
@@ -55,18 +50,22 @@ describe('publishReel provisional poster', () => {
     );
   });
 
-  it('skips thumbnail upload when posterBlob is missing', async () => {
+  it('does not fail publish when provisional poster upload fails', async () => {
     const { publishReel } = await import('../reelsApi');
 
+    uploadMediaFile.mockImplementation(async (_upload, opts) => {
+      if (opts.field === 'thumbnail') throw new Error('poster failed');
+      return 'https://cdn.example/original.mp4';
+    });
+
     const createReel = vi.fn(() => ({
-      unwrap: async () => ({ id: 12 }),
+      unwrap: async () => ({ id: 88 }),
     }));
-    const uploadMedia = vi.fn();
     const file = new File([new Uint8Array([1])], 'clip.mp4', { type: 'video/mp4' });
+    const posterBlob = new Blob([new Uint8Array([9])], { type: 'image/jpeg' });
 
-    await publishReel({ createReel, uploadMedia }, { file });
-
-    expect(uploadMediaFile).toHaveBeenCalledTimes(1);
-    expect(uploadMediaFile.mock.calls[0][1].field).toBe('original');
+    const created = await publishReel({ createReel, uploadMedia: vi.fn() }, { file, posterBlob });
+    expect(created.id).toBe(88);
+    expect(uploadMediaFile.mock.calls.some((c) => c[1].field === 'original')).toBe(true);
   });
 });

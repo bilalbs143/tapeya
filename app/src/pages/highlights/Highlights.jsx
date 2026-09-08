@@ -10,7 +10,7 @@ import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 import { HighlightsSection } from './components/HighlightsSection';
-import { sortHighlightsByRecent, sortHighlightsByViews } from './highlightsUtils';
+import { sortHighlightsByRecent } from './highlightsUtils';
 
 export default function Highlights() {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ export default function Highlights() {
   const { data: highlights = [], isLoading, isError, refetch } = useGetHighlightsQuery({ per_page: 50 });
 
   const mostRecent = useMemo(() => sortHighlightsByRecent(highlights), [highlights]);
-  const mostViewed = useMemo(() => sortHighlightsByViews(highlights), [highlights]);
 
   const handleCardClick = (highlight) => {
     navigate(`/highlights/${highlight.id}`, { state: { highlight } });
@@ -40,10 +39,7 @@ export default function Highlights() {
           ) : null}
 
           {!isLoading && !isError && highlights.length > 0 ? (
-            <>
-              <HighlightsSection title="MOST RECENT" highlights={mostRecent} onCardClick={handleCardClick} />
-              <HighlightsSection title="MOST VIEWED" highlights={mostViewed} onCardClick={handleCardClick} />
-            </>
+            <HighlightsSection title="MOST RECENT" highlights={mostRecent} onCardClick={handleCardClick} />
           ) : null}
         </div>
       </Container>
