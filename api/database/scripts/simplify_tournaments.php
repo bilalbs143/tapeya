@@ -52,9 +52,38 @@ foreach (['player_batting_stats', 'player_bowling_stats', 'player_fielding_stats
     DB::table($table)->where('tournament_type', 'emerging')->update(['tournament_type' => 'open_tournament']);
 
     if (Schema::hasColumn($table, 'cricket_format')) {
-        DB::table($table)
-            ->where('tournament_type', '!=', 'quick')
-            ->update(['cricket_format' => 'tape_ball']);
+        // Postgres unique (player_id, tournament_type, cricket_format): skip rows that would
+        // collide with an existing tape_ball row for the same player + tournament_type.
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement("
+                UPDATE {$table} AS t
+                SET cricket_format = 'tape_ball'
+                WHERE t.tournament_type <> 'quick'
+                  AND t.cricket_format IS DISTINCT FROM 'tape_ball'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM {$table} AS existing
+                      WHERE existing.player_id = t.player_id
+                        AND existing.tournament_type = t.tournament_type
+                        AND existing.cricket_format = 'tape_ball'
+                  )
+            ");
+            // Drop leftover non-tape_ball rows that could not be normalized (duplicate keys).
+            $deleted = DB::table($table)
+                ->where('tournament_type', '!=', 'quick')
+                ->where(function ($q) {
+                    $q->whereNull('cricket_format')->orWhere('cricket_format', '!=', 'tape_ball');
+                })
+                ->delete();
+            if ($deleted > 0) {
+                echo "Removed {$deleted} conflicting {$table} rows that could not normalize to tape_ball.\n";
+            }
+        } else {
+            DB::table($table)
+                ->where('tournament_type', '!=', 'quick')
+                ->update(['cricket_format' => 'tape_ball']);
+        }
     }
 }
 
