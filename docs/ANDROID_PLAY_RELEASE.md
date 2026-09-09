@@ -20,6 +20,8 @@ If a built AAB does not match this SHA1, do not upload it.
 
 For App Links / `assetlinks.json`, use Play’s **app signing** SHA-256, not this upload SHA1. See [`PLAY_APP_SIGNING_SHA256.md`](./PLAY_APP_SIGNING_SHA256.md).
 
+Short copy-paste for another PC (local, gitignored — contains real passwords): [`ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md`](./ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md).
+
 ## Files that are not in git
 
 These are gitignored. Copy them by hand; never commit them.
