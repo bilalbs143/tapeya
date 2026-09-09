@@ -144,6 +144,7 @@ On Linux, Locate may open the wrong folder (`<repo>/release/app-release.aab`). T
 | Locate: file not found at `<repo>/release/app-release.aab` | Wizard destination set to the repo root | Open `app/android/app/build/outputs/bundle/release/app-release.aab` |
 | AAB lands in `bundle/debug/` | Active variant is debug, or you used Build Bundle(s) instead of a signed release | Use `bundleRelease` or set Build Variant to **release** |
 | Unsigned / missing `signingConfig` | `keystore.properties` missing on that machine | Copy the properties file next to `app/android/` |
+| `Keystore file '.../upload-keystore.jks' not found for signing config 'release'` | Properties present, `.jks` absent | Copy `upload-keystore.jks` from Ubuntu (see handoff doc); do not generate a new key |
 
 ## Rule
 
