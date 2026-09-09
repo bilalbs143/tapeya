@@ -105,6 +105,8 @@ Deploy `app/dist/` to the web root for `tapeya.com`.
 
 ### Native (Capacitor)
 
+Open the native IDE (iOS archive, or Android debugging):
+
 ```bash
 cd app
 npm run cap:ios        # production API/APP URLs
@@ -113,7 +115,20 @@ npm run cap:android
 # npm run cap:android:staging
 ```
 
-Then archive in Xcode as usual. For Play Android App Bundles (upload key, new machine, `bundleRelease`), see [`ANDROID_PLAY_RELEASE.md`](./ANDROID_PLAY_RELEASE.md).
+For iOS, archive in Xcode as usual.
+
+For a **Play-uploadable Android AAB, no Android Studio needed** — builds web assets, syncs Capacitor, and runs `:app:bundleRelease` signed with the upload key:
+
+```bash
+cd app
+npm run cap:android:bundle          # production (api.tapeya.com)
+# npm run cap:android:bundle:staging
+npm run verify:android:bundle       # confirm the signing SHA1 before upload
+```
+
+Output: `app/android/app/build/outputs/bundle/release/app-release.aab`
+
+Requires `app/android/keystore.properties` and the upload keystore on the machine; the build fails explicitly if they're absent. Full context (upload key, new-machine setup): [`ANDROID_PLAY_RELEASE.md`](./ANDROID_PLAY_RELEASE.md).
 
 ## Graphics Site Deployment (`graphics.tapeya.com`)
 

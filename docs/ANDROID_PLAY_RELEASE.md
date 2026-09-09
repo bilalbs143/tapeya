@@ -97,21 +97,15 @@ SHA1 must be `89:0C:3A:F0:89:01:67:AC:9E:37:B8:8D:21:92:EE:34:0B:C6:3D:AE`. If i
 
 ### 5. Build a signed release AAB
 
-From `app/`:
+**Preferred — one command, no Android Studio.** From `app/`:
 
 ```bash
 npm install
-npm run cap:android          # production (api.tapeya.com)
-# npm run cap:android:staging
+npm run cap:android:bundle          # production (api.tapeya.com)
+# npm run cap:android:bundle:staging
 ```
 
-That builds web assets, syncs Capacitor, and opens Android Studio. **Do not use Generate Signed Bundle unless the wizard points at `upload-keystore.jks` / alias `upload`.** That wizard ignores `keystore.properties` and is how a wrong key gets used.
-
-Preferred: close the wizard and sign with Gradle from `app/android/`:
-
-```bash
-./gradlew :app:bundleRelease
-```
+That builds web assets, syncs Capacitor, and runs `:app:bundleRelease` — signing with `keystore.properties` and never touching the Studio wizard.
 
 Output:
 
@@ -119,7 +113,23 @@ Output:
 app/android/app/build/outputs/bundle/release/app-release.aab
 ```
 
-Confirm the AAB before Play upload:
+If `keystore.properties` is missing the build now fails with an explicit error instead of emitting an unsigned artifact.
+
+#### Alternative: open Android Studio
+
+`npm run cap:android` builds and syncs, then opens Studio. **Do not use Generate Signed Bundle unless the wizard points at `upload-keystore.jks` / alias `upload`.** That wizard ignores `keystore.properties` and is how a wrong key gets used. Close it and run Gradle from `app/android/` instead:
+
+```bash
+./gradlew :app:bundleRelease
+```
+
+Confirm the AAB before Play upload — from `app/`:
+
+```bash
+npm run verify:android:bundle
+```
+
+Or directly:
 
 ```bash
 keytool -printcert -jarfile app/android/app/build/outputs/bundle/release/app-release.aab | grep SHA1
