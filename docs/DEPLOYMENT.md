@@ -108,9 +108,9 @@ Deploy `app/dist/` to the web root for `tapeya.com`.
 ```bash
 cd app
 npm run cap:ios        # production API/APP URLs
-# npm run cap:ios:dev  # staging
+# npm run cap:ios:staging   # staging
 npm run cap:android
-# npm run cap:android:dev
+# npm run cap:android:staging
 ```
 
 Then archive in Xcode as usual. For Play Android App Bundles (upload key, new machine, `bundleRelease`), see [`ANDROID_PLAY_RELEASE.md`](./ANDROID_PLAY_RELEASE.md).

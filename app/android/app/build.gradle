@@ -7,6 +7,28 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Without keystore.properties the release signingConfig below is skipped and AGP
+// silently emits an UNSIGNED artifact (app-release-unsigned.apk) that Play rejects
+// at upload — a failure you'd otherwise only hit after the build "succeeds".
+// Fail at task-graph time instead, so debug builds and IDE sync still work on
+// machines that legitimately have no upload key. See docs/ANDROID_PLAY_RELEASE.md.
+gradle.taskGraph.whenReady { taskGraph ->
+    if (keystorePropertiesFile.exists()) {
+        return
+    }
+    def releaseTask = taskGraph.allTasks.find { t ->
+        t.project == project && t.name ==~ /(assemble|bundle|package)Release/
+    }
+    if (releaseTask != null) {
+        throw new GradleException(
+            "Cannot build '${releaseTask.name}': app/android/keystore.properties is missing.\n" +
+            "Without it Gradle would produce an UNSIGNED artifact that Play rejects.\n" +
+            "Copy the Play upload keystore and keystore.properties onto this machine\n" +
+            "(see docs/ANDROID_PLAY_RELEASE.md). Do NOT generate a new keystore —\n" +
+            "a new key is rejected for uploads to com.tapbytapeya.app.")
+    }
+}
+
 android {
     namespace "com.tapbytapeya.app"
     compileSdk rootProject.ext.compileSdkVersion
