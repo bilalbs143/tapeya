@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Keep Windows scripts as committed; do not rewrite their line endings
+*.bat -text
+*.cmd -text
