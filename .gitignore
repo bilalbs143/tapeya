@@ -18,6 +18,13 @@
 # Local Play upload-key handoff (contains keystore passwords)
 docs/ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md
 
+# Claude Code per-developer state. settings.local.json accumulates approved
+# command strings verbatim, so it collects API bearer tokens and DB passwords
+# from anything you ran. Machine-local — never commit it.
+# .claude/launch.json IS shared (dev-server config, no secrets) and stays tracked.
+.claude/settings.local.json
+.claude/worktrees/
+
 # ===================
 # Infra (Cloudflare Workers)
 # ===================
