@@ -172,7 +172,7 @@ class YouTubeStreamProvider implements StreamProviderContract
     /**
      * Batched status poll — one `liveBroadcasts.list` call and one `liveStreams.list` call per
      * 50 streams (YouTube's per-request `id` limit), instead of 2 calls per stream. This is the
-     * dominant quota cost in the system (`streams:sync` runs every 5 minutes), so this is a real
+     * dominant quota cost in the system (`streams:sync` runs every minute), so this is a real
      * cost reduction, not micro-optimization — see YouTubeQuotaTracker / MonitorBroadcastOperations
      * and the "reduce quota usage" discussion in LIVE_STREAM_MOBILE_BROADCAST.md's history.
      *

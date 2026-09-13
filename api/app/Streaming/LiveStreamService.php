@@ -306,7 +306,7 @@ class LiveStreamService
     /**
      * Batch equivalent of syncStatus() — groups by provider so each vendor driver can poll many
      * streams in as few API calls as possible (see YouTubeStreamProvider::syncStatuses()) instead
-     * of one round-trip per stream, since `streams:sync` runs every 5 minutes against every active
+     * of one round-trip per stream, since `streams:sync` runs every minute against every active
      * stream and vendor quota is shared across the whole app.
      *
      * @param  Collection<int, LiveStream>  $streams
