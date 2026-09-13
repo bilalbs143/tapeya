@@ -20,6 +20,8 @@ If a built AAB does not match this SHA1, do not upload it.
 
 For App Links / `assetlinks.json`, use Play’s **app signing** SHA-256, not this upload SHA1. See [`PLAY_APP_SIGNING_SHA256.md`](./PLAY_APP_SIGNING_SHA256.md).
 
+Short copy-paste for another PC (local, gitignored — contains real passwords): [`ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md`](./ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md).
+
 ## Files that are not in git
 
 These are gitignored. Copy them by hand; never commit them.
@@ -142,6 +144,7 @@ On Linux, Locate may open the wrong folder (`<repo>/release/app-release.aab`). T
 | Locate: file not found at `<repo>/release/app-release.aab` | Wizard destination set to the repo root | Open `app/android/app/build/outputs/bundle/release/app-release.aab` |
 | AAB lands in `bundle/debug/` | Active variant is debug, or you used Build Bundle(s) instead of a signed release | Use `bundleRelease` or set Build Variant to **release** |
 | Unsigned / missing `signingConfig` | `keystore.properties` missing on that machine | Copy the properties file next to `app/android/` |
+| `Keystore file '.../upload-keystore.jks' not found for signing config 'release'` | Properties present, `.jks` absent | Copy `upload-keystore.jks` from Ubuntu (see handoff doc); do not generate a new key |
 
 ## Rule
 

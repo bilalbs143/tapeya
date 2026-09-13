@@ -15,6 +15,9 @@
 .env.local
 .env.*.local
 
+# Local Play upload-key handoff (contains keystore passwords)
+docs/ANDROID_PLAY_UPLOAD_KEY_HANDOFF.md
+
 # ===================
 # Infra (Cloudflare Workers)
 # ===================
