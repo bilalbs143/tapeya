@@ -27,7 +27,6 @@ return new class extends Migration
 
             $table->string('provider_stream_id')->nullable();
             $table->string('provider_ingest_id')->nullable();
-            $table->foreignId('youtube_stream_key_id')->nullable()->constrained('youtube_stream_keys')->nullOnDelete();
             $table->string('provider_playback_id')->nullable();
             $table->string('provider_recording_id')->nullable();
 
