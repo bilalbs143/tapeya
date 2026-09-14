@@ -1,6 +1,6 @@
 # Production deploy — `main` → `develop` tip
 
-Ship **production `main`** up through **local `develop` tip** (`80f73df`), **without** `migrate:fresh` / `migrate:refresh` / DB wipe.
+Ship **production `main`** up through **local `develop` tip** (`1501608`), **without** `migrate:fresh` / `migrate:refresh` / DB wipe.
 
 This file is the runbook. Follow steps **in order**.
 
@@ -10,10 +10,10 @@ This file is the runbook. Follow steps **in order**.
 
 | Ref | SHA (as of writing) | Notes |
 |-----|---------------------|--------|
-| **`origin/main` / prod baseline** | `7ee3332` | YouTube key FK migration order; one-shot DB scripts dropped |
-| **Local `develop` tip** | `80f73df` | Ahead of `origin/develop` (push before merge) |
-| **`main..develop`** | `dd0a8ef`, `0b08a05`, `80f73df` | Users/Players split → architecture doc → fake players demo |
-| **Working tree** | clean | Nothing else to commit for this release |
+| **`origin/main` / prod baseline** | `5b51bad` | Prior release (Users/Players + fake demo + runbook) |
+| **Local `develop` tip** | `1501608` | Ahead of `origin/develop` / `origin/main` by 3 commits — push before merge |
+| **`main..develop`** | `7419c12`, `6387393`, `1501608` | Vanity viewers → last active → players list perf |
+| **Working tree** | clean | Tip already includes roles eager-load + fake-cache work |
 
 **Before you start deploy day:** re-run and paste into this section:
 
@@ -26,16 +26,17 @@ git log --oneline origin/main..develop
 git status -sb
 ```
 
-Release tip = whatever SHA lands on `main` after merging `develop` (expect `80f73df` or its merge/FF tip).
+Release tip = whatever SHA lands on `main` after merging `develop` (expect `1501608` or its merge/FF tip).
 
 ---
 
 ## 1. Hard rules (read once)
 
 1. **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or drop/recreate the production database for this release.
-2. **No new migrations** and **no `api/database/scripts/*`** in this range — schema on prod should already match `7ee3332`. Still run `migrate --force` so any accidental pending file surfaces; expect **nothing pending**.
-3. Deploy **code**, then **`migrate --force`** (confirm clean), then caches/workers/frontends.
-4. Do **not** commit secrets (`.env`, credentials).
+2. **One additive migration** in this range: `users.last_active_at` (+ index + one-time backfill from `active_platform_updated_at`). Run **`migrate --force` only**.
+3. **Add vanity streaming settings via tinker only** — insert the three new properties if missing; do **not** run `SystemSettingsSeeder` or wholesale `EnsureSpatieSettingsDatabaseProperties::ensure()`.
+4. Deploy **code**, then **`migrate --force`**, then **tinker vanity props**, then caches/workers/frontends.
+5. Do **not** commit secrets (`.env`, credentials).
 
 ---
 
@@ -45,27 +46,31 @@ Commits on `develop` not on `main`:
 
 | SHA | Summary |
 |-----|---------|
-| `dd0a8ef` | **Users vs Players split** — Users = administrators + operators (admin-guard roles); Players = app users without those roles. Modal/validation updates. |
-| `0b08a05` | **Docs** — `docs/APP_REWRITE_ARCHITECTURE.md` (app rewrite blueprint; no runtime change). |
-| `80f73df` | **Fake players demo** — default `/players-management/players` merges Pakistan-filtered reals + client-generated fakes; `?q=tapeya-players` unlocks real API-only list. |
+| `7419c12` | **Vanity live viewer counts** — Live Streaming settings `stream_vanity_viewer_min/max` + `stream_vanity_viewer_self_serve` (0/1); app shows synced oscillating count (badge waits until settings load). |
+| `6387393` | **Player last activity** — `users.last_active_at`, throttled `TouchLastActive` on consumer `auth:api`, bump on OTP verify + platform sync; Players **Last Active** column + inactive 7/14/30 filter. |
+| `1501608` | **Players list perf** — eager-load `roles` on admin players query (fixes N+1 on `?all=true`); chunked/module-cached fake players so demo load overlaps the API. |
 
 ### API
 
-- `UserBuilder`: `backoffice()` vs `player()` scopes
-- Admin `UserController` / `PlayerController` + store/update validation (staff need admin roles)
-- Feature test: `AdminUsersPlayersSplitTest`
+- Streaming settings keys + registry + seeder defaults (`2000` / `2500` / self-serve `0`)
+- Migration: `2026_09_14_211115_add_last_active_at_to_users_table`
+- Middleware `TouchLastActive` (`touch.last_active`) on consumer auth group
+- `PlayerController` eager-loads `creator` + `roles`
+- Feature tests: `TouchLastActiveTest`, `AdminPlayersLastActiveFilterTest`
 
 ### Backoffice
 
-- Users list/dialogs: Administrator vs Operator (cricket/location/platform trimmed from users)
-- Players list: demo mode + real mode gate; fake-row actions no-op
-- `players.service` supports `all=true` for demo load
+- Players: Last Active column, inactive-days filter, faster demo fake generation/cache
+
+### Consumer app
+
+- `useVanityViewerCount` wired in `LiveBroadcast` / `DuringBroadcast`; self-serve respects vanity flag
 
 ### Out of scope
 
-- Consumer app / native store bumps (not required for this release)
 - Graphics pipeline
-- New DB columns/tables
+- Native store bumps (web app redeploy is enough for vanity UI)
+- `migrate:fresh` / one-shot DB scripts (none in this range)
 
 ---
 
@@ -73,17 +78,41 @@ Commits on `develop` not on `main`:
 
 ### A. `php artisan migrate --force`
 
-| Expectation |
-|-------------|
-| **No pending migrations** for `main..develop`. Confirm with `migrate:status`. |
+| Migration | Effect |
+|-----------|--------|
+| `2026_09_14_211115_add_last_active_at_to_users_table` | Adds nullable `users.last_active_at` + index; backfills from `active_platform_updated_at` where present |
 
-### B. One-off scripts
+Confirm with `migrate:status` before/after. Expect **this one** pending on prod until run.
+
+### B. Tinker — vanity keys only (required)
+
+Do **not** run `SystemSettingsSeeder`. Create only the three new streaming properties if absent; leave every existing setting untouched:
+
+```bash
+cd /var/www/tapeya/api
+php artisan tinker --execute="
+\$repository = (new \Spatie\LaravelSettings\SettingsConfig(\App\Settings\StreamingSettings::class))->getRepository();
+\$group = 'streaming';
+foreach ([
+    'vanityViewerMin' => 2000,
+    'vanityViewerMax' => 2500,
+    'vanityViewerSelfServe' => 0,
+] as \$name => \$value) {
+    if (! \$repository->checkIfPropertyExists(\$group, \$name)) {
+        \$repository->createProperty(\$group, \$name, \$value);
+    }
+}
+echo 'vanity settings ok'.PHP_EOL;
+"
+```
+
+Safe to re-run: skips properties that already exist (no overwrite).
+
+### C. One-off scripts
 
 | Script | Needed? |
 |--------|---------|
-| Anything under `api/database/scripts/` | **N/A** — folder not in tree for this release |
-
-If someone reintroduces scripts later, do **not** invent them for this deploy.
+| Anything under `api/database/scripts/` | **N/A** — not used for this release |
 
 ---
 
@@ -94,24 +123,28 @@ If someone reintroduces scripts later, do **not** invent them for this deploy.
 ```bash
 cd /path/to/tapeya
 git checkout develop
-git status -sb   # expect clean at 80f73df (or newer intentional tip)
+git status -sb   # expect clean at 1501608 (or newer intentional tip)
 git push -u origin develop
 ```
 
 ### 4.2 Fast checks (recommended)
 
 ```bash
-cd api && php artisan test --filter='AdminUsersPlayersSplit|BroadcastBan'
+cd api && php artisan test --filter='TouchLastActive|AdminPlayersLastActive|AdminUsersPlayersSplit|BroadcastBan'
 ```
 
-Optional: open backoffice locally — Users vs Players lists differ; `?q=tapeya-players` shows real-only players.
+Optional smokes locally:
+
+- Players demo loads without multi-second hang; `?q=tapeya-players` still real-only
+- Live watch shows vanity badge after settings load (match/admin); self-serve only if setting is `1`
+- Inactive filter returns never-active + stale rows
 
 ### 4.3 Merge to main
 
 ```bash
 git checkout main
 git pull origin main
-git merge develop   # should FF: 7ee3332 → 80f73df (or resolve if main moved)
+git merge develop   # should FF: 5b51bad → 1501608 (or resolve if main moved)
 git push origin main
 git rev-parse --short HEAD   # record release SHA
 ```
@@ -120,14 +153,14 @@ git rev-parse --short HEAD   # record release SHA
 
 On the API host (or managed DB snapshot):
 
-- Full DB dump **or** at least: `users`, `roles`, `model_has_roles`, `migrations`, `settings`
+- Full DB dump **or** at least: `users`, `settings`, `migrations`, `roles`, `model_has_roles`
 - Note current prod git SHA: `git -C /var/www/tapeya rev-parse --short HEAD` (adjust path)
 
 ---
 
 ## 5. Production deploy — API
 
-Paths assume `/var/www/tapeya/...` — adjust to your server.
+Paths assume `/var/www/tapeya/...` — adjust to your server. Prior box used **php8.3-fpm** (`Host tapeya-dev`); confirm socket/version.
 
 ### 5.1 Put code on the box
 
@@ -154,9 +187,29 @@ php artisan migrate:status | tail -40
 php artisan migrate --force
 ```
 
-**Expect:** nothing new to run. If a pending migration appears that you did not intend, **stop** and investigate before continuing.
+**Expect:** `add_last_active_at_to_users_table` runs once. If anything unexpected is pending, **stop** and investigate.
 
-### 5.4 Caches / workers
+### 5.4 Add vanity streaming settings (tinker only)
+
+```bash
+cd /var/www/tapeya/api
+php artisan tinker --execute="
+\$repository = (new \Spatie\LaravelSettings\SettingsConfig(\App\Settings\StreamingSettings::class))->getRepository();
+\$group = 'streaming';
+foreach ([
+    'vanityViewerMin' => 2000,
+    'vanityViewerMax' => 2500,
+    'vanityViewerSelfServe' => 0,
+] as \$name => \$value) {
+    if (! \$repository->checkIfPropertyExists(\$group, \$name)) {
+        \$repository->createProperty(\$group, \$name, \$value);
+    }
+}
+echo 'vanity settings ok'.PHP_EOL;
+"
+```
+
+### 5.5 Caches / workers
 
 ```bash
 cd /var/www/tapeya/api
@@ -165,10 +218,8 @@ php artisan config:cache
 php artisan settings:clear-cache
 
 sudo supervisorctl restart all
-sudo systemctl reload php8.2-fpm   # adjust PHP version/socket
+sudo systemctl reload php8.3-fpm   # adjust PHP version/socket
 ```
-
-No push/settings seeders required for this release.
 
 ---
 
@@ -183,11 +234,9 @@ npm run build:production
 # publish dist/backoffice/browser
 ```
 
-Ships: Users/Players split UI, fake players demo list + `?q=tapeya-players` gate.
+Ships: Last Active + inactive filter, faster fake demo list (roles eager-load is API-side).
 
-### 6.2 Consumer app (`tapeya.com`)
-
-**Optional** for this release (no app changes in `main..develop`). Redeploy only if you want the tree SHA matched everywhere:
+### 6.2 Consumer app (`tapeya.com`) — **required**
 
 ```bash
 cd /var/www/tapeya/app
@@ -195,41 +244,50 @@ npm ci
 npm run build:production
 ```
 
+Ships: vanity viewer badge behavior + self-serve flag respect.
+
 ### 6.3 Native stores
 
-Not required for this release (backoffice + API only).
+Not required for this release (web app covers vanity; last-active tracking is API middleware).
 
 ---
 
 ## 7. Post-deploy smoke (must pass)
 
-### Users vs Players
+### Vanity viewers
 
-- [ ] **Users** list shows staff only (administrators / operators with admin roles) — not the full app-player population
-- [ ] Create/edit **Operator** requires at least one admin role; cricket fields not required for staff
-- [ ] **Players** list (with `?q=tapeya-players`) shows app players only — no admin-role staff mixed in
-- [ ] Broadcast ban / player edit still works on **real** player rows
+- [ ] Live Streaming settings show **Vanity Viewer Min/Max** and **Vanity On Self-Serve** (defaults ~2000–2500 / `0` if freshly seeded)
+- [ ] Match/admin live watch: badge shows oscillating count in range (hidden until settings ready — no real→vanity flash)
+- [ ] Self-serve Go Live: real presence when self-serve flag is `0`; vanity range when `1`
+- [ ] `settings:clear-cache` done if values look stale
 
-### Fake players demo
+### Last activity
 
-- [ ] `/players-management/players` (no `q`): large list, real Pakistan rows on top, fakes below; client pagination works
-- [ ] Fake row Edit / Stats / Ban clicks do nothing (no API calls / no navigation)
-- [ ] `/players-management/players?q=tapeya-players`: normal server-paginated real list
-- [ ] Wrong `?q=...` redirects to demo URL
+- [ ] `users` table has `last_active_at`; prior platform reporters backfilled
+- [ ] Authenticated consumer API use bumps activity (throttled ~15 min)
+- [ ] Players list shows **Last Active** (“… ago” / Never)
+- [ ] Inactive 7/14/30 filter includes null + stale; excludes recent
+- [ ] Real list `?q=tapeya-players` still server-paginated
 
-### Docs / API health
+### Players demo perf
 
-- [ ] API boots; admin players & users endpoints return 200 for authorized admin
-- [ ] `migrate:status` still healthy after deploy
+- [ ] `/players-management/players` (no `q`) loads without the old ~10s hang (API roles eager-load + client fake cache)
+- [ ] Fake row actions still no-op; wrong `?q=` still redirects to demo
+
+### Health
+
+- [ ] API boots; admin players/users 200 for authorized admin
+- [ ] `migrate:status` healthy after deploy
 
 ---
 
 ## 8. Rollback (no refresh)
 
-1. Redeploy previous known-good git SHA on API / backoffice (`7ee3332` or your recorded pre-deploy SHA).
-2. Restart workers + reload PHP-FPM; rebuild/redeploy backoffice from that SHA.
-3. **Schema:** nothing to undo for this release (no scripts / no new migrations).
-4. Clear caches:
+1. Redeploy previous known-good git SHA on API / backoffice / app (`5b51bad` or your recorded pre-deploy SHA).
+2. Restart workers + reload PHP-FPM; rebuild frontends from that SHA.
+3. **Schema:** `last_active_at` is additive and safe to leave in place if you roll code back. Only drop it if you explicitly need a clean reverse (`migrate:rollback` one step) — prefer leave column.
+4. Vanity settings rows can remain; old code ignores unknown keys.
+5. Clear caches:
 
 ```bash
 php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache
@@ -241,10 +299,11 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 
 | Symptom | Cause | Fix |
 |---------|--------|-----|
-| Users and Players show the same people | Old API/backoffice still deployed | Pull release SHA; rebuild backoffice; restart PHP-FPM |
-| Demo list empty / only a handful of rows | API `all=true` ignored or old players service | Confirm `PlayersService.getList` + API supports `all`; redeploy API + backoffice |
-| Fake actions hit API / 404 on negative IDs | Old backoffice without `isFakePlayer` guards | Redeploy backoffice from release tip |
-| Operator create fails validation | Expected — admin role required | Assign an admin-guard role |
+| Players demo still ~10s | Old API without `roles` eager-load | Pull release SHA; reload PHP-FPM |
+| Vanity badge missing / stuck hidden | Vanity props missing or cache stale | Re-run section 5.4 tinker + `settings:clear-cache`; redeploy app |
+| Self-serve still real-only | `stream_vanity_viewer_self_serve` is `0` | Set to `1` in Live Streaming settings |
+| Last Active always Never / empty | Migration not run or middleware not on consumer routes | Confirm migrate ran; hit authenticated consumer API; check `touch.last_active` |
+| Inactive filter wrong set | Old backoffice / API | Redeploy both from release tip |
 | `migrate` tries to recreate old tables | Someone ran refresh | **Stop** — restore dump; this runbook forbids refresh |
 
 ---
@@ -252,17 +311,19 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 ## 10. Checklist summary (copy/paste)
 
 ```text
-[ ] Record origin/main SHA (expect 7ee3332) + release SHA (expect 80f73df)
+[ ] Record origin/main SHA (expect 5b51bad) + release SHA (expect 1501608)
 [ ] Working tree clean; push develop
 [ ] Merge develop → main; push main
-[ ] DB backup (users / roles / migrations)
+[ ] DB backup (users / settings / migrations)
 [ ] Prod: git pull main @ release SHA
 [ ] composer install --no-dev --optimize-autoloader
-[ ] php artisan migrate --force  (expect no pending)
+[ ] php artisan migrate --force  (expect last_active_at migration)
+[ ] tinker: add vanityViewerMin/Max/SelfServe only if missing (no SystemSettingsSeeder)
 [ ] config:cache + settings:clear-cache
-[ ] restart workers/FPM
+[ ] restart workers / reload php8.3-fpm
 [ ] Build/deploy backoffice
-[ ] Smoke section 7 (Users/Players split + demo gate)
+[ ] Build/deploy consumer app
+[ ] Smoke section 7 (vanity + last active + demo perf)
 ```
 
 ---
@@ -270,5 +331,5 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 ## Related
 
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands / nginx sketches
-- [APP_REWRITE_ARCHITECTURE.md](./APP_REWRITE_ARCHITECTURE.md) — ships in this release (docs only)
-- Prior YouTube / visibility / tournament schema work is already on `main` as of `7ee3332`
+- [APP_REWRITE_ARCHITECTURE.md](./APP_REWRITE_ARCHITECTURE.md) — already on `main` as of prior release
+- Prior Users/Players + fake demo work is already on `main` as of `5b51bad`
