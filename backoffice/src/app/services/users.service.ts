@@ -77,9 +77,6 @@ export interface CreateUserPayload {
   type: string;
   status?: string | null;
   admin_role_ids?: number[];
-  playing_role?: string | null;
-  bowling_style?: string | null;
-  batting_style?: string | null;
   country?: string | null;
   city?: string | null;
   can_broadcast?: boolean;

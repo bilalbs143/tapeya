@@ -2,7 +2,7 @@
   <mat-card-content>
     <app-page-header
       title="Players Management"
-      subtitle="Onboard, edit, and review player profiles"
+      subtitle="App players only (excludes backoffice staff)"
       [badge]="totalRecords"
       [showFiltersToggle]="false"
     >
@@ -381,6 +381,20 @@
                       class="size-4.5!"
                     ></i-tabler>
                   </button>
+                  @if (row.can_broadcast) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Ban Broadcaster"
+                      matTooltip="Revoke Broadcast Access"
+                      (click)="openBroadcastBanDialog(row)"
+                    >
+                      <i-tabler
+                        name="broadcast-off"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
                 </div>
               </td>
             </ng-container>

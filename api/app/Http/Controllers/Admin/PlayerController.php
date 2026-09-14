@@ -10,17 +10,21 @@ use App\Http\Requests\Admin\Player\StoreBroadcasterPlayerRequest;
 use App\Http\Requests\Admin\Player\StorePlayerCsvImportRequest;
 use App\Http\Requests\Admin\Player\UpdateBroadcasterPlayerRequest;
 use App\Http\Resources\Admin\User\UserResource;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Services\User\PlayerCsvImportService;
+use App\Streaming\LiveStreamService;
 use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
- * Player registry: all {@see UserTypeEnum::USER} accounts (assignment-based; no app roles).
+ * Player registry: {@see UserTypeEnum::USER} accounts without admin-guard roles.
  */
 class PlayerController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(private LiveStreamService $liveStreamService) {}
 
     /**
      * CSV bulk import. Each row creates one app user.
@@ -62,32 +66,90 @@ class PlayerController extends Controller
             'batting_style' => $data['batting_style'] ?? null,
             'country' => $data['country'] ?? null,
             'city' => $data['city'] ?? null,
+            'can_broadcast' => (bool) ($data['can_broadcast'] ?? false),
+            'is_official' => (bool) ($data['is_official'] ?? false),
             'type' => UserTypeEnum::USER,
             'status' => UserStatusEnum::ACTIVE,
             'created_by' => $request->user()?->id,
         ]);
 
-        return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname'])), 'Player created.', 'CREATED');
+        return $this->success(new UserResource($this->resolvePlayer($user->id)), 'Player created.', 'CREATED');
     }
 
     public function show(User $player): JsonResponse
     {
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
+        return $this->success(new UserResource($this->resolvePlayer($player->id)));
     }
 
     public function update(UpdateBroadcasterPlayerRequest $request, User $player): JsonResponse
     {
+        $player = $this->resolvePlayer($player->id);
         $data = $request->validated();
         if ($data === []) {
-            return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
+            return $this->success(new UserResource($player));
         }
+
+        $wasAllowedToBroadcast = (bool) $player->can_broadcast;
+        $revokingBroadcast = array_key_exists('can_broadcast', $data)
+            && ! (bool) $data['can_broadcast']
+            && $wasAllowedToBroadcast;
+
         $player->update($data);
 
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])), 'Player updated.');
+        if ($revokingBroadcast) {
+            $this->revokeActiveSelfServeBroadcasts($player->fresh());
+        }
+
+        return $this->success(new UserResource($this->resolvePlayer($player->id)), 'Player updated.');
+    }
+
+    /**
+     * Revoke self-serve broadcasting access for a player account.
+     */
+    public function broadcastBan(User $player): JsonResponse
+    {
+        $player = $this->resolvePlayer($player->id);
+        $player->update(['can_broadcast' => false]);
+
+        $endedStreams = $this->revokeActiveSelfServeBroadcasts($player);
+
+        return $this->success([
+            'can_broadcast' => false,
+            'ended_streams' => $endedStreams,
+        ], 'Broadcast access revoked.');
     }
 
     private function playerBaseQuery()
     {
-        return User::query()->user()->with(['creator:id,name,nickname']);
+        return User::query()->player()->with(['creator:id,name,nickname']);
+    }
+
+    private function resolvePlayer(int $id): User
+    {
+        return $this->playerBaseQuery()->findOrFail($id);
+    }
+
+    private function revokeActiveSelfServeBroadcasts(User $user): int
+    {
+        $activeStreams = LiveStream::query()
+            ->where('owner_user_id', $user->id)
+            ->whereIn('status', ['idle', 'starting', 'live'])
+            ->get();
+
+        if ($activeStreams->isEmpty()) {
+            return 0;
+        }
+
+        foreach ($activeStreams as $stream) {
+            if ($stream->status === 'idle') {
+                $this->liveStreamService->delete($stream);
+
+                continue;
+            }
+
+            $this->liveStreamService->end($stream);
+        }
+
+        return $activeStreams->count();
     }
 }

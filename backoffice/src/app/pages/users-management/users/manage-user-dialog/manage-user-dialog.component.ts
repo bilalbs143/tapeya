@@ -24,7 +24,7 @@ export interface ManageUserDialogData {
 
 export type ManageUserDialogResult = User | undefined;
 
-/** Modal to create or edit a user. Uses global error interceptor for 422 validation toasts. */
+/** Modal to create or edit a backoffice account (Administrator or Operator). */
 @Component({
   selector: 'app-manage-user-dialog',
   standalone: true,
@@ -48,10 +48,16 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   private readonly sub = new Subscription();
 
   public readonly statusOptions$ = this.enumsService.getOptions('user_status');
-  public readonly playingRoleOptions$ = this.enumsService.getOptions('playing_role');
-  public readonly bowlingStyleOptions$ = this.enumsService.getOptions('bowling_style');
-  public readonly battingStyleOptions$ = this.enumsService.getOptions('batting_style');
   public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
+
+  /**
+   * Maps to API `UserTypeEnum` values. UI labels match how backoffice access works:
+   * Administrator = full access by type; Operator = `user` + admin-guard role(s).
+   */
+  public readonly typeOptions = [
+    { value: 'administrator', label: 'Administrator' },
+    { value: 'user', label: 'Operator' },
+  ] as const;
 
   public readonly broadcastOptions = [
     { value: false, label: 'Not Allowed' },
@@ -66,11 +72,20 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public pendingAvatarFile: File | null | undefined = undefined;
 
   public get title(): string {
-    return this.data.mode === 'edit' ? 'Edit User' : 'Create User';
+    return this.data.mode === 'edit' ? 'Edit Backoffice User' : 'Create Backoffice User';
   }
 
   public get currentAvatarUrl(): string | null | undefined {
     return this.data.user?.avatar_url;
+  }
+
+  /** API `type=user` — limited backoffice access via operator roles. */
+  public get isOperatorType(): boolean {
+    return this.form?.get('type')?.value === 'user';
+  }
+
+  public get isAdministratorType(): boolean {
+    return this.form?.get('type')?.value === 'administrator';
   }
 
   public onAvatarChange(file: File | null): void {
@@ -81,16 +96,38 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     this.initializeForm();
     this.loadCountries();
     this.sub.add(this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName)));
+    this.sub.add(this.form.get('type')?.valueChanges.subscribe((type) => this.applyTypeValidators(type)));
   }
 
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
 
+  private applyTypeValidators(type: string): void {
+    const rolesControl = this.form.get('admin_role_ids');
+    const passwordControl = this.form.get('password');
+
+    if (type === 'user') {
+      rolesControl?.setValidators([Validators.required]);
+    } else {
+      rolesControl?.clearValidators();
+      rolesControl?.setValue([], { emitEvent: false });
+    }
+    rolesControl?.updateValueAndValidity({ emitEvent: false });
+
+    if (type === 'administrator' && this.data.mode === 'create') {
+      passwordControl?.setValidators([Validators.required, Validators.minLength(8)]);
+    } else {
+      passwordControl?.clearValidators();
+    }
+    passwordControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
   private initializeForm(): void {
     const user = this.data.user;
 
     const adminRoleIds = user?.admin_role_ids?.length ? user.admin_role_ids : (user?.admin_roles?.map((r) => r.id) ?? []);
+    const type = normalizeEnumValue(user?.type_enum ?? user?.type, 'user');
 
     this.form = this.fb.group({
       id: [user?.id ?? null],
@@ -102,17 +139,17 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       email: [user?.email ?? ''],
       phone: [user?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [user?.date_of_birth ?? null],
+      type: [type, [Validators.required]],
       status: [normalizeEnumValue(user?.status_enum, 'active'), [Validators.required]],
-      admin_role_ids: [adminRoleIds],
-      playing_role: [normalizeEnumValue(user?.playing_role_enum ?? undefined, '')],
-      bowling_style: [normalizeEnumValue(user?.bowling_style_enum ?? undefined, '')],
-      batting_style: [normalizeEnumValue(user?.batting_style_enum ?? undefined, '')],
+      admin_role_ids: [adminRoleIds, type === 'user' ? [Validators.required] : []],
       country: [user?.country ?? ''],
-      // City starts disabled when no country is pre-selected; enabled reactively via loadCitiesForCountry.
       city: [{ value: user?.city ?? '', disabled: !user?.country }],
       can_broadcast: [user?.can_broadcast ?? false],
       is_official: [user?.is_official ?? false],
-      password: [''],
+      password: [
+        '',
+        type === 'administrator' && this.data.mode === 'create' ? [Validators.required, Validators.minLength(8)] : [],
+      ],
       password_confirmation: [''],
     });
   }
@@ -199,18 +236,17 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
 
   private buildPayload(): Record<string, unknown> {
     const raw = this.form.getRawValue();
+    const isOperator = raw.type === 'user';
     const payload: Record<string, unknown> = {
       name: raw.name,
       nickname: raw.nickname || null,
       email: raw.email || null,
       phone: raw.phone || null,
       date_of_birth: raw.date_of_birth || null,
-      type: 'user',
+      type: raw.type,
       status: raw.status,
-      admin_role_ids: Array.isArray(raw.admin_role_ids) ? raw.admin_role_ids : [],
-      playing_role: raw.playing_role || null,
-      bowling_style: raw.bowling_style || null,
-      batting_style: raw.batting_style || null,
+      // Administrators access backoffice by type; operators need admin-guard role ids.
+      admin_role_ids: isOperator && Array.isArray(raw.admin_role_ids) ? raw.admin_role_ids : [],
       country: raw.country || null,
       city: raw.city || null,
       can_broadcast: !!raw.can_broadcast,

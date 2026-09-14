@@ -2,6 +2,7 @@
 
 namespace App\Builders;
 
+use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -17,6 +18,30 @@ class UserBuilder extends Builder
     public function user(): static
     {
         $this->where('type', UserTypeEnum::USER);
+
+        return $this;
+    }
+
+    /**
+     * Backoffice staff roster: platform administrators or accounts with any admin-guard role.
+     */
+    public function backoffice(): static
+    {
+        $this->where(function (Builder $q) {
+            $q->where('type', UserTypeEnum::ADMINISTRATOR)
+                ->orWhereHas('roles', fn (Builder $roles) => $roles->where('roles.guard', RoleGuardEnum::ADMIN->value));
+        });
+
+        return $this;
+    }
+
+    /**
+     * App player registry: type=user accounts that are not backoffice staff.
+     */
+    public function player(): static
+    {
+        $this->where('type', UserTypeEnum::USER)
+            ->whereDoesntHave('roles', fn (Builder $roles) => $roles->where('roles.guard', RoleGuardEnum::ADMIN->value));
 
         return $this;
     }

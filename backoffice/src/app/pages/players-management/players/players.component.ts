@@ -198,6 +198,28 @@ export class PlayersComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Revokes self-serve broadcasting access — ends any active broadcast. */
+  public openBroadcastBanDialog(user: User): void {
+    this.sub.add(
+      this.messageService
+        .prompt(
+          'Ban Broadcaster?',
+          `${user.name} will lose broadcast access and any active broadcast will be ended immediately. Continue?`,
+          'Ban',
+          'Cancel'
+        )
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.playersService.banBroadcaster(user.id).subscribe({
+              next: () => this.loadHttpData(),
+              error: () => this.messageService.error('Failed to revoke broadcast access.'),
+            });
+          }
+        })
+    );
+  }
+
   public cityCountryLine(user: User): string {
     return cityCountryLine(user.city, user.country);
   }

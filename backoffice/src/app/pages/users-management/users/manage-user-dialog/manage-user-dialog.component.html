@@ -2,11 +2,10 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="User Form"
+    aria-label="Backoffice User Form"
   >
     <mat-dialog-content>
       <div class="dialog-form">
-        <!-- Avatar uploader -->
         <div class="col-span-12 flex justify-center">
           <app-avatar-uploader
             [currentUrl]="currentAvatarUrl"
@@ -15,7 +14,7 @@
           />
         </div>
 
-        <!-- Row 1: Name | Nickname -->
+        <!-- Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -41,15 +40,15 @@
             <input
               matInput
               formControlName="nickname"
-              placeholder="Letters, numbers, underscores only"
+              placeholder="Letters only"
             />
             @if (form.get('nickname')?.invalid && form.get('nickname')?.touched) {
-              <mat-error>Required; letters, numbers and underscores only</mat-error>
+              <mat-error>Required; letters only</mat-error>
             }
           </mat-form-field>
         </div>
 
-        <!-- Row 2: Email | Phone -->
+        <!-- Email | Phone -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -64,8 +63,6 @@
             />
           </mat-form-field>
         </div>
-
-        <!-- Row 2 cont: Phone -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -82,7 +79,8 @@
             }
           </mat-form-field>
         </div>
-        <!-- Row 3: Date of Birth | Status -->
+
+        <!-- Date of Birth | Status -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -102,7 +100,6 @@
             <mat-datepicker #dobPicker></mat-datepicker>
           </mat-form-field>
         </div>
-
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -122,28 +119,57 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: Backoffice Roles | Broadcast | Official -->
-        <div class="col-span-12 lg:col-span-4">
+        <!-- Account Type | Operator Roles (roles only when type=user) -->
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
-            <mat-label>Backoffice Roles</mat-label>
+            <mat-label>Account Type</mat-label>
             <mat-select
-              formControlName="admin_role_ids"
-              multiple
-              placeholder="Optional (e.g. Broadcast Operator)"
+              formControlName="type"
+              placeholder="Select Type"
             >
-              @if (adminRolesOptions$ | async; as adminRoleOptions) {
-                @for (opt of adminRoleOptions; track opt.value) {
-                  <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
-                }
+              @for (opt of typeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
+            <mat-hint>
+              @if (isAdministratorType) {
+                Full backoffice access — no role needed.
+              } @else {
+                Limited backoffice access — pick an operator role.
+              }
+            </mat-hint>
           </mat-form-field>
         </div>
+        @if (isOperatorType) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Operator Role</mat-label>
+              <mat-select
+                formControlName="admin_role_ids"
+                multiple
+                placeholder="Required (e.g. Broadcast Operator)"
+              >
+                @if (adminRolesOptions$ | async; as adminRoleOptions) {
+                  @for (opt of adminRoleOptions; track opt.value) {
+                    <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
+                  }
+                }
+              </mat-select>
+              @if (form.get('admin_role_ids')?.invalid && form.get('admin_role_ids')?.touched) {
+                <mat-error>At least one operator role is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
 
-        <div class="col-span-12 lg:col-span-4">
+        <!-- Broadcast | Official -->
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -159,8 +185,7 @@
             </mat-select>
           </mat-form-field>
         </div>
-
-        <div class="col-span-12 lg:col-span-4">
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -178,66 +203,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 5: Playing Role | Bowling Style | Batting Style -->
-        <div class="col-span-12 lg:col-span-4">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-label>Playing Role</mat-label>
-            <mat-select
-              formControlName="playing_role"
-              placeholder="Select Playing Role"
-            >
-              <mat-option value="">Select Playing Role</mat-option>
-              @if (playingRoleOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 lg:col-span-4">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-label>Bowling Style</mat-label>
-            <mat-select
-              formControlName="bowling_style"
-              placeholder="Select Bowling Style"
-            >
-              <mat-option value="">Select Bowling Style</mat-option>
-              @if (bowlingStyleOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 lg:col-span-4">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-label>Batting Style</mat-label>
-            <mat-select
-              formControlName="batting_style"
-              placeholder="Select Batting Style"
-            >
-              <mat-option value="">Select Batting Style</mat-option>
-              @if (battingStyleOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <!-- Row 6: Country | City -->
+        <!-- Country | City -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
@@ -273,19 +239,22 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 7: Password | Confirm Password -->
+        <!-- Password | Confirm Password -->
         <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
-            <mat-label>Password (Optional)</mat-label>
+            <mat-label>{{ isAdministratorType && data.mode === 'create' ? 'Password' : 'Password (Optional)' }}</mat-label>
             <input
               matInput
               type="password"
               formControlName="password"
               placeholder="Min 8 characters"
             />
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <mat-error>Password is required for administrators (min 8)</mat-error>
+            }
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">

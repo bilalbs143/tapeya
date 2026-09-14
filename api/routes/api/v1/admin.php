@@ -82,6 +82,7 @@ Route::prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::post('users/{user}/broadcast-ban', [UserController::class, 'broadcastBan']);
         Route::post('players/import-csv', [PlayerController::class, 'importCsv']);
+        Route::post('players/{player}/broadcast-ban', [PlayerController::class, 'broadcastBan']);
         Route::apiResource('players', PlayerController::class)->only(['index', 'store', 'show', 'update']);
 
         Route::apiResource('teams', TeamController::class);
