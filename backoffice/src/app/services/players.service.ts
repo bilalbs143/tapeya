@@ -40,7 +40,7 @@ export class PlayersService {
 
   private readonly baseUrl = 'v1/admin/players';
 
-  public getList(params: Partial<ListParams> = {}): Observable<UsersListResponse> {
+  public getList(params: Partial<ListParams> & { all?: boolean } = {}): Observable<UsersListResponse> {
     return this.http.get<UsersListResponse>(this.baseUrl, { params: toHttpParams(params as Record<string, unknown>) });
   }
 

@@ -362,8 +362,8 @@
                     type="button"
                     class="row-action"
                     aria-label="View Player Stats"
-                    [routerLink]="[row.id, 'stats']"
                     matTooltip="View Stats"
+                    (click)="openPlayerStats(row)"
                   >
                     <i-tabler
                       name="chart-bar"
