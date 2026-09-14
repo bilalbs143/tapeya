@@ -59,6 +59,8 @@ import { Button } from '@/ui/Button';
 import { ListError } from '@/ui/ListState';
 import { FullScreenLoader } from '@/ui/Loader';
 
+import { useVanityViewerCount } from './useVanityViewerCount';
+
 export default function DuringBroadcast({ streamId }) {
   const navigate = useNavigate();
   const goBack = useAppBack();
@@ -100,6 +102,7 @@ export default function DuringBroadcast({ streamId }) {
   const { data: enums = {} } = useGetEnumsQuery();
   const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
+  const vanitySelfServe = settingsByKey.stream_vanity_viewer_self_serve === '1';
   const [endBroadcastMutation] = useEndBroadcastMutation();
   const [startBroadcastSession] = useStartBroadcastSessionMutation();
 
@@ -127,8 +130,14 @@ export default function DuringBroadcast({ streamId }) {
   useBroadcastCameraUnderlay();
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
-  // Go-live camera is always self-serve — show real presence, never vanity.
-  const viewerCount = realViewerCount;
+  const viewerCount = useVanityViewerCount(realViewerCount, {
+    enabled: vanitySelfServe,
+    settingsReady: settingsRows != null,
+    streamId,
+    startedAt: publicBroadcast?.stream?.started_at ?? broadcast?.stream?.started_at ?? null,
+    min: settingsByKey.stream_vanity_viewer_min,
+    max: settingsByKey.stream_vanity_viewer_max,
+  });
   const { hearts: floatingHearts, spawnBurst, removeHeart } = useFloatingHearts();
   const handleRemoteHeart = useCallback(
     (payload) => {
@@ -154,8 +163,9 @@ export default function DuringBroadcast({ streamId }) {
   }, [streamId, toast]);
 
   useEffect(() => {
-    setPeakViewers((prev) => Math.max(prev, realViewerCount));
-  }, [realViewerCount]);
+    if (viewerCount == null) return;
+    setPeakViewers((prev) => Math.max(prev, viewerCount));
+  }, [viewerCount]);
 
   useEffect(
     () => () => {

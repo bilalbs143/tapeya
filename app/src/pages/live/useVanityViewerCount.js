@@ -1,22 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-/** Opening look — solid early crowd, not an empty room. */
-const START_MIN = 180;
-const START_MAX = 420;
-const FLOOR = 120;
+/** Shared tick — every client refreshes on the same wall-clock bucket. */
+const TICK_MS = 3_000;
 
-/** Per-stream ceiling (deterministic from stream id). */
-const CEILING_MIN = 2_200;
-const CEILING_MAX = 3_800;
-
-const WOBBLE_MIN = 14;
-const WOBBLE_MAX = 52;
-
-/** Shared tick so every client refreshes the same bucket together. */
-const TICK_MS = 4_000;
-
-/** Rough viewer growth per minute of stream time (before wobble). */
-const GROWTH_PER_MINUTE = 130;
+/** Ease from near-min into the oscillating band. */
+const RAMP_MS = 90_000;
 
 function hash32(input) {
   let h = 2166136261;
@@ -42,67 +30,88 @@ function intIn(seed, salt, min, max) {
 }
 
 /**
- * Shared vanity base for a stream. Same streamId + startedAt + wall-clock tick
- * → same number on every device.
- *
- * @param {string|number|null|undefined} streamId
- * @param {number|null|undefined} startedAtMs
- * @param {number} [nowMs]
+ * @returns {{ min: number, max: number } | null} null when disabled / invalid
  */
-export function computeVanityBase(streamId, startedAtMs, nowMs = Date.now()) {
-  const seed = hash32(streamId);
-  const startBase = intIn(seed, 1, START_MIN, START_MAX);
-  const ceiling = intIn(seed, 2, CEILING_MIN, CEILING_MAX);
-
-  const started = Number.isFinite(startedAtMs) ? startedAtMs : null;
-  const elapsedMin = started == null ? 0 : Math.max(0, (nowMs - started) / 60_000);
-  const rising = Math.min(ceiling, startBase + elapsedMin * GROWTH_PER_MINUTE);
-
-  const tick = Math.floor(nowMs / TICK_MS);
-  const amp = intIn(seed, 3, WOBBLE_MIN, WOBBLE_MAX);
-  const spike = unit(seed, tick + 11) < 0.12 ? 1.8 : 1;
-  const wobble = (unit(seed, tick) * 2 - 1) * amp * spike;
-
-  return Math.max(FLOOR, Math.min(ceiling, Math.round(rising + wobble)));
+export function resolveVanityViewerRange(minRaw, maxRaw) {
+  const a = Math.round(Number(minRaw));
+  const b = Math.round(Number(maxRaw));
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  if (a === 0 && b === 0) return null;
+  if (a < 0 || b < 0) return null;
+  const min = Math.min(a, b);
+  const max = Math.max(a, b);
+  if (max < 1) return null;
+  return { min, max };
 }
 
 /**
- * Viewer count for the live watch chrome.
- *
- * - `enabled: true` (default) — vanity base shared across all watchers of this stream,
- *   plus real presence (match-linked / admin streams).
- * - `enabled: false` — real presence only (self-serve mobile go-live).
- *
- * Pass `streamId` + `startedAt` so every client derives the same vanity number.
- *
- * @param {number} [realCount=0]
- * @param {{ enabled?: boolean, streamId?: string|number|null, startedAt?: string|number|null }} [options]
+ * Same streamId + now + range → same number on every device.
+ * Slow + medium waves drift up/down inside [min, max] (never parks at max).
  */
-export function useVanityViewerCount(realCount = 0, { enabled = true, streamId = null, startedAt = null } = {}) {
-  const startedAtMs = startedAt == null || startedAt === '' ? null : new Date(startedAt).getTime();
-  const startedOk = startedAtMs != null && Number.isFinite(startedAtMs);
+export function computeVanityBase(streamId, startedAtMs, range, nowMs = Date.now()) {
+  const { min: lo, max: hi } = range;
+  if (hi <= lo) return lo;
 
-  const [base, setBase] = useState(() =>
-    enabled && streamId != null ? computeVanityBase(streamId, startedOk ? startedAtMs : null) : 0,
-  );
+  const seed = hash32(streamId);
+  const span = hi - lo;
+  const tSec = nowMs / 1000;
+
+  // Per-stream periods so different streams are not locked together.
+  const slowPeriod = 180 + intIn(seed, 4, 0, 180); // 3–6 min
+  const medPeriod = 45 + intIn(seed, 5, 0, 45); // 45–90 s
+  const slow = 0.5 + 0.5 * Math.sin((2 * Math.PI * tSec) / slowPeriod + unit(seed, 6) * Math.PI * 2);
+  const med = 0.5 + 0.5 * Math.sin((2 * Math.PI * tSec) / medPeriod + unit(seed, 7) * Math.PI * 2);
+
+  const tick = Math.floor(nowMs / TICK_MS);
+  const wobble = (unit(seed, tick) * 2 - 1) * 0.04; // ±4% of band, shared per tick
+
+  // Keep away from exact edges so the count keeps moving.
+  let u = 0.7 * slow + 0.3 * med + wobble;
+  u = Math.min(0.96, Math.max(0.04, u));
+
+  let value = lo + u * span;
+
+  if (Number.isFinite(startedAtMs)) {
+    const ramp = Math.min(1, Math.max(0, nowMs - startedAtMs) / RAMP_MS);
+    const ease = 1 - (1 - ramp) ** 2;
+    const openAt = lo + span * 0.08;
+    value = openAt + (value - openAt) * ease;
+  }
+
+  return Math.round(Math.min(hi, Math.max(lo, value)));
+}
+
+/**
+ * Match/admin watch: vanity when range is set.
+ * Self-serve: vanity only when caller passes enabled (settings flag).
+ * While settings are still loading (`settingsReady: false`), returns null (hide badge).
+ */
+export function useVanityViewerCount(
+  realCount = 0,
+  { enabled = true, settingsReady = true, streamId = null, startedAt = null, min = null, max = null } = {},
+) {
+  const range = useMemo(() => resolveVanityViewerRange(min, max), [min, max]);
+  const startedAtMs = useMemo(() => {
+    if (startedAt == null || startedAt === '') return null;
+    const ms = new Date(startedAt).getTime();
+    return Number.isFinite(ms) ? ms : null;
+  }, [startedAt]);
+
+  const vanityOn = Boolean(enabled && settingsReady && streamId != null && range);
+  const waiting = Boolean(enabled && !settingsReady);
+
+  const [base, setBase] = useState(0);
 
   useEffect(() => {
-    if (!enabled || streamId == null) {
+    if (!vanityOn || !range) {
       setBase(0);
       return undefined;
     }
 
-    const started = startedOk ? startedAtMs : null;
-
-    function refresh() {
-      setBase(computeVanityBase(streamId, started));
-    }
-
+    const refresh = () => setBase(computeVanityBase(streamId, startedAtMs, range));
     refresh();
 
-    // Align first refresh to the next shared tick boundary so clients converge faster.
-    const now = Date.now();
-    const untilNextTick = TICK_MS - (now % TICK_MS);
+    const untilNextTick = TICK_MS - (Date.now() % TICK_MS);
     let intervalId = null;
     const timeoutId = setTimeout(() => {
       refresh();
@@ -113,16 +122,15 @@ export function useVanityViewerCount(realCount = 0, { enabled = true, streamId =
       clearTimeout(timeoutId);
       if (intervalId != null) clearInterval(intervalId);
     };
-  }, [enabled, streamId, startedAtMs, startedOk]);
+  }, [vanityOn, streamId, startedAtMs, range]);
 
-  if (!enabled) {
-    return realCount;
-  }
-
-  return base + realCount;
+  if (waiting) return null;
+  if (!vanityOn) return realCount;
+  return base;
 }
 
 export function formatViewerCount(n) {
+  if (n == null || Number.isNaN(n)) return '—';
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
 }

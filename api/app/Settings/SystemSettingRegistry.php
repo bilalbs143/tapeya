@@ -209,6 +209,15 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::STREAM_QUOTA_ALERT_THRESHOLD_PERCENT => [
                 'value' => ['required', 'integer', 'min:1', 'max:100'],
             ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN => [
+                'value' => ['required', 'integer', 'min:0', 'max:1000000'],
+            ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MAX => [
+                'value' => ['required', 'integer', 'min:0', 'max:1000000'],
+            ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_SELF_SERVE => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
@@ -335,6 +344,21 @@ final class SystemSettingRegistry
                 $validator->errors()->add('value', 'The FCM Service Account JSON Must Be Valid JSON.');
             } elseif (! isset($decoded['project_id'], $decoded['private_key'], $decoded['client_email'])) {
                 $validator->errors()->add('value', 'The FCM Service Account JSON Must Include project_id, private_key, and client_email.');
+            }
+        }
+
+        if ($key === SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN || $key === SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MAX) {
+            $incoming = is_numeric($raw) ? (int) $raw : null;
+            if ($incoming === null) {
+                return;
+            }
+            $other = $key === SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN
+                ? (int) SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MAX->read()
+                : (int) SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN->read();
+            $min = $key === SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN ? $incoming : $other;
+            $max = $key === SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MAX ? $incoming : $other;
+            if (! ($min === 0 && $max === 0) && $max < $min) {
+                $validator->errors()->add('value', 'Vanity Viewer Max Must Be Greater Than Or Equal To Vanity Viewer Min (Or Set Both To 0 To Disable).');
             }
         }
     }
@@ -669,6 +693,33 @@ final class SystemSettingRegistry
                 'description' => 'Alert staff once today’s tracked API usage reaches this percent of the daily budget. Default 80.',
                 'settings_class' => StreamingSettings::class,
                 'property' => 'quotaAlertThresholdPercent',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MIN->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Vanity Viewer Min',
+                'description' => 'Lower bound for the shared watcher count on match/admin live streams (e.g. 2000). Same on every device; drifts with max. Set both to 0 to disable.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'vanityViewerMin',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_MAX->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Vanity Viewer Max',
+                'description' => 'Upper bound (e.g. 2500). Count moves up and down inside the range — it does not freeze at max.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'vanityViewerMax',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_VANITY_VIEWER_SELF_SERVE->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Vanity On Self-Serve',
+                'description' => '1 = apply vanity min/max to self-serve Go Live (broadcaster + watchers). 0 = real presence only for self-serve. Match/admin streams always use the range when min/max are set.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'vanityViewerSelfServe',
                 'nullable_string' => false,
             ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED->value => [

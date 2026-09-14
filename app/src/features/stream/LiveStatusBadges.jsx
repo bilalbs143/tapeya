@@ -21,6 +21,8 @@ export function LiveStatusBadge({ status, label: labelOverride }) {
 
 /** White viewer pill with eye icon — same chrome as the watch-live player. */
 export function LiveViewerCountBadge({ viewerCount, format = true }) {
+  if (viewerCount == null) return null;
+
   const display = format ? formatViewerCount(viewerCount) : String(viewerCount);
 
   return (
