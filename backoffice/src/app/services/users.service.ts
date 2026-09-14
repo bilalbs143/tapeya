@@ -36,6 +36,7 @@ export interface User {
   active_platform?: string | null;
   active_platform_label?: string | null;
   active_platform_updated_at?: string | null;
+  last_active_at?: string | null;
   can_broadcast?: boolean;
   is_official?: boolean;
   admin_roles?: UserRole[];

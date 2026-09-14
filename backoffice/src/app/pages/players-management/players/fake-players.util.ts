@@ -426,6 +426,10 @@ export function generateFakePlayers(count = FAKE_PLAYERS_COUNT): PlayerListRow[]
       city,
       active_platform: null,
       active_platform_label: null,
+      last_active_at:
+        pick(n, 52, 10) === 0
+          ? null
+          : new Date(Date.now() - pick(n, 50, 45) * 86_400_000 - pick(n, 51, 86_400_000)).toISOString(),
       can_broadcast: false,
       is_official: false,
       created_at: createdIso,

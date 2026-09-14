@@ -12,7 +12,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { format } from 'date-fns';
+import { format, formatDistanceToNowStrict } from 'date-fns';
 import { Observable, Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
@@ -44,6 +44,7 @@ const DEFAULT_FILTERS = {
   search: '',
   status: '',
   active_platform: '',
+  inactive_days: '',
   created_after: null as Date | null,
   created_before: null as Date | null,
 } as const;
@@ -116,6 +117,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
     'batting_style',
     'location',
     'active_platform',
+    'last_active_at',
     'actions',
   ];
   public dataSource = new MatTableDataSource<PlayerListRow>([]);
@@ -175,6 +177,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
           search: (filters.search ?? '').trim(),
           status: filters.status ?? '',
           active_platform: filters.active_platform ?? '',
+          inactive_days: filters.inactive_days ?? '',
           created_after: filters.created_after ? format(filters.created_after, 'yyyy-MM-dd') : undefined,
           created_before: filters.created_before ? format(filters.created_before, 'yyyy-MM-dd') : undefined,
         })
@@ -231,6 +234,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
     const search = ((filters.search as string) ?? '').trim().toLowerCase();
     const status = (filters.status as string) ?? '';
     const platform = (filters.active_platform as string) ?? '';
+    const inactiveDaysRaw = (filters.inactive_days as string) ?? '';
+    const inactiveDays = inactiveDaysRaw ? Number(inactiveDaysRaw) : 0;
     const after: Date | null = filters.created_after ?? null;
     const before: Date | null = filters.created_before ?? null;
 
@@ -244,6 +249,11 @@ export class PlayersComponent implements OnInit, OnDestroy {
         if (row.active_platform) return false;
       } else if (platform && row.active_platform !== platform) {
         return false;
+      }
+      if (inactiveDays > 0) {
+        const cutoff = Date.now() - inactiveDays * 86_400_000;
+        const at = row.last_active_at ? new Date(row.last_active_at).getTime() : null;
+        if (at != null && !Number.isNaN(at) && at > cutoff) return false;
       }
       if (after || before) {
         const created = row.created_at ? new Date(row.created_at) : null;
@@ -342,6 +352,13 @@ export class PlayersComponent implements OnInit, OnDestroy {
           });
         })
     );
+  }
+
+  public formatLastActive(iso: string | null | undefined): string {
+    if (!iso) return 'Never';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'Never';
+    return formatDistanceToNowStrict(d, { addSuffix: true });
   }
 
   public cityCountryLine(user: User): string {

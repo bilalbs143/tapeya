@@ -106,7 +106,7 @@ Route::prefix('auth')->group(function () {
 // Public live watch teaser — share links load metadata; playback stays behind auth:api.
 Route::get('live/streams/{stream}', [LiveStreamController::class, 'show'])->middleware('throttle:60,1');
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::post('device-tokens', [DeviceTokenController::class, 'store']);
     Route::put('active-platform', [UserActivePlatformController::class, 'update']);

@@ -12,6 +12,7 @@ class AdminOnlyServiceProvider
             'admin.only' => AdminOnly::class,
             'admin.permission' => EnsureAdminPermission::class,
             'vendor' => EnsureVendor::class,
+            'touch.last_active' => TouchLastActive::class,
         ]);
     }
 }
