@@ -121,7 +121,7 @@ class PlayerController extends Controller
 
     private function playerBaseQuery()
     {
-        return User::query()->player()->with(['creator:id,name,nickname']);
+        return User::query()->player()->with(['creator:id,name,nickname', 'roles']);
     }
 
     private function resolvePlayer(int $id): User

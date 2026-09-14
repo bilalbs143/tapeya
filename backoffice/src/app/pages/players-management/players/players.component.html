@@ -371,9 +371,7 @@
                 mat-cell
                 *matCellDef="let row"
                 class="whitespace-nowrap"
-                [title]="
-                  row.last_active_at ? (row.last_active_at | date: 'yyyy-MM-dd HH:mm') : ''
-                "
+                [title]="row.last_active_at ? (row.last_active_at | date: 'yyyy-MM-dd HH:mm') : ''"
               >
                 {{ formatLastActive(row.last_active_at) }}
               </td>

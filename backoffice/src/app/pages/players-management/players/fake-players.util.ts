@@ -370,72 +370,112 @@ function gmailFromName(first: string, last: string, n: number): string {
 
 /**
  * Client-only fake players (never written to DB).
+ * Deterministic aside from last_active_at (anchored to Date.now() so "ago" stays fresh).
  * Order: newer first → oldest last (so after reals, oldest fakes sit at the bottom).
  */
 export function generateFakePlayers(count = FAKE_PLAYERS_COUNT): PlayerListRow[] {
-  const rows: PlayerListRow[] = [];
+  const rows: PlayerListRow[] = new Array(count);
   const baseMs = Date.UTC(2020, 0, 1, 12, 0, 0);
+  const nowMs = Date.now();
 
   for (let n = 1; n <= count; n++) {
-    const createdIso = new Date(baseMs + (count - n) * 86_400_000).toISOString();
-    const first = oneOf(n, 21, FIRST_NAMES);
-    const last = oneOf(n, 22, LAST_NAMES);
-    const unfinished = pick(n, 40, 100) < 40;
-
-    let playingRole: string | null = oneOf(n, 24, PLAYING_ROLES);
-    let bowlingStyle: string | null = oneOf(n, 25, BOWLING_STYLES);
-    let battingStyle: string | null = oneOf(n, 26, BATTING_STYLES);
-    let city: string | null = oneOf(n, 23, CITIES);
-    let country: string | null = 'Pakistan';
-    let email: string | null = pick(n, 5, 5) === 0 ? null : gmailFromName(first, last, n);
-
-    if (unfinished) {
-      const gap = pick(n, 42, 4);
-      if (gap <= 1) {
-        playingRole = null;
-        bowlingStyle = null;
-        battingStyle = null;
-      } else if (gap === 2) {
-        playingRole = null;
-        bowlingStyle = null;
-      } else {
-        playingRole = null;
-      }
-      if (gap === 0) city = null;
-      if (pick(n, 44, 100) < 25) country = null;
-      if (pick(n, 41, 100) < 60) email = null;
-    }
-
-    rows.push({
-      id: -n,
-      is_fake: true,
-      name: `${first} ${last}`,
-      nickname: nicknameFrom(first, last, n),
-      email,
-      phone: phoneFrom(n),
-      date_of_birth: null,
-      type: 'user',
-      type_enum: 'user',
-      status: 'Active',
-      status_enum: 'active',
-      playing_role: playingRole,
-      playing_role_enum: playingRole ? playingRole.toLowerCase().replace(/\s+/g, '_') : null,
-      bowling_style: bowlingStyle,
-      batting_style: battingStyle,
-      country,
-      city,
-      active_platform: null,
-      active_platform_label: null,
-      last_active_at:
-        pick(n, 52, 10) === 0
-          ? null
-          : new Date(Date.now() - pick(n, 50, 45) * 86_400_000 - pick(n, 51, 86_400_000)).toISOString(),
-      can_broadcast: false,
-      is_official: false,
-      created_at: createdIso,
-      updated_at: createdIso,
-    });
+    rows[n - 1] = buildFakePlayer(n, count, baseMs, nowMs);
   }
 
   return rows;
+}
+
+function buildFakePlayer(n: number, count: number, baseMs: number, nowMs: number): PlayerListRow {
+  const createdIso = new Date(baseMs + (count - n) * 86_400_000).toISOString();
+  const first = oneOf(n, 21, FIRST_NAMES);
+  const last = oneOf(n, 22, LAST_NAMES);
+  const unfinished = pick(n, 40, 100) < 40;
+
+  let playingRole: string | null = oneOf(n, 24, PLAYING_ROLES);
+  let bowlingStyle: string | null = oneOf(n, 25, BOWLING_STYLES);
+  let battingStyle: string | null = oneOf(n, 26, BATTING_STYLES);
+  let city: string | null = oneOf(n, 23, CITIES);
+  let country: string | null = 'Pakistan';
+  let email: string | null = pick(n, 5, 5) === 0 ? null : gmailFromName(first, last, n);
+
+  if (unfinished) {
+    const gap = pick(n, 42, 4);
+    if (gap <= 1) {
+      playingRole = null;
+      bowlingStyle = null;
+      battingStyle = null;
+    } else if (gap === 2) {
+      playingRole = null;
+      bowlingStyle = null;
+    } else {
+      playingRole = null;
+    }
+    if (gap === 0) city = null;
+    if (pick(n, 44, 100) < 25) country = null;
+    if (pick(n, 41, 100) < 60) email = null;
+  }
+
+  return {
+    id: -n,
+    is_fake: true,
+    name: `${first} ${last}`,
+    nickname: nicknameFrom(first, last, n),
+    email,
+    phone: phoneFrom(n),
+    date_of_birth: null,
+    type: 'user',
+    type_enum: 'user',
+    status: 'Active',
+    status_enum: 'active',
+    playing_role: playingRole,
+    playing_role_enum: playingRole ? playingRole.toLowerCase().replace(/\s+/g, '_') : null,
+    bowling_style: bowlingStyle,
+    batting_style: battingStyle,
+    country,
+    city,
+    active_platform: null,
+    active_platform_label: null,
+    last_active_at:
+      pick(n, 52, 10) === 0 ? null : new Date(nowMs - pick(n, 50, 45) * 86_400_000 - pick(n, 51, 86_400_000)).toISOString(),
+    can_broadcast: false,
+    is_official: false,
+    created_at: createdIso,
+    updated_at: createdIso,
+  };
+}
+
+const FAKE_CHUNK = 500;
+
+let moduleFakeCache: PlayerListRow[] | null = null;
+let moduleFakeInflight: Promise<PlayerListRow[]> | null = null;
+
+/** Module-level cache — survives navigation; builds in idle chunks so the UI stays responsive. */
+export function ensureFakePlayersCached(count = FAKE_PLAYERS_COUNT): Promise<PlayerListRow[]> {
+  if (moduleFakeCache) return Promise.resolve(moduleFakeCache);
+  if (moduleFakeInflight) return moduleFakeInflight;
+
+  moduleFakeInflight = new Promise((resolve) => {
+    const rows: PlayerListRow[] = new Array(count);
+    const baseMs = Date.UTC(2020, 0, 1, 12, 0, 0);
+    const nowMs = Date.now();
+    let n = 1;
+
+    const step = () => {
+      const end = Math.min(n + FAKE_CHUNK - 1, count);
+      for (; n <= end; n++) {
+        rows[n - 1] = buildFakePlayer(n, count, baseMs, nowMs);
+      }
+      if (n <= count) {
+        setTimeout(step, 0);
+        return;
+      }
+      moduleFakeCache = rows;
+      moduleFakeInflight = null;
+      resolve(rows);
+    };
+
+    setTimeout(step, 0);
+  });
+
+  return moduleFakeInflight;
 }

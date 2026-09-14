@@ -33,7 +33,7 @@ import {
 } from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
-import { generateFakePlayers, isFakePlayer, type PlayerListRow } from './fake-players.util';
+import { ensureFakePlayersCached, isFakePlayer, type PlayerListRow } from './fake-players.util';
 import { ImportPlayersCsvDialogComponent } from './import-players-csv-dialog/import-players-csv-dialog.component';
 import {
   ManagePlayerDialogComponent,
@@ -92,7 +92,6 @@ export class PlayersComponent implements OnInit, OnDestroy {
    */
   public isFakeListMode = true;
   private demoAllRows: PlayerListRow[] = [];
-  private cachedFakes: PlayerListRow[] | null = null;
   private needsDemoReload = true;
 
   @ViewChild(MatSort)
@@ -144,6 +143,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
       this.isFakeListMode = false;
     } else {
       this.isFakeListMode = true;
+      // Warm fake cache while the all=true API request is in flight.
+      void ensureFakePlayersCached();
     }
 
     this.sub.add(bindListSearchFormLiveReload(this));
@@ -202,17 +203,24 @@ export class PlayersComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
+    const fakesReady = ensureFakePlayersCached();
     this.playersService.getList({ all: true }).subscribe({
       next: (res) => {
-        const real = ((res.data ?? []) as PlayerListRow[]).filter((row) => {
-          const country = (row.country ?? '').trim().toLowerCase();
-          return !country || country === 'pakistan';
-        });
-        const fakes = (this.cachedFakes ??= generateFakePlayers());
-        this.demoAllRows = [...real, ...fakes];
-        this.needsDemoReload = false;
-        this.applyDemoPage();
-        this.isLoading = false;
+        void fakesReady
+          .then((fakes) => {
+            const real = ((res.data ?? []) as PlayerListRow[]).filter((row) => {
+              const country = (row.country ?? '').trim().toLowerCase();
+              return !country || country === 'pakistan';
+            });
+            this.demoAllRows = real.concat(fakes);
+            this.needsDemoReload = false;
+            this.applyDemoPage();
+            this.isLoading = false;
+          })
+          .catch(() => {
+            this.isLoading = false;
+            this.messageService.error('Failed to Load Players.');
+          });
       },
       error: () => {
         this.isLoading = false;
