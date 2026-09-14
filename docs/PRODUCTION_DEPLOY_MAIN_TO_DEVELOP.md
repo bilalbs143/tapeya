@@ -1,19 +1,19 @@
-# Production deploy — `main` → release tip (develop + WIP)
+# Production deploy — `main` → `develop` tip
 
-Ship **production `main`** up through **local `develop` tip** plus **all current uncommitted work**, **without** `migrate:fresh` / `migrate:refresh` / DB wipe.
+Ship **production `main`** up through **local `develop` tip** (`80f73df`), **without** `migrate:fresh` / `migrate:refresh` / DB wipe.
 
-This file is the runbook. Follow steps **in order**. Do not skip schema scripts.
+This file is the runbook. Follow steps **in order**.
 
 ---
 
-## 0. Snapshot (update SHAs at commit time)
+## 0. Snapshot (update SHAs at commit / deploy time)
 
 | Ref | SHA (as of writing) | Notes |
 |-----|---------------------|--------|
-| **`origin/main` / prod baseline** | `68fa80d` | Dialog/radio spacing polish |
-| **Local `develop` tip** | `e4e020f` | Ahead of `origin/develop` by **2** commits |
-| **`main..develop`** | `a571e39`, `e4e020f` | Tournament simplify + team attach |
-| **Working tree** | uncommitted | See §2 (YouTube keys, live feed widgets, visibility drop, OTP UX, reel poster sync, silent auto-engagement, live-created push copy, …) |
+| **`origin/main` / prod baseline** | `7ee3332` | YouTube key FK migration order; one-shot DB scripts dropped |
+| **Local `develop` tip** | `80f73df` | Ahead of `origin/develop` (push before merge) |
+| **`main..develop`** | `dd0a8ef`, `0b08a05`, `80f73df` | Users/Players split → architecture doc → fake players demo |
+| **Working tree** | clean | Nothing else to commit for this release |
 
 **Before you start deploy day:** re-run and paste into this section:
 
@@ -22,141 +22,112 @@ git fetch origin
 git rev-parse --short origin/main
 git rev-parse --short develop
 git rev-list --left-right --count origin/main...develop
+git log --oneline origin/main..develop
 git status -sb
 ```
 
-Release tip = whatever SHA you put on `main` after committing WIP + merging develop.
+Release tip = whatever SHA lands on `main` after merging `develop` (expect `80f73df` or its merge/FF tip).
 
 ---
 
 ## 1. Hard rules (read once)
 
 1. **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or drop/recreate the production database for this release.
-2. **Edited historical migrations do nothing on prod.** Laravel will not re-run:
-   - `2026_05_18_100000_create_live_streams_table` (adds `youtube_stream_key_id` in git only)
-   - `2026_07_25_100100_create_posts_table` (drops `visibility` in git only)
-   - `2026_02_22_100001_create_users_table` (drops `referred_by` / nickname unique in git only)
-   - tournament/teams create migrations simplified in git only
-
-   Those changes land on **existing** DBs **only** via `api/database/scripts/*`.
-3. **New migration files** still run via `php artisan migrate --force` (e.g. `2026_05_18_099000_create_youtube_stream_keys_table`).
-4. Scripts are **idempotent** (safe to re-run). Prefer re-running over skipping.
-5. Deploy **code first**, then **`migrate`**, then **scripts**, then caches/workers/frontends. Code that expects a new column without the script will 500.
-6. Do **not** commit secrets (`.env`, credentials). Do commit `api/database/scripts/*` and the new YouTube keys migration.
-7. **No new additive migrations** for OTP / auto-engagement / push copy — those are code + seeders / public settings only.
+2. **No new migrations** and **no `api/database/scripts/*`** in this range — schema on prod should already match `7ee3332`. Still run `migrate --force` so any accidental pending file surfaces; expect **nothing pending**.
+3. Deploy **code**, then **`migrate --force`** (confirm clean), then caches/workers/frontends.
+4. Do **not** commit secrets (`.env`, credentials).
 
 ---
 
 ## 2. What this release contains (product)
 
-### Already on develop (not on main yet)
+Commits on `develop` not on `main`:
 
-- Tournament requests removed → instant create / simplified tournaments
-- Teams: free-text sponsor + icon players; `team_icon_players` dropped
-- Backoffice tournament team attach improvements
+| SHA | Summary |
+|-----|---------|
+| `dd0a8ef` | **Users vs Players split** — Users = administrators + operators (admin-guard roles); Players = app users without those roles. Modal/validation updates. |
+| `0b08a05` | **Docs** — `docs/APP_REWRITE_ARCHITECTURE.md` (app rewrite blueprint; no runtime change). |
+| `80f73df` | **Fake players demo** — default `/players-management/players` merges Pakistan-filtered reals + client-generated fakes; `?q=tapeya-players` unlocks real API-only list. |
 
-### Uncommitted (must be committed before merge)
+### API
 
-- **YouTube stream key pool** (admin CRUD + assign on create/manage stream)
-- **Feed “is live now”** widget + Live hub / Home slider host row + shared `LiveStreamChip`
-- **Posts visibility removed** (all posts public)
-- **Reel multipart upload hardening** (larger parts, retries, CORS `max_age`, nginx timeouts)
-- **Reel cover sync** — provisional client poster upload before original lands; eager `ReelCoverImage`; app-wide `reel.processing.updated` cache patch
-- **OTP UX** — test phones (from public `test_otp_phones` setting) keep banner + manual entry; other phones auto-fill/verify when API returns OTP
-- **Live stream created push** — title `{{stream_title}} is live on Tapeya`; body encourages opening the app
-- **Auto-engagement** — synthetic likes are silent (no push/in-app); drip 1 per tick
-- Live chat / streaming polish, compose reel icon + nickname + frame padding
-- Backoffice YouTube Stream Keys screens + live stream dialog stream-key select
+- `UserBuilder`: `backoffice()` vs `player()` scopes
+- Admin `UserController` / `PlayerController` + store/update validation (staff need admin roles)
+- Feature test: `AdminUsersPlayersSplitTest`
 
-Out of scope / already parked outside the tree: `../temp/tapeya-next`, `../temp/app-next`, design-benchmark docs, App Store process.
+### Backoffice
+
+- Users list/dialogs: Administrator vs Operator (cricket/location/platform trimmed from users)
+- Players list: demo mode + real mode gate; fake-row actions no-op
+- `players.service` supports `all=true` for demo load
+
+### Out of scope
+
+- Consumer app / native store bumps (not required for this release)
+- Graphics pipeline
+- New DB columns/tables
 
 ---
 
 ## 3. Schema map — migrate vs scripts
 
-### A. `php artisan migrate --force` (pending files only)
+### A. `php artisan migrate --force`
 
-| Migration | Effect on existing prod |
-|-----------|-------------------------|
-| `2026_05_18_099000_create_youtube_stream_keys_table` | **Creates** `youtube_stream_keys` (new). Will appear as pending even though the timestamp is “before” `live_streams` — that is OK; Laravel runs **unrecorded** migrations by filename order. |
-| Any other **new** migration files you add before ship | Run normally |
+| Expectation |
+|-------------|
+| **No pending migrations** for `main..develop`. Confirm with `migrate:status`. |
 
-### B. One-off scripts (existing DB — **required**)
+### B. One-off scripts
 
-Run from `api/` after migrate. Order below is mandatory.
+| Script | Needed? |
+|--------|---------|
+| Anything under `api/database/scripts/` | **N/A** — folder not in tree for this release |
 
-| # | Script | Why |
-|---|--------|-----|
-| 1 | `database/scripts/teams_free_text_sponsor_icons.php` | Teams sponsor / icon_players columns; drop `team_icon_players` |
-| 2 | `database/scripts/simplify_tournaments.php` | Drop `tournament_requests`; drop tournament columns removed in simplified model |
-| 3 | `database/scripts/drop_users_referred_by.php` | Drop `users.referred_by`; drop `users.nickname` unique; remove obsolete push template |
-| 4 | `database/scripts/add_live_streams_youtube_stream_key_id.php` | Add `live_streams.youtube_stream_key_id` + FK (**needs** `youtube_stream_keys` from migrate) |
-| 5 | `database/scripts/drop_posts_visibility.php` | Drop `posts.visibility` (+ index if present) |
-
-### C. Intentionally not re-applied by migrate
-
-| Change in git | Prod action |
-|---------------|-------------|
-| Deleted `create_tournament_requests_table` migration file | Leave orphaned row in `migrations` if present — harmless without refresh |
-| Edited `create_live_streams` / `create_posts` / `create_users` / teams / tournaments | Scripts above |
-| Deleted unused `api/config/otp.php` | None — live list is Spatie `test_otp_phones` |
+If someone reintroduces scripts later, do **not** invent them for this deploy.
 
 ---
 
 ## 4. Pre-flight (local)
 
-### 4.1 Finish the release branch
+### 4.1 Push develop tip
 
 ```bash
 cd /path/to/tapeya
 git checkout develop
-git status -sb
-# Commit ALL intended WIP (api + app + backoffice + nginx + scripts). Exclude secrets.
-# tapeya-next / app-next already live under ../temp — do not re-add.
-git add -A   # carefully review; unstage secrets if present
-git commit -m "$(cat <<'EOF'
-Ship YouTube stream key pool, feed live widgets, posts visibility removal, OTP UX, reel poster sync, and related deploy scripts.
-
-EOF
-)"
-# If you prefer multiple commits, still land everything on develop before merge.
+git status -sb   # expect clean at 80f73df (or newer intentional tip)
 git push -u origin develop
 ```
 
 ### 4.2 Fast checks (recommended)
 
 ```bash
-cd api && php artisan test --filter='LiveStream|AutoEngagement|LiveStreamNotification'
-cd ../app && npm test -- --run \
-  src/components/feed/__tests__/buildFeedTimelineRows.test.js \
-  src/lib/utils/__tests__/liveStreamUtils.test.js \
-  src/lib/__tests__/isClientTestOtpPhone.test.js \
-  src/store/api/__tests__/publishReelPoster.test.js
+cd api && php artisan test --filter='AdminUsersPlayersSplit|BroadcastBan'
 ```
+
+Optional: open backoffice locally — Users vs Players lists differ; `?q=tapeya-players` shows real-only players.
 
 ### 4.3 Merge to main
 
 ```bash
 git checkout main
 git pull origin main
-git merge develop   # resolve conflicts if any
+git merge develop   # should FF: 7ee3332 → 80f73df (or resolve if main moved)
 git push origin main
-# Record release SHA:
-git rev-parse --short HEAD
+git rev-parse --short HEAD   # record release SHA
 ```
 
 ### 4.4 Backup before touching production
 
-On the API host (or via managed DB snapshot):
+On the API host (or managed DB snapshot):
 
-- Full DB dump **or** at least: `users`, `posts`, `live_streams`, `tournaments`, `teams`, `tournament_requests` (if still exists), `migrations`, `settings`, `push_notification_templates`
+- Full DB dump **or** at least: `users`, `roles`, `model_has_roles`, `migrations`, `settings`
 - Note current prod git SHA: `git -C /var/www/tapeya rev-parse --short HEAD` (adjust path)
 
 ---
 
-## 5. Production deploy — API (bulletproof order)
+## 5. Production deploy — API
 
-Paths below assume `/var/www/tapeya/...` — adjust to your server.
+Paths assume `/var/www/tapeya/...` — adjust to your server.
 
 ### 5.1 Put code on the box
 
@@ -165,8 +136,7 @@ cd /var/www/tapeya
 git fetch origin
 git checkout main
 git pull origin main
-# Confirm SHA matches the release tip you pushed
-git rev-parse --short HEAD
+git rev-parse --short HEAD   # must match release tip
 ```
 
 ### 5.2 PHP deps
@@ -184,45 +154,9 @@ php artisan migrate:status | tail -40
 php artisan migrate --force
 ```
 
-**Expect:** `2026_05_18_099000_create_youtube_stream_keys_table` runs once (creates empty pool table).
+**Expect:** nothing new to run. If a pending migration appears that you did not intend, **stop** and investigate before continuing.
 
-**Do not** use `--pretend` as a substitute for actually running migrate.
-
-**Verify keys table exists:**
-
-```bash
-php artisan tinker --execute="echo Schema::hasTable('youtube_stream_keys') ? 'ok' : 'MISSING';"
-```
-
-If `MISSING`, **stop** — fix migrate before scripts/frontends.
-
-### 5.4 Schema scripts (existing DB — do not skip)
-
-```bash
-cd /var/www/tapeya/api
-
-php artisan tinker --execute="require 'database/scripts/teams_free_text_sponsor_icons.php';"
-php artisan tinker --execute="require 'database/scripts/simplify_tournaments.php';"
-php artisan tinker --execute="require 'database/scripts/drop_users_referred_by.php';"
-php artisan tinker --execute="require 'database/scripts/add_live_streams_youtube_stream_key_id.php';"
-php artisan tinker --execute="require 'database/scripts/drop_posts_visibility.php';"
-```
-
-**Verify (all should print true / expected):**
-
-```bash
-php artisan tinker --execute="
-echo 'youtube_stream_keys: '.(Schema::hasTable('youtube_stream_keys')?'Y':'N').PHP_EOL;
-echo 'live_streams.youtube_stream_key_id: '.(Schema::hasColumn('live_streams','youtube_stream_key_id')?'Y':'N').PHP_EOL;
-echo 'posts.visibility: '.(Schema::hasColumn('posts','visibility')?'Y (BAD)':'N (good)').PHP_EOL;
-echo 'users.referred_by: '.(Schema::hasColumn('users','referred_by')?'Y (BAD)':'N (good)').PHP_EOL;
-echo 'tournament_requests: '.(Schema::hasTable('tournament_requests')?'Y (BAD)':'N (good)').PHP_EOL;
-"
-```
-
-If any **BAD** remains, re-run the matching script and inspect the error output before continuing.
-
-### 5.5 Settings / seeders / caches / workers
+### 5.4 Caches / workers
 
 ```bash
 cd /var/www/tapeya/api
@@ -230,56 +164,17 @@ php artisan config:clear
 php artisan config:cache
 php artisan settings:clear-cache
 
-# Recommended for this release (idempotent updateOrCreate):
-php artisan db:seed --class=PushNotificationTemplateSeeder --force
-# Optional defaults only if prod settings row is missing keys:
-# php artisan db:seed --class=SystemSettingsSeeder --force
-
 sudo supervisorctl restart all
 sudo systemctl reload php8.2-fpm   # adjust PHP version/socket
 ```
 
-**Why push seeder:** updates `live_stream_created` title/body templates on existing DBs. Without it, code ships but old push copy remains until templates are edited in backoffice.
-
-**Public settings:** `test_otp_phones` is now in `SystemSettingKeyEnum::publicKeys()` — consumer OTP page reads it from `GET /system-settings`. No extra migrate; just deploy API code + `settings:clear-cache`.
-
-### 5.6 Nginx API upload / timeout (reel multipart)
-
-If this release includes `nginx/api.conf` changes (body size / timeouts), sync that conf to the API vhost and reload nginx:
-
-```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-Confirm CORS `max_age` is live via API code deploy (Laravel `config/cors.php`) — no separate nginx CORS step unless you terminate CORS at the edge.
-
-### 5.7 Queue workers (reels posters)
-
-Confirm a worker consumes the **`reels-poster`** queue (and `push-notifications`). Provisional client posters land at upload; server refine still needs this worker or covers may stay provisional / fail to refine.
+No push/settings seeders required for this release.
 
 ---
 
 ## 6. Production deploy — frontends
 
-### 6.1 Consumer app (`tapeya.com`)
-
-```bash
-cd /var/www/tapeya/app
-npm ci
-npm run build:production
-# publish app/dist/ (rsync / your usual path)
-```
-
-Ships: feed live widgets, Live hub / Home slider host UI, reel upload + poster sync, OTP auto-verify UX, compose polish, share/live polish.
-
-Graphics overlay (only if OBS uses this tree):
-
-```bash
-npm run build:graphics:production
-# publish dist-graphics / graphics.tapeya.com
-```
-
-### 6.2 Backoffice (`admin.tapeya.com`)
+### 6.1 Backoffice (`admin.tapeya.com`) — **required**
 
 ```bash
 cd /var/www/tapeya/backoffice
@@ -288,66 +183,53 @@ npm run build:production
 # publish dist/backoffice/browser
 ```
 
-Ships: YouTube Stream Keys management, live stream create/manage stream-key select, tournament/team UI from develop commits.
+Ships: Users/Players split UI, fake players demo list + `?q=tapeya-players` gate.
+
+### 6.2 Consumer app (`tapeya.com`)
+
+**Optional** for this release (no app changes in `main..develop`). Redeploy only if you want the tree SHA matched everywhere:
+
+```bash
+cd /var/www/tapeya/app
+npm ci
+npm run build:production
+```
 
 ### 6.3 Native stores
 
-| Platform | Current tree | Required for this release? |
-|----------|--------------|----------------------------|
-| Android | versionName **1.1.8** / versionCode **20** | Optional for web-only; ship if you need WebView bundle + upload fixes on device |
-| iOS | marketing **1.1.5** / build **46** | Optional for web-only |
-
-Web production works without a store submit.
+Not required for this release (backoffice + API only).
 
 ---
 
 ## 7. Post-deploy smoke (must pass)
 
-### Schema / admin streaming
+### Users vs Players
 
-- [ ] Backoffice → YouTube Stream Keys: create a key, list/filter, edit active toggle
-- [ ] Create / manage live stream: Stream Key select required; placeholder visible
-- [ ] Go Live / match stream still works with assigned key
-- [ ] Creating an admin stream fans out push: title `{stream title} is live on Tapeya`
+- [ ] **Users** list shows staff only (administrators / operators with admin roles) — not the full app-player population
+- [ ] Create/edit **Operator** requires at least one admin role; cricket fields not required for staff
+- [ ] **Players** list (with `?q=tapeya-players`) shows app players only — no admin-role staff mixed in
+- [ ] Broadcast ban / player edit still works on **real** player rows
 
-### Feed / Live UX
+### Fake players demo
 
-- [ ] Explore feed (logged in): after ~4 posts, “**Name** is live now” card; Tapeya fallback for admin streams
-- [ ] `/live`: cards show host row + shared Live chip
-- [ ] Home Live Now slider: Live chip top-left; host name + title (no avatar)
+- [ ] `/players-management/players` (no `q`): large list, real Pakistan rows on top, fakes below; client pagination works
+- [ ] Fake row Edit / Stats / Ban clicks do nothing (no API calls / no navigation)
+- [ ] `/players-management/players?q=tapeya-players`: normal server-paginated real list
+- [ ] Wrong `?q=...` redirects to demo URL
 
-### Posts / OTP
+### Docs / API health
 
-- [ ] Compose / feed load with no `visibility` validation errors
-- [ ] Existing posts still appear in Explore
-- [ ] Test OTP phone: banner + manual entry
-- [ ] Non-test phone with OTP in JSON (debug / SMS log): auto-fills and verifies (~2s Verifying)
-
-### Reels
-
-- [ ] Publish a multi-part reel; completes without mid-upload abort (timeouts/CORS)
-- [ ] New reel shows a cover on My Videos / profile soon after upload (provisional poster)
-- [ ] Auto-engagement does **not** spam like push notifications (counts may still rise)
-
-### Tournaments / teams (develop commits)
-
-- [ ] Instant tournament create path works; no tournament-request dependency
-- [ ] Team attach / sponsor fields behave as designed
-
-### CDN / settings
-
-- [ ] `php artisan settings:clear-cache` already run; media CDN still resolves
-- [ ] `GET /system-settings` includes `test_otp_phones`
+- [ ] API boots; admin players & users endpoints return 200 for authorized admin
+- [ ] `migrate:status` still healthy after deploy
 
 ---
 
 ## 8. Rollback (no refresh)
 
-1. Redeploy previous **known-good** git SHA on API / app / backoffice (`68fa80d` or your recorded pre-deploy SHA).
-2. Restart workers + reload PHP-FPM; rebuild/redeploy frontends from that SHA.
-3. **Schema:** do **not** auto-rollback scripts. Prefer restore from the pre-deploy DB dump if you must undo column drops (`posts.visibility`, `users.referred_by`, tournament columns) or the new FK.
-4. Leaving `youtube_stream_keys` empty after a code rollback is harmless.
-5. Clear caches again:
+1. Redeploy previous known-good git SHA on API / backoffice (`7ee3332` or your recorded pre-deploy SHA).
+2. Restart workers + reload PHP-FPM; rebuild/redeploy backoffice from that SHA.
+3. **Schema:** nothing to undo for this release (no scripts / no new migrations).
+4. Clear caches:
 
 ```bash
 php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache
@@ -359,14 +241,10 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 
 | Symptom | Cause | Fix |
 |---------|--------|-----|
-| `youtube_stream_key_id` column missing / SQL error on stream create | Script #4 not run | Run `add_live_streams_youtube_stream_key_id.php` after migrate |
-| `youtube_stream_keys` table missing | Migrate not run / failed | `php artisan migrate --force` |
-| Post create/feed 500 on `visibility` | Script #5 not run | Run `drop_posts_visibility.php` |
-| Tournament request endpoints 404 / table errors | Script #2 not run or old clients | Run `simplify_tournaments.php`; ship matching frontends |
-| Reel upload aborts | Old nginx timeouts / old app bundle | Reload nginx with updated conf; redeploy app `dist` |
-| Blank reel covers forever | No provisional upload (old app) and/or `reels-poster` worker down | Ship app with poster upload; ensure `reels-poster` worker |
-| Live push still says “Live on Tapeya” only | Push template seeder not run | `db:seed --class=PushNotificationTemplateSeeder` or edit template in backoffice |
-| OTP auto-verify treats test phone as normal | API without public `test_otp_phones` | Deploy API with `publicKeys()` change; clear settings cache |
+| Users and Players show the same people | Old API/backoffice still deployed | Pull release SHA; rebuild backoffice; restart PHP-FPM |
+| Demo list empty / only a handful of rows | API `all=true` ignored or old players service | Confirm `PlayersService.getList` + API supports `all`; redeploy API + backoffice |
+| Fake actions hit API / 404 on negative IDs | Old backoffice without `isFakePlayer` guards | Redeploy backoffice from release tip |
+| Operator create fails validation | Expected — admin role required | Assign an admin-guard role |
 | `migrate` tries to recreate old tables | Someone ran refresh | **Stop** — restore dump; this runbook forbids refresh |
 
 ---
@@ -374,26 +252,17 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 ## 10. Checklist summary (copy/paste)
 
 ```text
-[ ] Record origin/main SHA + release SHA
-[ ] Commit WIP on develop (exclude secrets; next apps stay in ../temp)
-[ ] Push develop; merge develop → main; push main
-[ ] DB backup
+[ ] Record origin/main SHA (expect 7ee3332) + release SHA (expect 80f73df)
+[ ] Working tree clean; push develop
+[ ] Merge develop → main; push main
+[ ] DB backup (users / roles / migrations)
 [ ] Prod: git pull main @ release SHA
 [ ] composer install --no-dev --optimize-autoloader
-[ ] php artisan migrate --force
-[ ] Verify youtube_stream_keys table exists
-[ ] Script 1 teams_free_text_sponsor_icons.php
-[ ] Script 2 simplify_tournaments.php
-[ ] Script 3 drop_users_referred_by.php
-[ ] Script 4 add_live_streams_youtube_stream_key_id.php
-[ ] Script 5 drop_posts_visibility.php
-[ ] Verify columns/tables (section 5.4)
+[ ] php artisan migrate --force  (expect no pending)
 [ ] config:cache + settings:clear-cache
-[ ] db:seed PushNotificationTemplateSeeder --force
-[ ] restart workers/FPM (confirm reels-poster + push-notifications)
-[ ] nginx -t && reload (if api.conf changed)
-[ ] Build/deploy app + backoffice (+ graphics if needed)
-[ ] Smoke section 7
+[ ] restart workers/FPM
+[ ] Build/deploy backoffice
+[ ] Smoke section 7 (Users/Players split + demo gate)
 ```
 
 ---
@@ -401,5 +270,5 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 ## Related
 
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands / nginx sketches
-- [LIVE_STREAM_YOUTUBE_FINAL.md](./LIVE_STREAM_YOUTUBE_FINAL.md)
-- Scripts live under [`api/database/scripts/`](../api/database/scripts/)
+- [APP_REWRITE_ARCHITECTURE.md](./APP_REWRITE_ARCHITECTURE.md) — ships in this release (docs only)
+- Prior YouTube / visibility / tournament schema work is already on `main` as of `7ee3332`
