@@ -23,8 +23,10 @@ use Throwable;
  * use an aggressive daily band; older posts stay eligible under soft lifetime but drip slowly.
  * Soft like lifetime = dailyMax × fresh days; reel views use a mild lead over likes.
  *
- * Pace: every 15 minutes, at most one like (and matching views) per post.
- * Daily totals are unchanged — remaining quota is spread at random across the day's ticks.
+ * Pace: every 15 minutes, at most one like (and matching views) per post,
+ * and at most one like per post owner (so multi-post creators never get a notification stack).
+ * Daily quotas are unchanged — remaining room is spread at random across the day's ticks;
+ * owners with many posts rotate which reel gets the like.
  * Reels keep likes_count < views_count; simple posts get likes only.
  *
  * Cursor: {@see self::CURSOR_CACHE_KEY}. Daily state: {@see self::dailyStateCacheKey()}.
@@ -83,12 +85,15 @@ class AutoEngagementService
 
         $chunk = $this->chunkSize();
         $today = now()->toDateString();
-        $touched = 0;
+        $likedThisTick = 0;
         $scanned = 0;
         $wrapped = false;
-        $maxScan = max($chunk * 10, min(self::MAX_CHUNK, $remaining));
+        /** @var array<int, true> owners who already received a like this tick */
+        $ownersLikedThisTick = [];
+        // Scan deeper than chunk: owner throttle skips many same-creator posts.
+        $maxScan = max($chunk * 20, min(self::MAX_CHUNK * 3, max($remaining, $chunk)));
 
-        while ($touched < $chunk && $scanned < $maxScan) {
+        while ($likedThisTick < $chunk && $scanned < $maxScan) {
             $post = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
                 ->where('id', '>', $this->cursor())
                 ->orderBy('id')
@@ -106,6 +111,12 @@ class AutoEngagementService
 
             $scanned++;
             $this->storeCursor((int) $post->id);
+
+            $ownerId = (int) $post->user_id;
+            if ($ownerId > 0 && isset($ownersLikedThisTick[$ownerId])) {
+                // One like per creator per tick — prevents lock-screen stacks.
+                continue;
+            }
 
             [$likeMax, $viewMax] = $this->targetsForPost($post, $reelsMax, $simpleMax, $reelsViewMax);
             if ($likeMax === 0 && $viewMax === 0) {
@@ -131,13 +142,27 @@ class AutoEngagementService
             $viewQuota = $video ? $this->settings->scaleViewsAboveLikes($state['quota']) : 0;
             $viewRoom = max(0, $viewQuota - $state['views']);
 
-            $applyLike = $likeRoom > 0 && $this->shouldApplyLikeThisTick($likeRoom);
+            if ($likeRoom > 0 && $ownerId > 0 && $this->shouldSkipForOwnerRotation(
+                $post,
+                $ownerId,
+                $today,
+                $reelsMax,
+                $simpleMax,
+                $reelsViewMax,
+            )) {
+                continue;
+            }
+
+            $applyLike = $likeRoom > 0
+                && $ownerId > 0
+                && $this->shouldApplyLikeThisTick($likeRoom);
             $dripLikes = $applyLike ? min(self::LIKE_PER_TICK, $likeRoom) : 0;
             $dripViews = 0;
             if ($video) {
                 if ($applyLike) {
                     $dripViews = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $viewRoom);
-                } elseif ((int) $post->views_count <= (int) $post->likes_count) {
+                } elseif ($likeRoom <= 0 && (int) $post->views_count <= (int) $post->likes_count) {
+                    // Silent view repair only when likes are done for the day.
                     $dripViews = min(1, $viewRoom);
                 }
             }
@@ -149,11 +174,15 @@ class AutoEngagementService
             [$likesAdded, $viewsAdded] = $this->dripEngagePost($post, $likeMax, $viewMax, $dripLikes, $dripViews);
             if ($likesAdded > 0 || $viewsAdded > 0) {
                 $this->bumpDailyState((int) $post->id, $today, $likesAdded, $viewsAdded, $state);
-                $touched++;
+            }
+            if ($likesAdded > 0 && $ownerId > 0) {
+                $ownersLikedThisTick[$ownerId] = true;
+                $this->storeOwnerLikeCursor($ownerId, $today, (int) $post->id);
+                $likedThisTick++;
             }
         }
 
-        return $touched;
+        return $likedThisTick;
     }
 
     public function remainingUnderTargetCount(?int $reelsMax = null, ?int $simpleMax = null, ?int $reelsViewMax = null): int
@@ -305,6 +334,46 @@ class AutoEngagementService
     public static function dailyStateCacheKey(int $postId, string $date): string
     {
         return "posts.auto_engagement.daily.{$postId}.{$date}";
+    }
+
+    public static function ownerLikeCursorCacheKey(int $ownerId, string $date): string
+    {
+        return "posts.auto_engagement.owner_like_cursor.{$ownerId}.{$date}";
+    }
+
+    /**
+     * Rotate likes across a creator's posts so the same reel is not hit every tick.
+     */
+    private function shouldSkipForOwnerRotation(
+        Post $post,
+        int $ownerId,
+        string $date,
+        int $reelsMax,
+        int $simpleMax,
+        int $reelsViewMax,
+    ): bool {
+        $lastId = (int) Cache::get(self::ownerLikeCursorCacheKey($ownerId, $date), 0);
+        if ($lastId <= 0 || (int) $post->id > $lastId) {
+            return false;
+        }
+
+        $hasLater = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
+            ->where('user_id', $ownerId)
+            ->where('id', '>', $lastId)
+            ->exists();
+
+        if ($hasLater) {
+            return true;
+        }
+
+        Cache::forget(self::ownerLikeCursorCacheKey($ownerId, $date));
+
+        return false;
+    }
+
+    private function storeOwnerLikeCursor(int $ownerId, string $date, int $postId): void
+    {
+        Cache::put(self::ownerLikeCursorCacheKey($ownerId, $date), max(0, $postId), now()->addDays(2));
     }
 
     /**

@@ -103,14 +103,22 @@ class AutoEngagementTest extends TestCase
         $service = app(AutoEngagementService::class);
         $this->assertSame(3, $service->chunkSize());
 
-        $first = $service->process();
-        $this->assertSame(3, $first);
+        // Same owner: at most one like per tick (no notification stack).
+        $this->assertSame(1, $service->process());
+        $likesAfterFirst = (int) $p1->fresh()->likes_count
+            + (int) $p2->fresh()->likes_count
+            + (int) $p3->fresh()->likes_count;
+        $this->assertSame(1, $likesAfterFirst);
         $this->assertSame(1, (int) $p1->fresh()->likes_count);
         $this->assertGreaterThan((int) $p1->fresh()->likes_count, (int) $p1->fresh()->views_count);
+
+        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $p2->fresh()->likes_count);
+
+        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $p3->fresh()->likes_count);
 
-        // Daily quota is 1 like per post; a second tick must not stack more likes.
+        // Daily quota is 1 like per post; another tick must not stack more likes.
         $this->assertSame(0, $service->process());
         $this->assertSame(1, (int) $p1->fresh()->likes_count);
 
@@ -208,8 +216,9 @@ class AutoEngagementTest extends TestCase
         $service->process();
         $service->process();
 
-        $this->assertSame(2, (int) $old->fresh()->likes_count);
-        $this->assertSame(2, (int) $fresh->fresh()->likes_count);
+        // Same owner → one like per tick; two ticks → one each (rotated by cursor).
+        $this->assertSame(1, (int) $old->fresh()->likes_count);
+        $this->assertSame(1, (int) $fresh->fresh()->likes_count);
         $this->assertGreaterThan((int) $old->fresh()->likes_count, (int) $old->fresh()->views_count);
         $this->assertGreaterThan((int) $fresh->fresh()->likes_count, (int) $fresh->fresh()->views_count);
     }
@@ -269,8 +278,11 @@ class AutoEngagementTest extends TestCase
 
         $service = app(AutoEngagementService::class);
 
-        $this->assertSame(2, $service->process());
+        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $a->fresh()->likes_count);
+        $this->assertSame(0, (int) $b->fresh()->likes_count);
+
+        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $b->fresh()->likes_count);
 
         $this->assertSame(0, $service->process());
@@ -278,9 +290,9 @@ class AutoEngagementTest extends TestCase
         $this->travel(1)->days();
         $this->seedDailyQuota($a, 1);
         $this->seedDailyQuota($b, 1);
-        $this->assertSame(2, $service->process());
+        $this->assertSame(1, $service->process());
         $this->assertSame(2, (int) $a->fresh()->likes_count);
-        $this->assertSame(2, (int) $b->fresh()->likes_count);
+        $this->assertSame(1, (int) $b->fresh()->likes_count);
     }
 
     public function test_disabled_does_nothing(): void
@@ -341,6 +353,35 @@ class AutoEngagementTest extends TestCase
 
         $this->assertSame(1, (int) $post->fresh()->likes_count);
         $this->assertGreaterThan(1, (int) $post->fresh()->views_count);
+    }
+
+    public function test_one_like_per_owner_per_tick_across_posts(): void
+    {
+        $this->enable(50);
+        $owner = $this->activeUser();
+        $other = $this->activeUser();
+        foreach (range(1, 12) as $_) {
+            $this->activeUser();
+        }
+
+        $owned = [];
+        foreach (range(1, 5) as $_) {
+            $post = $this->publishedReel($owner);
+            $this->seedDailyQuota($post, 50);
+            $owned[] = $post;
+        }
+        $otherPost = $this->publishedReel($other);
+        $this->seedDailyQuota($otherPost, 50);
+
+        $liked = app(AutoEngagementService::class)->process();
+        $this->assertSame(2, $liked);
+
+        $ownerLikes = 0;
+        foreach ($owned as $post) {
+            $ownerLikes += (int) $post->fresh()->likes_count;
+        }
+        $this->assertSame(1, $ownerLikes);
+        $this->assertSame(1, (int) $otherPost->fresh()->likes_count);
     }
 
     public function test_daily_max_derives_lifetime_and_drip_range(): void
