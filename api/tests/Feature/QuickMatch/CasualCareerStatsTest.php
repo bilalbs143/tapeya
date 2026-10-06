@@ -7,11 +7,11 @@ use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Jobs\RefreshMatchStatsJob;
-use App\Models\CricketMatch;
 use App\Models\Innings;
 use App\Models\PlayerBattingStats;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\PlayerStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -129,7 +129,7 @@ class CasualCareerStatsTest extends TestCase
         $this->assertSame(50, (int) $otRow->runs);
     }
 
-    private function readyQuickMatch(): CricketMatch
+    private function readyQuickMatch(): TournamentMatch
     {
         $match = $this->createQuickMatch($this->owner, [
             'status' => MatchStatusEnum::IN_PROGRESS->value,
@@ -159,7 +159,7 @@ class CasualCareerStatsTest extends TestCase
         return $match->fresh();
     }
 
-    private function createTournamentMatch(string $tournamentType, string $cricketFormat): CricketMatch
+    private function createTournamentMatch(string $tournamentType, string $cricketFormat): TournamentMatch
     {
         $tournament = Tournament::create([
             'organizer_id' => $this->owner->id,
@@ -185,7 +185,7 @@ class CasualCareerStatsTest extends TestCase
             'created_by' => $this->owner->id,
         ]);
 
-        $match = CricketMatch::create([
+        $match = TournamentMatch::create([
             'tournament_id' => $tournament->id,
             'kind' => MatchKindEnum::TOURNAMENT,
             'home_team_id' => $teamA->id,
@@ -219,7 +219,7 @@ class CasualCareerStatsTest extends TestCase
         return $match;
     }
 
-    private function scoreRunsOnMatch(CricketMatch $match, int $strikerId, int $runs): void
+    private function scoreRunsOnMatch(TournamentMatch $match, int $strikerId, int $runs): void
     {
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->squad[2]->id;

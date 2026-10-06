@@ -12,7 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\QuickMatchResource;
 use App\Jobs\RefreshMatchStatsJob;
 use App\Jobs\SyncMatchGraphicContextJob;
-use App\Models\CricketMatch;
+use App\Models\TournamentMatch;
 use App\Services\MatchLifecycleService;
 use App\Services\MatchStateService;
 use App\Services\QuickMatch\QuickMatchService;
@@ -46,7 +46,7 @@ class QuickMatchController extends Controller
             'q' => ['sometimes', 'nullable', 'string', 'max:100'],
         ]);
 
-        $query = CricketMatch::query()
+        $query = TournamentMatch::query()
             ->where('kind', MatchKindEnum::QUICK)
             ->with(['homeTeam', 'awayTeam', 'createdBy'])
             ->orderByDesc('match_date')
@@ -84,7 +84,7 @@ class QuickMatchController extends Controller
         return $this->success(QuickMatchResource::collection($this->paginateOrAll($query)));
     }
 
-    public function show(CricketMatch $quickMatch): JsonResponse
+    public function show(TournamentMatch $quickMatch): JsonResponse
     {
         return $this->success(new QuickMatchResource($this->quickMatches->loadForResource($quickMatch)));
     }
@@ -92,7 +92,7 @@ class QuickMatchController extends Controller
     /**
      * POST /admin/quick-matches/{id}/cancel — abuse / safety. Does not delete teams.
      */
-    public function cancel(Request $request, CricketMatch $quickMatch): JsonResponse
+    public function cancel(Request $request, TournamentMatch $quickMatch): JsonResponse
     {
         $validated = $request->validate([
             'comments' => ['nullable', 'string', 'max:2000'],

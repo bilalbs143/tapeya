@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Channels\SmsChannel;
 use App\Enums\Event\MatchKindEnum;
-use App\Models\CricketMatch;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\Notifications\SmsSender;
 use App\Support\Media\MediaCdn;
@@ -39,8 +39,8 @@ class AppServiceProvider extends ServiceProvider
                 ->firstOrFail();
         });
 
-        Route::bind('quickMatch', function (string $value): CricketMatch {
-            return CricketMatch::query()
+        Route::bind('quickMatch', function (string $value): TournamentMatch {
+            return TournamentMatch::query()
                 ->whereKey($value)
                 ->where('kind', MatchKindEnum::QUICK)
                 ->firstOrFail();

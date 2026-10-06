@@ -3,7 +3,7 @@
 namespace App\Http\Requests\User;
 
 use App\Enums\Event\CricketFormatEnum;
-use App\Models\CricketMatch;
+use App\Models\TournamentMatch;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +15,7 @@ class UpdateQuickMatchRequest extends FormRequest
         $match = $this->route('quickMatch');
 
         return $user !== null
-            && $match instanceof CricketMatch
+            && $match instanceof TournamentMatch
             && $user->canOperateQuickMatch($match);
     }
 

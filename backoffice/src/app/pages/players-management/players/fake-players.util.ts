@@ -3,7 +3,7 @@ import type { User } from 'src/app/services/users.service';
 /** List row that may be a client-only fake (never POSTed to the API). */
 export type PlayerListRow = User & { is_fake?: boolean };
 
-export const FAKE_PLAYERS_COUNT = 7_000;
+export const FAKE_PLAYERS_COUNT = 9_000;
 
 const FIRST_NAMES = [
   'Abbas',

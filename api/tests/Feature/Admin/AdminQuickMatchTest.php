@@ -5,8 +5,8 @@ namespace Tests\Feature\Admin;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Models\CricketMatch;
 use App\Models\Team;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\QuickMatch\CreatesQuickMatch;
@@ -103,7 +103,7 @@ class AdminQuickMatchTest extends TestCase
             ->assertJsonPath('data.status', MatchStatusEnum::CANCELLED->value)
             ->assertJsonPath('data.cancel_comments', 'Abuse report.');
 
-        $fresh = CricketMatch::query()->find($match->id);
+        $fresh = TournamentMatch::query()->find($match->id);
         $this->assertSame(MatchStatusEnum::CANCELLED, $fresh->status);
         $this->assertNotNull(Team::query()->find($homeId));
         $this->assertNotNull(Team::query()->find($awayId));

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\User;
 
-use App\Models\CricketMatch;
+use App\Models\TournamentMatch;
 use App\Utils\Services\OtpService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -15,7 +15,7 @@ class StoreQuickMatchPlayerRequest extends FormRequest
         $match = $this->route('quickMatch');
 
         return $user !== null
-            && $match instanceof CricketMatch
+            && $match instanceof TournamentMatch
             && $user->canOperateQuickMatch($match);
     }
 

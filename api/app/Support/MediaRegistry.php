@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\DramaEpisode;
+use App\Models\DramaSerial;
 use App\Models\HeroSlider;
 use App\Models\Highlight;
 use App\Models\LiveStream;
@@ -95,6 +97,26 @@ class MediaRegistry
                     'thumbnail' => ['dir' => 'highlights', 'column' => 'thumbnail'],
                     'video' => [
                         'dir' => 'highlights/videos',
+                        'column' => 'video',
+                        'file_rules' => [
+                            ...PostVideoFormats::fileRules(),
+                            'max:102400',
+                        ],
+                    ],
+                ],
+            ],
+            'drama-serial' => [
+                'model' => DramaSerial::class,
+                'fields' => [
+                    'poster' => ['dir' => 'drama-serials', 'column' => 'poster'],
+                ],
+            ],
+            'drama-episode' => [
+                'model' => DramaEpisode::class,
+                'fields' => [
+                    'thumbnail' => ['dir' => 'drama-episodes', 'column' => 'thumbnail'],
+                    'video' => [
+                        'dir' => 'drama-episodes/videos',
                         'column' => 'video',
                         'file_rules' => [
                             ...PostVideoFormats::fileRules(),

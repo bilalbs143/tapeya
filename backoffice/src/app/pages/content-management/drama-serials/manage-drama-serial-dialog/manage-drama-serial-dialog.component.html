@@ -1,0 +1,85 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Drama Serial Form"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Title</mat-label>
+            <input
+              matInput
+              formControlName="title"
+              placeholder="e.g. Street Cricket Diaries"
+            />
+            @if (form.get('title')?.invalid && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              placeholder="Short synopsis for the series page…"
+              rows="3"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <p
+            id="serial-active-label"
+            class="field-group-label"
+          >
+            Active
+          </p>
+          <mat-slide-toggle
+            formControlName="is_active"
+            color="primary"
+            aria-labelledby="serial-active-label"
+          ></mat-slide-toggle>
+          <p class="mt-2 mb-0 text-xs leading-snug text-muted">Visible in the app when on.</p>
+        </div>
+
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="poster"
+            label="Poster"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Series cover. Portrait or 16:9 works; 16:9 recommended for rails."
+            [maxSizeMb]="5"
+          ></app-file-upload>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+        >Cancel</app-ui-button
+      >
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="data.mode === 'edit' ? 'Save Serial' : 'Add Serial'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

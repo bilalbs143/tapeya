@@ -55,7 +55,10 @@ class PostCommentService
             ->paginate($perPage);
     }
 
-    public function create(Post $post, User $user, string $body, ?int $parentId = null): PostComment
+    /**
+     * @param  bool  $notify  When false, skips PostCommented (push + in-app). Used by auto comments.
+     */
+    public function create(Post $post, User $user, string $body, ?int $parentId = null, bool $notify = true): PostComment
     {
         $body = trim($body);
         if ($body === '') {
@@ -104,7 +107,9 @@ class PostCommentService
             return $created->load([User::socialSummaryWith()]);
         });
 
-        event(new PostCommented($post, $comment, $user));
+        if ($notify) {
+            event(new PostCommented($post, $comment, $user));
+        }
 
         return $comment;
     }

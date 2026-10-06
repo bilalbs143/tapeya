@@ -27,3 +27,5 @@ Schedule::command('posts:purge-expired-originals')->dailyAt('04:30')->withoutOve
 Schedule::command('posts:flush-view-counters')->everyMinute()->withoutOverlapping();
 
 Schedule::command('posts:process-auto-engagement')->everyFifteenMinutes()->withoutOverlapping();
+
+Schedule::command('posts:process-auto-comments')->hourly()->withoutOverlapping(55);

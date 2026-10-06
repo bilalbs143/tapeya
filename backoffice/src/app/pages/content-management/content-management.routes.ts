@@ -33,6 +33,26 @@ export const ContentManagementRoutes: Routes = [
     },
   },
   {
+    path: 'drama-serials',
+    loadComponent: () => import('./drama-serials/drama-serials.component').then((m) => m.DramaSerialsComponent),
+    data: {
+      title: 'Drama Serials',
+      icon: 'solar:clapperboard-play-line-duotone',
+      hideBreadcrumb: true,
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Drama Serials' }],
+    },
+  },
+  {
+    path: 'drama-episodes',
+    loadComponent: () => import('./drama-episodes/drama-episodes.component').then((m) => m.DramaEpisodesComponent),
+    data: {
+      title: 'Drama Episodes',
+      icon: 'solar:playlist-minimalistic-2-line-duotone',
+      hideBreadcrumb: true,
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Drama Episodes' }],
+    },
+  },
+  {
     path: 'posts',
     loadComponent: () => import('./posts/posts.component').then((m) => m.PostsComponent),
     data: {

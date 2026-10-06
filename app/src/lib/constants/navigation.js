@@ -12,10 +12,9 @@ export const BOTTOM_NAV_ITEMS = [
 ];
 
 export const EXPLORE_CATEGORIES = [
-  { path: '/live/streaming', label: 'Streaming' },
+  { path: '/serials', label: 'Dramas' },
   { path: '/ranking', label: 'Rankings' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
-
   { path: '/quick-match', label: 'Quick Match' },
   { path: '/highlights', label: 'Highlights' },
 ];

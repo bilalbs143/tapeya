@@ -27,7 +27,7 @@ class PostInteractionService
     }
 
     /**
-     * @param  bool  $notify  When false, skips PostLiked (push + in-app). Used by auto engagement.
+     * @param  bool  $notify  When false, skips PostLiked (push + in-app).
      * @return array{liked: bool, likes_count: int}
      */
     public function like(Post $post, User $user, bool $notify = true): array

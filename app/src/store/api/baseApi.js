@@ -62,6 +62,8 @@ export const baseApi = createApi({
     'LiveStreams',
     'LiveScores',
     'Highlight',
+    'DramaSerial',
+    'DramaEpisode',
     'Reel',
     'Post',
   ],

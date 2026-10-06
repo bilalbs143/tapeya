@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CricketDashboardController;
+use App\Http\Controllers\Admin\DramaEpisodeController as AdminDramaEpisodeController;
+use App\Http\Controllers\Admin\DramaSerialController as AdminDramaSerialController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
 use App\Http\Controllers\Admin\GraphicCommandController;
@@ -54,6 +56,8 @@ Route::prefix('admin')->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
 
         Route::apiResource('highlights', AdminHighlightController::class);
+        Route::apiResource('drama-serials', AdminDramaSerialController::class);
+        Route::apiResource('drama-episodes', AdminDramaEpisodeController::class);
         Route::get('posts', [AdminPostController::class, 'index']);
         Route::get('posts/{post}', [AdminPostController::class, 'show']);
         Route::patch('posts/{post}', [AdminPostController::class, 'update']);

@@ -59,6 +59,14 @@ export const navItems: NavItem[] = [
         route: '/content-management/highlights',
       },
       {
+        displayName: 'Drama Serials',
+        route: '/content-management/drama-serials',
+      },
+      {
+        displayName: 'Drama Episodes',
+        route: '/content-management/drama-episodes',
+      },
+      {
         displayName: 'Posts',
         route: '/content-management/posts',
       },

@@ -1,0 +1,312 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content>
+    <app-page-header
+      title="Drama Episodes"
+      subtitle="Manage episodes for drama serials"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <app-ui-button
+          type="button"
+          (click)="resetSearchForm()"
+          variant="secondary"
+          >Clear Search</app-ui-button
+        >
+        <app-ui-button
+          variant="primary"
+          type="button"
+          (click)="openCreateDialog()"
+          >Add Episode</app-ui-button
+        >
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content>
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter Form"
+    >
+      <app-search-filter-bar>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              placeholder="Search by Title"
+            />
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Serial</mat-label>
+            <mat-select
+              formControlName="drama_serial_id"
+              placeholder="All"
+            >
+              <mat-option value="">All</mat-option>
+              @for (s of serials; track s.id) {
+                <mat-option [value]="string(s.id)">{{ s.title }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Active</mat-label>
+            <mat-select formControlName="is_active">
+              <mat-option value="">All</mat-option>
+              <mat-option value="yes">Active</mat-option>
+              <mat-option value="no">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </app-search-filter-bar>
+    </form>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Episodes"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Drama Episodes List"
+            matSortActive="episode_number"
+            matSortStart="asc"
+            matSortDirection="asc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="thumbnail">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Thumb
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                @if (row.thumbnail) {
+                  <app-table-image
+                    [src]="row.thumbnail"
+                    alt="Episode Thumbnail"
+                  />
+                } @else {
+                  {{ emptyCell }}
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="serial">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Serial
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[180px]"
+              >
+                <span class="line-clamp-2 leading-snug">{{ row.serial?.title || emptyCell }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="episode_number">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold text-right"
+              >
+                Ep
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-right tabular-nums"
+              >
+                {{ row.episode_number }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="title">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Title
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="max-w-[220px]"
+              >
+                <span
+                  class="line-clamp-2 leading-snug"
+                  [title]="row.title"
+                  >{{ row.title }}</span
+                >
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="views_count">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold text-right"
+              >
+                Views
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-right tabular-nums"
+              >
+                {{ row.views_count | number }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="likes_count">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold text-right"
+              >
+                Likes
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-right tabular-nums"
+              >
+                {{ row.likes_count | number }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="is_active">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Active
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip [status]="row.is_active" />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Edit Episode"
+                    (click)="openEditDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  <button
+                    type="button"
+                    class="row-action row-action--danger"
+                    aria-label="Delete Episode"
+                    (click)="openDeleteDialog(row)"
+                  >
+                    <i-tabler
+                      name="trash"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
+    <app-paginator
+      [loading]="isLoading"
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

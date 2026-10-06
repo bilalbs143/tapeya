@@ -424,53 +424,53 @@ export default function HighlightDetails() {
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-black">
-        <Container className="shrink-0 px-4! py-0!">
+        <Container fullWidth className="shrink-0 px-4! py-0!">
           {isLoading && !highlight ? <LoaderBlock label="Loading highlight" className="mt-3 py-4" /> : null}
 
           {highlight ? (
-            <div className="mt-3">
-              <h1 className="line-clamp-2 text-[15px] leading-snug font-bold text-white">{displayTitle}</h1>
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="mt-3 flex w-full items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="line-clamp-2 text-[15px] leading-snug font-bold text-white">{displayTitle}</h1>
                 {dateLabel || durationLabel ? (
-                  <p className="text-muted text-[13px]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
+                  <p className="text-muted mt-2.5 text-[13px]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
                 ) : null}
-                <div className="ml-auto flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={handleLike}
-                    disabled={isLiking || isDisliking}
-                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
-                      myReaction === 'like' ? 'bg-brand text-black' : 'bg-surface text-white'
-                    }`}
-                    aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
-                    aria-pressed={myReaction === 'like'}
-                  >
-                    <ThumbsUpIcon filled={myReaction === 'like'} className="h-4 w-4" />
-                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.likes_count)}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDislike}
-                    disabled={isLiking || isDisliking}
-                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
-                      myReaction === 'dislike' ? 'bg-brand text-black' : 'bg-surface text-white'
-                    }`}
-                    aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
-                    aria-pressed={myReaction === 'dislike'}
-                  >
-                    <ThumbsDownIcon className="h-4 w-4" />
-                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.dislikes_count)}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    className="bg-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-white transition-opacity active:opacity-80"
-                    aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
-                  >
-                    <img src={feedShareIcon} alt="" className="h-4 w-4 brightness-0 invert" aria-hidden />
-                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.shares_count)}</span>
-                  </button>
-                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5 self-center">
+                <button
+                  type="button"
+                  onClick={handleLike}
+                  disabled={isLiking || isDisliking}
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
+                    myReaction === 'like' ? 'bg-brand text-black' : 'bg-surface text-white'
+                  }`}
+                  aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
+                  aria-pressed={myReaction === 'like'}
+                >
+                  <ThumbsUpIcon filled={myReaction === 'like'} className="h-4 w-4" />
+                  <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.likes_count)}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDislike}
+                  disabled={isLiking || isDisliking}
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
+                    myReaction === 'dislike' ? 'bg-brand text-black' : 'bg-surface text-white'
+                  }`}
+                  aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
+                  aria-pressed={myReaction === 'dislike'}
+                >
+                  <ThumbsDownIcon className="h-4 w-4" />
+                  <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.dislikes_count)}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="bg-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-white transition-opacity active:opacity-80"
+                  aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
+                >
+                  <img src={feedShareIcon} alt="" className="h-4 w-4 brightness-0 invert" aria-hidden />
+                  <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.shares_count)}</span>
+                </button>
               </div>
             </div>
           ) : null}
