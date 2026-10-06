@@ -23,7 +23,8 @@ use Throwable;
  * use an aggressive daily band; older posts stay eligible under soft lifetime but drip slowly.
  * Soft like lifetime = dailyMax × fresh days; reel views use a mild lead over likes.
  *
- * Pace: every 15 minutes, ~{@see self::TARGET_PASSES_PER_DAY} catalog passes/day.
+ * Pace: every 15 minutes, at most one like (and matching views) per post.
+ * Daily totals are unchanged — remaining quota is spread at random across the day's ticks.
  * Reels keep likes_count < views_count; simple posts get likes only.
  *
  * Cursor: {@see self::CURSOR_CACHE_KEY}. Daily state: {@see self::dailyStateCacheKey()}.
@@ -35,13 +36,13 @@ class AutoEngagementService
     /** Keep in sync with routes/console.php (everyFifteenMinutes). */
     private const TICKS_PER_DAY = 96;
 
-    private const TARGET_PASSES_PER_DAY = 3;
+    /** One catalog pass per 15-minute tick so likes can spread across the day. */
+    private const TARGET_PASSES_PER_DAY = 96;
 
     private const MAX_CHUNK = 200;
 
-    private const FRESH_DRIP_PER_TICK = 12;
-
-    private const MATURE_DRIP_PER_TICK = 2;
+    /** Never stack likes/notifications in one tick. */
+    private const LIKE_PER_TICK = 1;
 
     /** Extra viewers beyond the liker so reel likes stay strictly below views. */
     private const EXTRA_VIEWS_PER_AUTO_LIKE = 1;
@@ -111,7 +112,7 @@ class AutoEngagementService
                 continue;
             }
 
-            [$dailyMin, $dailyMax, $dripCap] = $this->paceForPost(
+            [$dailyMin, $dailyMax] = $this->paceForPost(
                 $post,
                 $reelsDaily,
                 $simpleDaily,
@@ -130,10 +131,16 @@ class AutoEngagementService
             $viewQuota = $video ? $this->settings->scaleViewsAboveLikes($state['quota']) : 0;
             $viewRoom = max(0, $viewQuota - $state['views']);
 
-            $dripLikes = min($dripCap, $likeRoom);
-            $dripViews = $video
-                ? min(max($dripCap, $dripLikes * (1 + self::EXTRA_VIEWS_PER_AUTO_LIKE)), $viewRoom)
-                : 0;
+            $applyLike = $likeRoom > 0 && $this->shouldApplyLikeThisTick($likeRoom);
+            $dripLikes = $applyLike ? min(self::LIKE_PER_TICK, $likeRoom) : 0;
+            $dripViews = 0;
+            if ($video) {
+                if ($applyLike) {
+                    $dripViews = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $viewRoom);
+                } elseif ((int) $post->views_count <= (int) $post->likes_count) {
+                    $dripViews = min(1, $viewRoom);
+                }
+            }
 
             if ($dripLikes <= 0 && $dripViews <= 0) {
                 continue;
@@ -301,7 +308,7 @@ class AutoEngagementService
     }
 
     /**
-     * @return array{0: int, 1: int, 2: int} [dailyMin, dailyMax, dripCap]
+     * @return array{0: int, 1: int} [dailyMin, dailyMax]
      */
     private function paceForPost(
         Post $post,
@@ -316,14 +323,40 @@ class AutoEngagementService
 
         if ($this->isWithinFreshWindow($post)) {
             return $video
-                ? [$reelsDailyMin, $reelsDailyMax, self::FRESH_DRIP_PER_TICK]
-                : [$simpleDailyMin, $simpleDailyMax, self::FRESH_DRIP_PER_TICK];
+                ? [$reelsDailyMin, $reelsDailyMax]
+                : [$simpleDailyMin, $simpleDailyMax];
         }
 
         $base = $video ? $reelsDaily : $simpleDaily;
-        [$min, $max] = $this->settings->matureDailyDripRange($base);
 
-        return [$min, $max, self::MATURE_DRIP_PER_TICK];
+        return $this->settings->matureDailyDripRange($base);
+    }
+
+    /**
+     * Spread remaining daily likes across leftover 15-minute slots (at most one like per tick).
+     */
+    private function shouldApplyLikeThisTick(int $likeRoom): bool
+    {
+        if ($likeRoom <= 0) {
+            return false;
+        }
+
+        if (app()->environment('testing')) {
+            return true;
+        }
+
+        $ticksLeft = $this->remainingTicksToday();
+        $chance = (int) ceil(($likeRoom / $ticksLeft) * 100);
+        $chance = max(1, min(100, $chance));
+
+        return random_int(1, 100) <= $chance;
+    }
+
+    private function remainingTicksToday(): int
+    {
+        $elapsed = ((int) now()->hour * 4) + intdiv((int) now()->minute, 15);
+
+        return max(1, self::TICKS_PER_DAY - $elapsed);
     }
 
     /** @return array{0: int, 1: int} [likeMax, viewMax] */

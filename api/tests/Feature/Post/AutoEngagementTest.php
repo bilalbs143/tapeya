@@ -101,28 +101,21 @@ class AutoEngagementTest extends TestCase
         $p3 = $this->publishedReel($owner);
 
         $service = app(AutoEngagementService::class);
-        $this->assertSame(1, $service->chunkSize());
+        $this->assertSame(3, $service->chunkSize());
 
         $first = $service->process();
-        $this->assertSame(1, $first);
+        $this->assertSame(3, $first);
         $this->assertSame(1, (int) $p1->fresh()->likes_count);
         $this->assertGreaterThan((int) $p1->fresh()->likes_count, (int) $p1->fresh()->views_count);
-        $this->assertSame(0, (int) $p2->fresh()->likes_count);
-        $this->assertSame(0, (int) $p3->fresh()->likes_count);
-
-        $second = $service->process();
-        $this->assertSame(1, $second);
         $this->assertSame(1, (int) $p2->fresh()->likes_count);
-
-        $third = $service->process();
-        $this->assertSame(1, $third);
         $this->assertSame(1, (int) $p3->fresh()->likes_count);
 
-        // Soft lifetime still leaves room; today's drip is exhausted for all three.
-        $this->assertFalse($service->isComplete());
+        // Daily quota is 1 like per post; a second tick must not stack more likes.
         $this->assertSame(0, $service->process());
+        $this->assertSame(1, (int) $p1->fresh()->likes_count);
 
-        // Auto likes notify the owner (in-app + push) the same as a real like.
+        $this->assertFalse($service->isComplete());
+
         Notification::assertSentTo($owner, PostLikedUserNotification::class);
     }
 
@@ -184,17 +177,13 @@ class AutoEngagementTest extends TestCase
         $service->process();
         $service->process();
         $service->process();
-
-        // Daily like quota is 2, but each reel like spends extra views so day 1 lands 1 like.
         $this->assertSame(1, (int) $post->fresh()->likes_count);
 
         $this->travel(1)->days();
         $this->seedDailyQuota($post, 2);
         $service->resetCursor();
         $service->process();
-        $service->process();
-
-        $this->assertSame(3, (int) $post->fresh()->likes_count);
+        $this->assertSame(2, (int) $post->fresh()->likes_count);
     }
 
     public function test_mature_posts_drip_slower_than_fresh(): void
@@ -220,7 +209,7 @@ class AutoEngagementTest extends TestCase
         $service->process();
 
         $this->assertSame(2, (int) $old->fresh()->likes_count);
-        $this->assertSame(12, (int) $fresh->fresh()->likes_count);
+        $this->assertSame(2, (int) $fresh->fresh()->likes_count);
         $this->assertGreaterThan((int) $old->fresh()->likes_count, (int) $old->fresh()->views_count);
         $this->assertGreaterThan((int) $fresh->fresh()->likes_count, (int) $fresh->fresh()->views_count);
     }
@@ -240,7 +229,7 @@ class AutoEngagementTest extends TestCase
         $service->process();
 
         $fresh = $post->fresh();
-        $this->assertSame(4, (int) $fresh->likes_count);
+        $this->assertSame(1, (int) $fresh->likes_count);
         $this->assertGreaterThan((int) $fresh->likes_count, (int) $fresh->views_count);
     }
 
@@ -280,24 +269,18 @@ class AutoEngagementTest extends TestCase
 
         $service = app(AutoEngagementService::class);
 
-        $service->process();
-        $this->assertSame((int) $a->id, $service->cursor());
-        $this->assertSame(1, (int) $a->fresh()->likes_count);
-
-        $service->process();
-        $this->assertSame((int) $b->id, $service->cursor());
-        $this->assertSame(1, (int) $b->fresh()->likes_count);
-
-        $service->process();
+        $this->assertSame(2, $service->process());
         $this->assertSame(1, (int) $a->fresh()->likes_count);
         $this->assertSame(1, (int) $b->fresh()->likes_count);
+
+        $this->assertSame(0, $service->process());
 
         $this->travel(1)->days();
         $this->seedDailyQuota($a, 1);
-        $service->process();
+        $this->seedDailyQuota($b, 1);
+        $this->assertSame(2, $service->process());
         $this->assertSame(2, (int) $a->fresh()->likes_count);
-        $this->assertSame(1, (int) $b->fresh()->likes_count);
-        $this->assertSame((int) $a->id, $service->cursor());
+        $this->assertSame(2, (int) $b->fresh()->likes_count);
     }
 
     public function test_disabled_does_nothing(): void
@@ -327,22 +310,37 @@ class AutoEngagementTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_chunk_size_scales_with_ready_catalog(): void
+    public function test_chunk_size_covers_catalog_each_tick(): void
     {
         $owner = $this->activeUser();
-        // slots/day = 96 ticks / 3 passes = 32 → ceil(n/32)
         foreach (range(1, 32) as $_) {
             $this->publishedReel($owner, ['published_at' => now()->subDay()]);
         }
 
         $service = app(AutoEngagementService::class);
-        $this->assertSame(1, $service->chunkSize());
+        $this->assertSame(32, $service->chunkSize());
 
         foreach (range(1, 32) as $_) {
             $this->publishedReel($owner, ['published_at' => now()->subDay()]);
         }
 
-        $this->assertSame(2, $service->chunkSize());
+        $this->assertSame(64, $service->chunkSize());
+    }
+
+    public function test_never_stacks_more_than_one_like_per_tick(): void
+    {
+        $this->enable(50);
+        $owner = $this->activeUser();
+        foreach (range(1, 8) as $_) {
+            $this->activeUser();
+        }
+        $post = $this->publishedReel($owner);
+        $this->seedDailyQuota($post, 50);
+
+        app(AutoEngagementService::class)->process();
+
+        $this->assertSame(1, (int) $post->fresh()->likes_count);
+        $this->assertGreaterThan(1, (int) $post->fresh()->views_count);
     }
 
     public function test_daily_max_derives_lifetime_and_drip_range(): void

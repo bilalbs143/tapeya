@@ -906,7 +906,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Auto Engagement Daily Max',
-                'description' => 'Max likes/day for fresh reels (0–50). Fresh (≤30d): ~70–100% of this, ~3 visits/day, up to 12 likes/visit; views stay slightly above likes (~1.2×). Mature: ~20% daily, 2/visit until soft lifetime. Simple posts ~60% likes only.',
+                'description' => 'Max likes/day for fresh reels (0–50). Spread across 24h at most 1 like per 15 min (random). Views stay slightly above likes (~1.2×). Mature: ~20% of this daily. Simple posts ~60% likes only.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'reelsEngagementPerDay',
                 'nullable_string' => false,
