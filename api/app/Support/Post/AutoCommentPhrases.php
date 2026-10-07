@@ -5,8 +5,8 @@ namespace App\Support\Post;
 /**
  * Combinatorial generic comment bodies (no @mentions, no clip-specific cricket terms).
  *
- * Mixes a few complete chat lines with short blessing/praise/origin layers so
- * comments read like a person typed them, not a stacked template.
+ * Mixes short blessing/praise/origin lines with longer natural chat and an
+ * opener+middle+closer composer so repeats stay rare.
  * Optionally weaves the post creator's first name (e.g. "Bohat khoob Ali").
  */
 class AutoCommentPhrases
@@ -16,9 +16,7 @@ class AutoCommentPhrases
         'MashAllah',
         'Ma sha Allah',
         'Masha Allah',
-        'Alhamdulillah',
         'Allah bless you',
-        'Allah rakhe',
         'Allah khush rakhe',
         'Rab barkat de',
         'Boht khoob',
@@ -89,25 +87,20 @@ class AutoCommentPhrases
         'ap kahan se hain?',
         'ap kahan k ho?',
         'kis city se ho?',
-        'konsi city?',
         'ap ka city konsa hai?',
         'kis shehar se ho?',
         'ap kis ilaqe se ho?',
-        'kahan ke ho bhai?',
         'bhai kahan ke?',
         'kahan se ho yaar?',
         'bhai kidhar se?',
         'bhai ap kidhar se ho?',
         'ap kahan rehte ho?',
-        'kahan wale ho?',
-        'ap kahan wale?',
         'kidhar ke ho janab?',
         'from which city?',
         'which city bhai?',
         'city batao?',
         'ilaqa batao bhai?',
         'bhai city konsi hai?',
-        'ap kis city wale ho?',
     ];
 
     /** Short support lines — not follow-bait. */
@@ -119,7 +112,6 @@ class AutoCommentPhrases
         'keep it coming',
         'waiting for more',
         'keep posting',
-        'ruko nahi',
         'carry on',
         'big fan',
         'true support',
@@ -137,7 +129,6 @@ class AutoCommentPhrases
         'Keep it up bro',
         'Keep it up bhai',
         'Bohat khoob 🔥',
-        'Allah rakhe bhai',
         'Love this ❤️',
         'Sahi hai bhai',
         'Acha laga',
@@ -150,7 +141,6 @@ class AutoCommentPhrases
         'ap kahan se ho?',
         'kis city se ho bhai?',
         'where are you from bro?',
-        'Alhamdulillah 🤍',
         'Too good bro',
         'Nice one yaar',
         'Wah bhai wah',
@@ -160,6 +150,74 @@ class AutoCommentPhrases
         'Ma sha Allah keep going',
         'bhai mashallah',
         'hero 🔥',
+    ];
+
+    /** Longer complete comments — generic so they fit any post. */
+    /** @var list<string> */
+    private const LONG = [
+        'MashAllah bohat acha laga, keep it up bhai',
+        'Bhai ye to kamal ho gaya, bohat umda',
+        'Ma sha Allah, Allah aap ko kamyabi de',
+        'Yaara dil khush ho gaya, zabardast',
+        'Sach me bohat zabardast, keep going',
+        'Allah aap ko hamesha khush rakhe bhai',
+        'Bhai ap ki mehnat nazar aa rahi hai, bohat umda',
+        'Kya baat hai yaar, ye to next level hai',
+        'Bohat khoob bhai, full support',
+        'Respect bro, bohat acha kiya hai',
+        'Mashallah bohat acha, jeetay raho',
+        'Full support hai bhai ap k ley',
+        'Mujhe to bohat pasand aya, sahi hai',
+        'Mashallah bohat sohna, Allah nazar e bad se bachaye',
+        'Bhai mazaa agaya, keep it up',
+        'Yaar kamal kar diya, proud of you',
+        'Proud of you bhai, Allah aap ko izzat de',
+        'Bohat acha hai ye, keep it up',
+        'Wah bhai wah, kya andaaz hai',
+        'Mashallah bhai, top class',
+    ];
+
+    /** Pieces for composed long comments: opener + middle + closer. */
+    /** @var list<string> */
+    private const OPENERS = [
+        'MashAllah',
+        'Bhai sach me',
+        'Yaar',
+        'Wah',
+        'Ma sha Allah',
+        'Honestly',
+        'Bohat khoob',
+        'Kya baat hai',
+        'Dil se bolun to',
+        'Bro',
+    ];
+
+    /** @var list<string> */
+    private const MIDDLES = [
+        'bohat acha laga',
+        'ap ki mehnat nazar aa rahi hai',
+        'ye to next level hai',
+        'maza agaya',
+        'bohat zabardast kaam hai',
+        'ap ne dil jeet liya',
+        'har dafa kuch naya milta hai',
+        'bohat din baad kuch itna acha mila',
+        'ap ka andaaz sab se alag hai',
+        'ye bohat special hai',
+    ];
+
+    /** @var list<string> */
+    private const CLOSERS = [
+        'keep it up',
+        'Allah aap ko kamyab kare',
+        'aise hi karte raho',
+        'full support hai',
+        'jeetay raho',
+        'stay blessed',
+        'Allah barkat de',
+        'bas aage barhte raho',
+        'proud of you',
+        'sahi ja rahe ho',
     ];
 
     /** @var list<string> */
@@ -184,24 +242,26 @@ class AutoCommentPhrases
         $roll = random_int(1, 100);
 
         $body = match (true) {
-            $name !== null && $roll <= 28 => self::namedLine($name),
-            $roll <= 42 => self::withOptionalCreatorName(self::pick(self::READY), $name),
-            $roll <= 56 => self::withOptionalCreatorName(self::originLine(), $name),
-            $roll <= 68 => self::withOptionalEmoji(self::withOptionalCreatorName(
+            $name !== null && $roll <= 20 => self::namedLine($name),
+            $roll <= 30 => self::withOptionalCreatorName(self::pick(self::READY), $name),
+            $roll <= 38 => self::withOptionalCreatorName(self::originLine(), $name),
+            $roll <= 48 => self::withOptionalEmoji(self::withOptionalCreatorName(
                 self::withOptionalAddress(self::pick(self::BLESSINGS)),
                 $name,
             )),
-            $roll <= 80 => self::withOptionalEmoji(self::withOptionalCreatorName(
+            $roll <= 56 => self::withOptionalEmoji(self::withOptionalCreatorName(
                 self::withOptionalAddress(self::pick(self::PRAISE)),
                 $name,
             )),
-            $roll <= 88 => self::withOptionalEmoji(self::withOptionalCreatorName(self::join(
+            $roll <= 62 => self::withOptionalEmoji(self::withOptionalCreatorName(self::join(
                 self::pick(self::BLESSINGS),
                 self::pick(self::PRAISE),
                 self::maybeAddress(),
             ), $name)),
-            $roll <= 93 => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::CHAT), $name)),
-            $roll <= 97 => self::pick(self::EMOJI),
+            $roll <= 66 => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::CHAT), $name)),
+            $roll <= 82 => self::withOptionalCreatorName(self::longLine(), $name),
+            $roll <= 96 => self::withOptionalCreatorName(self::composedLine(), $name),
+            $roll <= 98 => self::pick(self::EMOJI),
             default => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::BLESSINGS), $name)),
         };
 
@@ -294,6 +354,27 @@ class AutoCommentPhrases
         };
 
         return self::withOptionalEmoji($line);
+    }
+
+    private static function longLine(): string
+    {
+        return self::withOptionalEmoji(self::pick(self::LONG));
+    }
+
+    private static function composedLine(): string
+    {
+        $parts = [self::pick(self::OPENERS), self::pick(self::MIDDLES)];
+
+        if (random_int(1, 100) <= 75) {
+            $parts[] = self::pick(self::CLOSERS);
+        }
+
+        $line = self::join(...$parts);
+        if (count($parts) === 3 && random_int(1, 2) === 1) {
+            $line = self::join($parts[0], $parts[1]).', '.$parts[2];
+        }
+
+        return self::withOptionalEmoji(self::withOptionalAddress($line));
     }
 
     private static function withOptionalCreatorName(string $line, ?string $name): string

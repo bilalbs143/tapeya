@@ -245,7 +245,8 @@ class AutoCommentTest extends TestCase
     public function test_phrases_are_combinatorial_and_never_mention(): void
     {
         $seen = [];
-        foreach (range(1, 120) as $_) {
+        $longOnes = 0;
+        foreach (range(1, 160) as $_) {
             $body = AutoCommentPhrases::random();
             $this->assertNotSame('', trim($body));
             $this->assertLessThanOrEqual(500, mb_strlen($body));
@@ -254,10 +255,14 @@ class AutoCommentTest extends TestCase
                 '/\b(batting|bowling|shot|knock|hitting)\b/i',
                 $body
             );
+            if (count(preg_split('/\s+/u', trim($body)) ?: []) >= 6) {
+                $longOnes++;
+            }
             $seen[$body] = true;
         }
 
-        $this->assertGreaterThan(25, count($seen));
+        $this->assertGreaterThan(40, count($seen));
+        $this->assertGreaterThan(20, $longOnes);
 
         $unused = AutoCommentPhrases::randomUnused(['Keep it up bhai', 'keep it up bhai!']);
         $this->assertNotNull($unused);
