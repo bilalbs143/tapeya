@@ -267,6 +267,26 @@ class AutoCommentTest extends TestCase
         );
     }
 
+    public function test_phrases_can_include_creator_first_name_only(): void
+    {
+        $this->assertSame('Ali', AutoCommentPhrases::firstNameFrom('Ali Muraad'));
+        $this->assertSame('Zain', AutoCommentPhrases::firstNameFrom('zain'));
+        $this->assertNull(AutoCommentPhrases::firstNameFrom(''));
+        $this->assertNull(AutoCommentPhrases::firstNameFrom('user'));
+
+        $withName = 0;
+        foreach (range(1, 80) as $_) {
+            $body = AutoCommentPhrases::random('Ali Muraad');
+            $this->assertStringNotContainsString('@', $body);
+            $this->assertStringNotContainsString('Muraad', $body);
+            if (preg_match('/\bAli\b/u', $body) === 1) {
+                $withName++;
+            }
+        }
+
+        $this->assertGreaterThan(10, $withName);
+    }
+
     public function test_comment_caps_derive_from_like_daily_max(): void
     {
         $settings = app(PostsSettings::class);

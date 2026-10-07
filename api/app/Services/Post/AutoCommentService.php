@@ -188,8 +188,14 @@ class AutoCommentService
             return false;
         }
 
+        $post->loadMissing('user:id,name,nickname');
+        $creatorFirstName = AutoCommentPhrases::firstNameFrom(
+            (string) ($post->user?->name ?: $post->user?->nickname ?: '')
+        );
+
         $body = AutoCommentPhrases::randomUnused(
-            PostComment::query()->where('post_id', $post->id)->pluck('body')
+            PostComment::query()->where('post_id', $post->id)->pluck('body'),
+            $creatorFirstName,
         );
         if ($body === null) {
             return false;
