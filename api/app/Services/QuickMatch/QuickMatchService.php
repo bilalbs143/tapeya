@@ -7,8 +7,8 @@ use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\TossChoiceEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Models\CricketMatch;
 use App\Models\Team;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Support\MatchSquadRules;
 use App\Support\NicknameFromName;
@@ -23,7 +23,7 @@ final class QuickMatchService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(User $creator, array $data): CricketMatch
+    public function create(User $creator, array $data): TournamentMatch
     {
         return DB::transaction(function () use ($creator, $data) {
             $home = $this->resolveTeam($creator, $data['home'], 'home');
@@ -58,7 +58,7 @@ final class QuickMatchService
                 }
             }
 
-            $match = CricketMatch::create([
+            $match = TournamentMatch::create([
                 'kind' => MatchKindEnum::QUICK,
                 'tournament_id' => null,
                 'created_by' => $creator->id,
@@ -87,7 +87,7 @@ final class QuickMatchService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function updateScheduled(CricketMatch $match, User $actor, array $data): CricketMatch
+    public function updateScheduled(TournamentMatch $match, User $actor, array $data): TournamentMatch
     {
         return DB::transaction(function () use ($match, $actor, $data) {
             $updates = [];
@@ -132,7 +132,7 @@ final class QuickMatchService
      * Remove a match's squad/XI rows for one (now-replaced) side team.
      * Mirrors the cleanup removePlayer() already does per-player, just for the whole side.
      */
-    private function clearSideSquad(CricketMatch $match, int $oldTeamId): void
+    private function clearSideSquad(TournamentMatch $match, int $oldTeamId): void
     {
         DB::table('match_squads')->where('match_id', $match->id)->where('team_id', $oldTeamId)->delete();
         DB::table('match_players')->where('match_id', $match->id)->where('team_id', $oldTeamId)->delete();
@@ -141,7 +141,7 @@ final class QuickMatchService
     /**
      * @param  array{user_id?: int, name?: string, phone?: string}  $player
      */
-    public function addPlayer(User $actor, CricketMatch $match, Team $team, array $player): User
+    public function addPlayer(User $actor, TournamentMatch $match, Team $team, array $player): User
     {
         if (MatchSquadRules::isLocked($match)) {
             throw ValidationException::withMessages([
@@ -194,7 +194,7 @@ final class QuickMatchService
     /**
      * Detach a player from this match's squad (and XI if present). Keeps team roster membership.
      */
-    public function removePlayer(CricketMatch $match, Team $team, User $player): void
+    public function removePlayer(TournamentMatch $match, Team $team, User $player): void
     {
         if (MatchSquadRules::isLocked($match)) {
             throw ValidationException::withMessages([
@@ -238,7 +238,7 @@ final class QuickMatchService
     /**
      * Promote each side's match squad to playing XI (insertOrIgnore). Used when recording toss on a quick match.
      */
-    public function promoteSquadToPlayingEleven(CricketMatch $match): void
+    public function promoteSquadToPlayingEleven(TournamentMatch $match): void
     {
         $pps = MatchSquadRules::playersPerSide($match);
         foreach ([(int) $match->home_team_id, (int) $match->away_team_id] as $teamId) {
@@ -271,7 +271,7 @@ final class QuickMatchService
         }
     }
 
-    public function loadForResource(CricketMatch $match): CricketMatch
+    public function loadForResource(TournamentMatch $match): TournamentMatch
     {
         $match->load(['homeTeam', 'awayTeam', 'createdBy', 'tossWinnerTeam', 'tournament', 'innings']);
         $this->hydrateSquadPlayersForMatches(collect([$match]));
@@ -280,7 +280,7 @@ final class QuickMatchService
     }
 
     /**
-     * @param  Collection<int, CricketMatch>|\Illuminate\Database\Eloquent\Collection<int, CricketMatch>  $matches
+     * @param  Collection<int, TournamentMatch>|\Illuminate\Database\Eloquent\Collection<int, TournamentMatch>  $matches
      */
     public function hydrateSquadPlayersForMatches($matches): void
     {
@@ -404,7 +404,7 @@ final class QuickMatchService
     /**
      * @param  list<int>  $playerIds
      */
-    private function attachRosterAndSquad(CricketMatch $match, Team $team, array $playerIds, bool $asPlayingEleven): void
+    private function attachRosterAndSquad(TournamentMatch $match, Team $team, array $playerIds, bool $asPlayingEleven): void
     {
         if ($playerIds === []) {
             return;
@@ -448,7 +448,7 @@ final class QuickMatchService
     /**
      * @param  array{winning_side: string, chose_to_bat_or_bowl: string}  $toss
      */
-    private function applyToss(CricketMatch $match, array $toss): void
+    private function applyToss(TournamentMatch $match, array $toss): void
     {
         $winningTeamId = $toss['winning_side'] === 'home'
             ? (int) $match->home_team_id

@@ -4,7 +4,6 @@ namespace Tests\Unit\Models;
 
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchKindEnum;
-use App\Models\CricketMatch;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,8 +30,7 @@ class TournamentMatchKindTest extends TestCase
         $this->assertSame(CricketFormatEnum::TAPE_BALL, $match->cricket_format);
         $this->assertSame((int) $owner->id, (int) $match->created_by);
         $this->assertNull($match->tournamentSummary());
-        $this->assertTrue(is_a(CricketMatch::class, TournamentMatch::class, true));
-        $this->assertInstanceOf(CricketMatch::class, $match);
+        $this->assertInstanceOf(TournamentMatch::class, $match);
     }
 
     public function test_tournament_summary_for_tournament_match(): void

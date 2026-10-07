@@ -17,33 +17,37 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Growth helper: walk public ready posts in id chunks and drip likes/views from random
- * active users.
+ * Drip silent likes/views onto public ready posts from random active users.
  *
- * Admin knobs: enabled + daily max (reels). Each calendar day picks random_int(1, dailyMax).
- * Simple posts use ~60% of that daily max. Soft lifetime = dailyMax ×
- * {@see PostsSettings::AUTO_ENGAGEMENT_FRESH_DAYS}; posts older than that window are skipped.
+ * Admin: enabled + daily max. Fresh posts (≤ {@see PostsSettings::AUTO_ENGAGEMENT_FRESH_DAYS})
+ * use an aggressive daily band; older posts stay eligible under soft lifetime but drip slowly.
+ * Soft like lifetime = dailyMax × fresh days; reel views use a mild lead over likes.
  *
- * Video posts: likes + views toward the same soft lifetime (each like also records a view).
- * Text/image/repost: likes only.
+ * Pace: every 15 minutes, at most one like (and matching views) per post,
+ * and at most one like per post owner (so multi-post creators never get a notification stack).
+ * Daily quotas are unchanged — remaining room is spread at random across the day's ticks;
+ * owners with many posts rotate which reel gets the like.
+ * Reels keep likes_count < views_count; simple posts get likes only.
  *
- * Synthetic likes are silent (no push / in-app) so creators do not get burst notifications.
- *
- * Cursor: cache key {@see self::CURSOR_CACHE_KEY} via {@see Cache::forever()}.
- * Daily state: {@see self::dailyStateCacheKey()} (TTL ~2 days).
+ * Cursor: {@see self::CURSOR_CACHE_KEY}. Daily state: {@see self::dailyStateCacheKey()}.
  */
 class AutoEngagementService
 {
-    /** Durable-until-flush cursor; never use a TTL on this key. */
     public const CURSOR_CACHE_KEY = 'posts.auto_engagement.cursor_id';
 
-    /** Scheduled every 15 minutes — spread one full sweep across the day. */
+    /** Keep in sync with routes/console.php (everyFifteenMinutes). */
     private const TICKS_PER_DAY = 96;
+
+    /** One catalog pass per 15-minute tick so likes can spread across the day. */
+    private const TARGET_PASSES_PER_DAY = 96;
 
     private const MAX_CHUNK = 200;
 
-    /** Max likes/views applied to one post in a single process() tick. */
-    private const MAX_DRIP_PER_TICK = 1;
+    /** Never stack likes/notifications in one tick. */
+    private const LIKE_PER_TICK = 1;
+
+    /** Extra viewers beyond the liker so reel likes stay strictly below views. */
+    private const EXTRA_VIEWS_PER_AUTO_LIKE = 1;
 
     public function __construct(
         private PostsSettings $settings,
@@ -51,9 +55,7 @@ class AutoEngagementService
         private readonly PostViewService $views,
     ) {}
 
-    /**
-     * Process the next chunk of eligible posts (by id). Returns posts touched.
-     */
+    /** Process the next chunk of eligible posts. Returns posts touched. */
     public function process(): int
     {
         $this->reloadSettings();
@@ -64,16 +66,18 @@ class AutoEngagementService
 
         $reelsDaily = $this->settings->reelsDailyMax();
         $simpleDaily = $this->settings->simpleDailyMax();
-        $reelsMax = $this->settings->reelsLifetimeMax();
-        $simpleMax = $this->settings->simpleLifetimeMax();
-        [$reelsDailyMin, $reelsDailyMax] = $this->settings->dailyDripRange($reelsDaily);
-        [$simpleDailyMin, $simpleDailyMax] = $this->settings->dailyDripRange($simpleDaily);
-
         if ($reelsDaily === 0 && $simpleDaily === 0) {
             return 0;
         }
 
-        if ($this->remainingUnderTargetCount($reelsMax, $simpleMax) === 0) {
+        $reelsMax = $this->settings->reelsLifetimeMax();
+        $reelsViewMax = $this->settings->reelsViewsLifetimeMax();
+        $simpleMax = $this->settings->simpleLifetimeMax();
+        [$reelsDailyMin, $reelsDailyMax] = $this->settings->dailyDripRange($reelsDaily);
+        [$simpleDailyMin, $simpleDailyMax] = $this->settings->dailyDripRange($simpleDaily);
+
+        $remaining = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)->count();
+        if ($remaining === 0) {
             $this->resetCursor();
 
             return 0;
@@ -81,16 +85,17 @@ class AutoEngagementService
 
         $chunk = $this->chunkSize();
         $today = now()->toDateString();
-        $touched = 0;
+        $likedThisTick = 0;
         $scanned = 0;
         $wrapped = false;
-        // Skip posts that already used today's drip without stalling the sweep.
-        $maxScan = max($chunk * 10, min(self::MAX_CHUNK, $this->remainingUnderTargetCount($reelsMax, $simpleMax)));
+        /** @var array<int, true> owners who already received a like this tick */
+        $ownersLikedThisTick = [];
+        // Scan deeper than chunk: owner throttle skips many same-creator posts.
+        $maxScan = max($chunk * 20, min(self::MAX_CHUNK * 3, max($remaining, $chunk)));
 
-        while ($touched < $chunk && $scanned < $maxScan) {
-            $cursor = $this->cursor();
-            $post = $this->underTargetQuery($reelsMax, $simpleMax)
-                ->where('id', '>', $cursor)
+        while ($likedThisTick < $chunk && $scanned < $maxScan) {
+            $post = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
+                ->where('id', '>', $this->cursor())
                 ->orderBy('id')
                 ->first();
 
@@ -107,25 +112,60 @@ class AutoEngagementService
             $scanned++;
             $this->storeCursor((int) $post->id);
 
-            [$likeMax, $viewMax] = $this->targetsForPost($post, $reelsMax, $simpleMax);
+            $ownerId = (int) $post->user_id;
+            if ($ownerId > 0 && isset($ownersLikedThisTick[$ownerId])) {
+                // One like per creator per tick — prevents lock-screen stacks.
+                continue;
+            }
+
+            [$likeMax, $viewMax] = $this->targetsForPost($post, $reelsMax, $simpleMax, $reelsViewMax);
             if ($likeMax === 0 && $viewMax === 0) {
                 continue;
             }
 
-            [$dailyMin, $dailyMax] = $this->isVideo($post)
-                ? [$reelsDailyMin, $reelsDailyMax]
-                : [$simpleDailyMin, $simpleDailyMax];
-
+            [$dailyMin, $dailyMax] = $this->paceForPost(
+                $post,
+                $reelsDaily,
+                $simpleDaily,
+                $reelsDailyMin,
+                $reelsDailyMax,
+                $simpleDailyMin,
+                $simpleDailyMax,
+            );
             if ($dailyMax <= 0) {
                 continue;
             }
 
             $state = $this->dailyState((int) $post->id, $today, $dailyMin, $dailyMax);
-            $likeRoomToday = max(0, $state['quota'] - $state['likes']);
-            $viewRoomToday = max(0, $state['quota'] - $state['views']);
+            $video = $this->isVideo($post);
+            $likeRoom = max(0, $state['quota'] - $state['likes']);
+            $viewQuota = $video ? $this->settings->scaleViewsAboveLikes($state['quota']) : 0;
+            $viewRoom = max(0, $viewQuota - $state['views']);
 
-            $dripLikes = min(self::MAX_DRIP_PER_TICK, $likeRoomToday);
-            $dripViews = min(self::MAX_DRIP_PER_TICK, $viewRoomToday);
+            if ($likeRoom > 0 && $ownerId > 0 && $this->shouldSkipForOwnerRotation(
+                $post,
+                $ownerId,
+                $today,
+                $reelsMax,
+                $simpleMax,
+                $reelsViewMax,
+            )) {
+                continue;
+            }
+
+            $applyLike = $likeRoom > 0
+                && $ownerId > 0
+                && $this->shouldApplyLikeThisTick($likeRoom);
+            $dripLikes = $applyLike ? min(self::LIKE_PER_TICK, $likeRoom) : 0;
+            $dripViews = 0;
+            if ($video) {
+                if ($applyLike) {
+                    $dripViews = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $viewRoom);
+                } elseif ($likeRoom <= 0 && (int) $post->views_count <= (int) $post->likes_count) {
+                    // Silent view repair only when likes are done for the day.
+                    $dripViews = min(1, $viewRoom);
+                }
+            }
 
             if ($dripLikes <= 0 && $dripViews <= 0) {
                 continue;
@@ -134,25 +174,29 @@ class AutoEngagementService
             [$likesAdded, $viewsAdded] = $this->dripEngagePost($post, $likeMax, $viewMax, $dripLikes, $dripViews);
             if ($likesAdded > 0 || $viewsAdded > 0) {
                 $this->bumpDailyState((int) $post->id, $today, $likesAdded, $viewsAdded, $state);
-                $touched++;
+            }
+            if ($likesAdded > 0 && $ownerId > 0) {
+                $ownersLikedThisTick[$ownerId] = true;
+                $this->storeOwnerLikeCursor($ownerId, $today, (int) $post->id);
+                $likedThisTick++;
             }
         }
 
-        return $touched;
+        return $likedThisTick;
     }
 
-    /** How many public ready posts still sit under type-specific lifetime max (and freshness). */
-    public function remainingUnderTargetCount(?int $reelsMax = null, ?int $simpleMax = null): int
+    public function remainingUnderTargetCount(?int $reelsMax = null, ?int $simpleMax = null, ?int $reelsViewMax = null): int
     {
         $this->reloadSettings();
         $reelsMax ??= $this->settings->reelsLifetimeMax();
         $simpleMax ??= $this->settings->simpleLifetimeMax();
+        $reelsViewMax ??= $this->settings->reelsViewsLifetimeMax();
 
         if ($reelsMax === 0 && $simpleMax === 0) {
             return 0;
         }
 
-        return $this->underTargetQuery($reelsMax, $simpleMax)->count();
+        return $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)->count();
     }
 
     public function isComplete(): bool
@@ -165,35 +209,28 @@ class AutoEngagementService
         $this->storeCursor(0);
     }
 
-    /** Last processed post id (0 = start). Missing key = start. */
     public function cursor(): int
     {
         return max(0, (int) Cache::get(self::CURSOR_CACHE_KEY, 0));
     }
 
-    /** Persist cursor with no TTL so it is not exhausted by expiry. */
-    private function storeCursor(int $postId): void
-    {
-        Cache::forever(self::CURSOR_CACHE_KEY, max(0, $postId));
-    }
-
-    /**
-     * Posts per tick from ready catalog size (~one full pass per day at 15m schedule).
-     */
     public function chunkSize(): int
     {
-        $ready = $this->readyPublicPostCount();
+        $ready = Post::query()
+            ->whereNotNull('published_at')
+            ->where('status', PostStatusEnum::Ready)
+            ->count();
 
         if ($ready <= 0) {
             return 1;
         }
 
-        return max(1, min(self::MAX_CHUNK, (int) ceil($ready / self::TICKS_PER_DAY)));
+        $slots = max(1, intdiv(self::TICKS_PER_DAY, self::TARGET_PASSES_PER_DAY));
+
+        return max(1, min(self::MAX_CHUNK, (int) ceil($ready / $slots)));
     }
 
     /**
-     * Add likes/views toward lifetime max, capped by today's remaining drip rooms.
-     *
      * @return array{0: int, 1: int} [likesAdded, viewsAdded]
      */
     public function dripEngagePost(
@@ -215,26 +252,64 @@ class AutoEngagementService
         $likesAdded = 0;
         $viewsAdded = 0;
 
+        if (! $this->isVideo($post)) {
+            while ($likesAdded < $dripLikes && (int) $post->likes_count < $likeMax) {
+                $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forLikeOnPostId: (int) $post->id);
+                if (! $actor) {
+                    break;
+                }
+
+                try {
+                    $this->interactions->like($post, $actor);
+                    $likesAdded++;
+                } catch (Throwable $e) {
+                    Log::warning('auto_engagement.like_failed', [
+                        'post_id' => $post->id,
+                        'message' => $e->getMessage(),
+                    ]);
+                    break;
+                }
+
+                $post = $post->fresh() ?? $post;
+            }
+
+            return [$likesAdded, 0];
+        }
+
+        // Reels: repair lagging views, drip likes (each keeps views ahead), then fill view room.
+        if ((int) $post->likes_count > 0) {
+            $this->ensureViewsAhead($post, $viewsAdded, $dripViews, $viewMax);
+        }
+
         while ($likesAdded < $dripLikes && (int) $post->likes_count < $likeMax) {
+            $viewsNeeded = 1 + self::EXTRA_VIEWS_PER_AUTO_LIKE;
+            if (($dripViews - $viewsAdded) < $viewsNeeded || ((int) $post->views_count + $viewsNeeded) > $viewMax) {
+                break;
+            }
+
             $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forLikeOnPostId: (int) $post->id);
             if (! $actor) {
                 break;
             }
 
             try {
-                $this->interactions->like($post, $actor, notify: false);
-                if ($this->isVideo($post)) {
-                    try {
-                        $this->views->recordCountedForUser($post->fresh() ?? $post, $actor);
-                        $viewsAdded++;
-                    } catch (Throwable $e) {
-                        Log::warning('auto_engagement.view_after_like_failed', [
-                            'post_id' => $post->id,
-                            'message' => $e->getMessage(),
-                        ]);
-                    }
-                }
+                $this->interactions->like($post, $actor);
                 $likesAdded++;
+
+                try {
+                    $this->views->recordCountedForUser($post->fresh() ?? $post, $actor);
+                    $viewsAdded++;
+                } catch (Throwable $e) {
+                    Log::warning('auto_engagement.view_after_like_failed', [
+                        'post_id' => $post->id,
+                        'message' => $e->getMessage(),
+                    ]);
+                }
+
+                $post = $post->fresh() ?? $post;
+                if (! $this->ensureViewsAhead($post, $viewsAdded, $dripViews, $viewMax)) {
+                    break;
+                }
             } catch (Throwable $e) {
                 Log::warning('auto_engagement.like_failed', [
                     'post_id' => $post->id,
@@ -246,45 +321,162 @@ class AutoEngagementService
             $post = $post->fresh() ?? $post;
         }
 
-        // Catch up views when likes already at max (or simple posts skipped views).
         while ($viewsAdded < $dripViews && (int) $post->views_count < $viewMax) {
-            $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forViewOnPostId: (int) $post->id);
-            if (! $actor) {
+            if (! $this->recordAutoView($post, $viewsAdded)) {
                 break;
             }
-
-            try {
-                $this->views->recordCountedForUser($post, $actor);
-                $viewsAdded++;
-            } catch (Throwable $e) {
-                Log::warning('auto_engagement.view_failed', [
-                    'post_id' => $post->id,
-                    'message' => $e->getMessage(),
-                ]);
-                break;
-            }
-
             $post = $post->fresh() ?? $post;
         }
 
         return [$likesAdded, $viewsAdded];
     }
 
-    /**
-     * @return array{0: int, 1: int} [likeMax, viewMax]
-     */
-    private function targetsForPost(Post $post, int $reelsMax, int $simpleMax): array
+    public static function dailyStateCacheKey(int $postId, string $date): string
     {
-        if ($this->isVideo($post)) {
-            return [$reelsMax, $reelsMax];
-        }
+        return "posts.auto_engagement.daily.{$postId}.{$date}";
+    }
 
-        return [$simpleMax, 0];
+    public static function ownerLikeCursorCacheKey(int $ownerId, string $date): string
+    {
+        return "posts.auto_engagement.owner_like_cursor.{$ownerId}.{$date}";
     }
 
     /**
-     * @return array{quota: int, likes: int, views: int}
+     * Rotate likes across a creator's posts so the same reel is not hit every tick.
      */
+    private function shouldSkipForOwnerRotation(
+        Post $post,
+        int $ownerId,
+        string $date,
+        int $reelsMax,
+        int $simpleMax,
+        int $reelsViewMax,
+    ): bool {
+        $lastId = (int) Cache::get(self::ownerLikeCursorCacheKey($ownerId, $date), 0);
+        if ($lastId <= 0 || (int) $post->id > $lastId) {
+            return false;
+        }
+
+        $hasLater = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
+            ->where('user_id', $ownerId)
+            ->where('id', '>', $lastId)
+            ->exists();
+
+        if ($hasLater) {
+            return true;
+        }
+
+        Cache::forget(self::ownerLikeCursorCacheKey($ownerId, $date));
+
+        return false;
+    }
+
+    private function storeOwnerLikeCursor(int $ownerId, string $date, int $postId): void
+    {
+        Cache::put(self::ownerLikeCursorCacheKey($ownerId, $date), max(0, $postId), now()->addDays(2));
+    }
+
+    /**
+     * @return array{0: int, 1: int} [dailyMin, dailyMax]
+     */
+    private function paceForPost(
+        Post $post,
+        int $reelsDaily,
+        int $simpleDaily,
+        int $reelsDailyMin,
+        int $reelsDailyMax,
+        int $simpleDailyMin,
+        int $simpleDailyMax,
+    ): array {
+        $video = $this->isVideo($post);
+
+        if ($this->isWithinFreshWindow($post)) {
+            return $video
+                ? [$reelsDailyMin, $reelsDailyMax]
+                : [$simpleDailyMin, $simpleDailyMax];
+        }
+
+        $base = $video ? $reelsDaily : $simpleDaily;
+
+        return $this->settings->matureDailyDripRange($base);
+    }
+
+    /**
+     * Spread remaining daily likes across leftover 15-minute slots (at most one like per tick).
+     */
+    private function shouldApplyLikeThisTick(int $likeRoom): bool
+    {
+        if ($likeRoom <= 0) {
+            return false;
+        }
+
+        if (app()->environment('testing')) {
+            return true;
+        }
+
+        $ticksLeft = $this->remainingTicksToday();
+        $chance = (int) ceil(($likeRoom / $ticksLeft) * 100);
+        $chance = max(1, min(100, $chance));
+
+        return random_int(1, 100) <= $chance;
+    }
+
+    private function remainingTicksToday(): int
+    {
+        $elapsed = ((int) now()->hour * 4) + intdiv((int) now()->minute, 15);
+
+        return max(1, self::TICKS_PER_DAY - $elapsed);
+    }
+
+    /** @return array{0: int, 1: int} [likeMax, viewMax] */
+    private function targetsForPost(Post $post, int $reelsMax, int $simpleMax, int $reelsViewMax): array
+    {
+        return $this->isVideo($post) ? [$reelsMax, $reelsViewMax] : [$simpleMax, 0];
+    }
+
+    /**
+     * Add views until views_count > likes_count (or budget/lifetime exhausted).
+     *
+     * @return bool true when invariant holds
+     */
+    private function ensureViewsAhead(Post &$post, int &$viewsAdded, int $dripViews, int $viewMax): bool
+    {
+        while ((int) $post->views_count <= (int) $post->likes_count) {
+            if ($viewsAdded >= $dripViews || (int) $post->views_count >= $viewMax) {
+                return false;
+            }
+            if (! $this->recordAutoView($post, $viewsAdded)) {
+                return false;
+            }
+            $post = $post->fresh() ?? $post;
+        }
+
+        return true;
+    }
+
+    private function recordAutoView(Post $post, int &$viewsAdded): bool
+    {
+        $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forViewOnPostId: (int) $post->id);
+        if (! $actor) {
+            return false;
+        }
+
+        try {
+            $this->views->recordCountedForUser($post, $actor);
+            $viewsAdded++;
+
+            return true;
+        } catch (Throwable $e) {
+            Log::warning('auto_engagement.view_failed', [
+                'post_id' => $post->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /** @return array{quota: int, likes: int, views: int} */
     private function dailyState(int $postId, string $date, int $dailyMin, int $dailyMax): array
     {
         $key = self::dailyStateCacheKey($postId, $date);
@@ -298,78 +490,66 @@ class AutoEngagementService
             ];
         }
 
-        $quota = $dailyMax <= $dailyMin
-            ? $dailyMin
-            : random_int($dailyMin, $dailyMax);
-
+        $quota = $dailyMax <= $dailyMin ? $dailyMin : random_int($dailyMin, $dailyMax);
         $state = ['quota' => $quota, 'likes' => 0, 'views' => 0];
         Cache::put($key, $state, now()->addDays(2));
 
         return $state;
     }
 
-    /**
-     * @param  array{quota: int, likes: int, views: int}  $prior
-     */
+    /** @param  array{quota: int, likes: int, views: int}  $prior */
     private function bumpDailyState(int $postId, string $date, int $likesAdded, int $viewsAdded, array $prior): void
     {
-        $key = self::dailyStateCacheKey($postId, $date);
-        Cache::put($key, [
+        Cache::put(self::dailyStateCacheKey($postId, $date), [
             'quota' => $prior['quota'],
             'likes' => $prior['likes'] + $likesAdded,
             'views' => $prior['views'] + $viewsAdded,
         ], now()->addDays(2));
     }
 
-    public static function dailyStateCacheKey(int $postId, string $date): string
-    {
-        return "posts.auto_engagement.daily.{$postId}.{$date}";
-    }
-
-    private function readyPublicPostCount(): int
+    /** @return Builder<Post> */
+    private function underTargetQuery(int $reelsMax, int $simpleMax, int $reelsViewMax): Builder
     {
         return Post::query()
             ->whereNotNull('published_at')
             ->where('status', PostStatusEnum::Ready)
-            ->count();
+            ->where(function ($q) use ($reelsMax, $simpleMax, $reelsViewMax) {
+                $hasVideo = false;
+
+                if ($reelsMax > 0 || $reelsViewMax > 0) {
+                    $q->where(function ($video) use ($reelsMax, $reelsViewMax) {
+                        $video->where('type', PostTypeEnum::Video)
+                            ->where(function ($targets) use ($reelsMax, $reelsViewMax) {
+                                if ($reelsMax > 0) {
+                                    $targets->where('likes_count', '<', $reelsMax);
+                                }
+                                if ($reelsViewMax > 0) {
+                                    $method = $reelsMax > 0 ? 'orWhere' : 'where';
+                                    $targets->{$method}('views_count', '<', $reelsViewMax);
+                                }
+                            });
+                    });
+                    $hasVideo = true;
+                }
+
+                if ($simpleMax > 0) {
+                    $method = $hasVideo ? 'orWhere' : 'where';
+                    $q->{$method}(function ($simple) use ($simpleMax) {
+                        $simple->where('type', '!=', PostTypeEnum::Video)
+                            ->where('likes_count', '<', $simpleMax);
+                    });
+                }
+            });
     }
 
-    /**
-     * @return Builder<Post>
-     */
-    private function underTargetQuery(int $reelsMax, int $simpleMax): Builder
+    private function isWithinFreshWindow(Post $post): bool
     {
-        $query = Post::query()
-            ->whereNotNull('published_at')
-            ->where('status', PostStatusEnum::Ready);
-
         $freshDays = $this->settings->autoEngagementFreshDays();
-        if ($freshDays > 0) {
-            $query->where('published_at', '>=', now()->subDays($freshDays));
+        if ($freshDays <= 0 || $post->published_at === null) {
+            return true;
         }
 
-        return $query->where(function ($q) use ($reelsMax, $simpleMax) {
-            $hasClause = false;
-
-            if ($reelsMax > 0) {
-                $q->where(function ($video) use ($reelsMax) {
-                    $video->where('type', PostTypeEnum::Video)
-                        ->where(function ($targets) use ($reelsMax) {
-                            $targets->where('likes_count', '<', $reelsMax)
-                                ->orWhere('views_count', '<', $reelsMax);
-                        });
-                });
-                $hasClause = true;
-            }
-
-            if ($simpleMax > 0) {
-                $method = $hasClause ? 'orWhere' : 'where';
-                $q->{$method}(function ($simple) use ($simpleMax) {
-                    $simple->where('type', '!=', PostTypeEnum::Video)
-                        ->where('likes_count', '<', $simpleMax);
-                });
-            }
-        });
+        return $post->published_at->gte(now()->subDays($freshDays));
     }
 
     private function randomActiveUserExceptOwner(
@@ -407,6 +587,11 @@ class AutoEngagementService
             : PostTypeEnum::tryFrom((string) $post->type);
 
         return $type === PostTypeEnum::Video;
+    }
+
+    private function storeCursor(int $postId): void
+    {
+        Cache::forever(self::CURSOR_CACHE_KEY, max(0, $postId));
     }
 
     private function reloadSettings(): void

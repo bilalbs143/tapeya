@@ -19,6 +19,7 @@ class UserActivePlatformController extends Controller
         $request->user()->update([
             'active_platform' => $validated['platform'],
             'active_platform_updated_at' => now(),
+            'last_active_at' => now(),
         ]);
 
         return response()->success(null, 'Platform updated.');

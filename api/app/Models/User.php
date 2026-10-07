@@ -69,6 +69,7 @@ class User extends Authenticatable
         'added_via_quick_match',
         'active_platform',
         'active_platform_updated_at',
+        'last_active_at',
         'can_broadcast',
         'is_official',
         'broadcast_terms_accepted_at',
@@ -119,6 +120,7 @@ class User extends Authenticatable
             'created_by' => 'integer',
             'added_via_quick_match' => 'boolean',
             'active_platform_updated_at' => 'datetime',
+            'last_active_at' => 'datetime',
             'can_broadcast' => 'boolean',
             'is_official' => 'boolean',
             'broadcast_terms_accepted_at' => 'datetime',
@@ -555,6 +557,47 @@ class User extends Authenticatable
     }
 
     /**
+     * Scope: last_active_at on/after date (YYYY-MM-DD).
+     */
+    public function scopeLastActiveAfter(Builder $query, ?string $date): void
+    {
+        if ($date) {
+            $query->whereDate('last_active_at', '>=', $date);
+        }
+    }
+
+    /**
+     * Scope: last_active_at on/before date (YYYY-MM-DD).
+     */
+    public function scopeLastActiveBefore(Builder $query, ?string $date): void
+    {
+        if ($date) {
+            $query->whereDate('last_active_at', '<=', $date);
+        }
+    }
+
+    /**
+     * Scope: inactive for at least N days (null last_active_at counts as inactive).
+     */
+    public function scopeInactiveDays(Builder $query, ?string $days): void
+    {
+        if ($days === null || $days === '') {
+            return;
+        }
+
+        $n = (int) $days;
+        if ($n < 1) {
+            return;
+        }
+
+        $cutoff = now()->subDays($n);
+        $query->where(function (Builder $q) use ($cutoff): void {
+            $q->whereNull('last_active_at')
+                ->orWhere('last_active_at', '<=', $cutoff);
+        });
+    }
+
+    /**
      * Filters for QueryBuilder (admin/index listing).
      *
      * @return array<int, string|AllowedFilter>
@@ -574,6 +617,9 @@ class User extends Authenticatable
             AllowedFilter::scope('created_after'),
             AllowedFilter::scope('created_before'),
             AllowedFilter::scope('updated_between'),
+            AllowedFilter::scope('last_active_after'),
+            AllowedFilter::scope('last_active_before'),
+            AllowedFilter::scope('inactive_days'),
         ];
     }
 
@@ -594,6 +640,7 @@ class User extends Authenticatable
             'status',
             'active_platform',
             'city',
+            'last_active_at',
             'created_at',
             'updated_at',
         ];

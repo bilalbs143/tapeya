@@ -36,6 +36,7 @@ export interface User {
   active_platform?: string | null;
   active_platform_label?: string | null;
   active_platform_updated_at?: string | null;
+  last_active_at?: string | null;
   can_broadcast?: boolean;
   is_official?: boolean;
   admin_roles?: UserRole[];
@@ -77,9 +78,6 @@ export interface CreateUserPayload {
   type: string;
   status?: string | null;
   admin_role_ids?: number[];
-  playing_role?: string | null;
-  bowling_style?: string | null;
-  batting_style?: string | null;
   country?: string | null;
   city?: string | null;
   can_broadcast?: boolean;

@@ -8,6 +8,7 @@ import ComposerTrigger from '@/components/feed/ComposerTrigger';
 import { FeedHighlightWidget } from '@/components/feed/FeedHighlightWidget';
 import { FeedLiveNowWidget } from '@/components/feed/FeedLiveNowWidget';
 import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
+import { FeedSerialsWidget } from '@/components/feed/FeedSerialsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
 import FeedTabs from '@/components/feed/FeedTabs';
@@ -20,6 +21,7 @@ import { composeDestination } from '@/lib/feed/composeDestination';
 import { useTabReselect } from '@/lib/navigation/tabReselect';
 import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import PostCard from '@/pages/feed/PostCard';
+import { useGetDramaSerialsQuery } from '@/store/api/dramaApi';
 import {
   FEED_LIST_ARG,
   useGetFollowingFeedQuery,
@@ -162,6 +164,9 @@ function TimelineRow({ row, onSuggestedFollowed }) {
   if (row.type === 'highlight') {
     return <FeedHighlightWidget highlights={row.highlights} />;
   }
+  if (row.type === 'serial') {
+    return <FeedSerialsWidget serials={row.serials} />;
+  }
   return null;
 }
 
@@ -225,6 +230,13 @@ export default function FeedRegion({ className = '', top = null }) {
     },
   );
   const highlights = highlightsData ?? EMPTY_LIST;
+  const { data: serialsData } = useGetDramaSerialsQuery(
+    { per_page: 12 },
+    {
+      skip: tab !== 'explore',
+    },
+  );
+  const serials = serialsData ?? EMPTY_LIST;
   const { data: liveStreamsRaw } = useGetLiveStreamsQuery(undefined, {
     skip: tab !== 'explore' || !isAuthenticated,
   });
@@ -314,12 +326,13 @@ export default function FeedRegion({ className = '', top = null }) {
         shopCollections,
         suggestedUsers,
         highlights,
+        serials,
         liveStreams,
         cycles: displayCycles,
         freshItems,
         freshFromCycle,
       }),
-    [items, tab, shopCollections, suggestedUsers, highlights, liveStreams, displayCycles, freshItems, freshFromCycle],
+    [items, tab, shopCollections, suggestedUsers, highlights, serials, liveStreams, displayCycles, freshItems, freshFromCycle],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;

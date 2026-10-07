@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { COMMENTS_THREAD_API } from '@/components/feed/commentsThreadApi';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -15,16 +16,6 @@ import { formatCount } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { detectMentionTrigger, splitMentionSegments } from '@/lib/utils/displayUtils';
 import { HeartIcon } from '@/pages/feed/PostCard';
-import {
-  useAddReelCommentMutation,
-  useDeleteReelCommentMutation,
-  useGetReelCommentRepliesQuery,
-  useGetReelCommentsQuery,
-  useLazyGetReelCommentRepliesQuery,
-  useLazyGetReelCommentsQuery,
-  useLikeReelCommentMutation,
-  useUnlikeReelCommentMutation,
-} from '@/store/api/reelsApi';
 import { useSearchUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
@@ -273,7 +264,7 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, liking,
   );
 }
 
-function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, onReply, onDelete, onToggleLike }) {
+function RepliesSection({ api, postId, comment, currentUserId, deletingId, likingId, onReply, onDelete, onToggleLike }) {
   const [expanded, setExpanded] = useState(false);
   const [extraItems, setExtraItems] = useState([]);
   const [loadedPage, setLoadedPage] = useState(1);
@@ -288,11 +279,11 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, 
     setLoadedPage(1);
   }, [comment.id, postId]);
 
-  const { data, isFetching } = useGetReelCommentRepliesQuery(
+  const { data, isFetching } = api.useRepliesQuery(
     { reelId: postId, commentId: comment.id, page: 1, perPage: REPLIES_PER_PAGE },
     { skip: !expanded },
   );
-  const [fetchRepliesPage, { isFetching: isLoadingMore }] = useLazyGetReelCommentRepliesQuery();
+  const [fetchRepliesPage, { isFetching: isLoadingMore }] = api.useLazyRepliesQuery();
 
   const page1Ids = (data?.items ?? []).map((r) => r.id).join(',');
   const prevPage1IdsRef = useRef(page1Ids);
@@ -404,6 +395,7 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, 
 /**
  * @param {{
  *   postId: string|number,
+ *   source?: 'reel'|'drama',
  *   enabled?: boolean,
  *   loginFrom?: string|object,
  *   className?: string,
@@ -414,6 +406,7 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, 
  */
 export default function PostCommentsThread({
   postId,
+  source = 'reel',
   enabled = true,
   loginFrom: _loginFrom,
   className = '',
@@ -425,6 +418,7 @@ export default function PostCommentsThread({
   const location = useLocation();
   const currentUser = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const api = COMMENTS_THREAD_API[source] ?? COMMENTS_THREAD_API.reel;
   const textareaRef = useRef(null);
   const activePostIdRef = useRef(postId);
   const [body, setBody] = useState('');
@@ -441,12 +435,12 @@ export default function PostCommentsThread({
     isLoading,
     isFetching,
     isError: commentsQueryError,
-  } = useGetReelCommentsQuery({ reelId: postId, page: 1, perPage: COMMENTS_PER_PAGE }, { skip: !enabled || !postId });
-  const [fetchCommentsPage, { isFetching: isLoadingMore }] = useLazyGetReelCommentsQuery();
-  const [addComment, { isLoading: isPosting }] = useAddReelCommentMutation();
-  const [deleteComment] = useDeleteReelCommentMutation();
-  const [likeComment] = useLikeReelCommentMutation();
-  const [unlikeComment] = useUnlikeReelCommentMutation();
+  } = api.useCommentsQuery({ reelId: postId, page: 1, perPage: COMMENTS_PER_PAGE }, { skip: !enabled || !postId });
+  const [fetchCommentsPage, { isFetching: isLoadingMore }] = api.useLazyCommentsQuery();
+  const [addComment, { isLoading: isPosting }] = api.useAddCommentMutation();
+  const [deleteComment] = api.useDeleteCommentMutation();
+  const [likeComment] = api.useLikeCommentMutation();
+  const [unlikeComment] = api.useUnlikeCommentMutation();
 
   useEffect(() => {
     activePostIdRef.current = postId;
@@ -659,6 +653,7 @@ export default function PostCommentsThread({
                   onToggleLike={handleToggleLike}
                 />
                 <RepliesSection
+                  api={api}
                   postId={postId}
                   comment={comment}
                   currentUserId={currentUser?.id}

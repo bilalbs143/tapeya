@@ -1,3 +1,4 @@
+import { OVERLAY_DEFAULT_CONFIG } from '@angular/cdk/overlay';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -44,6 +45,10 @@ export const appConfig: ApplicationConfig = {
       },
     },
     { provide: MAT_SLIDE_TOGGLE_DEFAULT_OPTIONS, useValue: { hideIcon: true } },
+    // Angular 21 CDK defaults overlays (mat-select/menu/autocomplete) to the native
+    // Popover API, which flickers on open/close with flexible dimensions + live filters.
+    // Fall back to classic overlay positioning.
+    { provide: OVERLAY_DEFAULT_CONFIG, useValue: { usePopover: false } },
     provideAnimationsAsync(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(

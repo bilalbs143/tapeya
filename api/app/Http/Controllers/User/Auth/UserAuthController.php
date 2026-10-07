@@ -118,7 +118,10 @@ class UserAuthController extends Controller
             return response()->failure('Account is blocked.', 'FORBIDDEN');
         }
 
-        $user->update(['status' => UserStatusEnum::ACTIVE]);
+        $user->update([
+            'status' => UserStatusEnum::ACTIVE,
+            'last_active_at' => now(),
+        ]);
         $user = $user->fresh();
 
         $token = $user->createToken('app')->plainTextToken;

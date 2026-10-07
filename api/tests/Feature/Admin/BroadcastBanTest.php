@@ -86,7 +86,7 @@ class BroadcastBanTest extends TestCase
         $this->assertFalse($broadcaster->fresh()->can_broadcast);
     }
 
-    public function test_clearing_can_broadcast_via_user_update_ends_active_streams(): void
+    public function test_clearing_can_broadcast_via_player_update_ends_active_streams(): void
     {
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
         $broadcaster = User::factory()->create(['type' => 'user', 'can_broadcast' => true]);
@@ -100,8 +100,7 @@ class BroadcastBanTest extends TestCase
         ]);
 
         $this->actingAs($admin, 'api')
-            ->putJson("/api/v1/admin/users/{$broadcaster->id}", [
-                'name' => $broadcaster->name,
+            ->patchJson("/api/v1/admin/players/{$broadcaster->id}", [
                 'can_broadcast' => false,
             ])
             ->assertOk();

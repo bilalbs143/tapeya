@@ -143,6 +143,9 @@ class SystemSettingsSeeder extends Seeder
         $streaming->concurrentBroadcastAlertThreshold ??= 3;
         $streaming->dailyYoutubeQuotaBudget ??= 10000;
         $streaming->quotaAlertThresholdPercent ??= 80;
+        $streaming->vanityViewerMin ??= 2000;
+        $streaming->vanityViewerMax ??= 2500;
+        $streaming->vanityViewerSelfServe ??= 0;
         $streaming->save();
     }
 

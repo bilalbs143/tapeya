@@ -388,7 +388,7 @@ From (Start Date)
 **Route:** `/tournaments-management/quick-matches`
 **Component:** `backoffice/src/app/pages/tournaments-management/quick-matches/quick-matches-list.component.ts`
 **Service:** `backoffice/src/app/services/quick-matches.service.ts`
-**Backend:** `api/app/Http/Controllers/Admin/QuickMatchController.php` / `api/app/Models/TournamentMatch.php` (aliased as `App\Models\CricketMatch`, table `matches`)
+**Backend:** `api/app/Http/Controllers/Admin/QuickMatchController.php` / `api/app/Models/TournamentMatch.php` (table `matches`)
 
 #### Page Information
 - **Purpose:** Moderation list for user-created "quick matches" (ad-hoc matches created in-app, not part of a tournament), so admins can review and cancel abusive/unsafe matches.

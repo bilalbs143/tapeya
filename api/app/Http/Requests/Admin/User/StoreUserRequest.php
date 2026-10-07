@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\Admin\User;
 
-use App\Enums\User\BattingStyleEnum;
-use App\Enums\User\BowlingStyleEnum;
-use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreUserRequest extends FormRequest
 {
@@ -43,13 +41,27 @@ class StoreUserRequest extends FormRequest
             'status' => ['nullable', Rule::enum(UserStatusEnum::class)],
             'admin_role_ids' => ['sometimes', 'array'],
             'admin_role_ids.*' => ['integer', Rule::in($adminRoleIds)],
-            'playing_role' => ['nullable', Rule::enum(PlayingRoleEnum::class)],
-            'bowling_style' => ['nullable', Rule::enum(BowlingStyleEnum::class)],
-            'batting_style' => ['nullable', Rule::enum(BattingStyleEnum::class)],
             'country' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
             'can_broadcast' => ['sometimes', 'boolean'],
             'is_official' => ['sometimes', 'boolean'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($this->input('type') !== UserTypeEnum::USER->value) {
+                return;
+            }
+
+            $ids = $this->input('admin_role_ids', []);
+            if (! is_array($ids) || $ids === []) {
+                $validator->errors()->add(
+                    'admin_role_ids',
+                    'At least one operator role is required for operator accounts.'
+                );
+            }
+        });
     }
 }

@@ -86,6 +86,9 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'concurrentBroadcastAlertThreshold' => 3,
                         'dailyYoutubeQuotaBudget' => 10000,
                         'quotaAlertThresholdPercent' => 80,
+                        'vanityViewerMin' => 2000,
+                        'vanityViewerMax' => 2500,
+                        'vanityViewerSelfServe' => 0,
                         default => 0,
                     };
                 }

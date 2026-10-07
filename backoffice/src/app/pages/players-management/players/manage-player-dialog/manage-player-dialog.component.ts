@@ -53,6 +53,16 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
   public readonly bowlingStyleOptions$ = this.enumsService.getOptions('bowling_style');
   public readonly battingStyleOptions$ = this.enumsService.getOptions('batting_style');
 
+  public readonly broadcastOptions = [
+    { value: false, label: 'Not Allowed' },
+    { value: true, label: 'Allowed (Go Live)' },
+  ] as const;
+
+  public readonly officialOptions = [
+    { value: false, label: 'Not Official' },
+    { value: true, label: 'Official (Blue Tick)' },
+  ] as const;
+
   /** Tracks the cropped file chosen in the avatar uploader (null = remove). */
   public pendingAvatarFile: File | null | undefined = undefined;
 
@@ -95,6 +105,8 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
       batting_style: [normalizeEnumValue(u?.batting_style_enum ?? undefined, '')],
       country: [u?.country ?? ''],
       city: [{ value: u?.city ?? '', disabled: !u?.country }],
+      can_broadcast: [u?.can_broadcast ?? false],
+      is_official: [u?.is_official ?? false],
     });
   }
 
@@ -194,6 +206,8 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
       batting_style: raw.batting_style || null,
       country: raw.country || null,
       city: raw.city || null,
+      can_broadcast: !!raw.can_broadcast,
+      is_official: !!raw.is_official,
     };
   }
 }

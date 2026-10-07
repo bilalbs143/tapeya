@@ -45,16 +45,41 @@ class PostsSettings extends Settings
     public int $autoEngagementEnabled;
 
     /**
-     * Max likes/views auto-applied to a reel per calendar day.
-     * Each day picks a random amount in 1…this value. Soft lifetime = daily × fresh days.
+     * Max likes auto-applied to a reel per calendar day.
+     * Fresh posts roll in the upper band ({@see dailyDripRange()}); mature posts use
+     * {@see matureDailyDripRange()}. Soft like lifetime = daily × fresh days.
      */
     public int $reelsEngagementPerDay;
 
-    /** Only boost posts published within this many days. */
+    /** Floor of daily random drip as a fraction of daily max (keeps days from rolling near 1). */
+    public const AUTO_ENGAGEMENT_DAILY_FLOOR_RATIO = 0.7;
+
+    /**
+     * Mature posts (> fresh window) use this fraction of the daily max as their slow ceiling.
+     * Example: daily 50 → mature daily max 10.
+     */
+    public const AUTO_ENGAGEMENT_MATURE_DAILY_RATIO = 0.2;
+
+    /** Aggressive boost window in days; also used as soft-lifetime multiplier. */
     public const AUTO_ENGAGEMENT_FRESH_DAYS = 30;
+
+    /**
+     * Soft lifetime / daily view room vs likes for reels (likes must stay strictly below views).
+     * Example: like lifetime 1500 → view lifetime 1800.
+     */
+    public const AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO = 1.2;
 
     /** Simple posts get this fraction of the reel daily max (likes only). */
     public const AUTO_ENGAGEMENT_SIMPLE_RATIO = 0.6;
+
+    /**
+     * Daily auto-comment cap vs daily like max (comments stay far below likes).
+     * Example: 50 likes/day → 2 comments/day.
+     */
+    public const AUTO_COMMENT_DAILY_RATIO = 0.04;
+
+    /** Comments must stay below this fraction of likes on the post. */
+    public const AUTO_COMMENT_TO_LIKE_RATIO = 0.08;
 
     public static function group(): string
     {
@@ -86,9 +111,72 @@ class PostsSettings extends Settings
         return $this->reelsDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
     }
 
+    /** Soft view ceiling for reels — always above like lifetime so likes can stay behind views. */
+    public function reelsViewsLifetimeMax(): int
+    {
+        return $this->scaleViewsAboveLikes($this->reelsLifetimeMax());
+    }
+
+    /**
+     * Scale a like count into a slightly higher view budget (likes must stay below views).
+     * Example: 1500 → 1800 at ratio 1.2.
+     */
+    public function scaleViewsAboveLikes(int $likes): int
+    {
+        if ($likes <= 0) {
+            return 0;
+        }
+
+        return max($likes + 1, (int) ceil($likes * self::AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO));
+    }
+
+    /** @deprecated Use {@see scaleViewsAboveLikes()} */
+    public function dailyViewQuotaForLikeQuota(int $likeQuota): int
+    {
+        return $this->scaleViewsAboveLikes($likeQuota);
+    }
+
     public function simpleLifetimeMax(): int
     {
         return $this->simpleDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    public function reelsCommentDailyMax(): int
+    {
+        return $this->commentDailyMaxFromLikes($this->reelsDailyMax());
+    }
+
+    public function simpleCommentDailyMax(): int
+    {
+        return $this->commentDailyMaxFromLikes($this->simpleDailyMax());
+    }
+
+    public function reelsCommentLifetimeMax(): int
+    {
+        return $this->reelsCommentDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    public function simpleCommentLifetimeMax(): int
+    {
+        return $this->simpleCommentDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    public function commentDailyMaxFromLikes(int $likeDailyMax): int
+    {
+        if ($likeDailyMax <= 0) {
+            return 0;
+        }
+
+        return max(1, (int) round($likeDailyMax * self::AUTO_COMMENT_DAILY_RATIO));
+    }
+
+    public function commentCapFromLikes(int $likesCount): int
+    {
+        if ($likesCount <= 0) {
+            return 0;
+        }
+
+        return max(0, (int) floor($likesCount * self::AUTO_COMMENT_TO_LIKE_RATIO));
     }
 
     public function autoEngagementFreshDays(): int
@@ -98,6 +186,7 @@ class PostsSettings extends Settings
 
     /**
      * Inclusive random daily drip range for a given daily max.
+     * Uses the upper band so days stay aggressive (e.g. 50 → 35…50).
      *
      * @return array{0: int, 1: int} [min, max]
      */
@@ -107,7 +196,26 @@ class PostsSettings extends Settings
             return [0, 0];
         }
 
-        return [1, $dailyMax];
+        $min = max(1, (int) ceil($dailyMax * self::AUTO_ENGAGEMENT_DAILY_FLOOR_RATIO));
+
+        return [min($min, $dailyMax), $dailyMax];
+    }
+
+    /**
+     * Slow daily drip band for posts older than the fresh window.
+     * Uses ~{@see AUTO_ENGAGEMENT_MATURE_DAILY_RATIO} of the fresh daily max (e.g. 50 → 1…10).
+     *
+     * @return array{0: int, 1: int} [min, max]
+     */
+    public function matureDailyDripRange(int $freshDailyMax): array
+    {
+        if ($freshDailyMax <= 0) {
+            return [0, 0];
+        }
+
+        $matureMax = max(1, (int) round($freshDailyMax * self::AUTO_ENGAGEMENT_MATURE_DAILY_RATIO));
+
+        return [1, $matureMax];
     }
 
     /** @deprecated Use {@see reelsLifetimeMax()} */

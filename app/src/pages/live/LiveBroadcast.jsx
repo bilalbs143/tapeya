@@ -48,9 +48,11 @@ import {
   isInteractiveStreamUrl,
   isSelfServeLiveBroadcast,
 } from '@/lib/utils/liveStreamUtils';
+import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { hideYoutubeStreamOverlay } from '@/native/youtubeStreamOverlay';
 import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
+import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 import { ListError } from '@/ui/ListState';
@@ -125,12 +127,17 @@ export default function LiveBroadcast() {
 
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
-  // Self-serve mobile: real presence only. Match / admin streams keep vanity + presence.
-  // Vanity is seeded from streamId + started_at so every watcher sees the same number.
+  const { data: settingsRows } = useGetPublicSystemSettingsQuery();
+  const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
+  const vanitySelfServe = settingsByKey.stream_vanity_viewer_self_serve === '1';
+  // Match/admin: always vanity (when range set). Self-serve: only if setting enabled.
   const viewerCount = useVanityViewerCount(realViewerCount, {
-    enabled: isAuthenticated && Boolean(broadcast) && !isSelfServe,
+    enabled: isAuthenticated && Boolean(broadcast) && (!isSelfServe || vanitySelfServe),
+    settingsReady: settingsRows != null,
     streamId,
     startedAt: broadcast?.stream?.started_at ?? null,
+    min: settingsByKey.stream_vanity_viewer_min,
+    max: settingsByKey.stream_vanity_viewer_max,
   });
 
   useEffect(() => {

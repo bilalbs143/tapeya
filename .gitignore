@@ -74,6 +74,12 @@ app/.capacitor/
 app-next/
 
 # ===================
+# App React (scaffold / WIP)
+# ===================
+app-react/
+.cursor/skills/app-react-standards/
+
+# ===================
 # Build artifacts
 # ===================
 *.tgz

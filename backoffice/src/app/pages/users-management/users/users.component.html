@@ -2,7 +2,7 @@
   <mat-card-content>
     <app-page-header
       title="Users Management"
-      subtitle="Review accounts, roles, and platform activity"
+      subtitle="Administrators and operators with backoffice access"
       [badge]="totalRecords"
       [showFiltersToggle]="false"
     >
@@ -58,20 +58,6 @@
             <mat-select formControlName="status">
               <mat-option value="">All</mat-option>
               @for (opt of statusOptions$ | async; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div>
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>Platform</mat-label>
-            <mat-select formControlName="active_platform">
-              <mat-option value="">All</mat-option>
-              @for (opt of platformOptions$ | async; track opt.value) {
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
@@ -244,82 +230,32 @@
                 *matHeaderCellDef
                 class="font-semibold"
               >
-                Backoffice Roles
+                Operator Role
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
                 class="whitespace-nowrap"
               >
-                {{ formatRoleNames(row.admin_roles) }}
+                {{ row.type_enum === 'administrator' ? 'Full access' : formatRoleNames(row.admin_roles) }}
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="playing_role">
+            <ng-container matColumnDef="type">
               <th
                 mat-header-cell
                 *matHeaderCellDef
+                mat-sort-header
                 class="font-semibold"
               >
-                Playing Role
+                Type
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
                 class="whitespace-nowrap"
               >
-                {{ row.playing_role ?? emptyCell }}
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="bowling_style">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="font-semibold"
-              >
-                Bowling Style
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="whitespace-nowrap"
-              >
-                {{ row.bowling_style ?? emptyCell }}
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="batting_style">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="font-semibold"
-              >
-                Batting Style
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="whitespace-nowrap"
-              >
-                {{ row.batting_style ?? emptyCell }}
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="location">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="font-semibold"
-              >
-                Location
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="whitespace-nowrap"
-              >
-                {{ cityCountryLine(row) }}
+                {{ row.type_enum === 'administrator' ? 'Administrator' : 'Operator' }}
               </td>
             </ng-container>
 
@@ -341,29 +277,6 @@
                   [status]="row.status_enum"
                   [label]="row.status"
                 />
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="active_platform">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                mat-sort-header
-                class="font-semibold"
-              >
-                Platform
-              </th>
-              <td
-                mat-cell
-                *matCellDef="let row"
-                class="whitespace-nowrap"
-                [title]="
-                  row.active_platform_updated_at
-                    ? 'Last seen: ' + (row.active_platform_updated_at | date: 'yyyy-MM-dd HH:mm')
-                    : ''
-                "
-              >
-                {{ row.active_platform_label ?? emptyCell }}
               </td>
             </ng-container>
 

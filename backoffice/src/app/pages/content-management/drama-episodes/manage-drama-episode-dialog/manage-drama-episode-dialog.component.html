@@ -1,0 +1,178 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Drama Episode Form"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12 lg:col-span-8">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Serial</mat-label>
+            <mat-select formControlName="drama_serial_id">
+              @for (s of data.serials; track s.id) {
+                <mat-option [value]="s.id">{{ s.title }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('drama_serial_id')?.invalid && form.get('drama_serial_id')?.touched) {
+              <mat-error>Serial is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-4">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Episode #</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="episode_number"
+              min="1"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Title</mat-label>
+            <input
+              matInput
+              formControlName="title"
+              placeholder="e.g. Episode 1 — Opening Day"
+            />
+            @if (form.get('title')?.invalid && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              rows="3"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Video Source <span class="text-error">*</span></legend>
+            <mat-radio-group
+              formControlName="video_source"
+              class="flex flex-wrap items-center gap-3"
+            >
+              <mat-radio-button value="youtube">YouTube</mat-radio-button>
+              <mat-radio-button value="upload">Upload Video</mat-radio-button>
+            </mat-radio-group>
+          </fieldset>
+        </div>
+
+        @if (isYouTubeSource) {
+          <div class="col-span-12 lg:col-span-8">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>YouTube URL <span class="text-error">*</span></mat-label>
+              <input
+                matInput
+                formControlName="video_url"
+                type="url"
+                placeholder="https://www.youtube.com/embed/VIDEO_ID"
+              />
+              @if (form.get('video_url')?.hasError('required') && form.get('video_url')?.touched) {
+                <mat-error>YouTube embed URL is required</mat-error>
+              }
+              @if (form.get('video_url')?.hasError('youtubeUrl')) {
+                <mat-error>Enter a YouTube embed URL</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (isUploadSource) {
+          <div class="col-span-12">
+            <app-file-upload
+              formControlName="video"
+              label="Video File"
+              accept="video/mp4,video/webm,video/quicktime"
+              acceptLabel="MP4, WebM, MOV"
+              hint="Upload the episode video. Max 100 MB."
+              [maxSizeMb]="100"
+            ></app-file-upload>
+          </div>
+        }
+
+        <div class="col-span-12 lg:col-span-4">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Duration</mat-label>
+            <input
+              matInput
+              formControlName="duration"
+              placeholder="e.g. 22 Min"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <p
+            id="episode-active-label"
+            class="field-group-label"
+          >
+            Active
+          </p>
+          <mat-slide-toggle
+            formControlName="is_active"
+            color="primary"
+            aria-labelledby="episode-active-label"
+          ></mat-slide-toggle>
+        </div>
+
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="thumbnail"
+            label="Thumbnail"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Episode poster. 16:9 recommended."
+            [maxSizeMb]="5"
+          ></app-file-upload>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+        >Cancel</app-ui-button
+      >
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="data.mode === 'edit' ? 'Save Episode' : 'Add Episode'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

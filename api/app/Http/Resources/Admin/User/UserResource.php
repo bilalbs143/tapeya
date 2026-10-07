@@ -45,6 +45,7 @@ class UserResource extends JsonResource
             'active_platform' => $this->active_platform,
             'active_platform_label' => ActivePlatformEnum::tryLabelFromValue($this->active_platform),
             'active_platform_updated_at' => $this->active_platform_updated_at?->toIso8601String(),
+            'last_active_at' => $this->last_active_at?->toIso8601String(),
             'can_broadcast' => (bool) $this->can_broadcast,
             'is_official' => (bool) $this->is_official,
             'admin_roles' => $adminRoles->map(fn ($r) => [

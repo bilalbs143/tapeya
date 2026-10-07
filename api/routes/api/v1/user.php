@@ -5,6 +5,9 @@ use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\User\AdditionalRunsController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
+use App\Http\Controllers\User\DramaEpisodeCommentController;
+use App\Http\Controllers\User\DramaEpisodeController;
+use App\Http\Controllers\User\DramaSerialController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\FeedController;
 use App\Http\Controllers\User\HashtagController;
@@ -63,7 +66,6 @@ use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
-use App\Http\Controllers\User\UserOwnedLiveStreamController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
 use App\Http\Controllers\Vendor\Shop\BrandController as VendorBrandController;
@@ -80,6 +82,9 @@ Route::get('system-settings', [SystemSettingController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::get('highlights', [HighlightController::class, 'index']);
 Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
+Route::get('drama-serials', [DramaSerialController::class, 'index']);
+Route::get('drama-serials/{drama_serial}', [DramaSerialController::class, 'show']);
+Route::get('drama-episodes/{drama_episode}', [DramaEpisodeController::class, 'show']);
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::class, 'showByToken'])->where('token', '\d+-\d+-[a-f0-9]{64}');
 
@@ -106,7 +111,7 @@ Route::prefix('auth')->group(function () {
 // Public live watch teaser — share links load metadata; playback stays behind auth:api.
 Route::get('live/streams/{stream}', [LiveStreamController::class, 'show'])->middleware('throttle:60,1');
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::post('device-tokens', [DeviceTokenController::class, 'store']);
     Route::put('active-platform', [UserActivePlatformController::class, 'update']);
@@ -175,6 +180,16 @@ Route::middleware('auth:api')->group(function () {
     Route::post('highlights/{highlight}/like', [HighlightController::class, 'like']);
     Route::post('highlights/{highlight}/dislike', [HighlightController::class, 'dislike']);
     Route::post('highlights/{highlight}/share', [HighlightController::class, 'share']);
+
+    Route::post('drama-episodes/{drama_episode}/like', [DramaEpisodeController::class, 'like']);
+    Route::post('drama-episodes/{drama_episode}/dislike', [DramaEpisodeController::class, 'dislike']);
+    Route::post('drama-episodes/{drama_episode}/share', [DramaEpisodeController::class, 'share']);
+    Route::get('drama-episodes/{drama_episode}/comments', [DramaEpisodeCommentController::class, 'index']);
+    Route::get('drama-episodes/{drama_episode}/comments/{comment}/replies', [DramaEpisodeCommentController::class, 'replies']);
+    Route::post('drama-episodes/{drama_episode}/comments', [DramaEpisodeCommentController::class, 'store']);
+    Route::delete('drama-episodes/{drama_episode}/comments/{comment}', [DramaEpisodeCommentController::class, 'destroy']);
+    Route::post('drama-episodes/{drama_episode}/comments/{comment}/like', [DramaEpisodeCommentController::class, 'like']);
+    Route::delete('drama-episodes/{drama_episode}/comments/{comment}/like', [DramaEpisodeCommentController::class, 'unlike']);
 
     Route::get('rankings', [RankingController::class, 'index']);
 
@@ -261,15 +276,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
     Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
     Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
-
-    Route::get('live/my-streams', [UserOwnedLiveStreamController::class, 'index']);
-    Route::post('live/my-streams', [UserOwnedLiveStreamController::class, 'store']);
-    Route::get('live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'show']);
-    Route::match(['put', 'patch'], 'live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'update']);
-    Route::post('live/my-streams/{stream}/start', [UserOwnedLiveStreamController::class, 'start']);
-    Route::post('live/my-streams/{stream}/end', [UserOwnedLiveStreamController::class, 'end']);
-    Route::post('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'uploadThumbnail']);
-    Route::delete('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'deleteThumbnail']);
 
     Route::prefix('shop')->group(function () {
         Route::post('vendor/apply', [VendorApplyController::class, 'store']);

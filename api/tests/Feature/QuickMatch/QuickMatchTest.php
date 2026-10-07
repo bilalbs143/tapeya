@@ -6,10 +6,10 @@ use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Jobs\RefreshMatchStatsJob;
-use App\Models\CricketMatch;
 use App\Models\PlayerBattingStats;
 use App\Models\PlayerMatchBatting;
 use App\Models\Team;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +79,7 @@ class QuickMatchTest extends TestCase
         $this->assertSame((int) $owner->id, (int) $inline->created_by);
         $this->assertSame('ali_khan', $inline->nickname);
 
-        $match = CricketMatch::query()->find($response->json('data.id'));
+        $match = TournamentMatch::query()->find($response->json('data.id'));
         $this->assertNull($match->tournament_id);
         $this->assertSame($owner->id, (int) $match->homeTeam->user_id);
     }
@@ -102,7 +102,7 @@ class QuickMatchTest extends TestCase
         $this->assertArrayHasKey('match_state', $response->json('data'));
 
         $matchId = (int) $response->json('data.id');
-        $match = CricketMatch::query()->with('innings')->findOrFail($matchId);
+        $match = TournamentMatch::query()->with('innings')->findOrFail($matchId);
         $this->assertCount(2, $match->innings);
 
         $homePlayers = collect($response->json('data.home_team.players'));
@@ -168,7 +168,7 @@ class QuickMatchTest extends TestCase
             ->assertCreated()
             ->json('data.id');
 
-        $match = CricketMatch::query()->with('innings')->findOrFail($matchId);
+        $match = TournamentMatch::query()->with('innings')->findOrFail($matchId);
         $innings1 = $match->innings->firstWhere('innings_number', 1);
         $squadIds = DB::table('match_squads')
             ->where('match_id', $matchId)
@@ -219,7 +219,7 @@ class QuickMatchTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['home.players']);
 
-        $this->assertSame(0, CricketMatch::query()->where('kind', MatchKindEnum::QUICK)->count());
+        $this->assertSame(0, TournamentMatch::query()->where('kind', MatchKindEnum::QUICK)->count());
         $this->assertSame(0, DB::table('match_players')->count());
     }
 
@@ -300,7 +300,7 @@ class QuickMatchTest extends TestCase
 
         $this->assertTrue($ids->contains($this->scoringMatch->id));
         $this->assertFalse(
-            CricketMatch::query()->where('kind', MatchKindEnum::QUICK)->whereIn('id', $ids)->exists()
+            TournamentMatch::query()->where('kind', MatchKindEnum::QUICK)->whereIn('id', $ids)->exists()
         );
     }
 
@@ -568,7 +568,7 @@ class QuickMatchTest extends TestCase
             ->assertOk();
 
         $this->assertSame(4, DB::table('match_players')->where('match_id', $matchId)->count());
-        $this->assertSame(MatchStatusEnum::TOSS_DONE->value, CricketMatch::query()->find($matchId)->status->value
-            ?? (string) CricketMatch::query()->find($matchId)->status);
+        $this->assertSame(MatchStatusEnum::TOSS_DONE->value, TournamentMatch::query()->find($matchId)->status->value
+            ?? (string) TournamentMatch::query()->find($matchId)->status);
     }
 }

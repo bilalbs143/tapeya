@@ -12,11 +12,11 @@ const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming.svg`;
 
 const PATH_TO_ICON = {
   '/quick-match': quickMatchExploreIcon,
-  '/live/streaming': streamingIcon,
   '/scorecard': liveScoreIcon,
   '/ranking': rankingsIcon,
   '/upcoming-tournaments': upcomingIcon,
   '/highlights': highlightsIcon,
+  '/serials': streamingIcon,
 };
 
 export function ExploreCategories() {

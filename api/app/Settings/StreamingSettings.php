@@ -67,6 +67,19 @@ class StreamingSettings extends Settings
     /** Alert staff once today's tracked usage (see YouTubeQuotaTracker) reaches this % of budget. */
     public int $quotaAlertThresholdPercent;
 
+    /**
+     * Shared vanity viewer count floor for match/admin watch UI (all devices use the same
+     * oscillating number between min and max). Self-serve uses this range only when
+     * {@see $vanityViewerSelfServe} is 1.
+     */
+    public int $vanityViewerMin;
+
+    /** Shared vanity viewer count ceiling (must be >= vanityViewerMin). */
+    public int $vanityViewerMax;
+
+    /** 1 = vanity min/max on self-serve Go Live; 0 = real presence only for self-serve. */
+    public int $vanityViewerSelfServe;
+
     public static function group(): string
     {
         return 'streaming';

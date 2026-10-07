@@ -19,6 +19,8 @@ export type CreatePlayerPayload = {
   batting_style?: string | null;
   country?: string | null;
   city?: string | null;
+  can_broadcast?: boolean;
+  is_official?: boolean;
 };
 
 export type UpdatePlayerPayload = Partial<CreatePlayerPayload>;
@@ -38,7 +40,7 @@ export class PlayersService {
 
   private readonly baseUrl = 'v1/admin/players';
 
-  public getList(params: Partial<ListParams> = {}): Observable<UsersListResponse> {
+  public getList(params: Partial<ListParams> & { all?: boolean } = {}): Observable<UsersListResponse> {
     return this.http.get<UsersListResponse>(this.baseUrl, { params: toHttpParams(params as Record<string, unknown>) });
   }
 
@@ -60,6 +62,17 @@ export class PlayersService {
         this.messageService.success('Player Updated Successfully.');
       })
     );
+  }
+
+  /** Revokes self-serve broadcasting access for a player. */
+  public banBroadcaster(id: number): Observable<{ data: { can_broadcast: boolean; ended_streams: number } }> {
+    return this.http
+      .post<{ data: { can_broadcast: boolean; ended_streams: number } }>(`${this.baseUrl}/${id}/broadcast-ban`, {})
+      .pipe(
+        tap(() => {
+          this.messageService.success('Broadcast access revoked.');
+        })
+      );
   }
 
   public importPlayersCsv(file: File, dryRun: boolean): Observable<{ data: PlayerCsvImportResult }> {

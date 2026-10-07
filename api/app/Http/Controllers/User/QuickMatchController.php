@@ -10,8 +10,8 @@ use App\Http\Requests\User\StoreQuickMatchPlayerRequest;
 use App\Http\Requests\User\StoreQuickMatchRequest;
 use App\Http\Requests\User\UpdateQuickMatchRequest;
 use App\Http\Resources\User\QuickMatchResource;
-use App\Models\CricketMatch;
 use App\Models\Team;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\MatchStateService;
 use App\Services\QuickMatch\QuickMatchService;
@@ -32,7 +32,7 @@ class QuickMatchController extends Controller
     {
         $user = $request->user();
 
-        $query = CricketMatch::query()
+        $query = TournamentMatch::query()
             ->where('kind', MatchKindEnum::QUICK)
             ->where('created_by', $user->id)
             ->with(['homeTeam', 'awayTeam', 'createdBy', 'tossWinnerTeam', 'tournament'])
@@ -65,12 +65,12 @@ class QuickMatchController extends Controller
         return $this->success($payload, 'Quick match created.', 'CREATED');
     }
 
-    public function show(Request $request, CricketMatch $quickMatch): JsonResponse
+    public function show(Request $request, TournamentMatch $quickMatch): JsonResponse
     {
         return $this->success(new QuickMatchResource($this->quickMatches->loadForResource($quickMatch)));
     }
 
-    public function update(UpdateQuickMatchRequest $request, CricketMatch $quickMatch): JsonResponse
+    public function update(UpdateQuickMatchRequest $request, TournamentMatch $quickMatch): JsonResponse
     {
         if ($quickMatch->status !== MatchStatusEnum::SCHEDULED) {
             return $this->conflict('Match settings can only be changed before toss.');
@@ -83,7 +83,7 @@ class QuickMatchController extends Controller
 
     public function addPlayer(
         StoreQuickMatchPlayerRequest $request,
-        CricketMatch $quickMatch,
+        TournamentMatch $quickMatch,
         Team $team,
     ): JsonResponse {
         if (! in_array((int) $team->id, [(int) $quickMatch->home_team_id, (int) $quickMatch->away_team_id], true)) {
@@ -119,7 +119,7 @@ class QuickMatchController extends Controller
 
     public function removePlayer(
         Request $request,
-        CricketMatch $quickMatch,
+        TournamentMatch $quickMatch,
         Team $team,
         User $user,
     ): JsonResponse {

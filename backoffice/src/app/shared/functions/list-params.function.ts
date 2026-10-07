@@ -48,6 +48,11 @@ export interface ScheduleWindowFilterOptions {
   schedule_window?: string;
 }
 
+/** Options for inactive-days cohort filter (players last activity). */
+export interface InactiveDaysFilterOptions {
+  inactive_days?: string;
+}
+
 /** Full list params with optional filters (extend as needed per feature). */
 export type ListParams = BaseListParams &
   Partial<Record<'filter[search]', string>> &
@@ -57,7 +62,8 @@ export type ListParams = BaseListParams &
   Partial<Record<'filter[created_before]', string>> &
   Partial<Record<'filter[status]', string>> &
   Partial<Record<'filter[active_platform]', string>> &
-  Partial<Record<'filter[schedule_window]', string>>;
+  Partial<Record<'filter[schedule_window]', string>> &
+  Partial<Record<'filter[inactive_days]', string>>;
 
 const DEFAULT_SORT = '-created_at';
 
@@ -142,6 +148,18 @@ export function addScheduleWindowFilter<T extends BaseListParams>(
 }
 
 /**
+ * Add inactive-days filter. Only adds filter[inactive_days] when value is non-empty.
+ */
+export function addInactiveDaysFilter<T extends BaseListParams>(
+  params: T,
+  inactiveDays: string
+): T & Partial<Record<'filter[inactive_days]', string>> {
+  const value = typeof inactiveDays === 'string' ? inactiveDays.trim() : '';
+  if (!value) return params as T & Partial<Record<'filter[inactive_days]', string>>;
+  return { ...params, 'filter[inactive_days]': value } as T & Record<'filter[inactive_days]', string>;
+}
+
+/**
  * Add created-at range filter. Only adds keys when values are present.
  */
 export function addCreatedFilter<T extends BaseListParams>(
@@ -161,6 +179,7 @@ export type ListFilterOptions = SearchFilterOptions &
   StatusFilterOptions &
   ActivePlatformFilterOptions &
   ScheduleWindowFilterOptions &
+  InactiveDaysFilterOptions &
   CreatedFilterOptions;
 
 /**
@@ -179,6 +198,7 @@ export function buildListParams(
   if (filters.status != null) params = addStatusFilter(params, filters.status);
   if (filters.active_platform != null) params = addActivePlatformFilter(params, filters.active_platform);
   if (filters.schedule_window != null) params = addScheduleWindowFilter(params, filters.schedule_window);
+  if (filters.inactive_days != null) params = addInactiveDaysFilter(params, filters.inactive_days);
   params = addCreatedFilter(params, {
     created_after: filters.created_after,
     created_before: filters.created_before,

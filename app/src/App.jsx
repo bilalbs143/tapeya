@@ -48,9 +48,6 @@ const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal')
 const Live = lazy(() => import('@/pages/live/Live'));
 const LiveBroadcast = lazy(() => import('@/pages/live/LiveBroadcast'));
 const GoLive = lazy(() => import('@/pages/live/GoLive'));
-const LiveStreaming = lazy(() => import('@/pages/live/LiveStreaming'));
-const LiveStreamingCreate = lazy(() => import('@/pages/live/LiveStreamingCreate'));
-const LiveStreamingManage = lazy(() => import('@/pages/live/LiveStreamingManage'));
 
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
@@ -87,6 +84,9 @@ const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournament
 
 const Highlights = lazy(() => import('@/pages/highlights/Highlights'));
 const HighlightDetails = lazy(() => import('@/pages/highlights/HighlightDetails'));
+const DramaSerials = lazy(() => import('@/pages/serials/DramaSerials'));
+const DramaSerialDetail = lazy(() => import('@/pages/serials/DramaSerialDetail'));
+const DramaEpisodePlayer = lazy(() => import('@/pages/serials/DramaEpisodePlayer'));
 
 const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
 
@@ -204,15 +204,17 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/streaming" element={<LiveStreaming />} />
-                      <Route path="/live/streaming/create" element={<LiveStreamingCreate />} />
-                      <Route path="/live/streaming/:streamId" element={<LiveStreamingManage />} />
+                      <Route path="/live/streaming" element={<Navigate to="/serials" replace />} />
+                      <Route path="/live/streaming/*" element={<Navigate to="/serials" replace />} />
                       <Route element={<RequireBroadcastAccess />}>
                         <Route path="/live/go-live" element={<GoLive />} />
                         <Route path="/live/go-live/:streamId" element={<GoLive />} />
                       </Route>
                       <Route path="/highlights" element={<Highlights />} />
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
+                      <Route path="/serials" element={<DramaSerials />} />
+                      <Route path="/serials/:serialId" element={<DramaSerialDetail />} />
+                      <Route path="/serials/:serialId/e/:episodeId" element={<DramaEpisodePlayer />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/reels/u/:userId" element={<CreatorReelsProfile />} />

@@ -67,6 +67,9 @@ enum SystemSettingKeyEnum: string
     case STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD = 'stream_concurrent_broadcast_alert_threshold';
     case STREAM_DAILY_YOUTUBE_QUOTA_BUDGET = 'stream_daily_youtube_quota_budget';
     case STREAM_QUOTA_ALERT_THRESHOLD_PERCENT = 'stream_quota_alert_threshold_percent';
+    case STREAM_VANITY_VIEWER_MIN = 'stream_vanity_viewer_min';
+    case STREAM_VANITY_VIEWER_MAX = 'stream_vanity_viewer_max';
+    case STREAM_VANITY_VIEWER_SELF_SERVE = 'stream_vanity_viewer_self_serve';
 
     case LIVE_CHAT_ENABLED = 'live_chat_enabled';
     case LIVE_CHAT_MIN_INTERVAL_SEC = 'live_chat_min_interval_sec';
@@ -131,6 +134,9 @@ enum SystemSettingKeyEnum: string
             self::CDN_PUBLIC_BASE_URL,
             self::TEST_OTP_PHONES,
             self::LIVE_CHAT_ENABLED,
+            self::STREAM_VANITY_VIEWER_MIN,
+            self::STREAM_VANITY_VIEWER_MAX,
+            self::STREAM_VANITY_VIEWER_SELF_SERVE,
             self::REELS_MAX_DURATION_SECONDS,
             self::REELS_MIN_DURATION_SECONDS,
             self::REELS_MAX_UPLOAD_MB,
