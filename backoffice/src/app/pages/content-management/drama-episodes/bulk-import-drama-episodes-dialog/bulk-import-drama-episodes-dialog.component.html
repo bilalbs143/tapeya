@@ -1,0 +1,154 @@
+<app-dialog-wrapper title="Bulk Import Episodes">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Bulk Import Drama Episodes"
+  >
+    <mat-dialog-content class="max-h-[70vh] overflow-y-auto">
+      <div
+        class="mb-4 rounded-md border border-primary/30 bg-light-primary p-4 text-sm leading-relaxed"
+        role="note"
+      >
+        <p class="m-0 font-semibold text-primary">How episode names are assigned</p>
+        <p class="text-muted m-0 mt-1.5">
+          Videos are sorted by <strong>file name</strong> (natural order). Each file becomes the next episode in sequence,
+          starting at the number you set below. Titles are set automatically as <strong>Episode-1</strong>,
+          <strong>Episode-2</strong>, and so on (matching that sequence). Max video size is <strong>100 MB</strong> per
+          file.
+        </p>
+      </div>
+
+      <div class="dialog-form">
+        <div class="col-span-12 lg:col-span-8">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Serial</mat-label>
+            <mat-select formControlName="drama_serial_id">
+              @for (s of data.serials; track s.id) {
+                <mat-option [value]="s.id">{{ s.title }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('drama_serial_id')?.invalid && form.get('drama_serial_id')?.touched) {
+              <mat-error>Serial is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-4">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Start Episode #</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="start_episode_number"
+              min="1"
+            />
+            <mat-hint>First file → this number</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="videos"
+            label="Episode Videos"
+            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+            acceptLabel="MP4, WebM, MOV, M4V"
+            hint="Select multiple videos. Sorted by file name → Episode-N. Max 100 MB each."
+            [multiple]="true"
+            [maxFiles]="200"
+            [maxSizeMb]="100"
+            [required]="true"
+          ></app-file-upload>
+        </div>
+      </div>
+
+      @if (previewRows.length) {
+        <section
+          class="mt-4 rounded-md border border-border p-3"
+          aria-label="Import preview"
+        >
+          <p class="m-0 mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Preview</p>
+          <ul class="m-0 max-h-40 list-none space-y-1 overflow-y-auto p-0 text-sm">
+            @for (row of previewRows; track row.fileName + row.episodeNumber) {
+              <li class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span class="font-mono text-xs font-bold">#{{ row.episodeNumber }}</span>
+                <span class="font-semibold">{{ row.title }}</span>
+                <span class="text-muted break-all text-xs">← {{ row.fileName }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (isSubmitting) {
+        <section
+          class="mt-4 rounded-md border border-border p-3"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="mb-1.5 flex items-center justify-between gap-3 text-sm">
+            <span class="min-w-0 flex-1 font-medium break-words">{{ progressLabel || 'Uploading…' }}</span>
+            @if (uploadPercent !== null) {
+              <span class="shrink-0 font-mono text-xs tabular-nums">{{ uploadPercent }}%</span>
+            }
+          </div>
+          <mat-progress-bar
+            [mode]="uploadPercent === null ? 'indeterminate' : 'determinate'"
+            [value]="uploadPercent ?? 0"
+          ></mat-progress-bar>
+        </section>
+      }
+
+      @if (lastResults?.length) {
+        <section
+          class="mt-4 rounded-md border border-border p-3"
+          aria-live="polite"
+        >
+          <p class="m-0 mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Results</p>
+          <ul class="m-0 max-h-48 list-none space-y-1.5 overflow-y-auto p-0 text-sm">
+            @for (row of lastResults; track row.fileName + row.episodeNumber) {
+              <li [class.text-error]="!row.ok">
+                @if (row.ok) {
+                  ✓ {{ row.title }} ({{ row.fileName }})
+                } @else {
+                  ✗ {{ row.title }} ({{ row.fileName }}) — {{ row.error }}
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      @if (lastResults?.length) {
+        <app-ui-button
+          type="button"
+          variant="secondary"
+          (click)="closeAfterPartial()"
+          >Close</app-ui-button
+        >
+      } @else {
+        <app-ui-button
+          type="button"
+          [mat-dialog-close]="false"
+          [disabled]="isSubmitting"
+          variant="secondary"
+          >Cancel</app-ui-button
+        >
+        <app-submit-button
+          [disabled]="form.invalid || isSubmitting"
+          [isSubmitting]="isSubmitting"
+          text="Import Episodes"
+          color="primary"
+        />
+      }
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

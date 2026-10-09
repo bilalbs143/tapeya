@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { forkJoin } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { of, throwError } from 'rxjs';
+import { catchError, concatMap, finalize, switchMap } from 'rxjs/operators';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { DramaEpisode, DramaVideoSource } from 'src/app/services/drama-episode.service';
@@ -46,6 +46,8 @@ export class ManageDramaEpisodeDialogComponent {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public uploadPercent: number | null = null;
+  public uploadLabel = '';
   private readonly originalHasThumbnail = !!this.data.episode?.thumbnail;
   private readonly originalHasVideo = this.data.episode?.video_source === 'upload' && !!this.data.episode?.video;
 
@@ -75,7 +77,6 @@ export class ManageDramaEpisodeDialogComponent {
       description: [e?.description ?? '', [Validators.maxLength(5000)]],
       video_source: [videoSource, [Validators.required]],
       video_url: [videoSource === 'youtube' ? (e?.video ?? '') : ''],
-      duration: [e?.duration ?? '', [Validators.maxLength(32)]],
       is_active: [e?.is_active ?? true],
       thumbnail: [e?.thumbnail ? ({ files: [], existingUrls: [e.thumbnail] } as FileUploadValue) : null],
       video: [videoSource === 'upload' && e?.video ? ({ files: [], existingUrls: [e.video] } as FileUploadValue) : null],
@@ -122,11 +123,12 @@ export class ManageDramaEpisodeDialogComponent {
       description: raw.description?.trim() || null,
       video_source: videoSource,
       ...(videoSource === 'youtube' ? { video: raw.video_url?.trim() || null } : {}),
-      duration: raw.duration?.trim() || null,
       is_active: raw.is_active ?? true,
     };
 
     this.isSubmitting = true;
+    this.uploadPercent = null;
+    this.uploadLabel = '';
     const request$ =
       this.data.mode === 'create'
         ? this.episodeService.create(payload)
@@ -136,15 +138,60 @@ export class ManageDramaEpisodeDialogComponent {
       .pipe(
         switchMap((res) => {
           const id = res.data.id;
-          const mediaTasks = [
-            this.mediaService.applyField('drama-episode', id, 'thumbnail', thumbnailVal, this.originalHasThumbnail),
-          ];
-          if (videoSource === 'upload') {
-            mediaTasks.push(this.mediaService.applyField('drama-episode', id, 'video', videoVal, this.originalHasVideo));
-          }
-          return forkJoin(mediaTasks);
+          const hasNewThumbnail = (thumbnailVal?.files?.length ?? 0) > 0;
+          const hasNewVideo = videoSource === 'upload' && (videoVal?.files?.length ?? 0) > 0;
+
+          const thumb$ = this.mediaService.applyField(
+            'drama-episode',
+            id,
+            'thumbnail',
+            thumbnailVal,
+            this.originalHasThumbnail,
+            hasNewThumbnail
+              ? (percent) => {
+                  this.uploadLabel = 'Uploading thumbnail…';
+                  this.uploadPercent = percent;
+                }
+              : undefined
+          );
+
+          const video$ =
+            videoSource === 'upload'
+              ? this.mediaService.applyField(
+                  'drama-episode',
+                  id,
+                  'video',
+                  videoVal,
+                  this.originalHasVideo,
+                  hasNewVideo
+                    ? (percent) => {
+                        this.uploadLabel = 'Uploading video…';
+                        this.uploadPercent = percent;
+                      }
+                    : undefined
+                )
+              : of(undefined);
+
+          // Sequential so the progress bar reflects one file at a time.
+          return thumb$.pipe(
+            concatMap(() => video$),
+            catchError((err) => {
+              if (this.data.mode !== 'create') {
+                return throwError(() => err);
+              }
+              // Roll back a brand-new episode if media upload fails.
+              return this.episodeService.delete(id, { silent: true }).pipe(
+                catchError(() => of(undefined)),
+                switchMap(() => throwError(() => err))
+              );
+            })
+          );
         }),
-        finalize(() => (this.isSubmitting = false))
+        finalize(() => {
+          this.isSubmitting = false;
+          this.uploadPercent = null;
+          this.uploadLabel = '';
+        })
       )
       .subscribe({
         next: () => this.dialogRef.close(true),

@@ -1,9 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { forkJoin, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 
 import type { FileUploadValue } from '../shared/components/file-upload/file-upload.component';
+
+export type UploadProgressFn = (percent: number) => void;
 
 /**
  * Generic media service — upload or delete a media field on any registered
@@ -16,11 +18,37 @@ import type { FileUploadValue } from '../shared/components/file-upload/file-uplo
 export class MediaService {
   private readonly http = inject(HttpClient);
 
-  /** Upload a single file to replace a field value. */
-  public uploadField(type: string, id: number, field: string, file: File): Observable<void> {
+  /**
+   * Upload a single file to replace a field value.
+   * Pass `onProgress` for realtime HTTP upload percent (0–100).
+   */
+  public uploadField(type: string, id: number, field: string, file: File, onProgress?: UploadProgressFn): Observable<void> {
     const fd = new FormData();
     fd.append('file', file);
-    return this.http.post<void>(`v1/admin/media/${type}/${id}/${field}`, fd);
+    const url = `v1/admin/media/${type}/${id}/${field}`;
+
+    if (!onProgress) {
+      return this.http.post<void>(url, fd);
+    }
+
+    return this.http
+      .post(url, fd, {
+        reportProgress: true,
+        observe: 'events',
+      })
+      .pipe(
+        tap((event) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const total = event.total && event.total > 0 ? event.total : file.size;
+            const percent = total > 0 ? Math.min(100, Math.round((100 * event.loaded) / total)) : 0;
+            onProgress(percent);
+          } else if (event.type === HttpEventType.Response) {
+            onProgress(100);
+          }
+        }),
+        filter((event) => event.type === HttpEventType.Response),
+        map(() => undefined)
+      );
   }
 
   /** Append one or more files to a multiple-file field (e.g. product images). */
@@ -77,13 +105,14 @@ export class MediaService {
     id: number,
     field: string,
     value: FileUploadValue | null,
-    originalHasFile: boolean
+    originalHasFile: boolean,
+    onProgress?: UploadProgressFn
   ): Observable<void> {
     const hasNewFile = (value?.files?.length ?? 0) > 0;
     const hasExisting = (value?.existingUrls?.length ?? 0) > 0;
 
     if (hasNewFile) {
-      return this.uploadField(type, id, field, value!.files[0]);
+      return this.uploadField(type, id, field, value!.files[0], onProgress);
     }
     if (!hasExisting && originalHasFile) {
       return this.deleteField(type, id, field);

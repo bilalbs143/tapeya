@@ -110,27 +110,13 @@
             <app-file-upload
               formControlName="video"
               label="Video File"
-              accept="video/mp4,video/webm,video/quicktime"
-              acceptLabel="MP4, WebM, MOV"
+              accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+              acceptLabel="MP4, WebM, MOV, M4V"
               hint="Upload the episode video. Max 100 MB."
               [maxSizeMb]="100"
             ></app-file-upload>
           </div>
         }
-
-        <div class="col-span-12 lg:col-span-4">
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-label>Duration</mat-label>
-            <input
-              matInput
-              formControlName="duration"
-              placeholder="e.g. 22 Min"
-            />
-          </mat-form-field>
-        </div>
 
         <div class="col-span-12">
           <p
@@ -159,16 +145,30 @@
       </div>
     </mat-dialog-content>
 
+    @if (isSubmitting && uploadPercent !== null) {
+      <div class="border-border border-t px-6 py-3">
+        <div class="mb-1.5 flex items-center justify-between gap-3 text-sm">
+          <span class="font-medium">{{ uploadLabel || 'Uploading…' }}</span>
+          <span class="font-mono text-xs tabular-nums">{{ uploadPercent }}%</span>
+        </div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="uploadPercent"
+        ></mat-progress-bar>
+      </div>
+    }
+
     <mat-divider></mat-divider>
     <mat-dialog-actions class="dialog-actions">
       <app-ui-button
         type="button"
         [mat-dialog-close]="false"
+        [disabled]="isSubmitting"
         variant="secondary"
         >Cancel</app-ui-button
       >
       <app-submit-button
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || isSubmitting"
         [isSubmitting]="isSubmitting"
         [text]="data.mode === 'edit' ? 'Save Episode' : 'Add Episode'"
         color="primary"

@@ -100,7 +100,10 @@ export class FileUploadComponent implements ControlValueAccessor, OnChanges {
   /** Allow multiple file selection. When false, picking a new file replaces the previous one. */
   @Input({ transform: booleanAttribute }) public multiple = false;
 
-  /** Maximum file size in MB (validated client-side before adding to the list). Default: 2 MB. */
+  /**
+   * Maximum file size in MB (client-side). Default: 2 MB.
+   * Set to `0` (or any non-positive value) to disable the size check.
+   */
   @Input({ transform: numberAttribute }) public maxSizeMb = 2;
 
   /** Maximum total number of files allowed (multi mode only). Default: 20. */
@@ -224,7 +227,11 @@ export class FileUploadComponent implements ControlValueAccessor, OnChanges {
         .filter((v, i, arr) => arr.indexOf(v) === i); // dedupe
       parts.push(exts.join(', '));
     }
-    parts.push(`Max ${this.maxSizeMb} MB${this.multiple ? ' each' : ''}`);
+    if (this.maxSizeMb > 0) {
+      parts.push(`Max ${this.maxSizeMb} MB${this.multiple ? ' each' : ''}`);
+    } else {
+      parts.push('No size limit');
+    }
     if (this.recommendedSize) parts.push(this.recommendedSize);
     return parts.filter(Boolean).join(' · ');
   }
@@ -360,8 +367,8 @@ export class FileUploadComponent implements ControlValueAccessor, OnChanges {
       }
     }
 
-    // Size check
-    if (file.size > this.maxSizeMb * 1024 * 1024) {
+    // Size check (skipped when maxSizeMb ≤ 0)
+    if (this.maxSizeMb > 0 && file.size > this.maxSizeMb * 1024 * 1024) {
       return `"${file.name}" exceeds the ${this.maxSizeMb} MB size limit.`;
     }
 

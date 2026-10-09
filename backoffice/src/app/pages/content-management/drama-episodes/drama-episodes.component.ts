@@ -27,6 +27,7 @@ import {
 } from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
+import { BulkImportDramaEpisodesDialogComponent } from './bulk-import-drama-episodes-dialog/bulk-import-drama-episodes-dialog.component';
 import { ManageDramaEpisodeDialogComponent } from './manage-drama-episode-dialog/manage-drama-episode-dialog.component';
 
 const DEFAULT_FILTERS = {
@@ -169,6 +170,19 @@ export class DramaEpisodesComponent implements OnInit, OnDestroy {
     this.messageService.openDialog<ManageDramaEpisodeDialogComponent, boolean>(
       ManageDramaEpisodeDialogComponent,
       { mode: 'create', serials: this.serials },
+      (result) => result && this.loadHttpData(),
+      { widthSize: 'md', disableClose: true }
+    );
+  }
+
+  public openBulkImportDialog(): void {
+    const preferred = this.searchForm.value.drama_serial_id;
+    this.messageService.openDialog<BulkImportDramaEpisodesDialogComponent, boolean>(
+      BulkImportDramaEpisodesDialogComponent,
+      {
+        serials: this.serials,
+        preferredSerialId: preferred !== '' && preferred != null ? Number(preferred) : null,
+      },
       (result) => result && this.loadHttpData(),
       { widthSize: 'md', disableClose: true }
     );

@@ -19,7 +19,8 @@ export interface DramaEpisode {
   thumbnail: string | null;
   video_source: DramaVideoSource;
   video: string | null;
-  duration: string | null;
+  /** @deprecated Unused in admin; may still appear on older API payloads. */
+  duration?: string | null;
   is_active: boolean;
   views_count: number;
   likes_count: number;
@@ -47,7 +48,6 @@ export interface SaveDramaEpisodePayload {
   description?: string | null;
   video_source: DramaVideoSource;
   video?: string | null;
-  duration?: string | null;
   is_active: boolean;
 }
 
@@ -67,10 +67,14 @@ export class DramaEpisodeService {
     return this.http.get<{ data: DramaEpisode }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(payload: SaveDramaEpisodePayload): Observable<{ data: DramaEpisode }> {
-    return this.http
-      .post<{ data: DramaEpisode }>(this.baseUrl, payload)
-      .pipe(tap(() => this.messageService.success('Episode created successfully.')));
+  public create(payload: SaveDramaEpisodePayload, opts?: { silent?: boolean }): Observable<{ data: DramaEpisode }> {
+    return this.http.post<{ data: DramaEpisode }>(this.baseUrl, payload).pipe(
+      tap(() => {
+        if (!opts?.silent) {
+          this.messageService.success('Episode created successfully.');
+        }
+      })
+    );
   }
 
   public update(id: number, payload: Partial<SaveDramaEpisodePayload>): Observable<{ data: DramaEpisode }> {
@@ -79,9 +83,13 @@ export class DramaEpisodeService {
       .pipe(tap(() => this.messageService.success('Episode updated successfully.')));
   }
 
-  public delete(id: number): Observable<void> {
-    return this.http
-      .delete<void>(`${this.baseUrl}/${id}`)
-      .pipe(tap(() => this.messageService.success('Episode deleted successfully.')));
+  public delete(id: number, opts?: { silent?: boolean }): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
+      tap(() => {
+        if (!opts?.silent) {
+          this.messageService.success('Episode deleted successfully.');
+        }
+      })
+    );
   }
 }

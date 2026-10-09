@@ -39,7 +39,6 @@ class StoreDramaEpisodeRequest extends FormRequest
                 'max:2048',
                 new YouTubeUrl,
             ],
-            'duration' => ['nullable', 'string', 'max:32'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
