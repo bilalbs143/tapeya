@@ -118,10 +118,8 @@ class MediaRegistry
                     'video' => [
                         'dir' => 'drama-episodes/videos',
                         'column' => 'video',
-                        'file_rules' => [
-                            ...PostVideoFormats::fileRules(),
-                            'max:102400',
-                        ],
+                        // No app-level size cap (PHP/nginx upload limits still apply).
+                        'file_rules' => PostVideoFormats::fileRules(),
                     ],
                 ],
             ],
