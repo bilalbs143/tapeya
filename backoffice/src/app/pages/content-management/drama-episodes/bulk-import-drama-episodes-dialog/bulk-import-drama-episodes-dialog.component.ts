@@ -64,7 +64,7 @@ export class BulkImportDramaEpisodesDialogComponent {
       const episodeNumber = start + i;
       return {
         episodeNumber,
-        title: `Episode-${episodeNumber}`,
+        title: `Episode ${episodeNumber}`,
         fileName: file.name,
       };
     });
@@ -96,7 +96,7 @@ export class BulkImportDramaEpisodesDialogComponent {
       .pipe(
         concatMap((file, index) => {
           const episodeNumber = start + index;
-          const title = `Episode-${episodeNumber}`;
+          const title = `Episode ${episodeNumber}`;
           this.uploadPercent = 0;
           this.progressLabel = `File ${index + 1} / ${files.length}: ${title}`;
           return this.episodeService
