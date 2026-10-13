@@ -127,7 +127,6 @@ function BroadcastBottomPanel({
   inputDisabled,
   onSend,
   onSendHeart,
-  isLandscape,
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
@@ -137,26 +136,32 @@ function BroadcastBottomPanel({
   const showChat = bottomPanelVisible || hideFloatingToggles;
 
   return (
-    <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
-      {showChat && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
+    <div className="relative flex h-full min-h-0 w-full flex-col gap-2">
+      {showChat && chatEnabled ? (
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <CommentList messages={messages} fillHeight />
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1" aria-hidden />
+      )}
 
       {streamStatus === 'ended' && showChat && (
-        <div className="min-w-0 px-1">
+        <div className="min-w-0 shrink-0 px-1">
           <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
         </div>
       )}
 
       {hideFloatingToggles ? (
         onShare ? (
-          <div className="flex justify-end">
+          <div className="flex shrink-0 justify-end">
             <ShareToggleButton onClick={onShare} />
           </div>
         ) : null
       ) : (
-        <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
+        <div className={`flex shrink-0 gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
           <BroadcastFloatingToggles
             className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
-            isLandscape={isLandscape}
+            isLandscape={false}
             onToggleLayout={onToggleLayout}
             bottomPanelVisible={bottomPanelVisible}
             onToggleBottomPanel={onToggleBottomPanel}
@@ -165,7 +170,11 @@ function BroadcastBottomPanel({
         </div>
       )}
 
-      {showChat && chatEnabled && <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />}
+      {showChat && chatEnabled ? (
+        <div className="shrink-0">
+          <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -212,26 +221,21 @@ function GuestWatchGate({ posterUrl, title, streamStatus, onPlay, pending = fals
 }
 
 // ---------------------------------------------------------------------------
-// BroadcastViewport — video, hearts, and comments share one rotated box
+// BroadcastViewport — portrait: 16:9 + letterbox comments; landscape/guest: fill
 // ---------------------------------------------------------------------------
-
-const GRADIENT_VISIBLE = 'bg-gradient-to-t from-black/80 via-black/10 to-transparent';
-const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
 
 function BroadcastViewport({
   stream,
   posterUrl = null,
   bottomPanel,
-  bottomPanelVisible,
   isLandscape,
   floatingHearts,
   onHeartEnd,
   headerSlot,
   isDesktop,
-  immersiveLandscape = false,
   isIosNativeUnderlay = false,
   hideHeaderOverlay = false,
-  /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
+  /** Hero / watch-gate: header clears the transparent navbar over the player. */
   fillPortrait = false,
   /** Non-YouTube iframe embeds — keep iframe tappable (incl. landscape). */
   allowVideoInteraction = false,
@@ -243,8 +247,42 @@ function BroadcastViewport({
   onShare,
 }) {
   const blockLandscapeVideoPointer = !isDesktop && isLandscape && !allowVideoInteraction;
-  const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction || guestPreview;
+  const portraitWatch = !guestPreview && !isDesktop && !isLandscape;
   const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
+  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
+
+  const headerOverlay =
+    headerSlot && !hideHeaderOverlay ? (
+      <div
+        className={isLandscape ? LIVE_BROADCAST_LANDSCAPE_HEADER_ROW : LIVE_BROADCAST_HEADER_SCRIM}
+        style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}
+      >
+        <div
+          className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
+          style={{ paddingTop: headerTopPadding }}
+        >
+          {headerSlot}
+        </div>
+      </div>
+    ) : null;
+
+  if (portraitWatch) {
+    return (
+      <div className={`relative flex size-full flex-col overflow-hidden ${surfaceClass}`}>
+        <div className="relative w-full shrink-0">
+          <StreamPlayer stream={stream} posterUrl={posterUrl} className="w-full" fill={false} isLandscape={false} />
+          <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} />
+          {headerOverlay}
+        </div>
+        <div
+          className="pointer-events-auto relative flex min-h-0 flex-1 flex-col bg-black px-4 py-2"
+          style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}
+        >
+          {bottomPanel}
+        </div>
+      </div>
+    );
+  }
 
   const videoLayer = guestPreview ? (
     <GuestWatchGate
@@ -254,59 +292,16 @@ function BroadcastViewport({
       onPlay={onGuestPlay}
       pending={guestPending}
     />
-  ) : fillVideo ? (
+  ) : (
     <div className={`absolute inset-0 ${blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : ''}`}>
       <StreamPlayer stream={stream} posterUrl={posterUrl} className="h-full w-full" fill isLandscape={isLandscape} />
     </div>
-  ) : (
-    <div className="absolute inset-0 flex items-start justify-center">
-      <StreamPlayer stream={stream} posterUrl={posterUrl} className="max-h-full w-full" fill={false} isLandscape={false} />
-    </div>
   );
-
-  // Classic portrait: under solid navbar. Hero: clear transparent navbar height.
-  // Landscape: owns top safe area (no app navbar).
-  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
-  const showMobileChrome = !isDesktop && !immersiveLandscape && !guestPreview;
 
   return (
     <div className={`relative size-full overflow-hidden ${surfaceClass}`}>
-      {/* Classic 16:9 underlay hole — opaque fill below so the UIKit host does not flash through. */}
-      {isIosNativeUnderlay && !fillVideo && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col" aria-hidden>
-          <div className="aspect-video w-full shrink-0" />
-          <div className="min-h-0 flex-1 bg-black" />
-        </div>
-      )}
-
       {videoLayer}
-
-      {showMobileChrome && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />}
-
-      {showMobileChrome && (
-        <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
-      )}
-
-      {headerSlot && !hideHeaderOverlay && (
-        <div
-          className={isLandscape ? LIVE_BROADCAST_LANDSCAPE_HEADER_ROW : LIVE_BROADCAST_HEADER_SCRIM}
-          style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}
-        >
-          <div
-            className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
-            style={{ paddingTop: headerTopPadding }}
-          >
-            {headerSlot}
-          </div>
-        </div>
-      )}
-
-      {!guestPreview && !isDesktop && !isLandscape && (
-        <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
-          <div className="pointer-events-auto">{bottomPanel}</div>
-        </div>
-      )}
-
+      {headerOverlay}
       {guestPreview && onShare && !isDesktop && (
         <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
           <div className="pointer-events-auto flex justify-end">
@@ -331,11 +326,11 @@ export default function LiveBroadcastItem({
   headerSlot = null,
   /** LIVE + viewer badges only — used by iOS landscape chrome (no back button / spacers). */
   statusHeaderSlot = null,
-  /** Self-serve mobile portrait — fill shell instead of 16:9. */
+  /** Hero / watch-gate: header clears the transparent navbar. */
   fillPortrait = false,
   /** Self-serve go-live watch — no comment/landscape toggles; comments always visible. */
   selfServeChrome = false,
-  /** Interactive iframe embed — keep video tappable and fill portrait shell. */
+  /** Interactive iframe embed — keep iframe tappable in landscape. */
   allowVideoInteraction = false,
   onShare,
 }) {
@@ -443,7 +438,6 @@ export default function LiveBroadcastItem({
       inputDisabled={inputDisabled}
       onSend={handleSend}
       onSendHeart={handleSendHeart}
-      isLandscape={isLandscape}
       onToggleLayout={onToggleLandscape}
       bottomPanelVisible={panelVisible}
       onToggleBottomPanel={toggleBottomPanel}
@@ -457,13 +451,11 @@ export default function LiveBroadcastItem({
       stream={stream}
       posterUrl={posterUrl}
       bottomPanel={bottomPanel}
-      bottomPanelVisible={panelVisible}
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
       headerSlot={isMobileLandscape && !isIosNativeLandscape ? (statusHeaderSlot ?? headerSlot) : headerSlot}
       isDesktop={isDesktop}
-      immersiveLandscape={isMobileLandscape}
       isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
       fillPortrait={fillPortrait || showWatchGate}

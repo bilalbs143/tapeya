@@ -6,7 +6,7 @@ export const LIVE_BROADCAST_LANDSCAPE_SHELL_Z = NAVBAR_Z + 1;
 /** Page header row overlaid on the video (above hearts at 15). */
 export const LIVE_BROADCAST_HEADER_OVERLAY_Z = 20;
 
-/** Comment / toggle controls overlaid on the video — above header so toggles stay tappable. */
+/** Comment / toggle chrome — above header so toggles stay tappable. */
 export const LIVE_BROADCAST_CONTROLS_OVERLAY_Z = 25;
 
 /** Portrait floating rotate / comment toggles — shared by live + highlights. */
