@@ -105,19 +105,13 @@ class UserSafetyTest extends TestCase
         $this->assertSame('actioned', $report->fresh()->status);
     }
 
-    public function test_register_requires_accept_terms(): void
+    public function test_register_stamps_terms_accepted_at_without_accept_terms_flag(): void
     {
-        $this->postJson('/api/v1/auth/register', [
-            'name' => 'Test User',
-            'nickname' => 'Tester',
-            'phone' => '+923001119999',
-        ])->assertStatus(422);
-
+        // Temporary until store apps with the Terms checkbox are deployed.
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Test User',
             'nickname' => 'Tester',
             'phone' => '+923001119998',
-            'accept_terms' => true,
         ])->assertOk();
 
         $this->assertNotNull(
