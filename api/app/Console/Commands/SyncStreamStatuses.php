@@ -18,6 +18,11 @@ class SyncStreamStatuses extends Command
      * so YouTube (and any future batching-capable provider) can poll many streams per API call
      * instead of one round-trip per stream — see LiveStreamService::syncStatuses() /
      * YouTubeStreamProvider::syncStatuses(). 50 matches YouTube's per-request `id` limit.
+     *
+     * Fresh creates stay out of the poll until staff/manual Sync (or owner Start) has
+     * taken them live: idle + never started wastes YouTube quota every minute.
+     * Once live/starting (or started_at set — reconnect/idle grace), auto-sync continues.
+     * Admin "Sync Status" still calls LiveStreamService::syncStatus() for any row.
      */
     public function handle(LiveStreamService $service, StreamProviderResolver $resolver): int
     {
@@ -25,6 +30,10 @@ class SyncStreamStatuses extends Command
             ->whereNotIn('status', ['ended', 'error'])
             ->whereNotNull('provider_stream_id')
             ->where('provider', '!=', 'external')
+            ->where(function ($query) {
+                $query->whereIn('status', ['live', 'starting'])
+                    ->orWhereNotNull('started_at');
+            })
             ->with('match.tournament')
             ->orderBy('id')
             ->chunk(50, function ($streams) use ($service, $resolver) {

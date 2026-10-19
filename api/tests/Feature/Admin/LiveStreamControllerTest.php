@@ -31,7 +31,7 @@ class LiveStreamControllerTest extends TestCase
         $this->app->make(StreamProviderManager::class)->extend('youtube', fn () => new FakeStreamProvider);
 
         $push = Mockery::mock(PushNotificationService::class);
-        $push->shouldReceive('notifyLiveStreamCreated')->andReturn(Mockery::mock(PushNotificationLog::class))->byDefault();
+        $push->shouldReceive('notifyLiveStreamStarted')->andReturn(Mockery::mock(PushNotificationLog::class))->byDefault();
         $this->app->instance(PushNotificationService::class, $push);
     }
 

@@ -6,6 +6,7 @@ use App\Enums\Post\PostStatusEnum;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\UserFollow;
+use App\Services\Safety\UserBlockService;
 use App\Support\Post\PostVisibilityGate;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,9 +31,29 @@ class PostFeedService
     }
 
     /**
+     * Hide authors the viewer has blocked (Guideline 1.2 — instant feed removal).
+     *
+     * @param  Builder<Post>  $query
+     * @return Builder<Post>
+     */
+    private function excludeBlockedAuthors(Builder $query, ?int $viewerId): Builder
+    {
+        if (! $viewerId) {
+            return $query;
+        }
+
+        $blockedIds = app(UserBlockService::class)->blockedUserIdsFor($viewerId);
+        if ($blockedIds === []) {
+            return $query;
+        }
+
+        return $query->whereNotIn('user_id', $blockedIds);
+    }
+
+    /**
      * @return CursorPaginator<int, Post>
      */
-    public function explore(?string $cursor, int $perPage = 10, bool $videosOnly = false): CursorPaginator
+    public function explore(?string $cursor, int $perPage = 10, bool $videosOnly = false, ?int $viewerId = null): CursorPaginator
     {
         $perPage = max(1, min($perPage, 20));
 
@@ -40,6 +61,7 @@ class PostFeedService
         if ($videosOnly) {
             $query->videosOnly();
         }
+        $this->excludeBlockedAuthors($query, $viewerId);
 
         return $query
             ->with(self::withRelations())
@@ -64,6 +86,7 @@ class PostFeedService
         $query = Post::query()
             ->followingFeed()
             ->whereIn('user_id', $followedIds);
+        $this->excludeBlockedAuthors($query, $viewerId);
 
         if ($videosOnly) {
             $query->videosOnly();
@@ -79,14 +102,17 @@ class PostFeedService
     /**
      * @return CursorPaginator<int, Post>
      */
-    public function trending(?string $cursor, int $perPage = 10, int $windowHours = 48): CursorPaginator
+    public function trending(?string $cursor, int $perPage = 10, int $windowHours = 48, ?int $viewerId = null): CursorPaginator
     {
         $perPage = max(1, min($perPage, 20));
 
-        return Post::query()
+        $query = Post::query()
             ->explore()
             ->videosOnly()
-            ->where('published_at', '>=', now()->subHours($windowHours))
+            ->where('published_at', '>=', now()->subHours($windowHours));
+        $this->excludeBlockedAuthors($query, $viewerId);
+
+        return $query
             ->with(self::withRelations())
             ->orderByRaw('(likes_count * 3 + comments_count * 4 + shares_count * 5 + views_count * 0.1) DESC')
             ->orderByDesc('id')
@@ -96,23 +122,26 @@ class PostFeedService
     /**
      * @return CursorPaginator<int, Post>
      */
-    public function search(string $query, ?string $cursor, int $perPage = 10): CursorPaginator
+    public function search(string $query, ?string $cursor, int $perPage = 10, ?int $viewerId = null): CursorPaginator
     {
         $perPage = max(1, min($perPage, 20));
         $q = trim($query);
         $tag = ltrim(mb_strtolower($q), '#');
 
-        return Post::query()
+        $builder = Post::query()
             ->explore()
             ->videosOnly()
-            ->where(function ($builder) use ($q, $tag) {
-                $builder->where('body', 'ilike', '%'.$q.'%');
+            ->where(function ($inner) use ($q, $tag) {
+                $inner->where('body', 'ilike', '%'.$q.'%');
                 if ($tag !== '') {
-                    $builder->orWhereHas('hashtags', function ($h) use ($tag) {
+                    $inner->orWhereHas('hashtags', function ($h) use ($tag) {
                         $h->where('name', 'ilike', $tag.'%');
                     });
                 }
-            })
+            });
+        $this->excludeBlockedAuthors($builder, $viewerId);
+
+        return $builder
             ->with(self::withRelations())
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -122,15 +151,18 @@ class PostFeedService
     /**
      * @return CursorPaginator<int, Post>
      */
-    public function forHashtag(string $name, ?string $cursor, int $perPage = 10): CursorPaginator
+    public function forHashtag(string $name, ?string $cursor, int $perPage = 10, ?int $viewerId = null): CursorPaginator
     {
         $perPage = max(1, min($perPage, 20));
         $tag = ltrim(mb_strtolower(trim($name)), '#');
 
-        return Post::query()
+        $query = Post::query()
             ->explore()
             ->videosOnly()
-            ->whereHas('hashtags', fn ($h) => $h->where('name', $tag))
+            ->whereHas('hashtags', fn ($h) => $h->where('name', $tag));
+        $this->excludeBlockedAuthors($query, $viewerId);
+
+        return $query
             ->with(self::withRelations())
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -177,6 +209,7 @@ class PostFeedService
         $query = Post::query()
             ->explore()
             ->whereHas('saves', fn ($q) => $q->where('user_id', $userId));
+        $this->excludeBlockedAuthors($query, $userId);
 
         if ($videosOnly) {
             $query->videosOnly();

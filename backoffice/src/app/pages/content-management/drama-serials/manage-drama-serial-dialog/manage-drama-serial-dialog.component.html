@@ -6,7 +6,7 @@
   >
     <mat-dialog-content>
       <div class="dialog-form">
-        <div class="col-span-12">
+        <div class="col-span-12 lg:col-span-6">
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -19,6 +19,23 @@
             />
             @if (form.get('title')?.invalid && form.get('title')?.touched) {
               <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Provider</mat-label>
+            <input
+              matInput
+              formControlName="provider"
+              placeholder="e.g. Tapeya Studios"
+            />
+            @if (form.get('provider')?.invalid && form.get('provider')?.touched) {
+              <mat-error>Provider is required</mat-error>
             }
           </mat-form-field>
         </div>

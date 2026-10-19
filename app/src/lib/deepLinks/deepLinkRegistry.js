@@ -47,14 +47,36 @@ export const DEEP_LINK_ROUTES = [
     pattern: /^\/scorecard\/match\/\d+$/,
     build: ({ matchId }) => `/scorecard/match/${matchId}`,
   },
+  {
+    id: 'entertainment',
+    pattern: /^\/entertainment\/\d+$/,
+    build: ({ entertainmentId }) => `/entertainment/${entertainmentId}`,
+  },
+  {
+    id: 'entertainmentEpisode',
+    pattern: /^\/entertainment\/\d+\/e\/\d+$/,
+    build: ({ entertainmentId, episodeId }) => `/entertainment/${entertainmentId}/e/${episodeId}`,
+  },
 ];
+
+/**
+ * Map retired `/serials` share URLs onto `/entertainment` before allowlist checks.
+ * @param {string} path
+ */
+export function rewriteLegacyDeepLinkPath(path) {
+  const normalized = normalizeAppPath(path);
+  if (normalized === '/serials' || normalized.startsWith('/serials/')) {
+    return normalized.replace(/^\/serials(?=\/|$)/, '/entertainment');
+  }
+  return normalized;
+}
 
 /**
  * @param {string} path
  */
 export function isAllowedDeepLinkPath(path) {
   if (!path || typeof path !== 'string') return false;
-  const normalized = normalizeAppPath(path);
+  const normalized = rewriteLegacyDeepLinkPath(path);
   return DEEP_LINK_ROUTES.some((route) => route.pattern.test(normalized));
 }
 
@@ -66,7 +88,7 @@ export function isAllowedDeepLinkPath(path) {
  */
 export function isSafeNotificationNavigatePath(path) {
   if (!path || typeof path !== 'string') return false;
-  const normalized = normalizeAppPath(path);
+  const normalized = rewriteLegacyDeepLinkPath(path);
   if (isAllowedDeepLinkPath(normalized)) return true;
   if (normalized === '/notification-center' || normalized === '/home') return true;
   if (/^\/shop\/orders\/\d+$/.test(normalized)) return true;

@@ -16,8 +16,8 @@ import { LoaderBlock } from '@/ui/Loader';
 const AUTOPLAY_DELAY_MS = 5000;
 
 /** Shared box for loader + slides so Home doesn’t jump when images replace the spinner.
- * Mobile: 16/5 made ~15.5% taller (10% then +5%). Desktop stays 16/5 (1920×600). */
-const HERO_ASPECT_CLASS = 'aspect-[640/254] lg:aspect-[16/5]';
+ * One ratio for mobile + desktop — same creative scales up with width (e.g. 1600×800). */
+const HERO_ASPECT_CLASS = 'aspect-[2/1]';
 
 const isDesktopOnLoad = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 

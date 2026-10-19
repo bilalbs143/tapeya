@@ -2,14 +2,23 @@
 
 namespace App\Http\Requests\User\Post;
 
+use App\Services\Safety\ObjectionableContentFilter;
 use App\Settings\PostsSettings;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StorePostRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function () {
+            app(ObjectionableContentFilter::class)->assertAllowed($this->input('body'));
+        });
     }
 
     /**

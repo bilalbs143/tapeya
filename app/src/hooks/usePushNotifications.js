@@ -12,7 +12,7 @@ import { Capacitor } from '@capacitor/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { dispatchDeepLinkNavigation } from '@/lib/deepLinks/deepLinkNavigation';
-import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
+import { isSafeNotificationNavigatePath, normalizeAppPath, rewriteLegacyDeepLinkPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { addIosFcmTokenRefreshListener, getIosFcmTokenWithRetry, isLikelyApnsToken } from '@/native/fcmToken';
 import { isNative } from '@/platform/platform';
 import { useRegisterDeviceTokenMutation } from '@/store/api/deviceTokenApi';
@@ -93,7 +93,7 @@ function routeFromPushData(navigate, data, currentPath = '/') {
   if (!data) return;
 
   const go = (path) => {
-    const next = normalizeAppPath(path);
+    const next = rewriteLegacyDeepLinkPath(normalizeAppPath(path));
     if (!isSafeNotificationNavigatePath(next)) return;
     dispatchDeepLinkNavigation(navigate, next, { currentPath });
   };

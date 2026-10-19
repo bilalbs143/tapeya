@@ -15,6 +15,7 @@ class DramaSerial extends BaseModel
 
     protected $fillable = [
         'title',
+        'provider',
         'description',
         'poster',
         'is_active',
@@ -56,6 +57,7 @@ class DramaSerial extends BaseModel
     {
         return [
             AllowedFilter::partial('title'),
+            AllowedFilter::partial('provider'),
             AllowedFilter::partial('search', 'title'),
             AllowedFilter::exact('is_active'),
             AllowedFilter::scope('created_between'),
@@ -72,6 +74,7 @@ class DramaSerial extends BaseModel
         return [
             'id',
             'title',
+            'provider',
             'episodes_count',
             'created_at',
             'updated_at',

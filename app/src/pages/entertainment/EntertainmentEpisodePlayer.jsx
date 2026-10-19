@@ -25,17 +25,17 @@ import {
   LIVE_BROADCAST_TOGGLE_BTN,
 } from '@/lib/constants/liveBroadcastLayout';
 import { formatCount } from '@/lib/format';
-import { buildDramaEpisodeShareUrl, shareLink } from '@/lib/share';
+import { buildEntertainmentEpisodeShareUrl, shareLink } from '@/lib/share';
 import { resolveYoutubeEmbed, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 import { hideYoutubeStreamOverlay } from '@/native/youtubeStreamOverlay';
 import { ThumbsUpIcon } from '@/pages/feed/PostCard';
 import LandscapeRotatedStage from '@/pages/live/LandscapeRotatedStage';
 import {
-  useDislikeDramaEpisodeMutation,
-  useGetDramaEpisodeQuery,
-  useLikeDramaEpisodeMutation,
-  useShareDramaEpisodeMutation,
-} from '@/store/api/dramaApi';
+  useDislikeEntertainmentEpisodeMutation,
+  useGetEntertainmentEpisodeQuery,
+  useLikeEntertainmentEpisodeMutation,
+  useShareEntertainmentEpisodeMutation,
+} from '@/store/api/entertainmentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { ListEmpty, ListError } from '@/ui/ListState';
@@ -85,25 +85,26 @@ function EpisodeLandscapeExitToggle({ onClick }) {
   );
 }
 
-export default function DramaEpisodePlayer() {
-  const { serialId, episodeId } = useParams();
+export default function EntertainmentEpisodePlayer() {
+  const { entertainmentId, episodeId } = useParams();
   const navigate = useNavigate();
   const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const id = Number(episodeId);
-  const { data: episode, isLoading, isError, refetch } = useGetDramaEpisodeQuery(id, { skip: !id });
-  const [likeEpisode, { isLoading: liking }] = useLikeDramaEpisodeMutation();
-  const [dislikeEpisode, { isLoading: disliking }] = useDislikeDramaEpisodeMutation();
-  const [shareEpisode] = useShareDramaEpisodeMutation();
+  const { data: episode, isLoading, isError, refetch } = useGetEntertainmentEpisodeQuery(id, { skip: !id });
+  const [likeEpisode, { isLoading: liking }] = useLikeEntertainmentEpisodeMutation();
+  const [dislikeEpisode, { isLoading: disliking }] = useDislikeEntertainmentEpisodeMutation();
+  const [shareEpisode] = useShareEntertainmentEpisodeMutation();
   const [counts, setCounts] = useState({ likes_count: 0, dislikes_count: 0, shares_count: 0, comments_count: 0 });
   const [myReaction, setMyReaction] = useState(null);
   const [playingEpisodeId, setPlayingEpisodeId] = useState(null);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [videoBuffering, setVideoBuffering] = useState(true);
 
   const isPlaying = playingEpisodeId != null && String(playingEpisodeId) === String(episodeId);
   const isYouTube = episode?.videoSource === 'youtube';
   const isDirectVideo = episode?.videoSource === 'upload';
   const hasVideo = Boolean(episode?.videoUrl);
-  const bannerImage = episode?.thumbnail || episode?.serial?.poster || FIXTURE_BG_IMAGE;
+  const bannerImage = episode?.thumbnail || episode?.entertainment?.poster || FIXTURE_BG_IMAGE;
 
   const usesIosNativePlayer = useMemo(() => {
     if (!isYouTube || !episode?.videoUrl || !usesIosNativeStreamPlayer()) return false;
@@ -126,10 +127,10 @@ export default function DramaEpisodePlayer() {
   }, [episodeId]);
 
   useEffect(() => {
-    if (!isPlaying || isDesktop) {
+    if (!isPlaying || isDesktop || isDirectVideo) {
       setIsLandscape(false);
     }
-  }, [isPlaying, isDesktop]);
+  }, [isPlaying, isDesktop, isDirectVideo]);
 
   useEffect(() => {
     return () => {
@@ -206,11 +207,11 @@ export default function DramaEpisodePlayer() {
   }
 
   async function handleShare() {
-    if (!episode || !serialId) return;
+    if (!episode || !entertainmentId) return;
     const channel = await shareLink({
       title: episode.title,
       text: episode.description || episode.title,
-      url: buildDramaEpisodeShareUrl(serialId, episode.id),
+      url: buildEntertainmentEpisodeShareUrl(entertainmentId, episode.id),
     });
     if (!channel) return;
     try {
@@ -227,7 +228,10 @@ export default function DramaEpisodePlayer() {
   if (!id || (!isLoading && (isError || !episode))) {
     return (
       <div className="min-h-screen bg-black">
-        <AppSubpageHeader title="EPISODE" onBack={() => navigate(serialId ? `/serials/${serialId}` : '/serials')} />
+        <AppSubpageHeader
+          title="EPISODE"
+          onBack={() => navigate(entertainmentId ? `/entertainment/${entertainmentId}` : '/entertainment')}
+        />
         <Container>
           {isError ? (
             <ListError message="Could not load episode." onRetry={() => refetch()} />
@@ -235,8 +239,12 @@ export default function DramaEpisodePlayer() {
             <ListEmpty
               title="Episode Not Found."
               action={
-                <Button type="button" variant="orange" onClick={() => navigate(serialId ? `/serials/${serialId}` : '/serials')}>
-                  Back to Serial
+                <Button
+                  type="button"
+                  variant="orange"
+                  onClick={() => navigate(entertainmentId ? `/entertainment/${entertainmentId}` : '/entertainment')}
+                >
+                  Back to Entertainment
                 </Button>
               }
             />
@@ -246,7 +254,7 @@ export default function DramaEpisodePlayer() {
     );
   }
 
-  const showRotateToggle = isPlaying && !isDesktop;
+  const showRotateToggle = isPlaying && !isDesktop && isYouTube;
   const landscapeShellClass = getLiveBroadcastShellClass(true, surfaceBg);
   const landscapeShellStyle = {
     ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
@@ -268,18 +276,28 @@ export default function DramaEpisodePlayer() {
         className="h-full w-full"
       />
     ) : isPlaying && isDirectVideo ? (
-      <div className="flex h-full w-full items-center justify-center bg-black">
+      <div className="relative flex h-full w-full items-center justify-center bg-black">
         <video
           key={episodeId}
           src={episode.videoUrl}
           controls
           playsInline
           autoPlay
+          preload="auto"
           className="max-h-full max-w-full object-contain"
           poster={bannerImage}
+          onLoadStart={() => setVideoBuffering(true)}
+          onWaiting={() => setVideoBuffering(true)}
+          onPlaying={() => setVideoBuffering(false)}
+          onCanPlay={() => setVideoBuffering(false)}
         >
           <track kind="captions" />
         </video>
+        {videoBuffering ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/35">
+            <LoaderBlock label="Loading video" className="py-0" />
+          </div>
+        ) : null}
       </div>
     ) : (
       <>
@@ -384,7 +402,14 @@ export default function DramaEpisodePlayer() {
               <div className="min-w-0 flex-1">
                 <h1 className="line-clamp-2 text-[15px] leading-snug font-bold text-white">{episode.title}</h1>
                 <p className="text-muted mt-2.5 text-[13px]">
-                  {[episode.serial?.title, `EP ${episode.episodeNumber}`, episode.duration].filter(Boolean).join(' · ')}
+                  {[
+                    episode.entertainment?.provider,
+                    episode.entertainment?.title,
+                    `EP ${episode.episodeNumber}`,
+                    episode.duration,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </p>
                 {episode.description ? (
                   <p className="mt-2.5 line-clamp-2 text-[13px] leading-snug text-white/90">{episode.description}</p>
@@ -433,10 +458,10 @@ export default function DramaEpisodePlayer() {
           <div className="border-surface-border flex min-h-0 flex-1 flex-col border-t">
             <PostCommentsThread
               postId={id}
-              source="drama"
+              source="entertainment"
               enabled={Boolean(id)}
               showHeader={false}
-              loginFrom={`/serials/${serialId}/e/${id}`}
+              loginFrom={`/entertainment/${entertainmentId}/e/${id}`}
               render={({ list, composer, total }) => (
                 <>
                   <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-3 pb-2">

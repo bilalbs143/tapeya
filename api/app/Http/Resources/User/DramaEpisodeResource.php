@@ -33,6 +33,7 @@ class DramaEpisodeResource extends JsonResource
             'serial' => $this->whenLoaded('serial', fn () => $this->serial ? [
                 'id' => $this->serial->id,
                 'title' => $this->serial->title,
+                'provider' => $this->serial->provider,
                 'poster' => $this->serial->posterUrl(),
             ] : null),
             'prev_episode_id' => $this->when(isset($this->prev_episode_id), fn () => $this->prev_episode_id),

@@ -51,6 +51,7 @@ class FeedController extends Controller
             $request->query('cursor'),
             (int) $request->query('per_page', 10),
             videosOnly: false,
+            viewerId: (int) $request->user()->id,
         );
 
         return $this->cursorSuccess($paginator, $request);

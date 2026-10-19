@@ -49,7 +49,12 @@ export const ContentManagementRoutes: Routes = [
       title: 'Drama Episodes',
       icon: 'solar:playlist-minimalistic-2-line-duotone',
       hideBreadcrumb: true,
-      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Drama Episodes' }],
+      urls: [
+        { title: 'Dashboard', url: '/dashboard' },
+        { title: 'Content Management' },
+        { title: 'Drama Serials', url: '/content-management/drama-serials' },
+        { title: 'Drama Episodes' },
+      ],
     },
   },
   {
@@ -70,6 +75,16 @@ export const ContentManagementRoutes: Routes = [
       icon: 'solar:flag-line-duotone',
       hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Post Reports' }],
+    },
+  },
+  {
+    path: 'user-reports',
+    loadComponent: () => import('./user-reports/user-reports.component').then((m) => m.UserReportsComponent),
+    data: {
+      title: 'User Reports',
+      icon: 'solar:danger-triangle-line-duotone',
+      hideBreadcrumb: true,
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'User Reports' }],
     },
   },
 ];

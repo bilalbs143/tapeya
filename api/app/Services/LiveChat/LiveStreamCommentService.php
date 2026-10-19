@@ -17,8 +17,14 @@ class LiveStreamCommentService
     /**
      * Validate, guard, and broadcast a chat comment. Returns the generated ULID.
      */
-    public function send(LiveStream $stream, int $userId, string $displayName, string $rawBody): string
-    {
+    public function send(
+        LiveStream $stream,
+        int $userId,
+        string $displayName,
+        string $rawBody,
+        ?string $avatarUrl = null,
+    ): string {
+
         if ($this->settings->enabled !== 1) {
             abort(403, 'Live chat is currently disabled.');
         }
@@ -72,6 +78,7 @@ class LiveStreamCommentService
             name: $displayName,
             body: $body,
             sentAt: $sentAt,
+            avatarUrl: $avatarUrl,
         );
 
         $this->appendToLog($stream->id, [
@@ -79,6 +86,7 @@ class LiveStreamCommentService
             'name' => $displayName,
             'text' => $body,
             'sent_at' => $sentAt,
+            'avatar_url' => $avatarUrl,
         ]);
 
         return $id;
@@ -87,10 +95,11 @@ class LiveStreamCommentService
     /**
      * Trailing comment history for a stream, oldest first.
      *
-     * @return list<array{id: string, name: string, text: string, sent_at: string}>
+     * @return list<array{id: string, name: string, text: string, sent_at: string, avatar_url?: string|null}>
      */
     public function recent(LiveStream $stream): array
     {
+
         $key = LiveChatRedisKeys::commentLog($stream->id);
         $raw = Redis::lrange($key, 0, -1);
 
@@ -108,10 +117,11 @@ class LiveStreamCommentService
     }
 
     /**
-     * @param  array{id: string, name: string, text: string, sent_at: string}  $payload
+     * @param  array{id: string, name: string, text: string, sent_at: string, avatar_url?: string|null}  $payload
      */
     private function appendToLog(int $streamId, array $payload): void
     {
+
         try {
             $key = LiveChatRedisKeys::commentLog($streamId);
 

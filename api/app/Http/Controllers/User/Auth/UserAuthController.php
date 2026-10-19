@@ -52,6 +52,7 @@ class UserAuthController extends Controller
                 'password' => null,
                 'type' => UserTypeEnum::USER,
                 'status' => UserStatusEnum::VERIFICATION_PENDING,
+                'terms_accepted_at' => ! empty($data['accept_terms']) ? now() : null,
             ]);
         });
 

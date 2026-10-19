@@ -12,7 +12,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import ReelCommentsSheet from '@/components/reels/ReelCommentsSheet';
 import { ReelCoverImage } from '@/components/reels/ReelCoverImage';
-import ReelReportDialog from '@/components/reels/ReelReportDialog';
+import BlockUserDialog from '@/components/safety/BlockUserDialog';
+import ReportDialog from '@/components/safety/ReportDialog';
 import { UserAvatar } from '@/components/UserAvatar';
 import { getClientReelVideo } from '@/features/reels/clientReelPoster';
 import { toggleReelsFocusMode, useReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
@@ -167,6 +168,9 @@ function SoundOffIcon({ className = '' }) {
   );
 }
 
+/** Once the user unlocks audio (Tap for sound), keep later reels unmuted in this session. */
+let reelsAudioUnlocked = false;
+
 function ActionButton({ label, count, onClick, active = false, activeClassName = 'text-white', children }) {
   const showCount = count != null && Number(count) > 0;
   return (
@@ -187,17 +191,18 @@ function ActionButton({ label, count, onClick, active = false, activeClassName =
   );
 }
 
-export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
+export default function ReelItem({ reel, isActive, isNext = false, inPlayerWindow = true }) {
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef(null);
   const barRef = useRef(null);
   const lastTapRef = useRef(0);
+  const wasActiveRef = useRef(false);
   const currentUser = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   // Just-uploaded: local file this visit (server URL is mid-processing and plays poorly).
   const localVideoUrl = getClientReelVideo(reel.id);
-  const [paused, setPaused] = useState(() => Boolean(localVideoUrl));
+  const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -205,7 +210,9 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const [scrubTime, setScrubTime] = useState(0);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
+  /** True only after unmuted autoplay was blocked — shows Tap for sound. */
   const [mutedByPolicy, setMutedByPolicy] = useState(false);
   const [likeReel] = useLikeReelMutation();
   const [unlikeReel] = useUnlikeReelMutation();
@@ -231,11 +238,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
   const playbackForPlayer = localVideoUrl
     ? { url: localVideoUrl, type: 'original', hlsUrl: null }
-    : {
-        url: reel.playback?.url ?? reel.videoUrl,
-        type: reel.playback?.type,
-        hlsUrl: reel.playback?.hlsUrl,
-      };
+    : { url: reel.playback?.url ?? reel.videoUrl, type: reel.playback?.type, hlsUrl: reel.playback?.hlsUrl };
 
   const requireAuth = useCallback(
     (action) => {
@@ -251,8 +254,9 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   useEffect(() => {
     setCaptionExpanded(false);
     setReportOpen(false);
+    setPaused(false);
+    // Always attempt unmuted first on each reel (TikTok-style).
     setMutedByPolicy(false);
-    setPaused(Boolean(getClientReelVideo(reel.id)));
   }, [reel.id]);
 
   const {
@@ -261,7 +265,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     readyToken,
   } = useReelHls(videoRef, playbackForPlayer, {
     enabled: inPlayerWindow,
-    role: isActive ? 'active' : 'warm',
+    role: isActive ? 'active' : isNext ? 'next' : 'warm',
   });
 
   useEffect(() => {
@@ -296,12 +300,19 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
     const tryPlay = () => {
       if (paused || playbackFailed || !isActive) return;
-      video.muted = mutedByPolicy;
+      // TikTok-style: unmuted first (or after user unlocked sound); mute only if blocked.
+      const preferMuted = !reelsAudioUnlocked && mutedByPolicy;
+      video.muted = preferMuted;
+      video.defaultMuted = preferMuted;
+      if (!preferMuted) {
+        video.removeAttribute('muted');
+      }
       const attempt = video.play();
       if (!attempt || typeof attempt.catch !== 'function') return;
       attempt.catch(() => {
         if (video.muted) return;
         video.muted = true;
+        video.defaultMuted = true;
         setMutedByPolicy(true);
         video.play().catch(() => {});
       });
@@ -309,16 +320,18 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
     if (isActive) {
       tryPlay();
-    } else {
-      // Don't seek to 0 — on iOS that flashes black while a neighbor is still on screen.
+    } else if (wasActiveRef.current) {
+      // Leaving the active slot — stop audible playback.
+      // Do NOT pause on every readyToken for warm/next neighbors; that cancels silent priming.
       video.pause();
       setPaused(false);
       setProgress(0);
     }
+    wasActiveRef.current = isActive;
 
     const onVisibility = () => {
       if (document.hidden) {
-        video.pause();
+        if (isActive) video.pause();
         return;
       }
       tryPlay();
@@ -365,10 +378,14 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     if (!video) return;
     if (paused) {
       setPaused(false);
-      video.muted = mutedByPolicy;
+      const preferMuted = !reelsAudioUnlocked && mutedByPolicy;
+      video.muted = preferMuted;
+      video.defaultMuted = preferMuted;
+      if (!preferMuted) video.removeAttribute('muted');
       video.play().catch(() => {
         if (!video.muted) {
           video.muted = true;
+          video.defaultMuted = true;
           setMutedByPolicy(true);
           video.play().catch(() => setPaused(true));
           return;
@@ -389,14 +406,19 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const unmuteIfNeeded = () => {
     if (!mutedByPolicy) return false;
     const video = videoRef.current;
+    reelsAudioUnlocked = true;
+    setMutedByPolicy(false);
     if (video) {
       video.muted = false;
+      video.defaultMuted = false;
+      video.removeAttribute('muted');
       video.play().catch(() => {
         video.muted = true;
+        video.defaultMuted = true;
+        reelsAudioUnlocked = false;
         setMutedByPolicy(true);
       });
     }
-    setMutedByPolicy(false);
     return true;
   };
 
@@ -522,18 +544,36 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
             ref={videoRef}
             loop
             playsInline
-            muted={mutedByPolicy}
+            muted={!reelsAudioUnlocked && mutedByPolicy}
+            autoPlay={isActive}
             preload="auto"
             poster={reel.posterUrl || undefined}
             onPlaying={revealVideo}
-            className={`${MEDIA_LAYER} transition-opacity duration-300 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+            className={`${MEDIA_LAYER} transition-opacity duration-150 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
           >
             <track kind="captions" />
           </video>
         ) : null}
       </div>
 
-      {mutedByPolicy && isActive ? (
+      <StreamVideoRetry
+        visible={Boolean(inPlayerWindow && playbackFailed)}
+        onRetry={() => {
+          setVideoReady(false);
+          retryPlayback();
+          setPaused(false);
+        }}
+      />
+
+      {paused && !playbackFailed ? (
+        <div className="pointer-events-none absolute top-1/2 left-1/2 z-30 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-sm">
+            <PlayIcon className="ml-0.5" />
+          </div>
+        </div>
+      ) : null}
+
+      {mutedByPolicy && isActive && !playbackFailed ? (
         <button
           type="button"
           onClick={(event) => {
@@ -549,23 +589,6 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
           Tap for sound
         </button>
       ) : null}
-
-      <StreamVideoRetry
-        visible={Boolean(inPlayerWindow && playbackFailed)}
-        onRetry={() => {
-          setVideoReady(false);
-          retryPlayback();
-          setPaused(false);
-        }}
-      />
-
-      {paused && !playbackFailed && (
-        <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-sm">
-            <PlayIcon className="ml-0.5" />
-          </div>
-        </div>
-      )}
 
       <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/15" />
 
@@ -644,9 +667,19 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
         </ActionButton>
 
         {!isOwnReel ? (
-          <ActionButton label="Report" onClick={handleOpenReport}>
-            <FlagIcon />
-          </ActionButton>
+          <>
+            <ActionButton label="Report" onClick={handleOpenReport}>
+              <FlagIcon />
+            </ActionButton>
+            {creatorId ? (
+              <ActionButton label="Block" onClick={() => requireAuth(() => setBlockOpen(true))}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M5.5 5.5l13 13" strokeLinecap="round" />
+                </svg>
+              </ActionButton>
+            ) : null}
+          </>
         ) : null}
 
         <ActionButton
@@ -696,7 +729,16 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
       </div>
 
       <ReelCommentsSheet reelId={reel.id} open={commentsOpen} onOpenChange={setCommentsOpen} />
-      <ReelReportDialog reelId={reel.id} open={reportOpen} onClose={() => setReportOpen(false)} />
+      <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} targetType="reel" targetId={reel.id} />
+      {creatorId ? (
+        <BlockUserDialog
+          open={blockOpen}
+          onClose={() => setBlockOpen(false)}
+          userId={creatorId}
+          userName={creatorName}
+          onBlocked={() => navigate('/', { replace: true })}
+        />
+      ) : null}
     </div>
   );
 }

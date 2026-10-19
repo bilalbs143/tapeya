@@ -15,7 +15,7 @@ import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { OpenInAppBanner } from '@/components/deepLinks/OpenInAppBanner';
 import { PullToRefreshIndicator } from '@/components/PullToRefreshIndicator';
 import { buildCycledReelRows } from '@/features/reels/buildCycledReelRows';
-import { isInPlayerWindow } from '@/features/reels/reelPlayerWindow';
+import { isInPlayerWindow, isNextPlayerSlide } from '@/features/reels/reelPlayerWindow';
 import { setReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelPrefetch } from '@/features/reels/useReelPrefetch';
 import { useCatalogCycle } from '@/hooks/useCatalogCycle';
@@ -419,6 +419,7 @@ export default function Reels() {
                 key={row.key}
                 reel={row.reel}
                 isActive={index === activeIndex}
+                isNext={isNextPlayerSlide(index, activeIndex)}
                 inPlayerWindow={isInPlayerWindow(index, activeIndex)}
               />
             ))}

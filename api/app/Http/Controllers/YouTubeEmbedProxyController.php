@@ -2,17 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Streaming\Support\YouTubeEmbedUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
  * Serves a minimal HTML page that embeds YouTube from a trusted HTTPS origin.
- * Required for iOS Capacitor (capacitor://) where direct YouTube iframes fail with Error 153.
+ * Required for Capacitor WebViews (capacitor:// / https://localhost) where a
+ * direct youtube.com iframe fails with Error 153 (missing Referer).
+ *
+ * CSP note: `frame-ancestors *` only covers http(s). Capacitor iOS uses
+ * `capacitor://localhost`, so we must list those schemes explicitly or the
+ * app WebView blank-screens the iframe.
  */
 class YouTubeEmbedProxyController extends Controller
 {
+    /**
+     * Allow embedding from the public site, Capacitor shells, and local web.
+     * `*` covers http(s) parents; scheme-sources cover Capacitor custom schemes.
+     */
+    public const FRAME_ANCESTORS_CSP = 'frame-ancestors * capacitor: ionic: http://localhost https://localhost';
+
     public function show(Request $request): View|Response
     {
         $rawSrc = trim((string) $request->query('src', ''));
@@ -26,9 +36,8 @@ class YouTubeEmbedProxyController extends Controller
             ->view('embed.youtube', [
                 'embedSrc' => $rawSrc,
                 'allowControls' => $allowControls,
-                'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
             ])
-            ->header('Content-Security-Policy', 'frame-ancestors *')
+            ->header('Content-Security-Policy', self::FRAME_ANCESTORS_CSP)
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 

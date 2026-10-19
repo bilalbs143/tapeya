@@ -1,19 +1,23 @@
 import { useMemo, useState } from 'react';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import RepostedPostEmbed from '@/components/feed/RepostedPostEmbed';
 import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
+import BlockUserDialog from '@/components/safety/BlockUserDialog';
+import ReportDialog from '@/components/safety/ReportDialog';
 import { UserAvatar } from '@/components/UserAvatar';
 import { usePostEngagement } from '@/features/feed/usePostEngagement';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
 import { buildPostDetailPath, resolveCreatorProfilePath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
+import { baseApi } from '@/store/api/baseApi';
 import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { BottomSheet } from '@/ui/BottomSheet';
 
 const imagePlaceholder =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
@@ -200,10 +204,15 @@ export default function PostCard({ post }) {
   } = post;
 
   const currentUser = useAppSelector(selectUser);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
   const [unfollowCreator, { isLoading: isUnfollowPending }] = useUnfollowReelCreatorMutation();
 
   const [imageError, setImageError] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
 
   const { toggleLike, toggleSave, share, repost, isReposting } = usePostEngagement(post);
 
@@ -267,9 +276,25 @@ export default function PostCard({ post }) {
             ) : null}
           </div>
         </div>
-        {showFollow ? (
-          <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
-        ) : null}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {showFollow ? (
+            <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
+          ) : null}
+          {!isOwnPost ? (
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="text-muted hover:bg-surface-raised grid size-9 place-items-center rounded-full transition-colors hover:text-white"
+              aria-label="More actions"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <circle cx="5" cy="12" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="19" cy="12" r="1.6" />
+              </svg>
+            </button>
+          ) : null}
+        </div>
       </header>
 
       {(caption ||
@@ -385,6 +410,50 @@ export default function PostCard({ post }) {
             <span>: {latestComment.text}</span>
           </span>
         </Link>
+      ) : null}
+
+      {!isOwnPost ? (
+        <>
+          <BottomSheet open={menuOpen} onOpenChange={setMenuOpen} title="Post options">
+            <div className="flex flex-col gap-1 py-1">
+              <button
+                type="button"
+                className="rounded-xl px-3 py-3 text-left text-[15px] font-semibold text-white hover:bg-white/5"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setReportOpen(true);
+                }}
+              >
+                Report post
+              </button>
+              {authorId ? (
+                <button
+                  type="button"
+                  className="rounded-xl px-3 py-3 text-left text-[15px] font-semibold text-red-300 hover:bg-white/5"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setBlockOpen(true);
+                  }}
+                >
+                  Block {authorName || 'user'}
+                </button>
+              ) : null}
+            </div>
+          </BottomSheet>
+          <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} targetType="post" targetId={id} />
+          {authorId ? (
+            <BlockUserDialog
+              open={blockOpen}
+              onClose={() => setBlockOpen(false)}
+              userId={authorId}
+              userName={authorName}
+              onBlocked={() => {
+                dispatch(baseApi.util.invalidateTags(['Post', 'Reel']));
+                navigate('/', { replace: false });
+              }}
+            />
+          ) : null}
+        </>
       ) : null}
     </article>
   );

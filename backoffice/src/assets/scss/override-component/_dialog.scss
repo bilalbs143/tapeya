@@ -21,9 +21,8 @@ html {
   }
 
   /*
-   * Wrapper/form boxes break Material’s title→content→actions flex chain, so the
-   * surface (height:100% + overflow-y:auto) scrolls empty space under actions.
-   * display:contents restores the chain; surface shrink-wraps; content scrolls.
+   * Wrapper/form boxes break Material’s title→content→actions flex chain.
+   * display:contents restores it; content scrolls; actions stay pinned.
    */
   .cdk-overlay-pane.mat-mdc-dialog-panel {
     max-height: 90dvh;
@@ -32,9 +31,12 @@ html {
   .mat-mdc-dialog-container,
   .mat-mdc-dialog-surface {
     height: auto !important;
+    max-height: inherit;
   }
 
   .mat-mdc-dialog-surface {
+    display: flex !important;
+    flex-direction: column !important;
     overflow: hidden;
   }
 
@@ -43,8 +45,15 @@ html {
     display: contents;
   }
 
-  /* Match page-header__actions gap. */
+  .mat-mdc-dialog-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important; /* Material’s 65vh can push actions off-screen on mobile */
+    overflow-y: auto !important;
+  }
+
   .mat-mdc-dialog-actions {
+    flex-shrink: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

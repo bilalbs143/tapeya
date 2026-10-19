@@ -22,6 +22,7 @@ final class LiveStreamChatMessageReceived implements ShouldBroadcastNow
         public readonly string $name,
         public readonly string $body,
         public readonly string $sentAt,
+        public readonly ?string $avatarUrl = null,
     ) {}
 
     /** @return array<int, Channel> */
@@ -43,6 +44,7 @@ final class LiveStreamChatMessageReceived implements ShouldBroadcastNow
             'name' => $this->name,
             'text' => $this->body,
             'sent_at' => $this->sentAt,
+            'avatar_url' => $this->avatarUrl,
         ];
     }
 }

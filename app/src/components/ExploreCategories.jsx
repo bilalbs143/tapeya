@@ -16,7 +16,7 @@ const PATH_TO_ICON = {
   '/ranking': rankingsIcon,
   '/upcoming-tournaments': upcomingIcon,
   '/highlights': highlightsIcon,
-  '/serials': streamingIcon,
+  '/entertainment': streamingIcon,
 };
 
 export function ExploreCategories() {

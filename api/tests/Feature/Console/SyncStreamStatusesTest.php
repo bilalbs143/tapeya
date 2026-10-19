@@ -63,4 +63,31 @@ class SyncStreamStatusesTest extends TestCase
         $stream->refresh();
         $this->assertSame('live', $stream->status);
     }
+
+    public function test_sync_command_skips_idle_never_started_streams(): void
+    {
+        $idle = LiveStream::factory()->create([
+            'match_id' => null,
+            'provider' => 'youtube',
+            'provider_stream_id' => 'fake-idle-broadcast',
+            'status' => 'idle',
+            'started_at' => null,
+        ]);
+
+        $live = LiveStream::factory()->create([
+            'match_id' => null,
+            'provider' => 'youtube',
+            'provider_stream_id' => 'fake-live-broadcast',
+            'status' => 'live',
+            'started_at' => now(),
+        ]);
+
+        Artisan::call('streams:sync');
+
+        // FakeStreamProvider marks pollable YouTube rows live — idle never-started must not be polled.
+        $idle->refresh();
+        $live->refresh();
+        $this->assertSame('idle', $idle->status);
+        $this->assertSame('live', $live->status);
+    }
 }

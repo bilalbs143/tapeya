@@ -36,12 +36,22 @@ class StaticPageSeeder extends Seeder
     private function termsOfUseHtml(): string
     {
         return <<<'HTML'
-<article class="legal-doc">
-  <h1>Tapeya — Terms of Use</h1>
-
-  <p>Last updated: July 2026</p>
+<p>Last updated: October 2026</p>
 
   <p>These Terms of Use (“Terms”) govern your access to and use of Tapeya’s websites, mobile applications, and related services (together, the “Service”). By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.</p>
+
+  <h2>Zero tolerance for objectionable content and abuse</h2>
+
+  <p><strong>Tapeya has zero tolerance for objectionable content or abusive users.</strong> This includes, without limitation: hate speech, harassment, bullying, threats, sexual exploitation, pornography, graphic violence, spam, scams, and any content that exploits or endangers minors.</p>
+
+  <ul>
+    <li>You must not post, upload, share, or stream objectionable content.</li>
+    <li>You must not abuse, harass, threaten, or impersonate other users.</li>
+    <li>We filter content where reasonably possible and provide in-app tools to <strong>report</strong> content and <strong>block</strong> users.</li>
+    <li>Blocking a user removes their content from your feed immediately and notifies Tapeya so we can investigate.</li>
+    <li>We aim to review and act on objectionable content reports within <strong>24 hours</strong>, including removing content and ejecting (suspending or permanently blocking) users who provided the offending content.</li>
+    <li>Contact for safety reports: <a href="mailto:hello@tapeya.com">hello@tapeya.com</a>.</li>
+  </ul>
 
   <h2>1. Who we are</h2>
 
@@ -70,9 +80,10 @@ class StaticPageSeeder extends Seeder
   <h2>4. User content and conduct</h2>
 
   <ul>
-    <li>You may submit content (for example profiles, tournament data, or messages). You retain your rights in your content, but you give us a licence to host, display, and process it as needed to run the Service.</li>
+    <li>You may submit content (for example profiles, posts, reels, comments, tournament data, or messages). You retain your rights in your content, but you give us a licence to host, display, and process it as needed to run the Service.</li>
     <li>You are responsible for content you submit and for having the rights to share it.</li>
-    <li>We may remove content or restrict features where we reasonably believe there is a breach of these Terms or a legal or safety risk.</li>
+    <li>We may remove content, restrict features, or eject users where we reasonably believe there is a breach of these Terms, our zero-tolerance policy, or a legal or safety risk.</li>
+    <li>Repeated or severe violations may result in immediate permanent account termination.</li>
   </ul>
 
   <h2>5. Live streaming (Go Live)</h2>
@@ -142,17 +153,13 @@ class StaticPageSeeder extends Seeder
   <h2>15. Contact</h2>
 
   <p>Questions about these Terms: hello@tapeya.com</p>
-</article>
 HTML;
     }
 
     private function privacyPolicyHtml(): string
     {
         return <<<'HTML'
-<article class="legal-doc">
-  <h1>Tapeya — Privacy Policy</h1>
-
-  <p>Last updated: July 2026</p>
+<p>Last updated: July 2026</p>
 
   <p>This Privacy Policy explains how Tapeya (“we”, “us”, “our”) collects, uses, stores, and shares information when you use our websites, mobile applications, and related services (the “Service”). If you do not agree with this Policy, please do not use the Service.</p>
 
@@ -274,7 +281,6 @@ HTML;
   <h2>15. Contact</h2>
 
   <p>Privacy questions or requests: hello@tapeya.com</p>
-</article>
 HTML;
     }
 }

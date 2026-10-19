@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { UserAvatar } from '@/components/UserAvatar';
-import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
+import { isSafeNotificationNavigatePath, normalizeAppPath, rewriteLegacyDeepLinkPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
 import {
@@ -61,7 +61,7 @@ function mapApiNotificationToCard(notification) {
 
   let href = null;
   if (typeof data.deep_link === 'string' && data.deep_link) {
-    const path = normalizeAppPath(data.deep_link);
+    const path = rewriteLegacyDeepLinkPath(normalizeAppPath(data.deep_link));
     if (isSafeNotificationNavigatePath(path) && path !== '/notification-center') {
       href = path;
     }
@@ -116,6 +116,13 @@ function NotificationCard({ notification, onOpen }) {
   const { avatar, fallback, message, kind, timestamp, unread } = notification;
   const interactive = Boolean(onOpen);
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onOpen(notification);
+    }
+  };
+
   return (
     <article
       className={`bg-surface flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-colors ${
@@ -125,16 +132,7 @@ function NotificationCard({ notification, onOpen }) {
       tabIndex={interactive ? 0 : undefined}
       aria-label={`${message}${unread ? ', unread' : ''}`}
       onClick={interactive ? () => onOpen(notification) : undefined}
-      onKeyDown={
-        interactive
-          ? (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                onOpen(notification);
-              }
-            }
-          : undefined
-      }
+      onKeyDown={interactive ? handleKeyDown : undefined}
     >
       <UserAvatar src={avatar} fallback={fallback} size="md" />
 

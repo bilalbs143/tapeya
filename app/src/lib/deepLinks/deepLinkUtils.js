@@ -2,7 +2,12 @@
  * Generic deep-link URL builders + parsers for the Tapeya consumer app.
  */
 
-import { APP_URL_SCHEME, isAllowedDeepLinkPath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
+import {
+  APP_URL_SCHEME,
+  isAllowedDeepLinkPath,
+  normalizeAppPath,
+  rewriteLegacyDeepLinkPath,
+} from '@/lib/deepLinks/deepLinkRegistry';
 
 /**
  * Public website origin for shareable HTTPS links.
@@ -61,11 +66,11 @@ export function pathFromDeepLinkUrl(url) {
     let path = null;
 
     if (scheme === 'http' || scheme === 'https') {
-      path = normalizeAppPath(parsed.pathname);
+      path = rewriteLegacyDeepLinkPath(parsed.pathname);
     } else if (scheme === APP_URL_SCHEME) {
       // tapeya://reels/123 → host=reels, pathname=/123
       // tapeya://live/go-live/31 → host=live, pathname=/go-live/31
-      path = normalizeAppPath(`/${parsed.hostname}${parsed.pathname}`);
+      path = rewriteLegacyDeepLinkPath(`/${parsed.hostname}${parsed.pathname}`);
     } else {
       return null;
     }

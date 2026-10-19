@@ -73,6 +73,7 @@ class User extends Authenticatable
         'can_broadcast',
         'is_official',
         'broadcast_terms_accepted_at',
+        'terms_accepted_at',
     ];
 
     /**
@@ -124,6 +125,7 @@ class User extends Authenticatable
             'can_broadcast' => 'boolean',
             'is_official' => 'boolean',
             'broadcast_terms_accepted_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 

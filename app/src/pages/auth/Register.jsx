@@ -10,6 +10,7 @@ import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSessi
 import { registerSchema } from '@/lib/validations/auth';
 import { useRegisterMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
+import { Checkbox } from '@/ui/Checkbox';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
@@ -29,7 +30,7 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { phone: '+92', name: '', nickname: '' },
+    defaultValues: { phone: '+92', name: '', nickname: '', acceptTerms: false },
     mode: 'onChange',
   });
 
@@ -41,6 +42,7 @@ export default function Register() {
         name: data.name,
         nickname: data.nickname,
         phone: data.phone,
+        accept_terms: true,
       }).unwrap();
 
       const otp = extractOtpFromAuthResponse(result);
@@ -123,6 +125,45 @@ export default function Register() {
             />
           </FormField>
 
+          <Controller
+            name="acceptTerms"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="flex cursor-pointer items-start gap-3">
+                  <Checkbox
+                    checked={field.value === true}
+                    onCheckedChange={(v) => field.onChange(v === true)}
+                    className="mt-0.5"
+                    aria-label="Agree to Terms of Use"
+                  />
+                  <span className="text-muted text-[13px] leading-relaxed">
+                    I agree to the{' '}
+                    <Link
+                      to="/pages/terms-of-use"
+                      className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                    >
+                      Terms of Use
+                    </Link>{' '}
+                    (zero tolerance for objectionable content and abusive users) and{' '}
+                    <Link
+                      to="/pages/privacy-policy"
+                      className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+                {errors.acceptTerms?.message ? (
+                  <p className="mt-1.5 text-[12px] text-red-300" role="alert">
+                    {errors.acceptTerms.message}
+                  </p>
+                ) : null}
+              </div>
+            )}
+          />
+
           {error && (
             <p
               className="border-surface-border rounded-[6px] border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
@@ -147,23 +188,6 @@ export default function Register() {
               >
                 Login
               </Link>
-            </p>
-            <p className="text-muted text-[14px]">
-              By signing up, you agree to the{' '}
-              <Link
-                to="/pages/terms-of-use"
-                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
-              >
-                Terms of Use
-              </Link>{' '}
-              and{' '}
-              <Link
-                to="/pages/privacy-policy"
-                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
-              >
-                Privacy Policy
-              </Link>
-              .
             </p>
           </div>
         </FormStack>

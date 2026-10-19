@@ -1,15 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
-import { getReelPlayerWindowRadius, isInPlayerWindow } from '@/features/reels/reelPlayerWindow';
+import {
+  getReelPlayerAhead,
+  getReelPlayerBehind,
+  getReelPlayerWindowRadius,
+  isInPlayerWindow,
+  isNextPlayerSlide,
+} from '@/features/reels/reelPlayerWindow';
 
 describe('isInPlayerWindow', () => {
-  it('includes ±2 around the active slide', () => {
-    expect(getReelPlayerWindowRadius()).toBe(2);
-    expect([0, 1, 2, 3, 4, 5, 6].filter((i) => isInPlayerWindow(i, 3))).toEqual([1, 2, 3, 4, 5]);
+  it('keeps one behind and three ahead of the active slide', () => {
+    expect(getReelPlayerBehind()).toBe(1);
+    expect(getReelPlayerAhead()).toBe(3);
+    expect(getReelPlayerWindowRadius()).toBe(3);
+    expect([0, 1, 2, 3, 4, 5, 6, 7].filter((i) => isInPlayerWindow(i, 3))).toEqual([2, 3, 4, 5, 6]);
   });
 
   it('clamps at list edges', () => {
-    expect([0, 1, 2, 3].filter((i) => isInPlayerWindow(i, 0))).toEqual([0, 1, 2]);
-    expect([3, 4, 5].filter((i) => isInPlayerWindow(i, 5))).toEqual([3, 4, 5]);
+    expect([0, 1, 2, 3, 4].filter((i) => isInPlayerWindow(i, 0))).toEqual([0, 1, 2, 3]);
+    expect([2, 3, 4, 5].filter((i) => isInPlayerWindow(i, 5))).toEqual([4, 5]);
+  });
+});
+
+describe('isNextPlayerSlide', () => {
+  it('marks only the immediate next index', () => {
+    expect(isNextPlayerSlide(4, 3)).toBe(true);
+    expect(isNextPlayerSlide(3, 3)).toBe(false);
+    expect(isNextPlayerSlide(5, 3)).toBe(false);
   });
 });

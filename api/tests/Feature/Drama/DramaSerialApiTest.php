@@ -31,6 +31,7 @@ class DramaSerialApiTest extends TestCase
     {
         $serial = DramaSerial::query()->create([
             'title' => 'Street Cricket Diaries',
+            'provider' => 'Tapeya Studios',
             'description' => 'A neighbourhood series.',
             'is_active' => true,
             'episodes_count' => 0,
@@ -58,10 +59,12 @@ class DramaSerialApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.id', $serial->id)
             ->assertJsonPath('data.0.title', 'Street Cricket Diaries')
+            ->assertJsonPath('data.0.provider', 'Tapeya Studios')
             ->assertJsonPath('data.0.first_episode_id', $serial->episodes()->orderBy('episode_number')->value('id'));
 
         $this->getJson("/api/v1/drama-serials/{$serial->id}")
             ->assertOk()
+            ->assertJsonPath('data.provider', 'Tapeya Studios')
             ->assertJsonPath('data.episodes.0.episode_number', 1)
             ->assertJsonPath('data.episodes_count', 1);
     }
@@ -109,9 +112,11 @@ class DramaSerialApiTest extends TestCase
         $serialId = $this->actingAs($admin, 'api')
             ->postJson('/api/v1/admin/drama-serials', [
                 'title' => 'Admin Serial',
+                'provider' => 'Tapeya Studios',
                 'is_active' => true,
             ])
             ->assertCreated()
+            ->assertJsonPath('data.provider', 'Tapeya Studios')
             ->json('data.id');
 
         $this->actingAs($admin, 'api')

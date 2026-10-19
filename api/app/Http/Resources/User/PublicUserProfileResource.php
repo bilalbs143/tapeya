@@ -32,6 +32,7 @@ class PublicUserProfileResource extends JsonResource
             'reels_count' => (int) ($this->reels_count ?? 0),
             'posts_count' => (int) ($this->posts_count ?? 0),
             'is_following' => (bool) ($this->viewer_is_following ?? false),
+            'is_blocked' => (bool) ($this->viewer_has_blocked ?? false),
         ];
     }
 }

@@ -68,6 +68,7 @@ export class MessageService implements OnDestroy {
       disableClose,
       width,
       maxWidth: `min(${width}, 95vw)`,
+      maxHeight: '90dvh',
       height: 'auto',
       data: dialogData ?? {},
     };

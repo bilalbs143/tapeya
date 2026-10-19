@@ -8,7 +8,6 @@ use App\Http\Resources\Admin\LiveStreamListResource;
 use App\Http\Resources\Admin\StreamAdminResource;
 use App\Models\LiveStream;
 use App\Rules\AvailableYoutubeStreamKey;
-use App\Services\Push\PushNotificationService;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\LiveStreamService;
@@ -16,7 +15,6 @@ use App\Streaming\StreamProviderManager;
 use App\Support\Broadcast\LiveStreamPresenceOccupancy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class LiveStreamController extends BaseAdminController
@@ -24,7 +22,6 @@ class LiveStreamController extends BaseAdminController
     public function __construct(
         private LiveStreamService $service,
         private StreamProviderManager $manager,
-        private PushNotificationService $pushService,
     ) {
         parent::__construct(LiveStream::class, LiveStreamListResource::class, 'live_stream');
     }
@@ -67,12 +64,6 @@ class LiveStreamController extends BaseAdminController
         $stream = $provider === 'youtube'
             ? $this->service->createStandaloneYoutube($validated, $createdBy)
             : $this->service->createStandalone($validated, $createdBy);
-
-        try {
-            $this->pushService->notifyLiveStreamCreated($stream, $createdBy);
-        } catch (\Throwable $e) {
-            Log::warning('Live stream created push failed: '.$e->getMessage(), ['stream_id' => $stream->id]);
-        }
 
         return $this->success($this->payload($stream), 'Live stream created.', 'CREATED');
     }

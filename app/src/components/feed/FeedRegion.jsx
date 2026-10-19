@@ -5,10 +5,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { buildFeedTimelineRows, FEED_TIMELINE_ROW_GAP_PX } from '@/components/feed/buildFeedTimelineRows';
 import ComposerTrigger from '@/components/feed/ComposerTrigger';
+import { FeedEntertainmentWidget } from '@/components/feed/FeedEntertainmentWidget';
 import { FeedHighlightWidget } from '@/components/feed/FeedHighlightWidget';
 import { FeedLiveNowWidget } from '@/components/feed/FeedLiveNowWidget';
 import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
-import { FeedSerialsWidget } from '@/components/feed/FeedSerialsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
 import FeedTabs from '@/components/feed/FeedTabs';
@@ -21,7 +21,7 @@ import { composeDestination } from '@/lib/feed/composeDestination';
 import { useTabReselect } from '@/lib/navigation/tabReselect';
 import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import PostCard from '@/pages/feed/PostCard';
-import { useGetDramaSerialsQuery } from '@/store/api/dramaApi';
+import { useGetEntertainmentsQuery } from '@/store/api/entertainmentApi';
 import {
   FEED_LIST_ARG,
   useGetFollowingFeedQuery,
@@ -164,8 +164,8 @@ function TimelineRow({ row, onSuggestedFollowed }) {
   if (row.type === 'highlight') {
     return <FeedHighlightWidget highlights={row.highlights} />;
   }
-  if (row.type === 'serial') {
-    return <FeedSerialsWidget serials={row.serials} />;
+  if (row.type === 'entertainment') {
+    return <FeedEntertainmentWidget entertainments={row.entertainments} />;
   }
   return null;
 }
@@ -230,13 +230,13 @@ export default function FeedRegion({ className = '', top = null }) {
     },
   );
   const highlights = highlightsData ?? EMPTY_LIST;
-  const { data: serialsData } = useGetDramaSerialsQuery(
+  const { data: entertainmentsData } = useGetEntertainmentsQuery(
     { per_page: 12 },
     {
       skip: tab !== 'explore',
     },
   );
-  const serials = serialsData ?? EMPTY_LIST;
+  const entertainments = entertainmentsData ?? EMPTY_LIST;
   const { data: liveStreamsRaw } = useGetLiveStreamsQuery(undefined, {
     skip: tab !== 'explore' || !isAuthenticated,
   });
@@ -326,13 +326,24 @@ export default function FeedRegion({ className = '', top = null }) {
         shopCollections,
         suggestedUsers,
         highlights,
-        serials,
+        entertainments,
         liveStreams,
         cycles: displayCycles,
         freshItems,
         freshFromCycle,
       }),
-    [items, tab, shopCollections, suggestedUsers, highlights, serials, liveStreams, displayCycles, freshItems, freshFromCycle],
+    [
+      items,
+      tab,
+      shopCollections,
+      suggestedUsers,
+      highlights,
+      entertainments,
+      liveStreams,
+      displayCycles,
+      freshItems,
+      freshFromCycle,
+    ],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;

@@ -63,10 +63,6 @@ export const navItems: NavItem[] = [
         route: '/content-management/drama-serials',
       },
       {
-        displayName: 'Drama Episodes',
-        route: '/content-management/drama-episodes',
-      },
-      {
         displayName: 'Posts',
         route: '/content-management/posts',
       },
@@ -74,8 +70,13 @@ export const navItems: NavItem[] = [
         displayName: 'Post Reports',
         route: '/content-management/post-reports',
       },
+      {
+        displayName: 'User Reports',
+        route: '/content-management/user-reports',
+      },
     ],
   },
+
   {
     displayName: 'Users Management',
     iconName: 'solar:users-group-two-rounded-line-duotone',

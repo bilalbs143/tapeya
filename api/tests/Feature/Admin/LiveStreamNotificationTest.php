@@ -59,15 +59,12 @@ class LiveStreamNotificationTest extends TestCase
         return $push;
     }
 
-    public function test_creating_standalone_stream_notifies_all_users(): void
+    public function test_creating_standalone_stream_does_not_notify(): void
     {
         $admin = $this->admin();
         $push = $this->mockPushService();
 
-        $push->shouldReceive('notifyLiveStreamCreated')
-            ->once()
-            ->withArgs(fn (LiveStream $stream, int $createdBy) => $stream->title === 'Studio Show' && $createdBy === $admin->id)
-            ->andReturn(Mockery::mock(PushNotificationLog::class));
+        $push->shouldReceive('notifyLiveStreamStarted')->never();
 
         $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
             'title' => 'Studio Show',
@@ -75,42 +72,69 @@ class LiveStreamNotificationTest extends TestCase
         ])->assertCreated();
     }
 
-    public function test_creating_match_linked_stream_notifies_all_users(): void
+    public function test_creating_match_linked_stream_does_not_notify(): void
     {
         $admin = $this->admin();
         $match = $this->createMatch();
         $key = $this->youtubeKey($admin);
         $push = $this->mockPushService();
 
-        $push->shouldReceive('notifyLiveStreamCreated')
+        $push->shouldReceive('notifyLiveStreamStarted')->never();
+
+        $this->actingAs($admin, 'api')
+            ->postJson("/api/v1/admin/matches/{$match->id}/stream", ['youtube_stream_key_id' => $key->id])
+            ->assertCreated();
+    }
+
+    public function test_going_live_on_external_stream_notifies_all_users(): void
+    {
+        $admin = $this->admin();
+        $push = $this->mockPushService();
+
+        $push->shouldReceive('notifyLiveStreamStarted')->never();
+
+        $response = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
+            'title' => 'Studio Show',
+            'streaming_url' => 'https://example.com/watch',
+        ])->assertCreated();
+
+        $streamId = (int) $response->json('data.stream.id');
+
+        $push->shouldReceive('notifyLiveStreamStarted')
             ->once()
-            ->withArgs(fn (LiveStream $stream, int $createdBy) => $stream->match_id === $match->id && $createdBy === $admin->id)
+            ->withArgs(fn (LiveStream $stream, ?int $sentBy) => $stream->id === $streamId && $sentBy === $admin->id)
             ->andReturn(Mockery::mock(PushNotificationLog::class));
 
         $this->actingAs($admin, 'api')
-            ->postJson("/api/v1/admin/matches/{$match->id}/stream", ['youtube_stream_key_id' => $key->id])
-            ->assertCreated();
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/start")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'live');
     }
 
-    public function test_replacing_match_stream_does_not_renotify(): void
+    public function test_going_live_twice_does_not_renotify(): void
     {
         $admin = $this->admin();
-        $match = $this->createMatch();
-        $key = $this->youtubeKey($admin);
         $push = $this->mockPushService();
 
-        $push->shouldReceive('notifyLiveStreamCreated')->once()->andReturn(Mockery::mock(PushNotificationLog::class));
+        $response = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
+            'title' => 'Studio Show',
+            'streaming_url' => 'https://example.com/watch',
+        ])->assertCreated();
+
+        $streamId = (int) $response->json('data.stream.id');
+
+        $push->shouldReceive('notifyLiveStreamStarted')->once()->andReturn(Mockery::mock(PushNotificationLog::class));
 
         $this->actingAs($admin, 'api')
-            ->postJson("/api/v1/admin/matches/{$match->id}/stream", ['youtube_stream_key_id' => $key->id])
-            ->assertCreated();
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/start")
+            ->assertOk();
 
         $this->actingAs($admin, 'api')
-            ->postJson("/api/v1/admin/matches/{$match->id}/stream", ['youtube_stream_key_id' => $key->id])
-            ->assertCreated();
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/start")
+            ->assertOk();
     }
 
-    public function test_notification_content_is_live_on_tapeya_for_all_users(): void
+    public function test_notification_content_is_live_on_tapeya_when_started(): void
     {
         app(PushSettings::class)->fill(['enabled' => 1, 'provider' => 'fcm'])->save();
 
@@ -122,6 +146,15 @@ class LiveStreamNotificationTest extends TestCase
         ])->assertCreated();
 
         $streamId = $response->json('data.stream.id');
+
+        $this->assertNull(
+            PushNotificationLog::query()->where('template_key', NotificationEventEnum::LIVE_STREAM_CREATED->value)->first()
+        );
+
+        $this->actingAs($admin, 'api')
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/start")
+            ->assertOk();
+
         $log = PushNotificationLog::query()->where('template_key', NotificationEventEnum::LIVE_STREAM_CREATED->value)->firstOrFail();
 
         $this->assertSame('Championship Final is live on Tapeya', $log->title);

@@ -18,6 +18,7 @@ class StoreDramaSerialRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
+            'provider' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['nullable', 'boolean'],
         ];

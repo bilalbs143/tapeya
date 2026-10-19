@@ -10,6 +10,8 @@ describe('deepLinkRegistry', () => {
     expect(buildDeepLinkPath('reelCreator', { userId: 9 })).toBe('/reels/u/9');
     expect(buildDeepLinkPath('liveGoLive', { streamId: 31 })).toBe('/live/go-live/31');
     expect(buildDeepLinkPath('liveBroadcast', { streamId: 44 })).toBe('/live/broadcast/44');
+    expect(buildDeepLinkPath('entertainment', { entertainmentId: 3 })).toBe('/entertainment/3');
+    expect(buildDeepLinkPath('entertainmentEpisode', { entertainmentId: 3, episodeId: 9 })).toBe('/entertainment/3/e/9');
   });
 
   it('allows registered paths only', () => {
@@ -19,6 +21,10 @@ describe('deepLinkRegistry', () => {
     expect(isAllowedDeepLinkPath('/reels/upload')).toBe(false);
     expect(isAllowedDeepLinkPath('/live/go-live/31')).toBe(true);
     expect(isAllowedDeepLinkPath('/live/broadcast/44')).toBe(true);
+    expect(isAllowedDeepLinkPath('/entertainment/3')).toBe(true);
+    expect(isAllowedDeepLinkPath('/entertainment/3/e/9')).toBe(true);
+    expect(isAllowedDeepLinkPath('/serials/3')).toBe(true);
+    expect(isAllowedDeepLinkPath('/serials/3/e/9')).toBe(true);
     expect(isAllowedDeepLinkPath('/shop')).toBe(false);
   });
 
@@ -62,5 +68,8 @@ describe('deepLinkUtils', () => {
     expect(pathFromDeepLinkUrl('tapeya://live/go-live/31')).toBe('/live/go-live/31');
     expect(pathFromDeepLinkUrl('https://tapeya.com/live/broadcast/44')).toBe('/live/broadcast/44');
     expect(pathFromDeepLinkUrl('tapeya://live/broadcast/44')).toBe('/live/broadcast/44');
+    expect(pathFromDeepLinkUrl('https://tapeya.com/entertainment/3/e/9')).toBe('/entertainment/3/e/9');
+    expect(pathFromDeepLinkUrl('https://tapeya.com/serials/3/e/9')).toBe('/entertainment/3/e/9');
+    expect(pathFromDeepLinkUrl('tapeya://serials/3')).toBe('/entertainment/3');
   });
 });

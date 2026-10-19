@@ -37,6 +37,7 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'nickname' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', Rule::unique('users', 'phone')],
+            'accept_terms' => ['accepted'],
         ];
     }
 
@@ -47,6 +48,7 @@ class RegisterRequest extends FormRequest
             'nickname.regex' => 'Nickname may only contain letters and spaces.',
             'phone.regex' => 'Phone must include country code (e.g. +923001234567).',
             'phone.unique' => 'This phone number is already registered. Try logging in instead.',
+            'accept_terms.accepted' => 'You must agree to the Terms of Use to create an account.',
         ];
     }
 }

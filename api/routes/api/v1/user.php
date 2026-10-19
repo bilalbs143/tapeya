@@ -67,6 +67,7 @@ use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserProfileController;
+use App\Http\Controllers\User\UserSafetyController;
 use App\Http\Controllers\User\UserTeamController;
 use App\Http\Controllers\Vendor\Shop\BrandController as VendorBrandController;
 use App\Http\Controllers\Vendor\Shop\CategoryController as VendorCategoryController;
@@ -168,6 +169,10 @@ Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
     Route::post('users/{user}/follow', [UserFollowController::class, 'follow']);
     Route::delete('users/{user}/follow', [UserFollowController::class, 'unfollow']);
+    Route::post('users/{user}/block', [UserSafetyController::class, 'block']);
+    Route::delete('users/{user}/block', [UserSafetyController::class, 'unblock']);
+    Route::post('users/{user}/report', [UserSafetyController::class, 'report']);
+    Route::post('me/accept-terms', [UserSafetyController::class, 'acceptTerms']);
 
     Route::get('hashtags/search', [HashtagController::class, 'search']);
     Route::get('hashtags/{name}/reels', [HashtagController::class, 'reels'])->where('name', '[A-Za-z0-9_]+');

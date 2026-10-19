@@ -866,6 +866,8 @@ MSW handlers live per-feature (`features/x/test/handlers.ts`) and compose into o
 
 Keep the existing `native/` (Capacitor feature wrappers: push tokens, share, screen orientation) and `platform/` (platform detection, download handling) split — it's a sound abstraction already. Type it so feature code never imports `@capacitor/*` packages directly; it goes through `shared/native/*` wrappers that present a typed, platform-agnostic interface (and a web fallback where relevant). This is what makes it possible to unit-test feature code without a native runtime.
 
+**Orientation policy (app-react):** portrait-locked by default with media-immersive exceptions — see [app-react/docs/ORIENTATION.md](../app-react/docs/ORIENTATION.md). Broadcast *encode* aspect remains [LIVE_STREAM_ORIENTATION.md](./LIVE_STREAM_ORIENTATION.md).
+
 ---
 
 
@@ -943,7 +945,7 @@ Visual theme is **not** a React context tree of colour props. It is:
 3. **`ThemeProvider` / `useTheme`** (`shared/config/theme.tsx`) — preference `'system' | 'dark' | 'light'`, persists to `localStorage` key `tapeya:theme`, resolves OS preference when `'system'`.
 4. **Boot script** — `THEME_BOOT_SNIPPET` in `shared/config/themeBoot.js` is the **only** source of the pre-bundle script; Vite `transformIndexHtml` injects it into `index.html` (placeholder `<!--THEME_BOOT-->`). Do not hand-copy the script into HTML.
 5. **`ThemeToggle`** — icon control in chrome; `variant="segment"` for Settings (System / Light / Dark).
-6. **Media opt-out** — `data-surface="media"` keeps video/photo surfaces on the dark palette in both themes.
+6. **Theme everywhere** — page chrome follows the user’s `data-theme`. Video letterboxing may stay `bg-black` for playback readability; overlays on footage use explicit white/black (not a forced media palette). There is no `data-surface="media"` opt-out.
 
 Text on page surfaces uses `text-ink` / `text-body` / `text-muted` / `text-dim` — never raw `text-white` (except on filled brand / positive / danger / photo overlays).
 

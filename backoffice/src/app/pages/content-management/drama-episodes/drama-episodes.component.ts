@@ -8,6 +8,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription } from 'rxjs';
 
@@ -61,6 +62,7 @@ export class DramaEpisodesComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   private readonly sub = new Subscription();
 
   public serials: DramaSerial[] = [];
@@ -105,6 +107,10 @@ export class DramaEpisodesComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    const serialId = this.route.snapshot.queryParamMap.get('drama_serial_id');
+    if (serialId) {
+      this.searchForm.patchValue({ drama_serial_id: serialId }, { emitEvent: false });
+    }
     this.sub.add(bindListSearchFormLiveReload(this));
     this.loadSerials();
     this.loadHttpData();

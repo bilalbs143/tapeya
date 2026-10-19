@@ -19,6 +19,7 @@ class DramaEpisodeResource extends JsonResource
             'serial' => $this->whenLoaded('serial', fn () => $this->serial ? [
                 'id' => $this->serial->id,
                 'title' => $this->serial->title,
+                'provider' => $this->serial->provider,
             ] : null),
             'episode_number' => (int) $this->episode_number,
             'title' => $this->title,

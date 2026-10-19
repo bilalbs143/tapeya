@@ -93,7 +93,66 @@ export const userApi = baseApi.injectEndpoints({
       transformResponse: (response) => (response?.data ?? []).map(normalizeSuggestedUser),
       providesTags: [{ type: 'User', id: 'SUGGESTIONS' }],
     }),
+
+    acceptTerms: builder.mutation({
+      query: () => ({
+        url: '/me/accept-terms',
+        method: 'POST',
+      }),
+    }),
+
+    blockUser: builder.mutation({
+      query: ({ userId, reason, details }) => ({
+        url: `/users/${userId}/block`,
+        method: 'POST',
+        body: {
+          reason: reason || 'other',
+          details: details || undefined,
+        },
+      }),
+      invalidatesTags: (_r, _e, arg) => [{ type: 'User', id: 'SUGGESTIONS' }, { type: 'User', id: arg.userId }, 'Post', 'Reel'],
+    }),
+
+    unblockUser: builder.mutation({
+      query: (userId) => ({
+        url: `/users/${userId}/block`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, userId) => [{ type: 'User', id: 'SUGGESTIONS' }, { type: 'User', id: userId }, 'Post', 'Reel'],
+    }),
+
+    reportUser: builder.mutation({
+      query: ({ userId, reason, details }) => ({
+        url: `/users/${userId}/report`,
+        method: 'POST',
+        body: {
+          reason,
+          details: details || undefined,
+        },
+      }),
+    }),
+
+    reportPost: builder.mutation({
+      query: ({ postId, reason, details }) => ({
+        url: `/posts/${postId}/report`,
+        method: 'POST',
+        body: {
+          reason,
+          details: details || undefined,
+        },
+      }),
+    }),
   }),
 });
 
-export const { useUpdateActivePlatformMutation, useSearchUsersQuery, useLookupUsersQuery, useGetSuggestedUsersQuery } = userApi;
+export const {
+  useUpdateActivePlatformMutation,
+  useSearchUsersQuery,
+  useLookupUsersQuery,
+  useGetSuggestedUsersQuery,
+  useAcceptTermsMutation,
+  useBlockUserMutation,
+  useUnblockUserMutation,
+  useReportUserMutation,
+  useReportPostMutation,
+} = userApi;

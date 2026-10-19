@@ -269,6 +269,7 @@ export const reelsApi = baseApi.injectEndpoints({
           reelsCount: raw.reels_count ?? 0,
           postsCount: raw.posts_count ?? 0,
           isFollowing: Boolean(raw.is_following),
+          isBlocked: Boolean(raw.is_blocked),
           isOfficial: Boolean(raw.is_official),
           country: raw.country ?? null,
           city: raw.city ?? null,
@@ -506,14 +507,6 @@ export const reelsApi = baseApi.injectEndpoints({
           patches.forEach((p) => p.undo());
         }
       },
-    }),
-
-    reportReel: builder.mutation({
-      query: ({ id, reason, details }) => ({
-        url: `/posts/${id}/report`,
-        method: 'POST',
-        body: { reason, details },
-      }),
     }),
 
     getReelComments: builder.query({
@@ -882,7 +875,6 @@ export const {
   useShareReelMutation,
   useFollowReelCreatorMutation,
   useUnfollowReelCreatorMutation,
-  useReportReelMutation,
   useGetReelCommentsQuery,
   useLazyGetReelCommentsQuery,
   useGetReelCommentRepliesQuery,

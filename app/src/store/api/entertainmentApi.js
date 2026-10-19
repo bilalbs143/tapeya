@@ -1,9 +1,10 @@
 import { baseApi } from './baseApi';
 
-export function normalizeSerial(raw) {
+export function normalizeEntertainment(raw) {
   return {
     id: raw.id,
     title: raw.title ?? '',
+    provider: raw.provider ?? null,
     description: raw.description ?? null,
     poster: raw.poster ?? null,
     episodesCount: raw.episodes_count ?? 0,
@@ -16,7 +17,7 @@ export function normalizeSerial(raw) {
 export function normalizeEpisodeSummary(raw) {
   return {
     id: raw.id,
-    serialId: raw.serial_id ?? raw.drama_serial_id ?? null,
+    entertainmentId: raw.serial_id ?? raw.drama_serial_id ?? null,
     episodeNumber: raw.episode_number ?? 0,
     title: raw.title ?? '',
     description: raw.description ?? null,
@@ -30,6 +31,16 @@ export function normalizeEpisodeSummary(raw) {
   };
 }
 
+function normalizeEntertainmentSummary(raw) {
+  if (!raw) return null;
+  return {
+    id: raw.id,
+    title: raw.title ?? '',
+    provider: raw.provider ?? null,
+    poster: raw.poster ?? null,
+  };
+}
+
 export function normalizeEpisode(raw) {
   const summary = normalizeEpisodeSummary(raw);
   return {
@@ -37,13 +48,7 @@ export function normalizeEpisode(raw) {
     videoSource: raw.video_source ?? 'youtube',
     videoUrl: raw.video_url ?? null,
     myReaction: raw.my_reaction ?? null,
-    serial: raw.serial
-      ? {
-          id: raw.serial.id,
-          title: raw.serial.title ?? '',
-          poster: raw.serial.poster ?? null,
-        }
-      : null,
+    entertainment: normalizeEntertainmentSummary(raw.serial),
     prevEpisodeId: raw.prev_episode_id ?? null,
     nextEpisodeId: raw.next_episode_id ?? null,
   };
@@ -81,9 +86,9 @@ function normalizeCommentPage(data) {
   };
 }
 
-export const dramaApi = baseApi.injectEndpoints({
+export const entertainmentApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getDramaSerials: builder.query({
+    getEntertainments: builder.query({
       query: (params = {}) => ({
         url: '/drama-serials',
         params: {
@@ -92,59 +97,59 @@ export const dramaApi = baseApi.injectEndpoints({
           sort: params.sort ?? '-created_at',
         },
       }),
-      transformResponse: (response) => (response?.data ?? []).map(normalizeSerial),
+      transformResponse: (response) => (response?.data ?? []).map(normalizeEntertainment),
       providesTags: (result) =>
         result
-          ? [...result.map((s) => ({ type: 'DramaSerial', id: s.id })), { type: 'DramaSerial', id: 'LIST' }]
-          : [{ type: 'DramaSerial', id: 'LIST' }],
+          ? [...result.map((item) => ({ type: 'Entertainment', id: item.id })), { type: 'Entertainment', id: 'LIST' }]
+          : [{ type: 'Entertainment', id: 'LIST' }],
     }),
 
-    getDramaSerial: builder.query({
+    getEntertainment: builder.query({
       query: (id) => ({ url: `/drama-serials/${id}` }),
-      transformResponse: (response) => normalizeSerial(response?.data ?? response),
-      providesTags: (_r, _e, id) => [{ type: 'DramaSerial', id }],
+      transformResponse: (response) => normalizeEntertainment(response?.data ?? response),
+      providesTags: (_r, _e, id) => [{ type: 'Entertainment', id }],
     }),
 
-    getDramaEpisode: builder.query({
+    getEntertainmentEpisode: builder.query({
       query: (id) => ({ url: `/drama-episodes/${id}` }),
       transformResponse: (response) => normalizeEpisode(response?.data ?? response),
-      providesTags: (_r, _e, id) => [{ type: 'DramaEpisode', id }],
+      providesTags: (_r, _e, id) => [{ type: 'EntertainmentEpisode', id }],
     }),
 
-    likeDramaEpisode: builder.mutation({
+    likeEntertainmentEpisode: builder.mutation({
       query: (id) => ({ url: `/drama-episodes/${id}/like`, method: 'POST' }),
       transformResponse: (response) => response?.data ?? response,
     }),
 
-    dislikeDramaEpisode: builder.mutation({
+    dislikeEntertainmentEpisode: builder.mutation({
       query: (id) => ({ url: `/drama-episodes/${id}/dislike`, method: 'POST' }),
       transformResponse: (response) => response?.data ?? response,
     }),
 
-    shareDramaEpisode: builder.mutation({
+    shareEntertainmentEpisode: builder.mutation({
       query: (id) => ({ url: `/drama-episodes/${id}/share`, method: 'POST' }),
       transformResponse: (response) => response?.data ?? response,
     }),
 
-    getDramaEpisodeComments: builder.query({
+    getEntertainmentEpisodeComments: builder.query({
       query: ({ episodeId, page = 1, perPage = 20 }) => ({
         url: `/drama-episodes/${episodeId}/comments`,
         params: { page, per_page: perPage },
       }),
       transformResponse: (response) => normalizeCommentPage(response?.data ?? response),
-      providesTags: (_r, _e, arg) => [{ type: 'DramaEpisode', id: `COMMENTS-${arg.episodeId}` }],
+      providesTags: (_r, _e, arg) => [{ type: 'EntertainmentEpisode', id: `COMMENTS-${arg.episodeId}` }],
     }),
 
-    getDramaEpisodeCommentReplies: builder.query({
+    getEntertainmentEpisodeCommentReplies: builder.query({
       query: ({ episodeId, commentId, page = 1, perPage = 20 }) => ({
         url: `/drama-episodes/${episodeId}/comments/${commentId}/replies`,
         params: { page, per_page: perPage },
       }),
       transformResponse: (response) => normalizeCommentPage(response?.data ?? response),
-      providesTags: (_r, _e, arg) => [{ type: 'DramaEpisode', id: `COMMENTS-${arg.episodeId}` }],
+      providesTags: (_r, _e, arg) => [{ type: 'EntertainmentEpisode', id: `COMMENTS-${arg.episodeId}` }],
     }),
 
-    addDramaEpisodeComment: builder.mutation({
+    addEntertainmentEpisodeComment: builder.mutation({
       query: ({ episodeId, body, parentId }) => ({
         url: `/drama-episodes/${episodeId}/comments`,
         method: 'POST',
@@ -152,23 +157,23 @@ export const dramaApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => normalizeComment(response?.data ?? response),
       invalidatesTags: (_r, _e, arg) => [
-        { type: 'DramaEpisode', id: `COMMENTS-${arg.episodeId}` },
-        { type: 'DramaEpisode', id: arg.episodeId },
+        { type: 'EntertainmentEpisode', id: `COMMENTS-${arg.episodeId}` },
+        { type: 'EntertainmentEpisode', id: arg.episodeId },
       ],
     }),
 
-    deleteDramaEpisodeComment: builder.mutation({
+    deleteEntertainmentEpisodeComment: builder.mutation({
       query: ({ episodeId, commentId }) => ({
         url: `/drama-episodes/${episodeId}/comments/${commentId}`,
         method: 'DELETE',
       }),
       invalidatesTags: (_r, _e, arg) => [
-        { type: 'DramaEpisode', id: `COMMENTS-${arg.episodeId}` },
-        { type: 'DramaEpisode', id: arg.episodeId },
+        { type: 'EntertainmentEpisode', id: `COMMENTS-${arg.episodeId}` },
+        { type: 'EntertainmentEpisode', id: arg.episodeId },
       ],
     }),
 
-    likeDramaEpisodeComment: builder.mutation({
+    likeEntertainmentEpisodeComment: builder.mutation({
       query: ({ episodeId, commentId }) => ({
         url: `/drama-episodes/${episodeId}/comments/${commentId}/like`,
         method: 'POST',
@@ -176,7 +181,7 @@ export const dramaApi = baseApi.injectEndpoints({
       transformResponse: (response) => response?.data ?? response,
     }),
 
-    unlikeDramaEpisodeComment: builder.mutation({
+    unlikeEntertainmentEpisodeComment: builder.mutation({
       query: ({ episodeId, commentId }) => ({
         url: `/drama-episodes/${episodeId}/comments/${commentId}/like`,
         method: 'DELETE',
@@ -187,18 +192,18 @@ export const dramaApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetDramaSerialsQuery,
-  useGetDramaSerialQuery,
-  useGetDramaEpisodeQuery,
-  useLikeDramaEpisodeMutation,
-  useDislikeDramaEpisodeMutation,
-  useShareDramaEpisodeMutation,
-  useGetDramaEpisodeCommentsQuery,
-  useLazyGetDramaEpisodeCommentsQuery,
-  useGetDramaEpisodeCommentRepliesQuery,
-  useLazyGetDramaEpisodeCommentRepliesQuery,
-  useAddDramaEpisodeCommentMutation,
-  useDeleteDramaEpisodeCommentMutation,
-  useLikeDramaEpisodeCommentMutation,
-  useUnlikeDramaEpisodeCommentMutation,
-} = dramaApi;
+  useGetEntertainmentsQuery,
+  useGetEntertainmentQuery,
+  useGetEntertainmentEpisodeQuery,
+  useLikeEntertainmentEpisodeMutation,
+  useDislikeEntertainmentEpisodeMutation,
+  useShareEntertainmentEpisodeMutation,
+  useGetEntertainmentEpisodeCommentsQuery,
+  useLazyGetEntertainmentEpisodeCommentsQuery,
+  useGetEntertainmentEpisodeCommentRepliesQuery,
+  useLazyGetEntertainmentEpisodeCommentRepliesQuery,
+  useAddEntertainmentEpisodeCommentMutation,
+  useDeleteEntertainmentEpisodeCommentMutation,
+  useLikeEntertainmentEpisodeCommentMutation,
+  useUnlikeEntertainmentEpisodeCommentMutation,
+} = entertainmentApi;

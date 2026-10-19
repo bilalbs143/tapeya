@@ -9,6 +9,7 @@ use App\Http\Controllers\User\LiveBroadcastController;
 use App\Jobs\FinalizeEndedBroadcastJob;
 use App\Models\LiveStream;
 use App\Models\TournamentMatch;
+use App\Services\Push\PushNotificationService;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamPlayback;
@@ -218,10 +219,16 @@ class LiveStreamService
 
     public function markLive(LiveStream $stream): void
     {
+        $wasLive = $stream->status === 'live';
+
         $stream->update(['status' => 'live', 'started_at' => $stream->started_at ?? now()]);
         $stream->refresh();
 
         $this->broadcastStatusChange($stream);
+
+        if (! $wasLive) {
+            $this->notifyWentLive($stream);
+        }
     }
 
     /**
@@ -248,9 +255,10 @@ class LiveStreamService
         ]);
         $stream->refresh();
 
-        // Resume only needs grace refresh — avoid duplicate hub/status events when already live.
+        // Resume only needs grace refresh — avoid duplicate hub/status/push when already live.
         if (! $wasLive) {
             $this->broadcastStatusChange($stream);
+            $this->notifyWentLive($stream);
         }
     }
 
@@ -346,10 +354,31 @@ class LiveStreamService
 
         $this->broadcastStatusChange($stream);
 
+        // YouTube/OBS path: first time sync sees ingest as live.
+        if ($before !== 'live' && $stream->status === 'live') {
+            $this->notifyWentLive($stream);
+        }
+
         if ($stream->match_id) {
             Log::info("Stream status changed for match {$stream->match_id}", [
                 'from' => $before,
                 'to' => $stream->status,
+            ]);
+        }
+    }
+
+    /** Push once when the stream first becomes live (create stays silent). */
+    private function notifyWentLive(LiveStream $stream): void
+    {
+        try {
+            $sentBy = $stream->created_by ?? $stream->owner_user_id;
+            app(PushNotificationService::class)->notifyLiveStreamStarted(
+                $stream,
+                $sentBy !== null ? (int) $sentBy : null,
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Live stream started push failed: '.$e->getMessage(), [
+                'stream_id' => $stream->id,
             ]);
         }
     }

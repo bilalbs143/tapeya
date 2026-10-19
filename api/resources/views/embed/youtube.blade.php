@@ -124,12 +124,15 @@
           enablejsapi: 1,
         };
 
-        // Highlights / VOD — show native YouTube chrome and allow scrubbing.
+        // Highlights / VOD — YouTube chrome + scrubbing.
+        // Mute for Capacitor: parent Play tap is not a gesture inside this iframe,
+        // so unmuted autoplay is blocked (second YouTube Play button).
         if (allowControls) {
           document.documentElement.classList.add('allow-controls');
           playerVars.controls = 1;
           playerVars.disablekb = 0;
           playerVars.fs = 1;
+          playerVars.mute = 1;
           var shield = document.getElementById('touch-shield');
           if (shield && shield.parentNode) {
             shield.parentNode.removeChild(shield);
@@ -144,6 +147,7 @@
         var playerInitStarted = false;
         var hostReadySent = false;
         var hostPlayingSent = false;
+        var playRetryTimers = [];
 
         function readEmbedFlags() {
           return {
@@ -220,11 +224,51 @@
 
         window.fitPlayerCover = fitPlayerCover;
 
+        /** Keep YT pixel size in sync with the iframe viewport (tilt / rotate). */
+        function fitPlayerToViewport() {
+          var flags = readEmbedFlags();
+          if (flags.coverMode) {
+            fitPlayerCover();
+            return;
+          }
+
+          var viewport = layoutViewport();
+          var cw = viewport.cw;
+          var ch = viewport.ch;
+          if (cw <= 0 || ch <= 0) {
+            return;
+          }
+
+          var el = document.getElementById('player');
+          var iframe = el && el.querySelector('iframe');
+          if (iframe) {
+            iframe.style.width = cw + 'px';
+            iframe.style.height = ch + 'px';
+          }
+
+          if (player && typeof player.setSize === 'function') {
+            try {
+              player.setSize(Math.ceil(cw), Math.ceil(ch));
+            } catch (e) {}
+          }
+        }
+
+        window.fitPlayerToViewport = fitPlayerToViewport;
+
+        function clearPlayRetries() {
+          for (var i = 0; i < playRetryTimers.length; i++) {
+            window.clearTimeout(playRetryTimers[i]);
+          }
+          playRetryTimers = [];
+        }
+
         function startPlayback() {
           if (!player || typeof player.playVideo !== 'function') {
             return;
           }
 
+          // Do not call mute() here — playerVars.mute handles the initial mute.
+          // Retries after PLAYING used to re-mute right after unmute.
           try {
             player.playVideo();
           } catch (e) {}
@@ -303,16 +347,26 @@
                 // Visible embeds (Android iframe) rely on these play calls directly.
                 notifyHostReady();
                 startPlayback();
-                window.setTimeout(startPlayback, 350);
-                window.setTimeout(startPlayback, 1200);
-                if (flags.coverMode) {
-                  fitPlayerCover();
-                  window.setTimeout(fitPlayerCover, 250);
-                  window.setTimeout(fitPlayerCover, 1000);
-                }
+                playRetryTimers.push(window.setTimeout(startPlayback, 350));
+                playRetryTimers.push(window.setTimeout(startPlayback, 1200));
+                fitPlayerToViewport();
+                window.setTimeout(fitPlayerToViewport, 250);
+                window.setTimeout(fitPlayerToViewport, 1000);
               },
               onStateChange: function (event) {
                 if (event.data === YT.PlayerState.PLAYING) {
+                  clearPlayRetries();
+                  // Unmute once after muted autoplay — not on every PLAYING (pause/resume/buffer).
+                  if (allowControls && player && !hostPlayingSent) {
+                    try {
+                      if (typeof player.unMute === 'function') {
+                        player.unMute();
+                      }
+                      if (typeof player.setVolume === 'function') {
+                        player.setVolume(100);
+                      }
+                    } catch (e) {}
+                  }
                   notifyHost('playing');
                 }
               },
@@ -322,10 +376,16 @@
             },
           });
 
-          window.addEventListener('resize', function () {
+          function onViewportChange() {
             applyRotateLayout();
-            fitPlayerCover();
-          });
+            fitPlayerToViewport();
+          }
+
+          window.addEventListener('resize', onViewportChange);
+          window.addEventListener('orientationchange', onViewportChange);
+          if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', onViewportChange);
+          }
         }
 
         applyRotateLayout();

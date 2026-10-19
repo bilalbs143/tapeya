@@ -6,7 +6,7 @@ const SHOP_WIDGET_FIRST_POST_COUNT = 3;
 const LIVE_WIDGET_FIRST_POST_COUNT = 4;
 const SUGGESTED_FOLLOWS_FIRST_POST_COUNT = 5;
 const HIGHLIGHT_WIDGET_FIRST_POST_COUNT = 7;
-const SERIAL_WIDGET_FIRST_POST_COUNT = 9;
+const ENTERTAINMENT_WIDGET_FIRST_POST_COUNT = 9;
 const FEED_WIDGET_POST_INTERVAL = 8;
 const SUGGESTED_FOLLOWS_VISIBLE_COUNT = 3;
 
@@ -41,7 +41,7 @@ function getItemWindow(items, windowIndex, size = 3) {
  *   shopCollections: Array<{ id: string, title: string, products: Array<object> }>,
  *   suggestedUsers: Array<object>,
  *   highlights: Array<object>,
- *   serials?: Array<object>,
+ *   entertainments?: Array<object>,
  *   liveStreams?: Array<object>,
  *   cycles?: number,
  *   freshItems?: Array<object>,
@@ -54,7 +54,7 @@ export function buildFeedTimelineRows({
   shopCollections,
   suggestedUsers,
   highlights,
-  serials = EMPTY_FRESH_ITEMS,
+  entertainments = EMPTY_FRESH_ITEMS,
   liveStreams = EMPTY_LIVE_STREAMS,
   cycles = 1,
   freshItems = EMPTY_FRESH_ITEMS,
@@ -88,7 +88,7 @@ export function buildFeedTimelineRows({
       const liveSlot = getWidgetSlot(index, LIVE_WIDGET_FIRST_POST_COUNT);
       const suggestedSlot = getWidgetSlot(index, SUGGESTED_FOLLOWS_FIRST_POST_COUNT);
       const highlightSlot = getWidgetSlot(index, HIGHLIGHT_WIDGET_FIRST_POST_COUNT);
-      const serialSlot = getWidgetSlot(index, SERIAL_WIDGET_FIRST_POST_COUNT);
+      const entertainmentSlot = getWidgetSlot(index, ENTERTAINMENT_WIDGET_FIRST_POST_COUNT);
 
       const collection =
         shopSlot === null || shopCollections.length === 0 ? null : shopCollections[shopSlot % shopCollections.length];
@@ -133,12 +133,12 @@ export function buildFeedTimelineRows({
         });
       }
 
-      if (serialSlot !== null && serials.length > 0) {
+      if (entertainmentSlot !== null && entertainments.length > 0) {
         rows.push({
-          key: `serial-${post.id}-${serialSlot}`,
-          type: 'serial',
+          key: `entertainment-${post.id}-${entertainmentSlot}`,
+          type: 'entertainment',
           estimateSize: 280,
-          serials: getItemWindow(serials, serialSlot),
+          entertainments: getItemWindow(entertainments, entertainmentSlot),
         });
       }
     }

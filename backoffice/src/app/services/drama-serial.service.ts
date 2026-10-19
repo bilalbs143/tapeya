@@ -10,6 +10,7 @@ import { MessageService } from './message.service';
 export interface DramaSerial {
   id: number;
   title: string;
+  provider: string | null;
   description: string | null;
   poster: string | null;
   is_active: boolean;
@@ -32,6 +33,7 @@ export interface DramaSerialsListResponse {
 
 export interface SaveDramaSerialPayload {
   title: string;
+  provider: string;
   description?: string | null;
   is_active: boolean;
 }

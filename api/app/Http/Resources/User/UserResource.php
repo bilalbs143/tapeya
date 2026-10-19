@@ -51,6 +51,7 @@ class UserResource extends JsonResource
             'can_broadcast' => (bool) $this->can_broadcast,
             'is_official' => (bool) $this->is_official,
             'broadcast_terms_accepted_at' => $this->broadcast_terms_accepted_at?->toIso8601String(),
+            'terms_accepted_at' => $this->terms_accepted_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

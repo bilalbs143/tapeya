@@ -70,7 +70,11 @@ class PushNotificationService
         return $log;
     }
 
-    public function notifyLiveStreamCreated(LiveStream $stream, int $createdByUserId): PushNotificationLog
+    /**
+     * Fan-out when a stream first becomes live (not on create).
+     * Template key stays {@see NotificationEventEnum::LIVE_STREAM_CREATED} for existing installs.
+     */
+    public function notifyLiveStreamStarted(LiveStream $stream, ?int $sentByUserId = null): PushNotificationLog
     {
         return $this->dispatch(
             NotificationEventEnum::LIVE_STREAM_CREATED,
@@ -80,7 +84,7 @@ class PushNotificationService
                 'deep_link' => "/live/broadcast/{$stream->id}",
             ],
             userId: null,
-            sentByUserId: $createdByUserId,
+            sentByUserId: $sentByUserId,
         );
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Jobs\OptimizeDramaEpisodeVideoJob;
 use App\Support\Media\MediaDisk;
 use App\Support\MediaRegistry;
 use Illuminate\Http\JsonResponse;
@@ -76,6 +77,10 @@ class MediaController extends Controller
 
         $path = MediaDisk::storeUploaded($request->file('file'), $config['dir']);
         $record->update([$column => $path]);
+
+        if ($type === 'drama-episode' && $field === 'video') {
+            OptimizeDramaEpisodeVideoJob::dispatch($record->id);
+        }
 
         return $this->success(['url' => MediaDisk::url($path)]);
     }

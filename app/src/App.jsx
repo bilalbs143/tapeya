@@ -10,6 +10,7 @@ import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
 import { RequireBroadcastAccess } from '@/components/RequireBroadcastAccess';
 import { RequireVendorAccess } from '@/components/RequireVendorAccess';
+import TermsAcceptanceGate from '@/components/safety/TermsAcceptanceGate';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
@@ -84,9 +85,9 @@ const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournament
 
 const Highlights = lazy(() => import('@/pages/highlights/Highlights'));
 const HighlightDetails = lazy(() => import('@/pages/highlights/HighlightDetails'));
-const DramaSerials = lazy(() => import('@/pages/serials/DramaSerials'));
-const DramaSerialDetail = lazy(() => import('@/pages/serials/DramaSerialDetail'));
-const DramaEpisodePlayer = lazy(() => import('@/pages/serials/DramaEpisodePlayer'));
+const Entertainment = lazy(() => import('@/pages/entertainment/Entertainment'));
+const EntertainmentDetail = lazy(() => import('@/pages/entertainment/EntertainmentDetail'));
+const EntertainmentEpisodePlayer = lazy(() => import('@/pages/entertainment/EntertainmentEpisodePlayer'));
 
 const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
 
@@ -106,6 +107,13 @@ const MyMatches = lazy(() => import('@/pages/quick-match/MyMatches'));
 
 function PageFallback() {
   return <FullScreenLoader label="Loading page" />;
+}
+
+/** Old drama/serial URLs keep working after the entertainment rename. */
+function LegacySerialsRedirect() {
+  const { pathname, search, hash } = useLocation();
+  const next = pathname.replace(/^\/serials(?=\/|$)/, '/entertainment');
+  return <Navigate to={`${next}${search}${hash}`} replace />;
 }
 
 /** Consumer-only side effects (skipped on /overlay/*). */
@@ -133,6 +141,7 @@ function App() {
               <GoogleAnalyticsBoot />
               <ScrollRestoration />
               <DialogManager />
+              <TermsAcceptanceGate />
               <ProgrammaticDialogPrompts />
               <InterestCampaignDialogScheduler />
               <Suspense fallback={<PageFallback />}>
@@ -204,17 +213,19 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/streaming" element={<Navigate to="/serials" replace />} />
-                      <Route path="/live/streaming/*" element={<Navigate to="/serials" replace />} />
+                      <Route path="/live/streaming" element={<Navigate to="/entertainment" replace />} />
+                      <Route path="/live/streaming/*" element={<Navigate to="/entertainment" replace />} />
                       <Route element={<RequireBroadcastAccess />}>
                         <Route path="/live/go-live" element={<GoLive />} />
                         <Route path="/live/go-live/:streamId" element={<GoLive />} />
                       </Route>
                       <Route path="/highlights" element={<Highlights />} />
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
-                      <Route path="/serials" element={<DramaSerials />} />
-                      <Route path="/serials/:serialId" element={<DramaSerialDetail />} />
-                      <Route path="/serials/:serialId/e/:episodeId" element={<DramaEpisodePlayer />} />
+                      <Route path="/entertainment" element={<Entertainment />} />
+                      <Route path="/entertainment/:entertainmentId" element={<EntertainmentDetail />} />
+                      <Route path="/entertainment/:entertainmentId/e/:episodeId" element={<EntertainmentEpisodePlayer />} />
+                      <Route path="/serials" element={<Navigate to="/entertainment" replace />} />
+                      <Route path="/serials/*" element={<LegacySerialsRedirect />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/reels/u/:userId" element={<CreatorReelsProfile />} />

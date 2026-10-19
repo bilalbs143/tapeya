@@ -41,6 +41,7 @@ export class ManageDramaSerialDialogComponent {
     const s = this.data.serial;
     this.form = this.fb.group({
       title: [s?.title ?? '', [Validators.required, Validators.maxLength(255)]],
+      provider: [s?.provider ?? '', [Validators.required, Validators.maxLength(255)]],
       description: [s?.description ?? '', [Validators.maxLength(5000)]],
       is_active: [s?.is_active ?? true],
       poster: [s?.poster ? ({ files: [], existingUrls: [s.poster] } as FileUploadValue) : null],
@@ -57,6 +58,7 @@ export class ManageDramaSerialDialogComponent {
     const posterVal = raw.poster as FileUploadValue | null;
     const payload = {
       title: raw.title.trim(),
+      provider: raw.provider.trim(),
       description: raw.description?.trim() || null,
       is_active: raw.is_active ?? true,
     };

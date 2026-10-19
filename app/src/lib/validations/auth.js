@@ -43,6 +43,9 @@ export const registerSchema = z.object({
   phone: phoneSchema,
   name: nameSchema,
   nickname: nicknameSchema,
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the Terms of Use to create an account' }),
+  }),
 });
 
 export const updateProfileSchema = z.object({

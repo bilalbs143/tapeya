@@ -166,7 +166,7 @@ class PostInteractionService
 
         if ($post->user_id === $user->id) {
             throw ValidationException::withMessages([
-                'reel' => ['You cannot report your own reel.'],
+                'post' => ['You cannot report your own content.'],
             ]);
         }
 

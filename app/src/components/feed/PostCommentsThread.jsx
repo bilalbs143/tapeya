@@ -395,7 +395,7 @@ function RepliesSection({ api, postId, comment, currentUserId, deletingId, likin
 /**
  * @param {{
  *   postId: string|number,
- *   source?: 'reel'|'drama',
+ *   source?: 'reel'|'entertainment',
  *   enabled?: boolean,
  *   loginFrom?: string|object,
  *   className?: string,

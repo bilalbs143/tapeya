@@ -109,8 +109,8 @@ export function buildHighlightShareUrl(highlightId) {
   return buildHttpsDeepLink(`/highlights/${highlightId}`);
 }
 
-export function buildDramaEpisodeShareUrl(serialId, episodeId) {
-  return buildHttpsDeepLink(`/serials/${serialId}/e/${episodeId}`);
+export function buildEntertainmentEpisodeShareUrl(entertainmentId, episodeId) {
+  return buildHttpsDeepLink(`/entertainment/${entertainmentId}/e/${episodeId}`);
 }
 
 export function buildTournamentShareUrl(tournamentId) {

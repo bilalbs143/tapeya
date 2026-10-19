@@ -15,6 +15,7 @@ class DramaSerialResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'provider' => $this->provider,
             'description' => $this->description,
             'poster' => $this->posterUrl(),
             'is_active' => $this->is_active,

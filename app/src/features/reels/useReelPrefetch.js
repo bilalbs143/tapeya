@@ -1,12 +1,15 @@
 /**
  * Warm upcoming reel media after DOM windowing.
- * ±2 slides attach a real player; this fetches first ~2s of +1…+N into HTTP cache.
- * Concurrency 1; skips Save-Data / 2G.
+ * Forward slides attach a real player; this also pulls first bytes + posters
+ * into HTTP / image cache so snap feels instant.
+ *
+ * Concurrency 2 (prioritises +1); skips Save-Data / 2G.
  */
 
 import { useEffect, useRef } from 'react';
 
-const PROGRESSIVE_WARM_RANGE = 'bytes=0-524287';
+const PROGRESSIVE_WARM_RANGE = 'bytes=0-786431';
+const PREFETCH_CONCURRENCY = 2;
 
 /** Network Information API is missing on Safari/iOS — treat as unknown. */
 export function hasNetworkInformationApi() {
@@ -76,6 +79,49 @@ async function fetchText(url, signal) {
 }
 
 /**
+ * Decode upcoming poster into browser image cache (cheap; paints instantly on snap).
+ *
+ * @param {string|null|undefined} url
+ * @param {AbortSignal} signal
+ */
+export function warmPoster(url, signal) {
+  if (typeof url !== 'string' || !url) return Promise.resolve();
+  if (typeof Image === 'undefined') return Promise.resolve();
+
+  return new Promise((resolve) => {
+    if (signal.aborted) {
+      resolve();
+      return;
+    }
+
+    const img = new Image();
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener('abort', onAbort);
+      img.onload = null;
+      img.onerror = null;
+      resolve();
+    };
+    const onAbort = () => {
+      try {
+        img.src = '';
+      } catch {
+        // Ignore.
+      }
+      done();
+    };
+
+    signal.addEventListener('abort', onAbort, { once: true });
+    img.decoding = 'async';
+    img.onload = done;
+    img.onerror = done;
+    img.src = url;
+  });
+}
+
+/**
  * Pull first playable media bytes into the browser cache (HLS first segment or MP4 range).
  *
  * @param {{ playback?: { hlsUrl?: string|null, url?: string|null }, videoUrl?: string|null }} reel
@@ -111,6 +157,42 @@ export async function warmReelMedia(reel, signal) {
 }
 
 /**
+ * Warm poster + first media bytes for one upcoming reel.
+ *
+ * @param {{ playback?: object, posterUrl?: string|null, videoUrl?: string|null }} reel
+ * @param {AbortSignal} signal
+ */
+export async function warmReel(reel, signal) {
+  await Promise.all([warmPoster(reel?.posterUrl, signal), warmReelMedia(reel, signal)]);
+}
+
+/**
+ * @template T
+ * @param {T[]} items
+ * @param {(item: T) => Promise<void>} worker
+ * @param {number} concurrency
+ * @param {AbortSignal} signal
+ */
+export async function runPrefetchPool(items, worker, concurrency, signal) {
+  const queue = items.slice();
+  const size = Math.max(1, Math.min(concurrency, queue.length || 1));
+
+  await Promise.all(
+    Array.from({ length: size }, async () => {
+      while (queue.length > 0 && !signal.aborted) {
+        const item = queue.shift();
+        if (item == null) return;
+        try {
+          await worker(item);
+        } catch {
+          // Prefetch is best-effort (CORS / abort).
+        }
+      }
+    }),
+  );
+}
+
+/**
  * @param {Array<{ playback?: { hlsUrl?: string|null, url?: string|null, type?: string|null }, posterUrl?: string|null, videoUrl?: string|null }>} reels
  * @param {number} activeIndex
  */
@@ -135,16 +217,15 @@ export function useReelPrefetch(reels, activeIndex) {
     if (queue.length === 0) return undefined;
 
     let cancelled = false;
-    (async () => {
-      for (const reel of queue) {
+    void runPrefetchPool(
+      queue,
+      async (reel) => {
         if (cancelled || controller.signal.aborted) return;
-        try {
-          await warmReelMedia(reel, controller.signal);
-        } catch {
-          // Prefetch is best-effort (CORS / abort).
-        }
-      }
-    })();
+        await warmReel(reel, controller.signal);
+      },
+      PREFETCH_CONCURRENCY,
+      controller.signal,
+    );
 
     return () => {
       cancelled = true;

@@ -7,6 +7,7 @@ import {
   isHlsPrefetchUrl,
   pickPrefetchTarget,
   prefersReducedData,
+  runPrefetchPool,
   warmReelMedia,
 } from '@/features/reels/useReelPrefetch';
 
@@ -146,5 +147,26 @@ describe('isHlsPrefetchUrl', () => {
     expect(isHlsPrefetchUrl('https://cdn.test/master.m3u8')).toBe(true);
     expect(isHlsPrefetchUrl('https://cdn.test/hls/720/index.m3u8?x=1')).toBe(true);
     expect(isHlsPrefetchUrl('https://cdn.test/clip.mp4')).toBe(false);
+  });
+});
+
+describe('runPrefetchPool', () => {
+  it('runs with bounded concurrency and preserves start order priority', async () => {
+    const seen = [];
+    const controller = new AbortController();
+    await runPrefetchPool(
+      ['a', 'b', 'c'],
+      async (item) => {
+        seen.push(`start:${item}`);
+        await Promise.resolve();
+        seen.push(`end:${item}`);
+      },
+      2,
+      controller.signal,
+    );
+    expect(seen[0]).toBe('start:a');
+    expect(seen).toContain('start:b');
+    expect(seen).toContain('end:c');
+    expect(seen.filter((entry) => entry.startsWith('start:'))).toEqual(['start:a', 'start:b', 'start:c']);
   });
 });

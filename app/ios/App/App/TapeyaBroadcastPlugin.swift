@@ -2,6 +2,7 @@ import Foundation
 import Capacitor
 import HaishinKit
 import AVFoundation
+import VideoToolbox
 
 /**
  * Self-serve mobile broadcast — camera capture + RTMP publish via HaishinKit.
@@ -139,12 +140,17 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             do {
+                // HaishinKit requires an active AVAudioSession before attachAudio; without it,
+                // audio/video presentation timestamps drift on the RTMP publish (lip-sync delay).
+                self.configureAudioSession()
                 try await self.ensureCameraPosition(targetPosition)
                 guard let microphone = AVCaptureDevice.default(for: .audio) else {
                     call.reject("Microphone unavailable")
                     return
                 }
                 try await self.mixer.attachAudio(microphone)
+                // Match YouTube CDN ingest (30fps) so capture + encode clocks stay aligned.
+                await self.mixer.setFrameRate(30)
             } catch {
                 call.reject("Failed to attach camera/microphone: \(error.localizedDescription)")
                 return
@@ -210,8 +216,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             do {
                 try await self.mixer.attachVideo(camera, track: 0) { unit in
                     unit.isVideoMirrored = nextPosition == .front
+                    unit.preferredVideoStabilizationMode = .off
                 }
-                // Re-attaching video can reset capture orientation — keep landscape upright on flip.
                 await self.applyVideoOrientation()
                 self.currentPosition = nextPosition
                 call.resolve(["switched": true])
@@ -294,6 +300,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         streamStatusTask?.cancel()
         try? await connection?.close()
 
+        configureAudioSession()
+
         let connection = RTMPConnection()
         self.connection = connection
 
@@ -331,6 +339,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
                 startTierIndex: self.broadcastActiveTierIndex
             )
         )
+        // Explicit AAC bitrate — default 64 kbps is thin for speech and can skew A/V remux on YouTube.
+        await stream.setAudioSettings(AudioCodecSettings(bitRate: 128_000))
 
         observeConnectionStatus(connection)
         observeStreamStatus(stream)
@@ -360,14 +370,38 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         connection = nil
     }
 
+    /**
+     * Encoder settings tuned for YouTube RTMP lip-sync:
+     * - Baseline + allowFrameReordering=false → no B-frames / PTS reordering
+     * - 2s keyframes + 30fps frameInterval → matches YouTube CDN ingest
+     */
     private static func initialVideoSettings(orientation: String, startTierIndex: Int = 0) -> VideoCodecSettings {
         let tiers = TapeyaBroadcastBitRateStrategy.tiers(for: orientation)
         let index = min(max(startTierIndex, 0), tiers.count - 1)
         let tier = tiers[index]
-        return VideoCodecSettings(
+        var settings = VideoCodecSettings(
             videoSize: CGSize(width: tier.width, height: tier.height),
-            bitRate: tier.bitRate
+            bitRate: tier.bitRate,
+            profileLevel: kVTProfileLevel_H264_Baseline_3_1 as String,
+            scalingMode: .trim,
+            bitRateMode: .average,
+            maxKeyFrameIntervalDuration: 2,
+            allowFrameReordering: false
         )
+        settings.frameInterval = VideoCodecSettings.frameInterval30
+        return settings
+    }
+
+    /** Required by HaishinKit before `attachAudio` — keeps mic clock on the capture session timeline. */
+    private func configureAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            // `.videoRecording` (not `.voiceChat`) — AEC/voice-processing modes add measurable audio delay.
+            try session.setCategory(.playAndRecord, mode: .videoRecording, options: [.defaultToSpeaker, .allowBluetooth])
+            try session.setActive(true)
+        } catch {
+            NSLog("TapeyaBroadcast: AVAudioSession configure failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Status observation
@@ -511,6 +545,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         try await mixer.attachVideo(camera, track: 0) { unit in
             unit.isVideoMirrored = camera.position == .front
+            unit.preferredVideoStabilizationMode = .off
         }
         currentPosition = camera.position
     }
@@ -706,9 +741,7 @@ private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
 
     private func applyTier(_ tier: Tier, to stream: some HKStream) async {
         var settings = await stream.videoSettings
-        settings.videoSize = CGSize(width: tier.width, height: tier.height)
         settings.bitRate = tier.bitRate
-        settings.frameInterval = 0.0
         await stream.setVideoSettings(settings)
     }
 

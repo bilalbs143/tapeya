@@ -36,6 +36,7 @@ class PostController extends Controller
             $request->query('cursor'),
             (int) $request->query('per_page', 10),
             videosOnly: true,
+            viewerId: (int) $request->user()->id,
         );
 
         return $this->cursorSuccess($paginator, $request);
@@ -64,6 +65,7 @@ class PostController extends Controller
         $paginator = $this->feedService->trending(
             $request->query('cursor'),
             (int) $request->query('per_page', 10),
+            viewerId: (int) $request->user()->id,
         );
 
         return $this->cursorSuccess($paginator, $request);
@@ -83,6 +85,7 @@ class PostController extends Controller
             $q,
             $request->query('cursor'),
             (int) $request->query('per_page', 10),
+            viewerId: (int) $request->user()->id,
         );
 
         return $this->cursorSuccess($paginator, $request);

@@ -37,21 +37,21 @@ class YouTubeEmbedUrlTest extends TestCase
         $this->assertNull(YouTubeEmbedUrl::trustedAppOrigin());
     }
 
-    public function test_embed_view_uses_youtube_iframe_api_with_trusted_origin(): void
+    public function test_embed_view_uses_youtube_iframe_api_with_page_origin(): void
     {
-        $contact = app(ContactSettings::class);
-        $contact->publicWebsiteUrl = 'https://tapeya.com';
-        $contact->save();
-
         $html = view('embed.youtube', [
             'embedSrc' => 'https://www.youtube.com/embed/test-id?autoplay=1',
-            'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
+            'allowControls' => true,
         ])->render();
 
-        $this->assertStringContainsString('tapeya.com', $html);
+        // Origin must be the proxy page host (not public website URL) — Error 153 otherwise.
+        $this->assertStringContainsString('var pageOrigin = window.location.origin', $html);
         $this->assertStringContainsString("new YT.Player('player'", $html);
         $this->assertStringContainsString('playerVars.origin = pageOrigin', $html);
         $this->assertStringContainsString('player.playVideo', $html);
+        $this->assertStringContainsString('playerVars.mute = 1', $html);
+        $this->assertStringContainsString('!hostPlayingSent', $html);
+        $this->assertStringContainsString('fitPlayerToViewport', $html);
         $this->assertStringContainsString('tapeya-youtube-ready', $html);
         $this->assertStringContainsString('tapeya-youtube-playing', $html);
         $this->assertStringContainsString('tapeya-youtube-error', $html);

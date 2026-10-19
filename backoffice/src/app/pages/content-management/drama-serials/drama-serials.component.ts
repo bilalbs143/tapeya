@@ -9,6 +9,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { format } from 'date-fns';
 import { Subscription } from 'rxjs';
@@ -51,6 +52,7 @@ const DEFAULT_FILTERS = {
     MatSelectModule,
     MatDatepickerModule,
     MatDialogModule,
+    RouterLink,
     TablerIconsModule,
     TableImageComponent,
     CommonSharedModule,
@@ -76,7 +78,16 @@ export class DramaSerialsComponent implements OnInit, OnDestroy {
   }
 
   public searchForm!: FormGroup;
-  public readonly displayedColumns: string[] = ['sr', 'poster', 'title', 'episodes_count', 'is_active', 'created_at', 'actions'];
+  public readonly displayedColumns: string[] = [
+    'sr',
+    'poster',
+    'title',
+    'provider',
+    'episodes_count',
+    'is_active',
+    'created_at',
+    'actions',
+  ];
   public dataSource = new MatTableDataSource<DramaSerial>([]);
   public readonly emptyCell = EMPTY_CELL;
   public totalRecords = 0;

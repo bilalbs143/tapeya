@@ -96,7 +96,7 @@ class PushNotificationTemplateSeeder extends Seeder
             ],
             [
                 'key' => 'live_stream_created',
-                'name' => 'Live Stream Created',
+                'name' => 'Live Stream Started',
                 'title_template' => '{{stream_title}} is live on Tapeya',
                 'body_template' => 'Open the Tapeya app now and enjoy endless live action.',
                 'available_variables' => ['stream_title', 'stream_id', 'deep_link'],

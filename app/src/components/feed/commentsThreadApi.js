@@ -1,18 +1,18 @@
 /**
  * Comment-thread API adapters for PostCommentsThread.
- * Args stay reel-shaped (`reelId`) so the thread UI stays shared; drama maps to episodeId.
+ * Args stay reel-shaped (`reelId`) so the thread UI stays shared; entertainment maps to episodeId.
  */
 
 import {
-  useAddDramaEpisodeCommentMutation,
-  useDeleteDramaEpisodeCommentMutation,
-  useGetDramaEpisodeCommentRepliesQuery,
-  useGetDramaEpisodeCommentsQuery,
-  useLazyGetDramaEpisodeCommentRepliesQuery,
-  useLazyGetDramaEpisodeCommentsQuery,
-  useLikeDramaEpisodeCommentMutation,
-  useUnlikeDramaEpisodeCommentMutation,
-} from '@/store/api/dramaApi';
+  useAddEntertainmentEpisodeCommentMutation,
+  useDeleteEntertainmentEpisodeCommentMutation,
+  useGetEntertainmentEpisodeCommentRepliesQuery,
+  useGetEntertainmentEpisodeCommentsQuery,
+  useLazyGetEntertainmentEpisodeCommentRepliesQuery,
+  useLazyGetEntertainmentEpisodeCommentsQuery,
+  useLikeEntertainmentEpisodeCommentMutation,
+  useUnlikeEntertainmentEpisodeCommentMutation,
+} from '@/store/api/entertainmentApi';
 import {
   useAddReelCommentMutation,
   useDeleteReelCommentMutation,
@@ -28,28 +28,28 @@ function toEpisodeArgs({ reelId, ...rest }) {
   return { episodeId: reelId, ...rest };
 }
 
-function useDramaCommentsQuery(args, options) {
-  return useGetDramaEpisodeCommentsQuery(toEpisodeArgs(args), options);
+function useEntertainmentCommentsQuery(args, options) {
+  return useGetEntertainmentEpisodeCommentsQuery(toEpisodeArgs(args), options);
 }
 
-function useLazyDramaCommentsQuery() {
-  const [trigger, state] = useLazyGetDramaEpisodeCommentsQuery();
+function useLazyEntertainmentCommentsQuery() {
+  const [trigger, state] = useLazyGetEntertainmentEpisodeCommentsQuery();
   const mapped = (args, preferCacheValue) => trigger(toEpisodeArgs(args), preferCacheValue);
   return [mapped, state];
 }
 
-function useDramaRepliesQuery(args, options) {
-  return useGetDramaEpisodeCommentRepliesQuery(toEpisodeArgs(args), options);
+function useEntertainmentRepliesQuery(args, options) {
+  return useGetEntertainmentEpisodeCommentRepliesQuery(toEpisodeArgs(args), options);
 }
 
-function useLazyDramaRepliesQuery() {
-  const [trigger, state] = useLazyGetDramaEpisodeCommentRepliesQuery();
+function useLazyEntertainmentRepliesQuery() {
+  const [trigger, state] = useLazyGetEntertainmentEpisodeCommentRepliesQuery();
   const mapped = (args, preferCacheValue) => trigger(toEpisodeArgs(args), preferCacheValue);
   return [mapped, state];
 }
 
-function useAddDramaCommentMutation() {
-  const [trigger, state] = useAddDramaEpisodeCommentMutation();
+function useAddEntertainmentCommentMutation() {
+  const [trigger, state] = useAddEntertainmentEpisodeCommentMutation();
   const mapped = (args) =>
     trigger({
       episodeId: args.reelId,
@@ -59,8 +59,8 @@ function useAddDramaCommentMutation() {
   return [mapped, state];
 }
 
-function useDeleteDramaCommentMutation() {
-  const [trigger, state] = useDeleteDramaEpisodeCommentMutation();
+function useDeleteEntertainmentCommentMutation() {
+  const [trigger, state] = useDeleteEntertainmentEpisodeCommentMutation();
   const mapped = (args) =>
     trigger({
       episodeId: args.reelId,
@@ -69,8 +69,8 @@ function useDeleteDramaCommentMutation() {
   return [mapped, state];
 }
 
-function useLikeDramaCommentMutation() {
-  const [trigger, state] = useLikeDramaEpisodeCommentMutation();
+function useLikeEntertainmentCommentMutation() {
+  const [trigger, state] = useLikeEntertainmentEpisodeCommentMutation();
   const mapped = (args) =>
     trigger({
       episodeId: args.reelId,
@@ -79,8 +79,8 @@ function useLikeDramaCommentMutation() {
   return [mapped, state];
 }
 
-function useUnlikeDramaCommentMutation() {
-  const [trigger, state] = useUnlikeDramaEpisodeCommentMutation();
+function useUnlikeEntertainmentCommentMutation() {
+  const [trigger, state] = useUnlikeEntertainmentEpisodeCommentMutation();
   const mapped = (args) =>
     trigger({
       episodeId: args.reelId,
@@ -100,14 +100,14 @@ export const COMMENTS_THREAD_API = {
     useLikeCommentMutation: useLikeReelCommentMutation,
     useUnlikeCommentMutation: useUnlikeReelCommentMutation,
   },
-  drama: {
-    useCommentsQuery: useDramaCommentsQuery,
-    useLazyCommentsQuery: useLazyDramaCommentsQuery,
-    useRepliesQuery: useDramaRepliesQuery,
-    useLazyRepliesQuery: useLazyDramaRepliesQuery,
-    useAddCommentMutation: useAddDramaCommentMutation,
-    useDeleteCommentMutation: useDeleteDramaCommentMutation,
-    useLikeCommentMutation: useLikeDramaCommentMutation,
-    useUnlikeCommentMutation: useUnlikeDramaCommentMutation,
+  entertainment: {
+    useCommentsQuery: useEntertainmentCommentsQuery,
+    useLazyCommentsQuery: useLazyEntertainmentCommentsQuery,
+    useRepliesQuery: useEntertainmentRepliesQuery,
+    useLazyRepliesQuery: useLazyEntertainmentRepliesQuery,
+    useAddCommentMutation: useAddEntertainmentCommentMutation,
+    useDeleteCommentMutation: useDeleteEntertainmentCommentMutation,
+    useLikeCommentMutation: useLikeEntertainmentCommentMutation,
+    useUnlikeCommentMutation: useUnlikeEntertainmentCommentMutation,
   },
 };

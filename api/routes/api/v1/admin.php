@@ -44,6 +44,7 @@ use App\Http\Controllers\Admin\TournamentMatchSquadController;
 use App\Http\Controllers\Admin\TournamentTeamsController;
 use App\Http\Controllers\Admin\TournamentTeamSquadController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserReportController as AdminUserReportController;
 use App\Http\Controllers\Admin\UserSearchController;
 use App\Http\Controllers\Admin\YoutubeStreamKeyController;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +67,8 @@ Route::prefix('admin')->group(function () {
         Route::get('post-reports', [AdminPostReportController::class, 'index']);
         Route::get('post-reports/{postReport}', [AdminPostReportController::class, 'show']);
         Route::patch('post-reports/{postReport}', [AdminPostReportController::class, 'update']);
+        Route::get('user-reports', [AdminUserReportController::class, 'index']);
+        Route::patch('user-reports/{userReport}', [AdminUserReportController::class, 'update']);
 
         Route::get('support-messages', [AdminSupportMessageController::class, 'index']);
         Route::get('support-messages/{supportMessage}', [AdminSupportMessageController::class, 'show']);

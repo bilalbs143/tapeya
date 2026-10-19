@@ -37,7 +37,7 @@ enum NotificationEventEnum: string
             self::POST_REPOSTED => 'Post Reposted',
             self::POST_PUBLISHED => 'Post Published',
             self::USER_FOLLOWED => 'User Followed',
-            self::LIVE_STREAM_CREATED => 'Live Stream Created',
+            self::LIVE_STREAM_CREATED => 'Live Stream Started',
         };
     }
 }

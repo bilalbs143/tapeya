@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 use App\Models\User;
 use App\Models\UserFollow;
+use App\Services\Safety\UserBlockService;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,16 +27,20 @@ class UserSuggestionService
             ->where('follower_id', $viewer->id)
             ->pluck('followed_user_id');
 
+        $blockedIds = app(UserBlockService::class)->blockedUserIdsFor((int) $viewer->id);
+        $excludeIds = $followedIds
+            ->map(fn ($id) => (int) $id)
+            ->merge($blockedIds)
+            ->push((int) $viewer->id)
+            ->unique()
+            ->values();
+
         return User::query()
             ->appUsers()
             ->active()
-            ->where('id', '!=', $viewer->id)
+            ->whereNotIn('id', $excludeIds)
             ->whereNotNull('nickname')
             ->where('nickname', '!=', '')
-            ->when(
-                $followedIds->isNotEmpty(),
-                fn ($query) => $query->whereNotIn('id', $followedIds),
-            )
             ->orderByDesc('is_official')
             ->orderByDesc('followers_count')
             ->orderByDesc('posts_count')

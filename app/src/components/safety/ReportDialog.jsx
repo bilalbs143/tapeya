@@ -1,17 +1,18 @@
 /**
- * Report reel — dark bottom sheet aligned with ReelCommentsSheet.
+ * Shared report sheet for posts, reels, and users (App Store 1.2).
+ * Reels are posts on the API — both use POST /posts/{id}/report.
  */
 
 import { useState } from 'react';
 
-import { useReportReelMutation } from '@/store/api/reelsApi';
+import { useReportPostMutation, useReportUserMutation } from '@/store/api/userApi';
 import { BottomSheet } from '@/ui/BottomSheet';
 import { Button } from '@/ui/Button';
 import { FormStack } from '@/ui/form/FormStack';
 import { RadioOptionList } from '@/ui/RadioOptionList';
 import { Textarea } from '@/ui/Textarea';
 
-const REASONS = [
+const REPORT_REASONS = [
   { value: 'spam', label: 'Spam' },
   { value: 'harassment', label: 'Harassment' },
   { value: 'inappropriate', label: 'Inappropriate Content' },
@@ -19,6 +20,18 @@ const REASONS = [
   { value: 'copyright', label: 'Copyright' },
   { value: 'other', label: 'Other' },
 ];
+
+const TITLES = {
+  post: 'Report Post',
+  reel: 'Report Reel',
+  user: 'Report User',
+};
+
+const THANKS_COPY = {
+  post: 'Our team reviews reports and aims to act within 24 hours when content violates our Terms.',
+  reel: 'Our team reviews reports and aims to act within 24 hours when content violates our Terms.',
+  user: 'Our team reviews reports and aims to act within 24 hours when a user violates our Terms.',
+};
 
 function CheckIcon() {
   return (
@@ -38,12 +51,25 @@ function CheckIcon() {
   );
 }
 
-export default function ReelReportDialog({ reelId, open, onClose }) {
+/**
+ * @param {{
+ *   open: boolean,
+ *   onClose: () => void,
+ *   targetType: 'post' | 'reel' | 'user',
+ *   targetId: number|string,
+ *   title?: string,
+ * }} props
+ */
+export default function ReportDialog({ open, onClose, targetType, targetId, title }) {
   const [reason, setReason] = useState('spam');
   const [details, setDetails] = useState('');
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
-  const [reportReel, { isLoading }] = useReportReelMutation();
+  const [reportPost, { isLoading: reportingPost }] = useReportPostMutation();
+  const [reportUser, { isLoading: reportingUser }] = useReportUserMutation();
+  const isLoading = reportingPost || reportingUser;
+  const formId = `report-form-${targetType}`;
+  const detailsId = `report-details-${targetType}`;
 
   const reset = () => {
     setDone(false);
@@ -62,17 +88,19 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    const payload = { reason, details: details.trim() || undefined };
     try {
-      await reportReel({
-        id: reelId,
-        reason,
-        details: details.trim() || undefined,
-      }).unwrap();
+      if (targetType === 'user') {
+        await reportUser({ userId: targetId, ...payload }).unwrap();
+      } else {
+        // post + reel share the same posts/{id}/report endpoint
+        await reportPost({ postId: targetId, ...payload }).unwrap();
+      }
       setDone(true);
     } catch (err) {
-      const msg =
-        err?.data?.message || err?.data?.errors?.reel?.[0] || err?.data?.errors?.reason?.[0] || 'Could not submit report.';
-      setError(msg);
+      setError(
+        err?.data?.message || err?.data?.errors?.reason?.[0] || err?.data?.errors?.post?.[0] || 'Could not submit report.',
+      );
     }
   };
 
@@ -80,7 +108,7 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
     <BottomSheet
       open={open}
       onOpenChange={handleOpenChange}
-      title="Report Reel"
+      title={title || TITLES[targetType] || 'Report'}
       footer={
         done ? (
           <Button
@@ -95,7 +123,7 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
           <Button
             type="submit"
             variant="orange"
-            form="reel-report-form"
+            form={formId}
             disabled={isLoading || !reason}
             loading={isLoading}
             className="w-full rounded-full px-4 py-3 text-sm"
@@ -112,26 +140,23 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
           </div>
           <p className="text-[15px] font-semibold text-white">Thanks for Reporting</p>
           <p className="text-muted mt-1.5 max-w-[260px] text-[13px] leading-relaxed">
-            Our team will review this reel and take action if needed.
+            {THANKS_COPY[targetType] || THANKS_COPY.post}
           </p>
         </div>
       ) : (
-        <FormStack as="form" id="reel-report-form" onSubmit={handleSubmit} density="default">
+        <FormStack as="form" id={formId} onSubmit={handleSubmit} density="default">
           <div>
             <p className="text-muted mb-2.5 text-[12px] font-semibold tracking-wide uppercase">Reason</p>
-            <RadioOptionList options={REASONS} value={reason} onChange={setReason} ariaLabel="Report reason" />
+            <RadioOptionList options={REPORT_REASONS} value={reason} onChange={setReason} ariaLabel="Report reason" />
           </div>
 
           <div>
-            <label
-              htmlFor="reel-report-details"
-              className="text-muted mb-2 block text-[12px] font-semibold tracking-wide uppercase"
-            >
+            <label htmlFor={detailsId} className="text-muted mb-2 block text-[12px] font-semibold tracking-wide uppercase">
               Details (Optional)
             </label>
             <div className="rounded-2xl border border-white/10 bg-black/40 px-3 py-2">
               <Textarea
-                id="reel-report-details"
+                id={detailsId}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Add anything that helps us review this…"

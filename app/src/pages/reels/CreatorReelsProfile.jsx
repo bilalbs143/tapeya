@@ -13,12 +13,15 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { ReelPosterGrid } from '@/components/reels/ReelPosterGrid';
+import BlockUserDialog from '@/components/safety/BlockUserDialog';
+import ReportDialog from '@/components/safety/ReportDialog';
 import { UserAvatar } from '@/components/UserAvatar';
 import { ProfileStats } from '@/components/UserProfileTabs/ProfileStats';
 import { composeDestination } from '@/lib/feed/composeDestination';
 import { formatCount } from '@/lib/format';
 import { buildCreatorProfileShareUrl, shareLink } from '@/lib/share';
 import PostCard from '@/pages/feed/PostCard';
+import { baseApi } from '@/store/api/baseApi';
 import { useGetUserPostsQuery, useLazyGetUserPostsQuery } from '@/store/api/feedApi';
 import {
   useFollowReelCreatorMutation,
@@ -29,7 +32,7 @@ import {
   useLazyGetUserReelsQuery,
   useUnfollowReelCreatorMutation,
 } from '@/store/api/reelsApi';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -155,6 +158,7 @@ export default function CreatorReelsProfile() {
   const validUserId = Number.isFinite(userId) && userId > 0;
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { user: currentUser, accessToken } = useAppSelector(selectAuthUserAndToken);
   const isAuthed = Boolean(accessToken);
 
@@ -168,6 +172,8 @@ export default function CreatorReelsProfile() {
   const isOwnProfile = currentUser?.id != null && profile?.id != null && Number(currentUser.id) === Number(profile.id);
 
   const [activeTab, setActiveTab] = useState(TAB_REELS);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
 
   useEffect(() => {
     if (isOwnProfile) {
@@ -421,6 +427,25 @@ export default function CreatorReelsProfile() {
                 </button>
               </div>
 
+              {!isOwnProfile ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => (isAuthed ? setReportOpen(true) : requireAuth())}
+                    className="bg-surface text-muted flex h-10 flex-1 items-center justify-center rounded-[10px] text-[13px] font-bold transition-opacity active:opacity-90"
+                  >
+                    Report
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => (isAuthed ? setBlockOpen(true) : requireAuth())}
+                    className="bg-surface flex h-10 flex-1 items-center justify-center rounded-[10px] text-[13px] font-bold text-red-300 transition-opacity active:opacity-90"
+                  >
+                    {profile.isBlocked ? 'Unblock' : 'Block'}
+                  </button>
+                </div>
+              ) : null}
+
               {shareHint ? <p className="text-brand mt-2 text-center text-[12px]">{shareHint}</p> : null}
             </header>
 
@@ -515,6 +540,23 @@ export default function CreatorReelsProfile() {
           </>
         )}
       </Container>
+
+      {!isOwnProfile && profile?.id ? (
+        <>
+          <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} targetType="user" targetId={profile.id} />
+          <BlockUserDialog
+            open={blockOpen}
+            onClose={() => setBlockOpen(false)}
+            userId={profile.id}
+            userName={displayName}
+            isBlocked={Boolean(profile.isBlocked)}
+            onBlocked={() => {
+              dispatch(baseApi.util.invalidateTags(['Post', 'Reel', { type: 'User', id: profile.id }]));
+              navigate('/', { replace: true });
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

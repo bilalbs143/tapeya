@@ -12,7 +12,7 @@ export const BOTTOM_NAV_ITEMS = [
 ];
 
 export const EXPLORE_CATEGORIES = [
-  { path: '/serials', label: 'Dramas' },
+  { path: '/entertainment', label: 'Entertainment' },
   { path: '/ranking', label: 'Rankings' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
   { path: '/quick-match', label: 'Quick Match' },

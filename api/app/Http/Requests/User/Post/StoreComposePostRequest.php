@@ -3,14 +3,23 @@
 namespace App\Http\Requests\User\Post;
 
 use App\Enums\Post\PostBackgroundId;
+use App\Services\Safety\ObjectionableContentFilter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreComposePostRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function () {
+            app(ObjectionableContentFilter::class)->assertAllowed($this->input('body'));
+        });
     }
 
     /**

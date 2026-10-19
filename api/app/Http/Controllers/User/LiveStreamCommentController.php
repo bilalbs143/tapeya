@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\SendLiveCommentRequest;
 use App\Models\LiveStream;
 use App\Services\LiveChat\LiveStreamCommentService;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 
 class LiveStreamCommentController extends Controller
@@ -29,6 +30,7 @@ class LiveStreamCommentController extends Controller
             userId: (int) $user->id,
             displayName: $user->nickname ?: 'Viewer',
             rawBody: $request->validated('body'),
+            avatarUrl: MediaDisk::url($user->avatar),
         );
 
         return $this->success(['id' => $id], null, 'CREATED');
