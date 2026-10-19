@@ -1,15 +1,19 @@
 /**
  * Blocking Terms gate for users who have not accepted the EULA (Guideline 1.2).
- * Uses the same centered BaseDialog style as the rest of the app.
+ *
+ * Mounted only when acceptance is required. On legal/CMS URLs (`TERMS_GATE_EXEMPT_PATHS`)
+ * this component returns null so the Radix dialog fully unmounts — releasing modal
+ * scroll-lock / pointer-events — instead of leaving an `open={false}` portal over the page.
  */
 
 import { useState } from 'react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { useIsTermsGateExempt } from '@/lib/termsGateExempt';
 import { useAcceptTermsMutation } from '@/store/api/userApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
@@ -20,15 +24,13 @@ import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrol
 export default function TermsAcceptanceGate() {
   const user = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const location = useLocation();
+  const onExemptRoute = useIsTermsGateExempt();
   const dispatch = useAppDispatch();
   const toast = useToast();
   const [checked, setChecked] = useState(false);
   const [acceptTerms, { isLoading }] = useAcceptTermsMutation();
 
-  // Let users read Terms / Privacy without the gate covering the page.
-  const onLegalPage = location.pathname.startsWith('/pages/');
-  const open = Boolean(isAuthenticated && user && !user.terms_accepted_at && !onLegalPage);
+  const needsAcceptance = Boolean(isAuthenticated && user && !user.terms_accepted_at);
 
   const handleAccept = async () => {
     if (!checked) {
@@ -44,9 +46,12 @@ export default function TermsAcceptanceGate() {
     }
   };
 
+  // Unmount entirely on exempt routes / when not needed — do not keep a closed Dialog portal.
+  if (onExemptRoute || !needsAcceptance) return null;
+
   return (
     <BaseDialog
-      open={open}
+      open
       onOpenChange={() => {
         /* Blocking — cannot dismiss without accepting */
       }}

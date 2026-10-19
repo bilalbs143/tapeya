@@ -12,12 +12,7 @@ import { Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
-import type {
-  UserReport,
-  UserReportReason,
-  UserReportSource,
-  UserReportStatus,
-} from 'src/app/services/user-report.service';
+import type { UserReport, UserReportReason, UserReportSource, UserReportStatus } from 'src/app/services/user-report.service';
 import { UserReportService } from 'src/app/services/user-report.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
@@ -173,7 +168,7 @@ export class UserReportsComponent implements OnInit, OnDestroy {
     return STATUS_LABELS[status] ?? status;
   }
 
-  public personLabel(person: UserReport['reporter'] | UserReport['reported_user']): string {
+  public personLabel(person: UserReport['reporter']): string {
     if (!person) return this.emptyCell;
     return person.nickname || person.name || this.emptyCell;
   }

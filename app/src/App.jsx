@@ -147,6 +147,7 @@ function App() {
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />
+                  {/* Keep path aligned with TERMS_GATE_EXEMPT_PATHS in lib/termsGateExempt.js */}
                   <Route path="/pages/:slug" element={<StaticPage />} />
 
                   <Route element={<MainLayout />}>

@@ -17,7 +17,7 @@ import { baseApi } from '@/store/api/baseApi';
 import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
-import { BottomSheet } from '@/ui/BottomSheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/ui/DropdownMenu';
 
 const imagePlaceholder =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
@@ -210,7 +210,6 @@ export default function PostCard({ post }) {
   const [unfollowCreator, { isLoading: isUnfollowPending }] = useUnfollowReelCreatorMutation();
 
   const [imageError, setImageError] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
 
@@ -281,18 +280,41 @@ export default function PostCard({ post }) {
             <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
           ) : null}
           {!isOwnPost ? (
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="text-muted hover:bg-surface-raised grid size-9 place-items-center rounded-full transition-colors hover:text-white"
-              aria-label="More actions"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <circle cx="5" cy="12" r="1.6" />
-                <circle cx="12" cy="12" r="1.6" />
-                <circle cx="19" cy="12" r="1.6" />
-              </svg>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="text-muted hover:bg-surface-raised grid size-9 place-items-center rounded-full transition-colors hover:text-white"
+                  aria-label="More actions"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <circle cx="5" cy="12" r="1.6" />
+                    <circle cx="12" cy="12" r="1.6" />
+                    <circle cx="19" cy="12" r="1.6" />
+                  </svg>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={6}
+                className="border-surface-border bg-surface min-w-[10.5rem] rounded-xl border !bg-[#141412] p-1 shadow-lg"
+              >
+                <DropdownMenuItem
+                  className="cursor-pointer rounded-lg px-3 py-2.5 text-[13px] font-semibold text-white hover:!bg-white/8 focus:!bg-white/8"
+                  onSelect={() => setReportOpen(true)}
+                >
+                  Report Post
+                </DropdownMenuItem>
+                {authorId ? (
+                  <DropdownMenuItem
+                    className="cursor-pointer rounded-lg px-3 py-2.5 text-[13px] font-semibold text-red-300 hover:!bg-white/8 focus:!bg-white/8"
+                    onSelect={() => setBlockOpen(true)}
+                  >
+                    Block {authorName || 'user'}
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
         </div>
       </header>
@@ -414,32 +436,6 @@ export default function PostCard({ post }) {
 
       {!isOwnPost ? (
         <>
-          <BottomSheet open={menuOpen} onOpenChange={setMenuOpen} title="Post options">
-            <div className="flex flex-col gap-1 py-1">
-              <button
-                type="button"
-                className="rounded-xl px-3 py-3 text-left text-[15px] font-semibold text-white hover:bg-white/5"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setReportOpen(true);
-                }}
-              >
-                Report post
-              </button>
-              {authorId ? (
-                <button
-                  type="button"
-                  className="rounded-xl px-3 py-3 text-left text-[15px] font-semibold text-red-300 hover:bg-white/5"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setBlockOpen(true);
-                  }}
-                >
-                  Block {authorName || 'user'}
-                </button>
-              ) : null}
-            </div>
-          </BottomSheet>
           <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} targetType="post" targetId={id} />
           {authorId ? (
             <BlockUserDialog

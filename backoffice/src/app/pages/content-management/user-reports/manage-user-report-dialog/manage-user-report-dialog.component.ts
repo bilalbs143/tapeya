@@ -47,7 +47,7 @@ export class ManageUserReportDialogComponent {
     });
   }
 
-  public personLabel(person: UserReport['reporter'] | UserReport['reported_user']): string {
+  public personLabel(person: UserReport['reporter']): string {
     if (!person) return this.emptyCell;
     return person.nickname || person.name || this.emptyCell;
   }
