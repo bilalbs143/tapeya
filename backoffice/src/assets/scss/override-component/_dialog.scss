@@ -22,7 +22,13 @@ html {
 
   /*
    * Wrapper/form boxes break Material’s title→content→actions flex chain.
-   * display:contents restores it; content scrolls; actions stay pinned.
+   * display:contents restores it so content scrolls and actions stay pinned.
+   *
+   * Important: the `>` child combinator matches the element tree, not the box
+   * tree — so forms nested under `app-dialog-wrapper` are NOT
+   * `.mat-mdc-dialog-surface > form`. Without contents on that form, the flex
+   * min-height:0 / overflow-y chain never reaches mat-dialog-content and long
+   * dialogs clip with no scroll (surface overflow:hidden).
    */
   .cdk-overlay-pane.mat-mdc-dialog-panel {
     max-height: 90dvh;
@@ -41,8 +47,13 @@ html {
   }
 
   app-dialog-wrapper,
+  app-dialog-wrapper > form:has(.mat-mdc-dialog-content),
   .mat-mdc-dialog-surface > form:has(.mat-mdc-dialog-content) {
     display: contents;
+  }
+
+  .dialog-wrapper__header {
+    flex-shrink: 0;
   }
 
   .mat-mdc-dialog-content {
@@ -50,6 +61,7 @@ html {
     min-height: 0;
     max-height: none !important; /* Material’s 65vh can push actions off-screen on mobile */
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mat-mdc-dialog-actions {
