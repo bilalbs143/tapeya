@@ -83,6 +83,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
   const [elapsed, setElapsed] = useState(0);
   const [networkQuality, setNetworkQuality] = useState<BroadcastNetworkQuality | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<'front' | 'back'>('front');
   /** Local latch once we call native/server start (survives status lag). */
   const [localPublishActive, setLocalPublishActive] = useState(false);
   const [previewGeneration, setPreviewGeneration] = useState(0);
@@ -104,8 +105,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
   const publicStream = publicQuery.data;
   const isLivePhase = isBroadcastLivePhase(phase);
   const orientation = resolveBroadcastOrientation(broadcast?.orientation ?? publicStream?.orientation);
-  const publishSessionActive =
-    localPublishActive || broadcast?.status === 'starting' || broadcast?.status === 'live';
+  const publishSessionActive = localPublishActive || broadcast?.status === 'starting' || broadcast?.status === 'live';
   const serverStatus = publicStream?.status;
 
   useEffect(() => {
@@ -290,10 +290,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     if (!isLivePhase) return undefined;
     const fromPublic = publicStream?.startedAt ? new Date(publicStream.startedAt).getTime() : null;
     const anchor =
-      (fromPublic && Number.isFinite(fromPublic) ? fromPublic : null) ??
-      serverStartedAtMs ??
-      localLiveAt ??
-      Date.now();
+      (fromPublic && Number.isFinite(fromPublic) ? fromPublic : null) ?? serverStartedAtMs ?? localLiveAt ?? Date.now();
     const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - anchor) / 1000)));
     tick();
     const id = window.setInterval(tick, 1000);
@@ -420,6 +417,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
   async function handleFlip() {
     try {
       await switchBroadcastCamera();
+      setCameraFacing((prev) => (prev === 'front' ? 'back' : 'front'));
     } catch (error) {
       toast({ title: getApiErrorMessage(error, 'Could not switch camera.'), tone: 'error' });
     }
@@ -490,6 +488,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     setEndReason(null);
     setEnded(null);
     setIsMuted(false);
+    setCameraFacing('front');
     endingInFlightRef.current = false;
     nativeEndSyncedRef.current = false;
     serverStopHandledRef.current = false;
@@ -512,6 +511,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     elapsed,
     networkQuality,
     isMuted,
+    cameraFacing,
     orientation,
     needsLandscapeRotate,
     startState,

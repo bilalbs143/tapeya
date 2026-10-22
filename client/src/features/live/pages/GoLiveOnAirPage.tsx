@@ -28,6 +28,7 @@ export default function GoLiveOnAirPage() {
     elapsed,
     networkQuality,
     isMuted,
+    cameraFacing,
     orientation,
     needsLandscapeRotate,
     startState,
@@ -66,7 +67,11 @@ export default function GoLiveOnAirPage() {
 
   if (showLoading) {
     return (
-      <div className="relative flex min-h-[100dvh] flex-col bg-transparent" aria-busy="true" aria-label="Loading Broadcast">
+      <div
+        className="relative flex min-h-[100dvh] flex-col bg-transparent"
+        aria-busy="true"
+        aria-label="Loading Broadcast"
+      >
         <div className="relative z-10 flex flex-col gap-2 px-3.5 pt-[max(10px,env(safe-area-inset-top))]">
           <Skeleton className="h-[22px] w-16 rounded-chip bg-white/15" />
           <Skeleton className="h-2.5 w-24 bg-white/10" />
@@ -124,11 +129,7 @@ export default function GoLiveOnAirPage() {
       <div className="bg-surface flex min-h-full flex-col gap-4 px-4 py-8">
         <ErrorState
           title={status === 403 ? 'Not Your Broadcast' : "Couldn't Load This Broadcast"}
-          description={
-            status === 403
-              ? 'This stream belongs to someone else.'
-              : 'Check your connection and try again.'
-          }
+          description={status === 403 ? 'This stream belongs to someone else.' : 'Check your connection and try again.'}
           onRetry={() => void broadcastQuery.refetch()}
         />
         <Button asChild variant="secondary" className="mx-auto">
@@ -146,11 +147,7 @@ export default function GoLiveOnAirPage() {
       ...(endReason ? { reason: endReason } : {}),
     };
     return (
-      <GoLiveEndedView
-        durationSec={summary.durationSec}
-        peakViewers={summary.peakViewers}
-        reason={summary.reason}
-      />
+      <GoLiveEndedView durationSec={summary.durationSec} peakViewers={summary.peakViewers} reason={summary.reason} />
     );
   }
 
@@ -186,6 +183,7 @@ export default function GoLiveOnAirPage() {
       elapsed={elapsed}
       networkQuality={networkQuality}
       isMuted={isMuted}
+      cameraFacing={cameraFacing}
       needsLandscapeRotate={needsLandscapeRotate}
       startLoading={startState.isLoading}
       endLoading={endState.isLoading}

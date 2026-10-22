@@ -4,10 +4,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@/shared/lib/cn';
 import { CloseIcon } from '@/shared/ui/icons';
 
-/* eslint-disable react-refresh/only-export-components -- Radix primitive re-exports live with the dialog chrome. */
 export const DialogClose = DialogPrimitive.Close;
 export const DialogPortal = DialogPrimitive.Portal;
-/* eslint-enable react-refresh/only-export-components */
 
 function Overlay({ className }: { className?: string }) {
   return (

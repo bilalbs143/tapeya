@@ -52,15 +52,9 @@ describe('validateGoLiveForm', () => {
   });
 
   it('rejects missing orientation and overlong title', () => {
+    expect(validateGoLiveForm({ title: 'x', description: '', orientation: '' }, ['portrait'], false).ok).toBe(false);
     expect(
-      validateGoLiveForm({ title: 'x', description: '', orientation: '' }, ['portrait'], false).ok
-    ).toBe(false);
-    expect(
-      validateGoLiveForm(
-        { title: 'x'.repeat(101), description: '', orientation: 'portrait' },
-        ['portrait'],
-        false
-      ).ok
+      validateGoLiveForm({ title: 'x'.repeat(101), description: '', orientation: 'portrait' }, ['portrait'], false).ok
     ).toBe(false);
   });
 });

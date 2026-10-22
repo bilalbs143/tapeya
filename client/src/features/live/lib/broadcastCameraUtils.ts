@@ -56,7 +56,26 @@ export function isBroadcastLivePhase(phase: BroadcastPhase): boolean {
 }
 
 export function shouldShowBroadcastControls(phase: BroadcastPhase): boolean {
-  return phase === 'previewing' || phase === 'connecting' || isBroadcastLivePhase(phase);
+  return (
+    phase === 'previewing' ||
+    phase === 'requesting_permissions' ||
+    phase === 'connecting' ||
+    isBroadcastLivePhase(phase)
+  );
+}
+
+export type GoLiveCaptureMode = 'start' | 'connecting' | 'end';
+
+/** Shutter mode for the on-air capture control — null when chrome should hide it. */
+export function resolveGoLiveCaptureMode(
+  phase: BroadcastPhase,
+  startLoading: boolean,
+  endLoading: boolean
+): GoLiveCaptureMode | null {
+  if (isBroadcastLivePhase(phase) || phase === 'ending' || endLoading) return 'end';
+  if (phase === 'connecting' || startLoading || phase === 'requesting_permissions') return 'connecting';
+  if (phase === 'previewing') return 'start';
+  return null;
 }
 
 export function shouldSyncPreviewLayout(phase: BroadcastPhase): boolean {

@@ -81,10 +81,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           </div>
         </div>
         <div
-          className={cn(
-            'relative flex min-h-0 flex-1 flex-col tab:hidden',
-            immersiveTransparent && 'bg-transparent'
-          )}
+          className={cn('relative flex min-h-0 flex-1 flex-col tab:hidden', immersiveTransparent && 'bg-transparent')}
         >
           <Outlet />
           {showBottomNav ? <BottomNav overlay /> : null}

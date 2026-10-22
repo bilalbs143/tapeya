@@ -29,7 +29,7 @@ code and never will.
 | §11                | Native façades: `secureStorage`, `share`, `push`, `orientation`                                    |
 | §3 Sentry          | `@sentry/react` via `shared/config/sentry.ts` (errors + tracing + replay); DSN = `VITE_SENTRY_DSN` |
 | §5                 | Features `auth` + `tournaments`; ESLint bans deep `@/features/*/*` imports                         |
-| §9 / §10           | Strict TS; Vitest + MSW + Playwright; CI workflow `client-checks.yml`                           |
+| §9 / §10           | Strict TS; Vitest + MSW + Playwright; CI workflow `client-checks.yml`                              |
 
 ## Contract notes (verified against `api/`)
 
@@ -108,17 +108,28 @@ npx cap add ios
 npx cap add android
 ```
 
-Then, same script names as legacy `app/`:
+**iOS dependency model (do not “simplify” away):**
+
+| Layer                                | Manager                       | Why                                                                                                                   |
+| ------------------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Capacitor plugins                    | CapApp-SPM (SwiftPM)          | Capacitor 8 default                                                                                                   |
+| HaishinKit 2.0.9 (go-live broadcast) | CocoaPods (`ios/App/Podfile`) | Matches `TapeyaBroadcastPlugin`’s 2.0.x API; keep off SPM until a deliberate 2.2+ / `RTMPHaishinKit` plugin migration |
+
+Always open **`ios/App/App.xcworkspace`** (Pods + app). Opening `App.xcodeproj` alone will not link HaishinKit. After clone or `Podfile` / lock changes: `npm run ios:pods`.
 
 ```bash
-npm run cap:ios                    # prod web build → sync → open Xcode
+npm run cap:ios                    # prod web build → sync → pod install → open workspace
 npm run cap:ios:staging
+npm run cap:sync:ios               # web assets + CapApp-SPM + pod install (no open)
+npm run cap:open:ios               # open App.xcworkspace (prefer over `cap open ios`)
+npm run ios:pods                   # CocoaPods only
 npm run cap:android                # prod web build → sync → open Android Studio
 npm run cap:android:staging
 npm run cap:android:bundle         # release AAB (needs android/ signing setup)
 npm run cap:android:bundle:staging
 npm run verify:android:bundle      # print AAB cert Owner / SHA1
-npm run cap:sync
+npm run cap:sync                   # both platforms + ios pods
 ```
 
 `build:production` / `build:staging` are web-only (no Cap sync).
+Requires **CocoaPods** (`pod` ≥ 1.16) on the Mac for iOS.

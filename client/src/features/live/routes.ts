@@ -22,9 +22,7 @@ export const liveShellRouteObjects: RouteObject[] = [
 ];
 
 /** Go-live form — gated by RequireBroadcastAccess; keeps bottom nav. */
-export const liveGoLiveFormRouteObjects: RouteObject[] = [
-  { path: APP_PATHS.goLive, Component: GoLivePage },
-];
+export const liveGoLiveFormRouteObjects: RouteObject[] = [{ path: APP_PATHS.goLive, Component: GoLivePage }];
 
 /** On-air go-live — gated by RequireBroadcastAccess; bare shell (camera underlay). */
 export const liveImmersiveRouteObjects: RouteObject[] = [

@@ -8,11 +8,9 @@ import VideoToolbox
  * Self-serve mobile broadcast — camera capture + RTMP publish via HaishinKit.
  * See LIVE_STREAM_MOBILE_BROADCAST.md's "iOS — Swift, HaishinKit-based" section.
  *
- * Targets the stable `HaishinKit ~> 2.0` CocoaPod (verified against the 2.0.0 tag's API
- * reference at docs.haishinkit.com/swift/2.0.0/ — not the unreleased multi-module `main`
- * branch, which restructures RTMP support into a separate `RTMPHaishinKit` target).
- * If the installed pod version has drifted, the compiler errors here should be small and
- * mechanical (renamed methods/properties), not architectural.
+ * Dependency: HaishinKit **2.0.9 via CocoaPods** (`ios/App/Podfile`) — same API surface as
+ * legacy `app/`. Capacitor plugins stay on CapApp-SPM; do not add HaishinKit as an SPM
+ * package. Migrating to HaishinKit 2.2+ / `RTMPHaishinKit` is a separate plugin rewrite.
  *
  * Compositing: MTHKView is inserted below the Capacitor webview so floating JS controls
  * stay visible on top of full-bleed camera preview.

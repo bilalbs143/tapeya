@@ -8,7 +8,8 @@ import {
   COMMENT_COMPOSE_DOCK_WATCH,
   COMMENT_COMPOSE_PILL,
 } from '@/shared/ui/commentComposeChrome';
-import { SendIcon } from '@/shared/ui/icons';
+import { IconButton } from '@/shared/ui/IconButton';
+import { HeartIcon, SendIcon } from '@/shared/ui/icons';
 
 import type { LiveComment } from '../model/schemas';
 
@@ -82,6 +83,8 @@ type ChatDockProps = {
   draft: string;
   onDraft: (value: string) => void;
   onSend: () => void;
+  /** Optional heart action — shown on go-live overlay compose. */
+  onHeart?: (() => void) | undefined;
   canChat: boolean;
   /** Viewer face for the compose row — same as post-detail CommentComposer. */
   user?: ComposerUser | undefined;
@@ -96,6 +99,7 @@ export function ChatDock({
   draft,
   onDraft,
   onSend,
+  onHeart,
   canChat,
   user,
   className,
@@ -113,7 +117,9 @@ export function ChatDock({
   }, [comments.length, lastId]);
 
   return (
-    <div className={cn(overlay ? 'flex min-h-0 flex-col bg-transparent' : 'bg-surface flex min-h-0 flex-col', className)}>
+    <div
+      className={cn(overlay ? 'flex min-h-0 flex-col bg-transparent' : 'bg-surface flex min-h-0 flex-col', className)}
+    >
       <div
         ref={listRef}
         className={cn(
@@ -172,6 +178,18 @@ export function ChatDock({
               )}
             />
           </div>
+          {overlay && onHeart ? (
+            <IconButton
+              label="Send Heart"
+              variant="media"
+              round
+              size="md"
+              onClick={onHeart}
+              className="h-[38px] w-[38px]"
+            >
+              <HeartIcon className="text-like h-4 w-4" strokeWidth={2} filled />
+            </IconButton>
+          ) : null}
           <button
             type="button"
             onClick={onSend}

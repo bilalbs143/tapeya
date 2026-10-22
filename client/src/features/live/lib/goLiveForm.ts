@@ -44,9 +44,7 @@ export type GoLiveFormValues = {
   orientation: string;
 };
 
-export type GoLiveFormValidation =
-  | { ok: true; values: GoLiveFormValues }
-  | { ok: false; message: string };
+export type GoLiveFormValidation = { ok: true; values: GoLiveFormValues } | { ok: false; message: string };
 
 export function validateGoLiveForm(
   input: { title: string; description: string; orientation: string },
@@ -76,11 +74,6 @@ export function validateGoLiveForm(
   };
 }
 
-export function canSubmitGoLive(
-  title: string,
-  busy: boolean,
-  orientation: string,
-  orientationReady: boolean
-): boolean {
+export function canSubmitGoLive(title: string, busy: boolean, orientation: string, orientationReady: boolean): boolean {
   return Boolean(title.trim()) && Boolean(orientation.trim()) && orientationReady && !busy;
 }

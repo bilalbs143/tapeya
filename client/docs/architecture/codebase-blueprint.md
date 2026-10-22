@@ -30,7 +30,7 @@ This blueprint does **not** invent files that Phase 1 did not observe. It define
 | Folder / module architecture   | This blueprint + `APP_REWRITE_ARCHITECTURE.md` | Ad-hoc `components/` or `hooks/` at repo root        |
 | Look / UX                      | `tapeya-ui/`                                   | Legacy `app/` visual CSS / splash / dark-only shells |
 | API / auth / business rules    | Legacy `app/` + Laravel `api/`                 | Invent endpoints, OTP length, wire fields            |
-| What ships                     | `client/` only                              | Runtime import of `tapeya-ui` as a package           |
+| What ships                     | `client/` only                                 | Runtime import of `tapeya-ui` as a package           |
 | Inventory of what exists today | `PHASE1_CODEBASE_AUDIT.md`                     | Assumptions about missing folders                    |
 
 **Stack (do not reinvent):** Vite · React 19 · React Router 7 · RTK Query · Zod · React Hook Form · Tailwind v4 · Radix · Capacitor · Vitest + MSW · Playwright.
@@ -479,11 +479,12 @@ Shell chrome only (`ScreenBar`, nav, drawer, scrollport). Pages compose `ScreenB
 
 ### 5.13 Platform & native (`shared/platform`, `shared/native`, `ios/`, `android/`)
 
-| Layer              | Rule                                                                                                            |
-| ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Features           | Call `shared/native/*` and `shared/platform/platform.ts` — **not** `@capacitor/*` directly for wrapped concerns |
-| New Capacitor API  | Add a thin façade in `shared/native` first                                                                      |
-| `ios/`, `android/` | Capacitor-generated projects; do not relocate into `src/`; custom native plugins stay documented and minimal    |
+| Layer                | Rule                                                                                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Features             | Call `shared/native/*` and `shared/platform/platform.ts` — **not** `@capacitor/*` directly for wrapped concerns                                            |
+| New Capacitor API    | Add a thin façade in `shared/native` first                                                                                                                 |
+| `ios/`, `android/`   | Capacitor-generated projects; do not relocate into `src/`; custom native plugins stay documented and minimal                                               |
+| iOS package managers | CapApp-SPM for Capacitor plugins; CocoaPods (`ios/App/Podfile`) for HaishinKit 2.0.9 only. Open `App.xcworkspace` — see `client/README.md` Native section. |
 
 **Permissions:** request behind user gestures; document platform differences in feature docs when behaviour diverges (e.g. orientation).
 
@@ -526,13 +527,13 @@ Thin cross-feature domain UI/types (Phase 1: `entities/user` only). Grow slowly.
 
 ### 5.17 Docs & other
 
-| Path                                      | Role                                                                   |
-| ----------------------------------------- | ---------------------------------------------------------------------- |
-| `docs/PHASE1_CODEBASE_AUDIT.md`           | Inventory + migration candidates                                       |
-| `docs/architecture/codebase-blueprint.md` | **This file**                                                          |
-| `docs/ORIENTATION.md`                     | Orientation product/tech policy                                        |
+| Path                                      | Role                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `docs/PHASE1_CODEBASE_AUDIT.md`           | Inventory + migration candidates                                    |
+| `docs/architecture/codebase-blueprint.md` | **This file**                                                       |
+| `docs/ORIENTATION.md`                     | Orientation product/tech policy                                     |
 | `README.md`                               | Runbook — keep path names accurate (`client`, not stale `app-next`) |
-| `mockups/`                                | Non-runtime design refs                                                |
+| `mockups/`                                | Non-runtime design refs                                             |
 
 ---
 
@@ -753,7 +754,7 @@ A single rule may not fit every case. **Allowed exceptions** when documented:
 | `APP_REACT_PAGE_LAYOUT.md`    | ScreenBar / gutters / sticky CTAs |
 | `APP_REACT_FORM_MIGRATION.md` | Form density                      |
 | `ORIENTATION.md`              | Orientation policy                |
-| `client-standards` skill   | Agent-enforced UI/TS rules        |
+| `client-standards` skill      | Agent-enforced UI/TS rules        |
 
 If this blueprint and a specialized doc disagree on a **narrow** topic (forms, copy), the specialized doc wins for that topic. If they disagree on **folder ownership**, this blueprint + Phase 1 win.
 

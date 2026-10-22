@@ -7,11 +7,7 @@ import { exploreRouteObjects } from '@/features/explore';
 import { feedRouteObjects } from '@/features/feed';
 import { highlightRouteObjects } from '@/features/highlights';
 import { interestRouteObjects } from '@/features/interest';
-import {
-  liveGoLiveFormRouteObjects,
-  liveImmersiveRouteObjects,
-  liveShellRouteObjects,
-} from '@/features/live';
+import { liveGoLiveFormRouteObjects, liveImmersiveRouteObjects, liveShellRouteObjects } from '@/features/live';
 import { matchRouteObjects, scoringRouteObjects } from '@/features/matches';
 import { notificationRouteObjects } from '@/features/notifications';
 import { profileRouteObjects } from '@/features/profile';

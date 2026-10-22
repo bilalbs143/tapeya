@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   isBroadcastPluginUnavailableError,
   isResumableBroadcastStatus,
+  resolveGoLiveCaptureMode,
   shouldConfirmEndOnLeave,
+  shouldShowBroadcastControls,
 } from './broadcastCameraUtils';
 
 describe('isResumableBroadcastStatus', () => {
@@ -32,5 +34,30 @@ describe('isBroadcastPluginUnavailableError', () => {
       true
     );
     expect(isBroadcastPluginUnavailableError(new Error('network failed'))).toBe(false);
+  });
+});
+
+describe('shouldShowBroadcastControls', () => {
+  it('shows through preview, permission prompt, connect, and live', () => {
+    expect(shouldShowBroadcastControls('previewing')).toBe(true);
+    expect(shouldShowBroadcastControls('requesting_permissions')).toBe(true);
+    expect(shouldShowBroadcastControls('connecting')).toBe(true);
+    expect(shouldShowBroadcastControls('live')).toBe(true);
+    expect(shouldShowBroadcastControls('reconnecting')).toBe(true);
+    expect(shouldShowBroadcastControls('ending')).toBe(false);
+    expect(shouldShowBroadcastControls('error')).toBe(false);
+  });
+});
+
+describe('resolveGoLiveCaptureMode', () => {
+  it('maps phase to shutter mode', () => {
+    expect(resolveGoLiveCaptureMode('previewing', false, false)).toBe('start');
+    expect(resolveGoLiveCaptureMode('requesting_permissions', false, false)).toBe('connecting');
+    expect(resolveGoLiveCaptureMode('connecting', false, false)).toBe('connecting');
+    expect(resolveGoLiveCaptureMode('previewing', true, false)).toBe('connecting');
+    expect(resolveGoLiveCaptureMode('live', false, false)).toBe('end');
+    expect(resolveGoLiveCaptureMode('reconnecting', false, false)).toBe('end');
+    expect(resolveGoLiveCaptureMode('ending', false, true)).toBe('end');
+    expect(resolveGoLiveCaptureMode('error', false, false)).toBe(null);
   });
 });

@@ -284,7 +284,7 @@ The complete path list is Appendix A (every inventoried file).
 | `src/features/matches/pages/MatchScorePage.tsx`    | Split into `pages/` + `ui/score/*` + `lib/score/*`             | Live scoring              | God-page                                           |
 | `src/features/shop/model/schemas.ts`               | Split by domain (`productSchemas`, `orderSchemas`, …)          | Zod                       | Maintainability                                    |
 | `src/features/matches/ui/*` (scoring sheets)       | Optionally `features/scoring/` later                           | Scoring UI                | Only if matches/non-scoring split is product-clear |
-| `README.md` path refs `app-next/`                  | Update copy to `client/`                                    | Docs accuracy             | Drift                                              |
+| `README.md` path refs `app-next/`                  | Update copy to `client/`                                       | Docs accuracy             | Drift                                              |
 
 ### 6.3 Platform trees
 

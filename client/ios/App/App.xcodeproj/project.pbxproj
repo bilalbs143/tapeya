@@ -7,22 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		245DF6F83119464F98CB6375 /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
-		B4E2819C4FD247F6AA1EFF9B /* HaishinKit in Frameworks */ = {isa = PBXBuildFile; productRef = B4E2819C4FD247F6AA1EFF9A /* HaishinKit */; };
-		728A63B783FB45718ADFFBBF /* TapeyaBroadcastPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */; };
-		58C017B8DFD14BD6BE18C412 /* TapeyaBroadcastPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 58C017B8DFD14BD6BE18C411 /* TapeyaBroadcastPlugin.m */; };
-		245DF6F83119464F98CB6375 /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		58C017B8DFD14BD6BE18C412 /* TapeyaBroadcastPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 58C017B8DFD14BD6BE18C411 /* TapeyaBroadcastPlugin.m */; };
+		728A63B783FB45718ADFFBBF /* TapeyaBroadcastPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		BA811C51F52EF5332060AD4F /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1BF724E8B249F7B36840D8E /* Pods_App.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -32,11 +33,13 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
-		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeyaBroadcastPlugin.swift; sourceTree = "<group>"; };
 		58C017B8DFD14BD6BE18C411 /* TapeyaBroadcastPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TapeyaBroadcastPlugin.m; sourceTree = "<group>"; };
-		245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController.swift; sourceTree = "<group>"; };
+		728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeyaBroadcastPlugin.swift; sourceTree = "<group>"; };
+		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		B1BF724E8B249F7B36840D8E /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB5488674EDB2F3A9FD99F36 /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		DA0C3B8C744B411064724E84 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +48,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
-				B4E2819C4FD247F6AA1EFF9B /* HaishinKit in Frameworks */,
+				BA811C51F52EF5332060AD4F /* Pods_App.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +61,8 @@
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
+				DD75BC28EA0237798D357B97 /* Pods */,
+				9E91D8C9898CBB23CC84A599 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -88,6 +93,24 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		9E91D8C9898CBB23CC84A599 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B1BF724E8B249F7B36840D8E /* Pods_App.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		DD75BC28EA0237798D357B97 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				CB5488674EDB2F3A9FD99F36 /* Pods-App.debug.xcconfig */,
+				DA0C3B8C744B411064724E84 /* Pods-App.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -95,9 +118,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "App" */;
 			buildPhases = (
+				E5EDA4581B829F0529BAB1D9 /* [CP] Check Pods Manifest.lock */,
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				A02DAA86516B92FEED700E8C /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -106,7 +131,6 @@
 			name = App;
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
-				B4E2819C4FD247F6AA1EFF9A /* HaishinKit */,
 			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
@@ -139,7 +163,6 @@
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
 				D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */,
-				A81B6618445D4B319A8D87B8 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -165,6 +188,46 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A02DAA86516B92FEED700E8C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-App/Pods-App-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E5EDA4581B829F0529BAB1D9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-App-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		504EC3001FED79650016851F /* Sources */ = {
@@ -312,12 +375,13 @@
 		};
 		504EC3171FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
+			baseConfigurationReference = CB5488674EDB2F3A9FD99F36 /* Pods-App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CAPACITOR_DEBUG = true;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -336,11 +400,12 @@
 		};
 		504EC3181FED79650016851F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DA0C3B8C744B411064724E84 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -386,27 +451,11 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		A81B6618445D4B319A8D87B8 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/HaishinKit/HaishinKit.swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.9;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
 		4D22ABE82AF431CB00220026 /* CapApp-SPM */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */;
 			productName = "CapApp-SPM";
-		};
-		B4E2819C4FD247F6AA1EFF9A /* HaishinKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A81B6618445D4B319A8D87B8 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */;
-			productName = HaishinKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

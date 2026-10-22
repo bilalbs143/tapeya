@@ -6,11 +6,7 @@ import { cn } from '@/shared/lib/cn';
 
 /** Icon-only button — required `label` for a11y; sizes are hit targets (prefer `md`+ on phone). */
 const iconButtonVariants = cva(
-  [
-    'grid shrink-0 place-items-center',
-    'focus-visible:outline-brand focus-visible:outline-2 focus-visible:outline-offset-2',
-    'disabled:pointer-events-none disabled:opacity-40',
-  ],
+  ['grid shrink-0 place-items-center', 'disabled:pointer-events-none disabled:opacity-40'],
   {
     variants: {
       size: {
@@ -19,11 +15,23 @@ const iconButtonVariants = cva(
         lg: 'h-11 w-11',
       },
       variant: {
-        ghost: 'text-muted hover:text-ink hover:bg-surface-raised',
-        subtle: 'bg-surface-raised text-body hover:text-ink',
-        outline: 'border border-border bg-surface text-body hover:text-ink',
-        media: 'bg-black/35 text-white backdrop-blur-md hover:bg-black/50',
-        danger: 'text-danger-soft hover:bg-danger/12',
+        ghost:
+          'text-muted hover:text-ink hover:bg-surface-raised focus-visible:outline-brand focus-visible:outline-2 focus-visible:outline-offset-2',
+        subtle:
+          'bg-surface-raised text-body hover:text-ink focus-visible:outline-brand focus-visible:outline-2 focus-visible:outline-offset-2',
+        outline:
+          'border border-border bg-surface text-body hover:text-ink focus-visible:outline-brand focus-visible:outline-2 focus-visible:outline-offset-2',
+        /** Default control over camera / media underlay. */
+        media:
+          'bg-black/45 text-white backdrop-blur-md hover:bg-black/55 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+        /** Pressed / alternate capture state (e.g. rear camera, chat visible). */
+        mediaActive:
+          'bg-white/20 text-white ring-1 ring-white/35 backdrop-blur-md active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+        /** Destructive media state (e.g. mic muted). */
+        mediaDanger:
+          'bg-danger/25 text-danger-soft ring-1 ring-danger-soft/40 backdrop-blur-md active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+        danger:
+          'text-danger-soft hover:bg-danger/12 focus-visible:outline-brand focus-visible:outline-2 focus-visible:outline-offset-2',
       },
       round: {
         true: 'rounded-full',
@@ -53,10 +61,10 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
     <Comp
       ref={ref}
       type={asChild ? undefined : 'button'}
-      aria-label={label}
-      title={label}
       className={cn(iconButtonVariants({ size, variant, round }), className)}
       {...props}
+      aria-label={label}
+      title={label}
     >
       {children}
     </Comp>
