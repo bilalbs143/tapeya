@@ -57,7 +57,7 @@ Keep what already works, formalize it in TS, replace only what's genuinely weak.
 | Testing (E2E)             | **Playwright**                                                                                                           | Keep.                                                                                                                                                                                    |
 | Lint/format               | **ESLint (flat config) + Prettier**                                                                                      | Keep, add `typescript-eslint` + `import/order` enforcement, keep the existing custom `eslint-rules/` (form-layout rule) ported to TS.                                                    |
 | Error tracking            | **Sentry** (or equivalent)                                                                                               | **Add** — not present today. A rewrite with strict types still needs production runtime visibility; don't ship blind.                                                                    |
-| Secure token storage      | `@capacitor/preferences` (or `capacitor-secure-storage-plugin`) for the auth token, not `redux-persist` → `localStorage` | **Change** — see §8.                                                                                                                                                                     |
+| Secure token storage      | `@aparajita/capacitor-secure-storage` (Keychain / Keystore) via `shared/native/secureStorage`; Preferences only on web + one-shot migrate | **Change** — see §8.                                                                                                                                                                     |
 
 
 ---
@@ -827,7 +827,15 @@ Use when it helps readability — not mandatory if explicit `builder.query` is c
 
 ## 8. Auth & secure storage
 
-Current app persists the auth token via `redux-persist` into `localStorage` (via the webview) — that's fine for a websites, but on a Capacitor native shell the token should go through `@capacitor/preferences` (native keychain/keystore-backed on iOS/Android, falls back to localStorage on web) instead. Redux still holds the token in memory for the session; persistence/rehydration goes through a small `shared/native/secureStorage.ts` wrapper, not `redux-persist`'s default web storage engine.
+Current app persists the auth token via `redux-persist` into `localStorage` (via the webview) — that's fine for a website, but on a Capacitor native shell the token must not live in plaintext Preferences / Auto Backup.
+
+**Native (iOS/Android):** `@aparajita/capacitor-secure-storage` — iOS Keychain (`whenUnlockedThisDeviceOnly`, no iCloud sync) and Android Keystore-backed encrypted SharedPreferences. On first read, any leftover `@capacitor/preferences` value for the same key is migrated once into secure storage and then deleted.
+
+**Web:** Capacitor Preferences (localStorage) — acceptable for browser/dev; do not treat as Keychain.
+
+Redux still holds the token in memory for the session; persistence/rehydration goes through `shared/native/secureStorage.ts` + `authSession`, not `redux-persist`. Android Auto Backup stays enabled for non-credential data, but `CapacitorStorage` and `WSSecureStorageSharedPreferences` are excluded via `backup_rules.xml` / `data_extraction_rules.xml`.
+
+**Rich HTML (CMS + product):** never call `dangerouslySetInnerHTML` with API strings. Use `shared/ui/SafeHtml` → `shared/lib/sanitizeHtml` (DOMPurify) with `cms` or `product` allowlists. Static/legal pages and shop product descriptions are the only approved sinks.
 
 ---
 
@@ -866,7 +874,9 @@ MSW handlers live per-feature (`features/x/test/handlers.ts`) and compose into o
 
 Keep the existing `native/` (Capacitor feature wrappers: push tokens, share, screen orientation) and `platform/` (platform detection, download handling) split — it's a sound abstraction already. Type it so feature code never imports `@capacitor/*` packages directly; it goes through `shared/native/*` wrappers that present a typed, platform-agnostic interface (and a web fallback where relevant). This is what makes it possible to unit-test feature code without a native runtime.
 
-**Orientation policy (app-react):** portrait-locked by default with media-immersive exceptions — see [app-react/docs/ORIENTATION.md](../app-react/docs/ORIENTATION.md). Broadcast *encode* aspect remains [LIVE_STREAM_ORIENTATION.md](./LIVE_STREAM_ORIENTATION.md).
+**Orientation policy (client):** portrait-locked by default with media-immersive exceptions — see [client/docs/ORIENTATION.md](../client/docs/ORIENTATION.md). Broadcast *encode* aspect remains [LIVE_STREAM_ORIENTATION.md](./LIVE_STREAM_ORIENTATION.md).
+
+**Go Live / TapeyaBroadcast:** Self-serve camera → RTMP lives in the Capacitor shell (`TapeyaBroadcast` plugin + HaishinKit iOS / RootEncoder Android), not in the WebView. JS bridge: `shared/native/tapeyaBroadcast.ts`. Session lifecycle: `features/live/ui/useGoLiveOnAirSession.ts` (permissions → preview → `POST …/start` → native encode → Echo/status sync → end). Routes `/live/go-live*` are gated by `RequireBroadcastAccess` (`can_broadcast`). On-air phone shell must stay transparent (`broadcast-camera-underlay` + `bg-transparent`) so the native camera underlay is visible. Web may create a stream and copy RTMP for OBS but never calls `POST …/start` without a native encoder. If native `startBroadcast` fails after a successful start, roll back with `POST …/end`. **A/V sync (Android):** prepare the publish resolution during preview and keep the camera running through `startStream` — stopping preview to re-`prepareVideo` reopens Camera2 and rebases video PTS while audio has already advanced (lip-sync drift).
 
 ---
 

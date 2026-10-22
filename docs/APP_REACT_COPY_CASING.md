@@ -1,4 +1,4 @@
-# app-react UI copy casing
+# client UI copy casing
 
 Chicago-style **Title Case** for short UI chrome; **sentence case** for long descriptive copy; **ALL CAPS** for form/section eyebrows (via CSS).
 
@@ -47,4 +47,4 @@ Keep `uppercase` on Field / Form section / SectionLabel / drawer nav section hea
 5. Toast **titles** (short)  
 6. Skip descriptions, hints, placeholders, API labels  
 
-See also: [APP_REACT_FORM_MIGRATION.md](./APP_REACT_FORM_MIGRATION.md), `.cursor/skills/app-react-standards/SKILL.md`.
+See also: [APP_REACT_FORM_MIGRATION.md](./APP_REACT_FORM_MIGRATION.md), `.cursor/skills/client-standards/SKILL.md`.

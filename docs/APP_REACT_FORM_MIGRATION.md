@@ -1,8 +1,8 @@
-# app-react form migration
+# client form migration
 
 Track every form / sheet / dialog that must use the **unified form stack** so labels, inputs, selects, hints, and errors stay consistent.
 
-Legacy `app/` standards live in [`FORM_LAYOUT_STANDARDS.md`](./FORM_LAYOUT_STANDARDS.md) (`FormStack` + `FormField`). **Do not port those.** app-react’s stack is the source of truth.
+Legacy `app/` standards live in [`FORM_LAYOUT_STANDARDS.md`](./FORM_LAYOUT_STANDARDS.md) (`FormStack` + `FormField`). **Do not port those.** client’s stack is the source of truth.
 
 **Last updated:** 2026-10-09
 
@@ -28,9 +28,9 @@ Legacy `app/` standards live in [`FORM_LAYOUT_STANDARDS.md`](./FORM_LAYOUT_STAND
 4. Hints go through `hint=` — never a sibling `<p>` pretending to be FieldMessage.
 5. Prefer `gap` from `Form` density — do not invent `gap-3.5` / `gap-6` on the form root.
 
-Reference implementation: [`app-react/src/features/support/pages/SupportPage.tsx`](../app-react/src/features/support/pages/SupportPage.tsx).
+Reference implementation: [`client/src/features/support/pages/SupportPage.tsx`](../client/src/features/support/pages/SupportPage.tsx).
 
-Primitives: [`Form.tsx`](../app-react/src/shared/ui/Form.tsx), [`Field.tsx`](../app-react/src/shared/ui/Field.tsx), [`Input.tsx`](../app-react/src/shared/ui/Input.tsx), [`Select.tsx`](../app-react/src/shared/ui/Select.tsx).
+Primitives: [`Form.tsx`](../client/src/shared/ui/Form.tsx), [`Field.tsx`](../client/src/shared/ui/Field.tsx), [`Input.tsx`](../client/src/shared/ui/Input.tsx), [`Select.tsx`](../client/src/shared/ui/Select.tsx).
 
 ---
 

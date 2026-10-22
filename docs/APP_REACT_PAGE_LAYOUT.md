@@ -1,10 +1,10 @@
-# app-react page layout blueprint
+# client page layout blueprint
 
 **Source of truth** for how every screen sits inside the shell: gutters, gaps, headers, sticky CTAs, safe areas, empty/error placement.
 
 If a page invents its own padding, hand-rolls a header, or sticks a CTA with different offsets, it is **wrong** — fix it to match this doc.
 
-Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FORM_MIGRATION.md](./APP_REACT_FORM_MIGRATION.md) · `.cursor/skills/app-react-standards/SKILL.md`
+Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FORM_MIGRATION.md](./APP_REACT_FORM_MIGRATION.md) · `.cursor/skills/client-standards/SKILL.md`
 
 ---
 

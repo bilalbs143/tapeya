@@ -3,7 +3,7 @@
 **Status:** Phase A + B + C implemented — form/API persist, native encode tiers, preview indicator, viewer branching; device QA still required before release  
 **Date:** July 2026  
 **Prerequisites:** [LIVE_STREAM_MOBILE_BROADCAST.md](./LIVE_STREAM_MOBILE_BROADCAST.md) (self-serve Go Live, `TapeyaBroadcastPlugin`, YouTube RTMP), [LIVE_STREAM_INDEPENDENT_STREAMS.md](./LIVE_STREAM_INDEPENDENT_STREAMS.md) (`MatchStream` + `LiveStreamResource`)  
-**Device UI locks (app-react):** [app-react/docs/ORIENTATION.md](../app-react/docs/ORIENTATION.md) — portrait-first shell + immersive landscape; separate from encode aspect below.  
+**Device UI locks (client):** [client/docs/ORIENTATION.md](../client/docs/ORIENTATION.md) — portrait-first shell + immersive landscape; separate from encode aspect below.  
 **Goal:** Let broadcasters choose **Portrait** or **Landscape** when creating a self-serve stream, encode to that aspect on Android and iOS, show a clear **selected orientation indicator on the camera preview**, and play the stream back in the matching viewer layout — without breaking today’s portrait-only path.
 
 ---

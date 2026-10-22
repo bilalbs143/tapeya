@@ -1,9 +1,25 @@
 {
   "folders": [
-    { "name": "tapeya (root)", "path": "." },
-    { "name": "API — Laravel", "path": "api" },
-    { "name": "App — React / Capacitor", "path": "app" },
-    { "name": "Backoffice — Angular", "path": "backoffice" }
+    {
+      "name": "tapeya (root)",
+      "path": "."
+    },
+    {
+      "name": "API \u2014 Laravel",
+      "path": "api"
+    },
+    {
+      "name": "Client \u2014 web + Capacitor",
+      "path": "client"
+    },
+    {
+      "name": "App (legacy)",
+      "path": "app"
+    },
+    {
+      "name": "Backoffice \u2014 Angular",
+      "path": "backoffice"
+    }
   ],
   "settings": {
     "files.exclude": {

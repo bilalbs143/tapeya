@@ -8,14 +8,6 @@
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Live Stream</title>
-    <script>
-      (function () {
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('rotate') === '1') {
-          document.documentElement.classList.add('immersive-rotate');
-        }
-      })();
-    </script>
     <style>
       html,
       body {
@@ -32,18 +24,10 @@
         background: #000;
       }
 
-      #player-rotate-wrap {
+      #player-wrap {
         position: absolute;
         inset: 0;
         overflow: hidden;
-      }
-
-      html.immersive-rotate #player-rotate-wrap {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        overflow: hidden;
-        transform: translate(-50%, -50%) rotate(90deg);
       }
 
       #player {
@@ -56,9 +40,9 @@
 
       #player iframe {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        inset: 0;
+        width: 100%;
+        height: 100%;
         border: 0;
       }
 
@@ -80,7 +64,7 @@
     </style>
   </head>
   <body>
-    <div id="player-rotate-wrap">
+    <div id="player-wrap">
       <div id="player"></div>
     </div>
     @if(empty($allowControls))
@@ -149,92 +133,10 @@
         var hostPlayingSent = false;
         var playRetryTimers = [];
 
-        function readEmbedFlags() {
-          return {
-            coverMode: urlParams.get('cover') === '1',
-            rotateMode: urlParams.get('rotate') === '1',
-          };
-        }
-
-        /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
-        function applyRotateLayout() {
-          var flags = readEmbedFlags();
-          var wrap = document.getElementById('player-rotate-wrap');
-          if (!wrap) {
-            return flags;
-          }
-
-          if (flags.rotateMode) {
-            document.documentElement.classList.add('immersive-rotate');
-            var w = window.innerWidth || document.documentElement.clientWidth;
-            var h = window.innerHeight || document.documentElement.clientHeight;
-            wrap.style.width = h + 'px';
-            wrap.style.height = w + 'px';
-          } else {
-            document.documentElement.classList.remove('immersive-rotate');
-            wrap.style.width = '';
-            wrap.style.height = '';
-          }
-
-          return flags;
-        }
-
-        window.applyRotateLayout = applyRotateLayout;
-
-        function layoutViewport() {
-          var flags = readEmbedFlags();
-          var iw = window.innerWidth || document.documentElement.clientWidth;
-          var ih = window.innerHeight || document.documentElement.clientHeight;
-          if (flags.rotateMode) {
-            return { cw: ih, ch: iw };
-          }
-          return { cw: iw, ch: ih };
-        }
-
-        function fitPlayerCover() {
-          var flags = readEmbedFlags();
-          if (!flags.coverMode) {
-            return;
-          }
-
-          var viewport = layoutViewport();
-          var cw = viewport.cw;
-          var ch = viewport.ch;
-          if (cw <= 0 || ch <= 0) {
-            return;
-          }
-
-          var scale = Math.max(cw / 16, ch / 9);
-          var frameW = 16 * scale;
-          var frameH = 9 * scale;
-          var el = document.getElementById('player');
-          var iframe = el && el.querySelector('iframe');
-
-          if (iframe) {
-            iframe.style.width = frameW + 'px';
-            iframe.style.height = frameH + 'px';
-          }
-
-          if (player && typeof player.setSize === 'function') {
-            try {
-              player.setSize(Math.ceil(frameW), Math.ceil(frameH));
-            } catch (e) {}
-          }
-        }
-
-        window.fitPlayerCover = fitPlayerCover;
-
-        /** Keep YT pixel size in sync with the iframe viewport (tilt / rotate). */
+        /** Keep YT pixel size in sync with the iframe viewport (tilt / resize). */
         function fitPlayerToViewport() {
-          var flags = readEmbedFlags();
-          if (flags.coverMode) {
-            fitPlayerCover();
-            return;
-          }
-
-          var viewport = layoutViewport();
-          var cw = viewport.cw;
-          var ch = viewport.ch;
+          var cw = window.innerWidth || document.documentElement.clientWidth;
+          var ch = window.innerHeight || document.documentElement.clientHeight;
           if (cw <= 0 || ch <= 0) {
             return;
           }
@@ -330,18 +232,17 @@
           }
 
           playerInitStarted = true;
-          var flags = applyRotateLayout();
-          var viewport = layoutViewport();
+          var cw = window.innerWidth || document.documentElement.clientWidth;
+          var ch = window.innerHeight || document.documentElement.clientHeight;
 
           player = new YT.Player('player', {
             videoId: videoId,
             host: 'https://www.youtube.com',
-            width: viewport.cw,
-            height: viewport.ch,
+            width: cw,
+            height: ch,
             playerVars: playerVars,
             events: {
               onReady: function () {
-                applyRotateLayout();
                 // Tell the native host first so it can unhide, then play.
                 // iOS also re-invokes tapeyaStartPlayback after reveal (authoritative).
                 // Visible embeds (Android iframe) rely on these play calls directly.
@@ -376,19 +277,12 @@
             },
           });
 
-          function onViewportChange() {
-            applyRotateLayout();
-            fitPlayerToViewport();
-          }
-
-          window.addEventListener('resize', onViewportChange);
-          window.addEventListener('orientationchange', onViewportChange);
+          window.addEventListener('resize', fitPlayerToViewport);
+          window.addEventListener('orientationchange', fitPlayerToViewport);
           if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', onViewportChange);
+            window.visualViewport.addEventListener('resize', fitPlayerToViewport);
           }
         }
-
-        applyRotateLayout();
 
         if (window.YT && window.YT.Player) {
           initPlayer();

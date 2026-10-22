@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Custom scheme — keep hosts aligned with `src/shared/lib/deepLinks.ts`. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tapeya" android:host="feed" />
+                <data android:scheme="tapeya" android:host="reels" />
+                <data android:scheme="tapeya" android:host="live" />
+                <data android:scheme="tapeya" android:host="match" />
+                <data android:scheme="tapeya" android:host="entertainment" />
+                <data android:scheme="tapeya" android:host="users" />
+                <data android:scheme="tapeya" android:host="notifications" />
+                <data android:scheme="tapeya" android:host="shop" />
+                <data android:scheme="tapeya" android:host="seller" />
+            </intent-filter>
+
+            <!-- HTTPS App Links — host must serve assetlinks without redirect (apex tapeya.com). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/feed" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/reels" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/live/go-live" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/live/broadcast" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/match" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/entertainment" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/users" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+
+        <service
+            android:name=".BroadcastForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="camera|microphone" />
+    </application>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Android 13+ — requested at runtime by @capacitor/push-notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Self-serve go-live (TapeyaBroadcastPlugin) — not required so Play isn't camera-only. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+</manifest>

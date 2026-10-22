@@ -1,0 +1,11 @@
+package com.tapbytapeya.app;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(android.os.Bundle savedInstanceState) {
+        registerPlugin(TapeyaBroadcastPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}

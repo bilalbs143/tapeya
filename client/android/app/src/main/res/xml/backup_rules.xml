@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup (API ≤30): keep general app data, exclude credential stores.
+  Paths match Context.getSharedPreferences() names (Android adds .xml if omitted).
+  Capacitor Preferences → CapacitorStorage
+  @aparajita/capacitor-secure-storage → WSSecureStorageSharedPreferences
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="CapacitorStorage" />
+    <exclude domain="sharedpref" path="WSSecureStorageSharedPreferences" />
+</full-backup-content>

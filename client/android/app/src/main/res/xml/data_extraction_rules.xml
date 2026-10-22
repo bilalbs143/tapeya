@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cloud backup + device-to-device transfer (API 31+): exclude credential stores.
+  Same SharedPreferences names as backup_rules.xml.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="CapacitorStorage" />
+        <exclude domain="sharedpref" path="WSSecureStorageSharedPreferences" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="CapacitorStorage" />
+        <exclude domain="sharedpref" path="WSSecureStorageSharedPreferences" />
+    </device-transfer>
+</data-extraction-rules>

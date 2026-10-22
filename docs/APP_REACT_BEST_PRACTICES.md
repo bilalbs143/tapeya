@@ -1,6 +1,6 @@
-# app-react best practices (all files & components)
+# client best practices (all files & components)
 
-**Master checklist** for building `app-react/` from scratch. Apply these on every new file, every ported screen, and every PR review. Specialized docs own depth for layout, forms, and copy — this doc owns the cross-cutting rules and points you there.
+**Master checklist** for building `client/` from scratch. Apply these on every new file, every ported screen, and every PR review. Specialized docs own depth for layout, forms, and copy — this doc owns the cross-cutting rules and points you there.
 
 | Topic | Canonical doc |
 |---|---|
@@ -8,7 +8,8 @@
 | Page gutters, ScreenBar, sticky CTAs | [APP_REACT_PAGE_LAYOUT.md](./APP_REACT_PAGE_LAYOUT.md) |
 | Form density & Field patterns | [APP_REACT_FORM_MIGRATION.md](./APP_REACT_FORM_MIGRATION.md) |
 | Title Case / Sentence case | [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) |
-| Agent coding standards | `.cursor/skills/app-react-standards/SKILL.md` |
+| Page / hook / body / lib split queue | [client/docs/APP_REACT_PAGE_SPLIT_BLUEPRINT.md](../client/docs/APP_REACT_PAGE_SPLIT_BLUEPRINT.md) |
+| Agent coding standards | `.cursor/skills/client-standards/SKILL.md` |
 | UI language / mockups | `tapeya-ui/` (`DESIGN_SYSTEM.md`, inventories) |
 
 **Stack (do not reinvent):** Vite · React 19 · React Router 7 · RTK Query · Zod · RHF · Tailwind v4 · Radix · Capacitor · Vitest + MSW · Playwright.
@@ -21,7 +22,7 @@
 |---|---|---|
 | **Look / UX** | `tapeya-ui/` | Legacy `app/` pages, CSS, splash, dark-only shells |
 | **API / auth / business rules** | `app/` + Laravel `api/` | Invent endpoints, OTP length, wire fields |
-| **What ships** | `app-react/` only | Runtime import of `tapeya-ui` as a package |
+| **What ships** | `client/` only | Runtime import of `tapeya-ui` as a package |
 
 Port order: open **tapeya-ui screen first** → wire behaviour from **`app/` + `api/`** → if visuals disagree, **tapeya-ui wins**; if data disagrees, **`app/` + `api/` wins**.
 
@@ -163,7 +164,7 @@ Overlays (`BaseDialog` etc.) **must** use `tab:` for sheet→centred dialog — 
 ### Icons
 
 - **No inline `<svg>`** in features / pages / layout.
-- All glyphs: `app-react/src/shared/ui/icons/*` → import from `@/shared/ui/icons`.
+- All glyphs: `client/src/shared/ui/icons/*` → import from `@/shared/ui/icons`.
 - Size via `className` / `size`; colour via `currentColor`.
 - Exceptions (document in PR): `Spinner` loading arc; true data drawings (e.g. wagon wheel).
 
@@ -271,7 +272,7 @@ User-facing strings live near the UI (or a small feature copy map) — do not sc
 1. Tokens only in **secure storage** / auth session helpers — not `localStorage` free-for-all.
 2. No PII in URLs (phone, OTP, tokens).
 3. DEV-only debug UI behind `import.meta.env.DEV` (e.g. OTP debug banner).
-4. Sanitize / trust boundaries: never `dangerouslySetInnerHTML` unless content is already trusted and reviewed.
+4. Sanitize / trust boundaries: never call `dangerouslySetInnerHTML` directly — use `SafeHtml` + `sanitizeHtml` (`cms` | `product` profiles). CMS/static pages and product descriptions are the only approved rich-text sinks.
 5. Report / block / delete flows go through existing API contracts — don’t invent client-only “soft delete.”
 
 ---
@@ -289,7 +290,7 @@ User-facing strings live near the UI (or a small feature copy map) — do not sc
 - Before handoff:
 
 ```bash
-cd app-react && npm run typecheck && npm run test && npm run lint
+cd client && npm run typecheck && npm run test && npm run lint
 ```
 
 ---

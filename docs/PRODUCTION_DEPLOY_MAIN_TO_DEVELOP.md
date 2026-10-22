@@ -15,7 +15,7 @@ This file is the runbook. Follow steps **in order**.
 | **`origin/main` / prod baseline** | `fc64564` | Raise API nginx/PHP upload limits to 10G; drama bulk import + size-cap work already on `main` |
 | **Local `develop` tip (committed)** | `874a5f8` | Ahead of `main` by **3 commits**; also ahead of `origin/develop` by those 3 |
 | **Working tree (laptop)** | **dirty** | ~98 modified + ~30 untracked — **must be committed** before merge/deploy |
-| **`main..develop` (committed only)** | `740ce65` → `d1bb4f7` → `874a5f8` | Live watch comments letterbox + app-react docs (docs-only commits do not need prod code) |
+| **`main..develop` (committed only)** | `740ce65` → `d1bb4f7` → `874a5f8` | Live watch comments letterbox + client docs (docs-only commits do not need prod code) |
 | **Uncommitted (this release)** | working tree | UGC safety 1.2, Entertainment rename, drama provider, YouTube embed/proxy, user-reports admin, native bumps |
 
 **Before you start deploy day:** re-run and paste into this section:
@@ -41,7 +41,7 @@ Release tip = SHA on `main` **after** committing the dirty tree on `develop` and
 4. After migrate, run **`StaticPageSeeder`** so production Terms / Privacy have zero-tolerance + 24h copy (App Store 1.2). Prefer seeder over hand-editing backoffice HTML.
 5. Deploy order: **commit + push** → **merge to `main`** → **API code** → **`migrate --force`** → **`StaticPageSeeder`** → caches/workers → backoffice + app builds → (optional) native stores.
 6. Do **not** commit secrets (`.env`, credentials).
-7. Do **not** ship `app-react` as part of this consumer release (local rewrite; not required for App Store 1.2).
+7. Do **not** ship `client` as part of this consumer release (local rewrite; not required for App Store 1.2).
 
 ---
 
@@ -51,8 +51,8 @@ Release tip = SHA on `main` **after** committing the dirty tree on `develop` and
 
 | SHA | Summary |
 |-----|---------|
-| `740ce65` | Document app-react best practices, layout, forms, and copy |
-| `d1bb4f7` | Close app-react audit tracker and clarify density rules |
+| `740ce65` | Document client best practices, layout, forms, and copy |
+| `d1bb4f7` | Close client audit tracker and clarify density rules |
 | `874a5f8` | Keep live watch comments in the letterbox under the player |
 
 ### B. Uncommitted working tree (must commit) — main product
@@ -82,7 +82,7 @@ Release tip = SHA on `main` **after** committing the dirty tree on `develop` and
 
 ### C. Out of scope / optional
 
-- Full `app-react` rewrite (not this production consumer cut)
+- Full `client` rewrite (not this production consumer cut)
 - Deleting unused jamia/Jumia DNS (ops, not this git deploy)
 - `migrate:fresh` / one-shot wipe scripts (**forbidden**)
 
