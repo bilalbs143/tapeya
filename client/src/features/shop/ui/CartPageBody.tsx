@@ -109,7 +109,7 @@ export function CartPageBody({ flow }: CartPageBodyProps) {
       </div>
 
       <StickyActionBar>
-        <Button size="lg" className="min-h-12 w-full rounded-field text-body-sm font-bold" onClick={goCheckout}>
+        <Button className="w-full font-bold" onClick={goCheckout}>
           {checkoutLabel}
         </Button>
       </StickyActionBar>

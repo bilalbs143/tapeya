@@ -211,8 +211,7 @@ export function MatchBroadcastGraphicsBody({ flow }: MatchBroadcastGraphicsBodyP
       {!readOnly ? (
         <StickyActionBar edge>
           <Button
-            size="lg"
-            className="min-h-12 w-full"
+            className="w-full"
             disabled={upsertState.isLoading || draftThemeId == null || !configValid || (!isDirty && sessionReady)}
             onClick={() => void handleSave()}
           >

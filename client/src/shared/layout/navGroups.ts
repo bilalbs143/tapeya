@@ -22,11 +22,22 @@ export function isActivePath(pathname: string, to: string): boolean {
 
 /** Side menu groups for phone drawer and desktop SideNav. */
 export function buildNavGroups(opts?: {
+  /** Pending / approved / suspended store — show Seller Hub (same as app `userHasVendorAccess`). */
   hasStore?: boolean | undefined;
+  /** No shop_vendors row — show Become a Seller (same as app `userCanApplyAsSeller`). */
+  canApplyAsSeller?: boolean | undefined;
   ordersBadge?: number | undefined;
 }): NavGroup[] {
   const hasStore = Boolean(opts?.hasStore);
+  const canApplyAsSeller = opts?.canApplyAsSeller ?? !hasStore;
   const ordersBadge = opts?.ordersBadge;
+
+  const shopItems: NavItem[] = [{ to: APP_PATHS.shopOrders, label: 'My Orders', icon: 'orders', badge: ordersBadge }];
+  if (hasStore) {
+    shopItems.push({ to: APP_PATHS.seller, label: 'Seller Hub', icon: 'seller' });
+  } else if (canApplyAsSeller) {
+    shopItems.push({ to: APP_PATHS.sellerApply, label: 'Become a Seller', icon: 'seller' });
+  }
 
   return [
     {
@@ -54,12 +65,7 @@ export function buildNavGroups(opts?: {
     },
     {
       label: 'Shop',
-      items: [
-        { to: APP_PATHS.shopOrders, label: 'My Orders', icon: 'orders', badge: ordersBadge },
-        hasStore
-          ? { to: APP_PATHS.seller, label: 'Seller Hub', icon: 'seller' }
-          : { to: APP_PATHS.sellerApply, label: 'Become a Seller', icon: 'seller' },
-      ],
+      items: shopItems,
     },
     {
       label: 'Help',

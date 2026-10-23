@@ -118,13 +118,7 @@ export function CreateReelSteps({
           </div>
 
           <StickyActionBar edge>
-            <Button
-              size="lg"
-              className="min-h-12 w-full"
-              loading={isValidatingFile}
-              disabled={uploadUploading}
-              onClick={openPicker}
-            >
+            <Button className="w-full" loading={isValidatingFile} disabled={uploadUploading} onClick={openPicker}>
               Browse Files
             </Button>
           </StickyActionBar>
@@ -165,16 +159,14 @@ export function CreateReelSteps({
             <div className="flex gap-2">
               <Button
                 variant="secondary"
-                size="lg"
-                className="min-h-12 flex-1"
+                className="flex-1"
                 disabled={isValidatingFile || isCapturing}
                 onClick={openPicker}
               >
                 {isValidatingFile ? 'Checking…' : 'Change'}
               </Button>
               <Button
-                size="lg"
-                className="min-h-12 flex-[1.3]"
+                className="flex-[1.3]"
                 loading={isCapturing}
                 disabled={isValidatingFile || isCapturing}
                 onClick={() => void goDetails()}
@@ -269,8 +261,7 @@ export function CreateReelSteps({
             <Button
               type="submit"
               form="create-reel-form"
-              size="lg"
-              className="min-h-12 w-full"
+              className="w-full"
               disabled={!selectedFile || isBusyPublishing || caption.length > captionMax}
               loading={isBusyPublishing}
             >

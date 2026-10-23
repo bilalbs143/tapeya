@@ -73,6 +73,11 @@ export const NAV_ICONS = {
       <path d="M6.5 6.5a8 8 0 0 0 0 11M17.5 6.5a8 8 0 0 1 0 11" />
     </DrawerIcon>
   ),
+  shop: (
+    <DrawerIcon strokeWidth={2.1} className="h-[15px] w-[15px] text-white">
+      <path d="M4 8h16l-1 11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM9 8V6a3 3 0 0 1 6 0v2" />
+    </DrawerIcon>
+  ),
 } as const;
 
 export type NavIconKey = keyof typeof NAV_ICONS;

@@ -1,9 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import { useLogoutMutation } from '@/features/auth';
+import { useLogoutMutation, useMeQuery } from '@/features/auth';
+
+import { userCanApplyAsSeller, userHasVendorAccess } from '@/entities/user';
 
 import { APP_PATHS } from '@/shared/config/paths';
 import { cn } from '@/shared/lib/cn';
+import { selectIsAuthenticated } from '@/shared/store/authSlice';
+import { useAppSelector } from '@/shared/store/hooks';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { NAV_ICONS } from '@/shared/ui/icons';
@@ -12,6 +16,7 @@ import { toast } from '@/shared/ui/toast';
 
 import { buildNavGroups } from './navGroups';
 import { NavGroupList } from './navMenu';
+import { ShellPrimaryCtas } from './ShellPrimaryCtas';
 
 type SideNavUser = {
   name: string;
@@ -27,8 +32,13 @@ type SideNavProps = {
 /** Desktop grouped nav — same IA as phone drawer. */
 export function SideNav({ className, user }: SideNavProps) {
   const { pathname } = useLocation();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
-  const groups = buildNavGroups();
+  const groups = buildNavGroups({
+    hasStore: userHasVendorAccess(me),
+    canApplyAsSeller: userCanApplyAsSeller(me),
+  });
 
   async function handleLogout() {
     await logout().unwrap();
@@ -43,6 +53,10 @@ export function SideNav({ className, user }: SideNavProps) {
         className
       )}
     >
+      <div className="px-2.5 pb-2">
+        <ShellPrimaryCtas canBroadcast={Boolean(me?.canBroadcast)} />
+      </div>
+
       <nav className="min-h-0 flex-1 px-2.5 pt-0.5 pb-2">
         <NavGroupList pathname={pathname} groups={groups} />
       </nav>

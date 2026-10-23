@@ -40,8 +40,14 @@ export const shopRouteObjects: RouteObject[] = [
   { path: APP_PATHS.shopOrders, Component: OrdersPage },
   { path: `${APP_PATHS.shopOrders}/:id`, Component: OrderDetailPage },
   { path: APP_PATHS.shopOrderSuccess, Component: OrderSuccessPage },
-  { path: APP_PATHS.seller, Component: SellerHubPage },
   { path: APP_PATHS.sellerApply, Component: SellerApplyPage },
+  /** Catch-all store/brand slug — keep after every reserved `/shop/...` route. */
+  { path: `${APP_PATHS.shopSlug}/:slug`, Component: ShopSlugPage },
+];
+
+/** Seller hub + store management — wrap with `RequireVendorAccess` (same as app). */
+export const sellerVendorRouteObjects: RouteObject[] = [
+  { path: APP_PATHS.seller, Component: SellerHubPage },
   { path: APP_PATHS.sellerStore, Component: SellerStorePage },
   { path: APP_PATHS.sellerBrands, Component: SellerBrandsPage },
   { path: APP_PATHS.sellerCategories, Component: SellerCategoriesPage },
@@ -50,6 +56,4 @@ export const shopRouteObjects: RouteObject[] = [
   { path: `${APP_PATHS.sellerProductEdit}/:id/edit`, Component: SellerProductFormPage },
   { path: APP_PATHS.sellerOrders, Component: SellerOrdersPage },
   { path: `${APP_PATHS.sellerOrder}/:id`, Component: SellerOrderDetailPage },
-  /** Catch-all store/brand slug — keep after every reserved `/shop/...` route. */
-  { path: `${APP_PATHS.shopSlug}/:slug`, Component: ShopSlugPage },
 ];

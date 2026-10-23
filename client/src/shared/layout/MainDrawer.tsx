@@ -2,18 +2,19 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { useLogoutMutation, useMeQuery } from '@/features/auth';
 
-import { userHandle } from '@/entities/user';
+import { userCanApplyAsSeller, userHandle, userHasVendorAccess } from '@/entities/user';
 
 import { APP_PATHS } from '@/shared/config/paths';
 import { cn } from '@/shared/lib/cn';
 import { useNativeAppVersions } from '@/shared/native/useNativeAppVersions';
 import { Avatar } from '@/shared/ui/Avatar';
 import { VerifiedBadge } from '@/shared/ui/Badge';
-import { ChevronRightIcon, NAV_ICONS, ScoreboardIcon } from '@/shared/ui/icons';
+import { ChevronRightIcon, NAV_ICONS } from '@/shared/ui/icons';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 import { buildNavGroups } from './navGroups';
 import { NavGroupList } from './navMenu';
+import { ShellPrimaryCtas } from './ShellPrimaryCtas';
 import { useShell } from './useShell';
 
 /** Phone nav drawer — desktop uses SideNav instead. */
@@ -24,7 +25,10 @@ export function MainDrawer() {
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
   const { isNativeMobile, installedVersion, configuredVersion } = useNativeAppVersions();
 
-  const groups = buildNavGroups();
+  const groups = buildNavGroups({
+    hasStore: userHasVendorAccess(me),
+    canApplyAsSeller: userCanApplyAsSeller(me),
+  });
   const handle = me ? userHandle(me) : '';
   const displayName = me?.name?.trim() || handle || 'Player';
 
@@ -98,26 +102,11 @@ export function MainDrawer() {
             </div>
           ) : null}
 
-          <div className="mt-2.5 flex gap-2">
-            {me?.canBroadcast ? (
-              <Link
-                to={APP_PATHS.goLive}
-                onClick={closeDrawer}
-                className="bg-positive inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-field text-2xs font-bold text-white"
-              >
-                {NAV_ICONS.live}
-                Go Live
-              </Link>
-            ) : null}
-            <Link
-              to={APP_PATHS.quickMatch}
-              onClick={closeDrawer}
-              className="text-brand-text border-brand/55 hover:bg-brand/10 inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-field border text-2xs font-bold"
-            >
-              <ScoreboardIcon className="text-brand-text h-[15px] w-[15px]" />
-              Score
-            </Link>
-          </div>
+          <ShellPrimaryCtas
+            className="mt-2.5 flex gap-2"
+            canBroadcast={Boolean(me?.canBroadcast)}
+            onNavigate={closeDrawer}
+          />
         </div>
 
         <nav className="min-h-0 flex-1 overflow-y-auto px-2.5 pt-1 pb-2 [scrollbar-width:none]">

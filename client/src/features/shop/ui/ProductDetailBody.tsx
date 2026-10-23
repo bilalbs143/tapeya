@@ -111,13 +111,7 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
       </div>
 
       <StickyActionBar>
-        <Button
-          size="lg"
-          className="min-h-12 w-full rounded-field text-body-sm font-bold"
-          disabled={oos || adding}
-          loading={adding}
-          onClick={() => void add()}
-        >
+        <Button className="w-full font-bold" disabled={oos || adding} loading={adding} onClick={() => void add()}>
           {addLabel}
         </Button>
       </StickyActionBar>

@@ -123,13 +123,7 @@ export function CheckoutFormBody({ flow }: CheckoutFormBodyProps) {
       </Form>
 
       <StickyActionBar>
-        <Button
-          type="submit"
-          form="shop-checkout"
-          size="lg"
-          className="min-h-12 w-full rounded-field text-body-sm font-bold"
-          loading={placing}
-        >
+        <Button type="submit" form="shop-checkout" className="w-full font-bold" loading={placing}>
           {placeLabel}
         </Button>
       </StickyActionBar>

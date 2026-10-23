@@ -1,3 +1,5 @@
+import { APP_PATHS } from '@/shared/config/paths';
+
 import { getProfiles } from './profiles';
 
 const STORAGE_KEY = 'tapeya_returning_user';
@@ -19,4 +21,12 @@ export function markReturningUser(): void {
   } catch {
     // private mode / quota
   }
+}
+
+/**
+ * Where to send an unauthenticated user hitting a protected route.
+ * First install → register; after a successful OTP on this device → login.
+ */
+export async function guestAuthPath(): Promise<string> {
+  return (await isReturningUser()) ? APP_PATHS.login : APP_PATHS.register;
 }

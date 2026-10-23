@@ -154,7 +154,7 @@ export function GoLiveFormBody({ flow }: GoLiveFormBodyProps) {
             type="submit"
             form="go-live-form"
             variant="positive"
-            className="min-h-12 w-full"
+            className="w-full"
             disabled={!canSubmit}
             loading={createState.isLoading}
           >

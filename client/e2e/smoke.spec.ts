@@ -1,11 +1,30 @@
 import { expect, test } from '@playwright/test';
 
-test('unauthenticated visitors are sent to login from home', async ({ page }) => {
+test('first install sends unauthenticated visitors from home to register', async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.clear();
+    } catch {
+      /* ignore */
+    }
+  });
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/register$/);
+  await expect(page.getByRole('heading', { name: /create an account/i })).toBeVisible();
+});
+
+test('returning devices send unauthenticated visitors from home to login', async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('tapeya_returning_user', '1');
+    } catch {
+      /* ignore */
+    }
+  });
   await page.goto('/');
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: /welcome back|choose an account/i })).toBeVisible();
 });
-
 test('the login form validates a bad phone number before submitting', async ({ page }) => {
   await page.goto('/login');
   // Saved-profile mode: switch to phone entry when present.
@@ -19,6 +38,13 @@ test('the login form validates a bad phone number before submitting', async ({ p
 });
 
 test('create tournament form requires auth', async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('tapeya_returning_user', '1');
+    } catch {
+      /* ignore */
+    }
+  });
   await page.goto('/tournaments/create');
   await expect(page).toHaveURL(/\/login$/);
 });

@@ -7,7 +7,11 @@ import { handleNavRootReselect } from './shellScroll';
 
 type BottomNavProps = {
   className?: string;
-  /** Absolute over full-bleed media (reels) — position only; colors stay on the app theme. */
+  /**
+   * Absolute over full-bleed media (reels phone). Forces dark tokens on this
+   * subtree only (`data-theme="dark"`) so light app theme still gets a dark
+   * frosted bar — does not flip `<html>` theme.
+   */
   overlay?: boolean;
 };
 
@@ -18,9 +22,10 @@ export function BottomNav({ className, overlay = false }: BottomNavProps) {
   return (
     <nav
       aria-label="Primary"
+      data-theme={overlay ? 'dark' : undefined}
       className={cn(
         'border-border-subtle bg-veil flex justify-between border-t px-3 pt-2.5 pb-[max(22px,env(safe-area-inset-bottom))] backdrop-blur-[16px]',
-        overlay && 'absolute inset-x-0 bottom-0 z-20',
+        overlay && 'absolute inset-x-0 bottom-0 z-20 text-ink',
         className
       )}
     >

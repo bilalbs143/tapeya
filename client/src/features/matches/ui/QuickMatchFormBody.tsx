@@ -155,7 +155,7 @@ export function QuickMatchFormBody({ flow }: QuickMatchFormBodyProps) {
         <div className="flex gap-2">
           <Button
             variant="secondary"
-            className="min-h-12 shrink-0 px-4 font-bold"
+            className="shrink-0 px-4 font-bold"
             disabled={!gate.canSave}
             loading={isLoading}
             onClick={() => void start('save')}
@@ -164,7 +164,7 @@ export function QuickMatchFormBody({ flow }: QuickMatchFormBodyProps) {
           </Button>
           <Button
             variant="primary"
-            className="min-h-12 flex-1 font-bold"
+            className="flex-1 font-bold"
             disabled={!gate.canToss}
             loading={isLoading}
             onClick={() => void start('toss')}

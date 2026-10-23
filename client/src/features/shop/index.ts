@@ -37,4 +37,4 @@ export type {
   VendorStore,
 } from './model/schemas';
 export type { ShopFilterKind } from './routes';
-export { shopPaths, shopRouteObjects } from './routes';
+export { sellerVendorRouteObjects, shopPaths, shopRouteObjects } from './routes';

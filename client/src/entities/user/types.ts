@@ -27,8 +27,23 @@ export const userSummaryWireSchema = z.object({
   broadcast_terms_accepted_at: z.string().nullable().optional(),
   /** Guideline 1.2 — set on register / POST /me/accept-terms. */
   terms_accepted_at: z.string().nullable().optional(),
+  /** Present on /me when the user has a shop_vendors row (UserResource::self). */
+  vendor: z
+    .object({
+      id: z.number(),
+      store_name: z.string().nullable().optional(),
+      status: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 export type UserSummaryWire = z.infer<typeof userSummaryWireSchema>;
+
+export type UserVendorBrief = {
+  id: number;
+  storeName: string | null;
+  status: string | null;
+};
 
 export type UserSummary = {
   id: number;
@@ -54,6 +69,7 @@ export type UserSummary = {
   canBroadcast: boolean;
   broadcastTermsAcceptedAt: string | null;
   termsAcceptedAt: string | null;
+  vendor: UserVendorBrief | null;
 };
 
 export function toUserSummary(wire: UserSummaryWire): UserSummary {
@@ -81,6 +97,13 @@ export function toUserSummary(wire: UserSummaryWire): UserSummary {
     canBroadcast: Boolean(wire.can_broadcast),
     broadcastTermsAcceptedAt: wire.broadcast_terms_accepted_at ?? null,
     termsAcceptedAt: wire.terms_accepted_at ?? null,
+    vendor: wire.vendor
+      ? {
+          id: wire.vendor.id,
+          storeName: wire.vendor.store_name ?? null,
+          status: wire.vendor.status ?? null,
+        }
+      : null,
   };
 }
 

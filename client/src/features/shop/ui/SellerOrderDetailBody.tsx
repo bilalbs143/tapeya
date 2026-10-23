@@ -254,13 +254,7 @@ export function SellerOrderDetailBody({ order, storeApproved, storeStatusLabel }
 
       {writable ? (
         <StickyActionBar>
-          <Button
-            type="submit"
-            form="seller-order-form"
-            size="lg"
-            className="min-h-12 w-full rounded-field text-body-sm font-bold"
-            loading={busy}
-          >
+          <Button type="submit" form="seller-order-form" className="w-full font-bold" loading={busy}>
             Save Order
           </Button>
         </StickyActionBar>

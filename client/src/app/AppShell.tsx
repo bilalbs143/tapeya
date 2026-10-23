@@ -18,6 +18,8 @@ import {
 } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
+import { selectIsAuthenticated } from '@/shared/store/authSlice';
+import { useAppSelector } from '@/shared/store/hooks';
 
 type AppShellProps = {
   /** Full-bleed screens (reels) — rail stays on desktop, bottom nav overlays mobile. */
@@ -40,7 +42,8 @@ export function AppShell({ bare = false, className }: AppShellProps) {
 function AppShellChrome({ bare = false, className }: AppShellProps) {
   const { pathname } = useLocation();
   const rail = useShellRailValue();
-  const { data: me } = useMeQuery();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const keyboardInset = useKeyboardInset();
   const sideUser = me
     ? {
@@ -59,7 +62,9 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     isLiveImmersivePath(pathname);
   /** Hide BottomNav while keyboard open so `--keyboard-inset` is not double-counted with nav height. */
   const keyboardOpen = keyboardInset > 0;
-  const showBottomNav = !hideBottomNav && !keyboardOpen;
+  /** Guests only hit CMS/legal here — never show product tabs/rails. */
+  const showProductChrome = isAuthenticated;
+  const showBottomNav = showProductChrome && !hideBottomNav && !keyboardOpen;
   /** See `FIXED_HEIGHT_SHELL_PATHS` in shared/config/paths — pin height; page owns inner scroll. */
   const fixedFrame = isFixedHeightShellPath(pathname);
 
@@ -69,13 +74,13 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     return (
       <div
         className={cn(
-          'relative flex h-[100dvh] flex-col overflow-hidden',
+          'relative flex h-dvh flex-col overflow-hidden',
           immersiveTransparent ? 'bg-transparent' : undefined,
           className
         )}
       >
         <div className="hidden h-full tab:flex">
-          <SideNav user={sideUser} />
+          {showProductChrome ? <SideNav user={sideUser} /> : null}
           <div className="relative min-w-0 flex-1">
             <Outlet />
           </div>
@@ -91,12 +96,16 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   }
 
   return (
-    <div className={cn('bg-page flex h-[100dvh] flex-col overflow-hidden', className)}>
-      <ShellTopNav user={topUser} />
-      <MainDrawer />
+    <div className={cn('bg-page flex h-dvh flex-col overflow-hidden', className)}>
+      {showProductChrome ? (
+        <>
+          <ShellTopNav user={topUser} />
+          <MainDrawer />
+        </>
+      ) : null}
 
       <div className="bg-surface flex min-h-0 flex-1 overflow-hidden">
-        <SideNav className="hidden tab:flex" user={sideUser} />
+        {showProductChrome ? <SideNav className="hidden tab:flex" user={sideUser} /> : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -112,12 +121,14 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
                 </div>
               </main>
 
-              <aside className="border-border-subtle no-scrollbar sticky top-0 hidden w-[384px] shrink-0 flex-col gap-3.5 overflow-y-auto border-l px-3.5 py-4 desk:flex wide:w-[424px]">
-                {rail ?? <SideRail />}
-              </aside>
+              {showProductChrome ? (
+                <aside className="border-border-subtle no-scrollbar sticky top-0 hidden w-[384px] shrink-0 flex-col gap-3.5 overflow-y-auto border-l px-3.5 py-4 desk:flex wide:w-[424px]">
+                  {rail ?? <SideRail />}
+                </aside>
+              ) : null}
             </ShellScrollport>
 
-            <BottomNav className={cn('tab:hidden', !showBottomNav && 'hidden')} />
+            {showBottomNav ? <BottomNav className="tab:hidden" /> : null}
           </div>
         </div>
       </div>

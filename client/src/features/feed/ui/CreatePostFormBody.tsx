@@ -245,14 +245,7 @@ export function CreatePostFormBody({ flow }: CreatePostFormBodyProps) {
       </Form>
 
       <StickyActionBar edge>
-        <Button
-          type="submit"
-          form="create-post-form"
-          size="lg"
-          className="min-h-12 w-full"
-          disabled={!canPost}
-          loading={isLoading}
-        >
+        <Button type="submit" form="create-post-form" className="w-full" disabled={!canPost} loading={isLoading}>
           Post
         </Button>
       </StickyActionBar>

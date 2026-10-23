@@ -414,13 +414,13 @@ export function EditProfileForm({ user, onSaved, onUnsavedCount, onDelete, delet
           <Button
             type="button"
             variant="secondary"
-            className="min-h-12 shrink-0 px-4 font-bold"
+            className="shrink-0 px-4 font-bold"
             disabled={unsaved === 0 || isLoading}
             onClick={discard}
           >
             Discard
           </Button>
-          <Button type="submit" form="edit-profile-form" className="min-h-12 flex-1 font-bold" loading={isLoading}>
+          <Button type="submit" form="edit-profile-form" className="flex-1 font-bold" loading={isLoading}>
             Save Changes
           </Button>
         </div>

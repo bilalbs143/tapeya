@@ -325,13 +325,7 @@ export function SellerProductFormBody({ storeApproved, storeStatusLabel, product
 
       {canEdit ? (
         <StickyActionBar>
-          <Button
-            type="submit"
-            form="seller-product-form"
-            size="lg"
-            className="min-h-12 w-full rounded-field text-body-sm font-bold"
-            loading={busy}
-          >
+          <Button type="submit" form="seller-product-form" className="w-full font-bold" loading={busy}>
             {isEdit ? 'Save Product' : 'Create Product'}
           </Button>
         </StickyActionBar>

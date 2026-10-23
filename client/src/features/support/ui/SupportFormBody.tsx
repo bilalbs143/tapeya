@@ -151,14 +151,7 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
       </Form>
 
       <StickyActionBar>
-        <Button
-          type="submit"
-          form="support-form"
-          size="lg"
-          variant="positive"
-          className="min-h-12 w-full rounded-field text-body-sm font-bold"
-          loading={isLoading}
-        >
+        <Button type="submit" form="support-form" variant="positive" className="w-full font-bold" loading={isLoading}>
           {isLoading ? 'Sending…' : 'Send Message'}
         </Button>
       </StickyActionBar>

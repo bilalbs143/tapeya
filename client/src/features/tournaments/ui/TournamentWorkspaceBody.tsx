@@ -173,10 +173,7 @@ export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspac
 
       {empty ? (
         <StickyActionBar>
-          <Button
-            className="min-h-12 w-full rounded-field text-body-sm leading-normal font-bold"
-            onClick={() => openAttach(hasGroups ? 1 : undefined)}
-          >
+          <Button className="w-full font-bold" onClick={() => openAttach(hasGroups ? 1 : undefined)}>
             Add first team
           </Button>
         </StickyActionBar>
@@ -185,13 +182,13 @@ export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspac
           <div className="flex gap-2">
             <Button
               variant="secondary"
-              className="min-h-12 flex-1 rounded-field"
+              className="flex-1"
               disabled={!canAdd}
               onClick={() => openAttach(neediest != null ? neediest.g : hasGroups ? 1 : undefined)}
             >
               Add team
             </Button>
-            <Button asChild className="min-h-12 flex-1 rounded-field">
+            <Button asChild className="flex-1">
               <Link to={tournamentRoutes.squad(tournament.id)}>Squads</Link>
             </Button>
           </div>

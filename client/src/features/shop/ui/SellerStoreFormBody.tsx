@@ -128,13 +128,7 @@ export function SellerStoreFormBody({ store }: SellerStoreFormBodyProps) {
 
       {canEdit ? (
         <StickyActionBar>
-          <Button
-            type="submit"
-            form="seller-store"
-            size="lg"
-            className="min-h-12 w-full rounded-field text-body-sm font-bold"
-            loading={saving}
-          >
+          <Button type="submit" form="seller-store" className="w-full font-bold" loading={saving}>
             Save Store
           </Button>
         </StickyActionBar>

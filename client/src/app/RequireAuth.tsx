@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { isReturningUser } from '@/features/auth';
+import { guestAuthPath } from '@/features/auth';
 
-import { APP_PATHS } from '@/shared/config/paths';
 import { selectAuthHydrated, selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
-/** Auth gate — wait for session rehydrate; first install → register, else login. */
-
+/**
+ * Product gate — every non-auth route waits for session hydrate.
+ * Guests → register on first install, login on returning devices (`guestAuthPath`).
+ */
 export function RequireAuth() {
   const hydrated = useAppSelector(selectAuthHydrated);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -19,8 +20,8 @@ export function RequireAuth() {
   useEffect(() => {
     if (!hydrated || isAuthenticated) return;
     let cancelled = false;
-    void isReturningUser().then((returning) => {
-      if (!cancelled) setGuestTo(returning ? APP_PATHS.login : APP_PATHS.register);
+    void guestAuthPath().then((to) => {
+      if (!cancelled) setGuestTo(to);
     });
     return () => {
       cancelled = true;

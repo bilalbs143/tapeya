@@ -43,8 +43,24 @@ describe('toUserSummary', () => {
       canBroadcast: false,
       broadcastTermsAcceptedAt: null,
       termsAcceptedAt: null,
+      vendor: null,
     });
     expect(userHandle(user)).toBe('ayesha');
     expect(userRoleChips(user)).toEqual(['All Rounder', 'Right Handed Batter']);
+  });
+
+  it('maps optional vendor from /me', () => {
+    const wire: UserSummaryWire = {
+      id: 2,
+      name: 'Seller',
+      nickname: 'seller',
+      avatar_url: null,
+      vendor: { id: 9, store_name: 'Bat Co', status: 'approved' },
+    };
+    expect(toUserSummary(wire).vendor).toEqual({
+      id: 9,
+      storeName: 'Bat Co',
+      status: 'approved',
+    });
   });
 });

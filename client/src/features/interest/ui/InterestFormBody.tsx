@@ -64,9 +64,8 @@ export function InterestFormBody({ slug, payload }: InterestFormBodyProps) {
           <Button
             type="submit"
             form="interest-form"
-            size="lg"
             variant="positive"
-            className="min-h-12 w-full"
+            className="w-full"
             loading={submitting}
             disabled={actions.submitDisabled || withdrawing}
           >

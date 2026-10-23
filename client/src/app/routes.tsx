@@ -13,7 +13,7 @@ import { notificationRouteObjects } from '@/features/notifications';
 import { profileRouteObjects } from '@/features/profile';
 import { rankingRouteObjects } from '@/features/ranking';
 import { reelRouteObjects, reelShellRouteObjects } from '@/features/reels';
-import { shopRouteObjects } from '@/features/shop';
+import { sellerVendorRouteObjects, shopRouteObjects } from '@/features/shop';
 import { tournamentRouteObjects } from '@/features/tournaments';
 
 import { APP_PATHS } from '@/shared/config/paths';
@@ -22,16 +22,22 @@ import { AppShell } from './AppShell';
 import { RequireAuth } from './RequireAuth';
 import { RequireBroadcastAccess } from './RequireBroadcastAccess';
 import { RequireGuest } from './RequireGuest';
+import { RequireVendorAccess } from './RequireVendorAccess';
 import { shellRouteObjects } from './shellRoutes';
 
 /** Aggregates every feature route table (same deliberate exception as dialog registry). */
 
+/**
+ * Auth model:
+ * - `/login` `/register` `/otp` — guests only (`RequireGuest`)
+ * - `/pages/*` `/legal/*` — public Terms/Privacy for the terms gate (no product nav for guests)
+ * - everything else — `RequireAuth` (first install → register, returning → login)
+ */
 export const routes: RouteObject[] = [
   {
     element: <RequireGuest />,
     children: authRouteObjects,
   },
-  /** Public CMS/legal inside AppShell but outside RequireAuth (guests can open Terms). */
   {
     element: <AppShell />,
     children: cmsRouteObjects,
@@ -55,6 +61,15 @@ export const routes: RouteObject[] = [
       {
         element: <AppShell bare />,
         children: [...reelRouteObjects, ...scoringRouteObjects],
+      },
+      {
+        element: <RequireVendorAccess />,
+        children: [
+          {
+            element: <AppShell />,
+            children: sellerVendorRouteObjects,
+          },
+        ],
       },
       {
         element: <AppShell />,

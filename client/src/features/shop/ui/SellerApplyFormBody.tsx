@@ -116,13 +116,7 @@ export function SellerApplyFormBody({ flow }: SellerApplyFormBodyProps) {
       </Form>
 
       <StickyActionBar>
-        <Button
-          type="submit"
-          form="seller-apply"
-          size="lg"
-          className="min-h-12 w-full rounded-field text-body-sm font-bold"
-          loading={isLoading}
-        >
+        <Button type="submit" form="seller-apply" className="w-full font-bold" loading={isLoading}>
           Submit Application
         </Button>
       </StickyActionBar>

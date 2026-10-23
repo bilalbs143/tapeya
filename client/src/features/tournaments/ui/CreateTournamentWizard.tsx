@@ -307,25 +307,21 @@ export function CreateTournamentWizard({ onCreated, step, onStepChange, initial 
       <StickyActionBar>
         <div className="flex gap-2">
           {step === 0 ? (
-            <Button variant="secondary" className="min-h-12 flex-1 font-semibold" asChild>
+            <Button variant="secondary" className="flex-1 font-semibold" asChild>
               <Link to={tournamentRoutes.list()}>Cancel</Link>
             </Button>
           ) : (
-            <Button
-              variant="secondary"
-              className="min-h-12 flex-1 font-semibold"
-              onClick={() => onStepChange(step - 1)}
-            >
+            <Button variant="secondary" className="flex-1 font-semibold" onClick={() => onStepChange(step - 1)}>
               Back
             </Button>
           )}
           {step < 2 ? (
-            <Button className="min-h-12 flex-1 font-bold" disabled={!stepOk} onClick={() => onStepChange(step + 1)}>
+            <Button className="flex-1 font-bold" disabled={!stepOk} onClick={() => onStepChange(step + 1)}>
               {step === 0 ? 'Structure' : 'Where & When'}
             </Button>
           ) : (
             <Button
-              className="min-h-12 flex-1 font-bold"
+              className="flex-1 font-bold"
               disabled={!stepOk || isLoading}
               loading={isLoading}
               onClick={() => void submit()}

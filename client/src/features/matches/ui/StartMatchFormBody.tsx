@@ -241,7 +241,7 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
         <div className="flex w-full flex-col gap-2.5">
           <Button
             variant="positive"
-            className="min-h-12 w-full rounded-field text-body-lg leading-normal font-extrabold"
+            className="w-full font-bold"
             disabled={!ready || Boolean(busy)}
             loading={busy === 'start'}
             onClick={() => void submit('start')}
@@ -251,7 +251,7 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
           <div className="flex items-center gap-2.5">
             <Button
               variant="secondary"
-              className="min-h-12 shrink-0 rounded-field px-4 text-[12.5px] font-bold"
+              className="shrink-0 px-4 font-bold"
               disabled={!ready || Boolean(busy)}
               loading={busy === 'save'}
               onClick={() => void submit('save')}
