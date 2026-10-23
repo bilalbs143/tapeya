@@ -28,10 +28,10 @@ import { shellRouteObjects } from './shellRoutes';
 /** Aggregates every feature route table (same deliberate exception as dialog registry). */
 
 /**
- * Auth model:
+ * Auth model (no guest product shell):
  * - `/login` `/register` `/otp` — guests only (`RequireGuest`)
- * - `/pages/*` `/legal/*` — public Terms/Privacy for the terms gate (no product nav for guests)
- * - everything else — `RequireAuth` (first install → register, returning → login)
+ * - `/pages/*` `/legal/*` — public Terms/Privacy for the terms gate (shell without TopBar/nav)
+ * - everything else — `RequireAuth` (hydrate → login/register, then `/me` before Outlet)
  */
 export const routes: RouteObject[] = [
   {

@@ -10,7 +10,7 @@ export {
   useVerifyOtpMutation,
 } from './api/authApi';
 export { isValidNational, toE164 } from './lib/phone';
-export { guestAuthPath, isReturningUser, markReturningUser } from './lib/returningUser';
+export { guestAuthPath, guestAuthPathSync, isReturningUser, markReturningUser } from './lib/returningUser';
 export type {
   RegisterInput,
   RegisterResult,

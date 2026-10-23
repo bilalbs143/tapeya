@@ -7,7 +7,7 @@ vi.mock('./profiles', () => ({
 }));
 
 import { getProfiles } from './profiles';
-import { guestAuthPath, isReturningUser, markReturningUser } from './returningUser';
+import { guestAuthPath, guestAuthPathSync, isReturningUser, markReturningUser } from './returningUser';
 
 const getProfilesMock = vi.mocked(getProfiles);
 
@@ -19,12 +19,14 @@ describe('returningUser', () => {
   });
 
   it('treats a clean install as first-time', async () => {
+    expect(guestAuthPathSync()).toBe(APP_PATHS.register);
     expect(await isReturningUser()).toBe(false);
     expect(await guestAuthPath()).toBe(APP_PATHS.register);
   });
 
   it('sends returning devices to login after markReturningUser', async () => {
     markReturningUser();
+    expect(guestAuthPathSync()).toBe(APP_PATHS.login);
     expect(await isReturningUser()).toBe(true);
     expect(await guestAuthPath()).toBe(APP_PATHS.login);
   });
@@ -40,6 +42,7 @@ describe('returningUser', () => {
         token: null,
       },
     ]);
+    expect(guestAuthPathSync()).toBe(APP_PATHS.register);
     expect(await isReturningUser()).toBe(true);
     expect(await guestAuthPath()).toBe(APP_PATHS.login);
   });

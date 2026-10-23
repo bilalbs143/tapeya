@@ -6,8 +6,8 @@ import { userCanApplyAsSeller, userHasVendorAccess } from '@/entities/user';
 
 import { APP_PATHS } from '@/shared/config/paths';
 import { cn } from '@/shared/lib/cn';
-import { selectIsAuthenticated } from '@/shared/store/authSlice';
-import { useAppSelector } from '@/shared/store/hooks';
+import { openExternalStoreUrl } from '@/shared/native/storeLinks';
+import { useStoreLinks } from '@/shared/native/useStoreLinks';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { NAV_ICONS } from '@/shared/ui/icons';
@@ -29,12 +29,12 @@ type SideNavProps = {
   user?: SideNavUser | null;
 };
 
-/** Desktop grouped nav — same IA as phone drawer. */
+/** Desktop grouped nav — same IA as phone drawer. Only mounted when authenticated. */
 export function SideNav({ className, user }: SideNavProps) {
   const { pathname } = useLocation();
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
+  const { data: me } = useMeQuery();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
+  const { iosStoreUrl, playStoreUrl } = useStoreLinks();
   const groups = buildNavGroups({
     hasStore: userHasVendorAccess(me),
     canApplyAsSeller: userCanApplyAsSeller(me),
@@ -43,6 +43,22 @@ export function SideNav({ className, user }: SideNavProps) {
   async function handleLogout() {
     await logout().unwrap();
     window.location.assign(APP_PATHS.login);
+  }
+
+  function openIosStore() {
+    if (iosStoreUrl) {
+      openExternalStoreUrl(iosStoreUrl);
+      return;
+    }
+    toast({ title: 'iOS App Is Coming Soon', tone: 'info' });
+  }
+
+  function openAndroidStore() {
+    if (playStoreUrl) {
+      openExternalStoreUrl(playStoreUrl);
+      return;
+    }
+    toast({ title: 'Android App Is Coming Soon', tone: 'info' });
   }
 
   return (
@@ -68,22 +84,10 @@ export function SideNav({ className, user }: SideNavProps) {
             Scoring, live streams and reels work best on your phone.
           </p>
           <div className="mt-2 flex gap-1.5">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="min-w-0 flex-1"
-              onClick={() => toast({ title: 'iOS App Is Coming Soon', tone: 'info' })}
-            >
+            <Button type="button" variant="secondary" size="sm" className="min-w-0 flex-1" onClick={openIosStore}>
               iOS
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="min-w-0 flex-1"
-              onClick={() => toast({ title: 'Android App Is Coming Soon', tone: 'info' })}
-            >
+            <Button type="button" variant="secondary" size="sm" className="min-w-0 flex-1" onClick={openAndroidStore}>
               Android
             </Button>
           </div>
@@ -92,36 +96,29 @@ export function SideNav({ className, user }: SideNavProps) {
         <p className="text-dim font-mono mt-2.5 px-1 pb-1 text-4xs font-bold tracking-eyebrow uppercase">Appearance</p>
         <ThemeToggle variant="segment" className="mb-1" />
 
-        {user ? (
-          <button
-            type="button"
-            disabled={loggingOut}
-            className="text-danger-text mt-0.5 flex h-10 w-full items-center gap-2.5 rounded-field px-4 text-body-sm font-semibold disabled:opacity-50"
-            onClick={() => void handleLogout()}
-          >
-            {NAV_ICONS.logout}
-            Log Out
-          </button>
-        ) : (
-          <Link
-            to={APP_PATHS.login}
-            className="text-brand-text mt-0.5 flex h-10 w-full items-center gap-2.5 rounded-field px-4 text-body-sm font-semibold"
-          >
-            Log In
-          </Link>
-        )}
-
-        <Link
-          to={APP_PATHS.you}
-          aria-label={user?.name ? `Profile, ${user.name}` : 'Your profile'}
-          className="bg-page-deep border-border-subtle mt-1.5 flex items-center gap-2.5 rounded-panel border p-2.5"
+        <button
+          type="button"
+          disabled={loggingOut}
+          className="text-danger-text mt-0.5 flex h-10 w-full items-center gap-2.5 rounded-field px-4 text-body-sm font-semibold disabled:opacity-50"
+          onClick={() => void handleLogout()}
         >
-          <Avatar src={user?.avatarUrl ?? undefined} name={user?.name ?? 'You'} size="sm" />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-2xs font-bold text-ink">{user?.name ?? 'You'}</span>
-            {user?.handle ? <span className="text-dim font-mono block truncate text-4xs">@{user.handle}</span> : null}
-          </span>
-        </Link>
+          {NAV_ICONS.logout}
+          Log Out
+        </button>
+
+        {user ? (
+          <Link
+            to={APP_PATHS.you}
+            aria-label={`Profile, ${user.name}`}
+            className="bg-page-deep border-border-subtle mt-1.5 flex items-center gap-2.5 rounded-panel border p-2.5"
+          >
+            <Avatar src={user.avatarUrl ?? undefined} name={user.name} size="sm" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-2xs font-bold text-ink">{user.name}</span>
+              {user.handle ? <span className="text-dim font-mono block truncate text-4xs">@{user.handle}</span> : null}
+            </span>
+          </Link>
+        ) : null}
       </div>
     </aside>
   );

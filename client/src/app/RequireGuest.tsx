@@ -4,6 +4,7 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { selectAuthHydrated, selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
+/** Auth screens — bounce signed-in users home. */
 export function RequireGuest() {
   const hydrated = useAppSelector(selectAuthHydrated);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);

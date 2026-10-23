@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { guestAuthPath } from '@/features/auth';
+import { guestAuthPath, guestAuthPathSync, useMeQuery } from '@/features/auth';
 
 import { selectAuthHydrated, selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
+function SessionLoading() {
+  return <div className="text-muted p-8 text-sm">Loading Session…</div>;
+}
+
 /**
- * Product gate — every non-auth route waits for session hydrate.
- * Guests → register on first install, login on returning devices (`guestAuthPath`).
+ * Product routes only. Guests never see the app shell.
+ * Flow: hydrate → login/register → wait for `/me` → Outlet.
  */
 export function RequireAuth() {
   const hydrated = useAppSelector(selectAuthHydrated);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}`;
-  const [guestTo, setGuestTo] = useState<string | null>(null);
+  const [guestTo, setGuestTo] = useState(guestAuthPathSync);
 
   useEffect(() => {
     if (!hydrated || isAuthenticated) return;
@@ -28,16 +32,18 @@ export function RequireAuth() {
     };
   }, [hydrated, isAuthenticated]);
 
-  if (!hydrated) {
-    return <div className="text-muted p-8 text-sm">Loading Session…</div>;
-  }
+  const { data: me, isLoading: meLoading } = useMeQuery(undefined, {
+    skip: !hydrated || !isAuthenticated,
+  });
+
+  if (!hydrated) return <SessionLoading />;
 
   if (!isAuthenticated) {
-    if (!guestTo) {
-      return <div className="text-muted p-8 text-sm">Loading Session…</div>;
-    }
     return <Navigate to={guestTo} replace state={{ returnTo }} />;
   }
+
+  // Token present but `/me` not ready — keep blank (401 clears session in baseApi).
+  if (meLoading && !me) return <SessionLoading />;
 
   return <Outlet />;
 }

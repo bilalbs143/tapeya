@@ -45,6 +45,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const keyboardInset = useKeyboardInset();
+
   const sideUser = me
     ? {
         name: me.name ?? userHandle(me),
@@ -60,12 +61,8 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     pathname.startsWith(`${APP_PATHS.create}/`) ||
     isOperatorScoringPath(pathname) ||
     isLiveImmersivePath(pathname);
-  /** Hide BottomNav while keyboard open so `--keyboard-inset` is not double-counted with nav height. */
   const keyboardOpen = keyboardInset > 0;
-  /** Guests only hit CMS/legal here — never show product tabs/rails. */
-  const showProductChrome = isAuthenticated;
-  const showBottomNav = showProductChrome && !hideBottomNav && !keyboardOpen;
-  /** See `FIXED_HEIGHT_SHELL_PATHS` in shared/config/paths — pin height; page owns inner scroll. */
+  const showBottomNav = isAuthenticated && !hideBottomNav && !keyboardOpen;
   const fixedFrame = isFixedHeightShellPath(pathname);
 
   if (bare) {
@@ -80,7 +77,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
         )}
       >
         <div className="hidden h-full tab:flex">
-          {showProductChrome ? <SideNav user={sideUser} /> : null}
+          {isAuthenticated ? <SideNav user={sideUser} /> : null}
           <div className="relative min-w-0 flex-1">
             <Outlet />
           </div>
@@ -97,15 +94,21 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
 
   return (
     <div className={cn('bg-page flex h-dvh flex-col overflow-hidden', className)}>
-      {showProductChrome ? (
+      {isAuthenticated ? (
         <>
           <ShellTopNav user={topUser} />
           <MainDrawer />
         </>
       ) : null}
 
-      <div className="bg-surface flex min-h-0 flex-1 overflow-hidden">
-        {showProductChrome ? <SideNav className="hidden tab:flex" user={sideUser} /> : null}
+      {/* Guest CMS/legal: no TopBar — pad the notch so ScreenBar stays layout-dumb. */}
+      <div
+        className={cn(
+          'bg-surface flex min-h-0 flex-1 overflow-hidden',
+          !isAuthenticated && 'pt-[env(safe-area-inset-top)]'
+        )}
+      >
+        {isAuthenticated ? <SideNav className="hidden tab:flex" user={sideUser} /> : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -121,7 +124,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
                 </div>
               </main>
 
-              {showProductChrome ? (
+              {isAuthenticated ? (
                 <aside className="border-border-subtle no-scrollbar sticky top-0 hidden w-[384px] shrink-0 flex-col gap-3.5 overflow-y-auto border-l px-3.5 py-4 desk:flex wide:w-[424px]">
                   {rail ?? <SideRail />}
                 </aside>

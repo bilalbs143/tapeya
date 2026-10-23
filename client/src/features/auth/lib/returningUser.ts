@@ -24,9 +24,19 @@ export function markReturningUser(): void {
 }
 
 /**
- * Where to send an unauthenticated user hitting a protected route.
- * First install → register; after a successful OTP on this device → login.
+ * Sync cold-start target (flag only). Profiles without the flag are corrected
+ * async by `guestAuthPath` — rare after `markReturningUser` on OTP.
  */
+export function guestAuthPathSync(): string {
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === '1') return APP_PATHS.login;
+  } catch {
+    // private mode
+  }
+  return APP_PATHS.register;
+}
+
+/** First install → register; returning device → login. */
 export async function guestAuthPath(): Promise<string> {
   return (await isReturningUser()) ? APP_PATHS.login : APP_PATHS.register;
 }

@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 
+import { AppUpdateDialog } from './AppUpdateDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import { SessionExpiredDialog } from './SessionExpiredDialog';
 
@@ -7,6 +8,7 @@ import { SessionExpiredDialog } from './SessionExpiredDialog';
 export const DIALOG_COMPONENTS = {
   confirm: ConfirmDialog,
   sessionExpired: SessionExpiredDialog,
+  appUpdate: AppUpdateDialog,
 };
 
 type DialogRegistry = typeof DIALOG_COMPONENTS;

@@ -17,6 +17,7 @@ import { ToastHost } from '@/shared/ui/toast';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { NativeEffects } from './NativeEffects';
+import { ProgrammaticDialogPrompts } from './ProgrammaticDialogPrompts';
 import { RealtimeEffects } from './RealtimeEffects';
 
 type AppProvidersProps = {
@@ -66,6 +67,7 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <Suspense fallback={<div className="text-muted p-8 text-sm">Loading…</div>}>{children}</Suspense>
                   <NativeEffects />
                   <RealtimeEffects />
+                  <ProgrammaticDialogPrompts />
                   <DialogHost />
                   <TermsAcceptanceGate />
                   <ReelUploadProgressDialog />

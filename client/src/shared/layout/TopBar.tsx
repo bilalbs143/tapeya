@@ -7,7 +7,6 @@ import { useGetNotificationUnreadCountQuery } from '@/features/notifications';
 import { APP_PATHS } from '@/shared/config/paths';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/Avatar';
-import { Button } from '@/shared/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -235,16 +234,7 @@ export function DesktopTopBar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
-          <Button
-            asChild
-            size="sm"
-            variant="secondary"
-            className="border-white/20 bg-white/12 text-white hover:bg-white/18"
-          >
-            <Link to={APP_PATHS.login}>Log In</Link>
-          </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

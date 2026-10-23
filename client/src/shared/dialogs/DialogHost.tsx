@@ -16,6 +16,7 @@ export function DialogHost() {
   return (
     <BaseDialog
       open
+      presentation="responsive"
       showClose={showClose}
       onOpenChange={(open) => {
         if (open) return;

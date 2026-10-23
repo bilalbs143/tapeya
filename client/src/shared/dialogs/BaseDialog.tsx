@@ -19,34 +19,51 @@ function Overlay({ className }: { className?: string }) {
   );
 }
 
+export type DialogPresentation = 'responsive' | 'sheet' | 'dialog';
+
 type BaseDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contentClassName?: string;
-  /** Forces the bottom-sheet presentation at every width instead of centring above `tab`. */
-  sheet?: boolean;
+  /**
+   * Overlay chrome — sheets and dialogs are distinct:
+   * - `responsive` — sheet below `tab`, centred dialog at `tab+` (default for feature overlays)
+   * - `sheet` — bottom sheet at every width (scoring pickers, comment sheets)
+   * - `dialog` — centred card at every width (confirm, session expired, app update)
+   */
+  presentation?: DialogPresentation | undefined;
+  /** Shorthand for `presentation="sheet"`. Ignored when `presentation` is set. */
+  sheet?: boolean | undefined;
   showClose?: boolean;
-  /** Sheet handle — default on when `sheet` + dismissible. */
+  /** Sheet handle — default on for sheet presentations when dismissible. */
   showHandle?: boolean | undefined;
   /** When false, blocks outside click / Escape / close affordance (wicket summary). */
   dismissible?: boolean;
   children: ReactNode;
 };
 
-/** Registry entries share this chrome; bodies vary per key. §13 */
+const SHEET_CHROME =
+  'inset-x-0 bottom-[var(--keyboard-inset,0px)] rounded-t-sheet pb-[var(--safe-above-keyboard)] data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out';
+
+const DIALOG_CHROME =
+  'top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-dialog -translate-x-1/2 -translate-y-1/2 rounded-card shadow-pop data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out';
+
+/** Registry + feature overlays share this chrome; bodies vary per key. §13 */
 export function BaseDialog({
   open,
   onOpenChange,
   contentClassName,
+  presentation,
   sheet = false,
   showClose = true,
   showHandle,
   dismissible = true,
   children,
 }: BaseDialogProps) {
+  const mode: DialogPresentation = presentation ?? (sheet ? 'sheet' : 'responsive');
   const canClose = dismissible;
   const showX = showClose && canClose;
-  const handleVisible = showHandle ?? (sheet && canClose);
+  const handleVisible = showHandle ?? (mode === 'sheet' && canClose);
 
   return (
     <DialogPrimitive.Root
@@ -61,17 +78,16 @@ export function BaseDialog({
         <DialogPrimitive.Content
           className={cn(
             'bg-surface border-border fixed z-50 border text-ink focus:outline-none',
-            // Mobile sheets: lift with `--keyboard-inset`; `--safe-above-keyboard` zeros
-            // home-indicator pad once the keyboard already covers it (no double gap).
-            // `tab:bottom-auto` clears the inset for centred cards.
-            sheet
-              ? 'inset-x-0 bottom-[var(--keyboard-inset,0px)] rounded-t-sheet pb-[var(--safe-above-keyboard)] data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out'
-              : [
-                  'inset-x-0 bottom-[var(--keyboard-inset,0px)] rounded-t-sheet pb-[var(--safe-above-keyboard)] data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
-                  'tab:top-1/2 tab:left-1/2 tab:bottom-auto tab:w-full tab:max-w-dialog tab:-translate-x-1/2 tab:-translate-y-1/2',
-                  'tab:rounded-card tab:pb-0 tab:shadow-pop',
-                  'tab:data-[state=open]:animate-dialog-in tab:data-[state=closed]:animate-dialog-out',
-                ],
+            // Sheet: lift with `--keyboard-inset`; `--safe-above-keyboard` zeros home-indicator
+            // pad once the keyboard already covers it. Dialog: centred card, no sheet pad.
+            mode === 'sheet' && SHEET_CHROME,
+            mode === 'dialog' && DIALOG_CHROME,
+            mode === 'responsive' && [
+              SHEET_CHROME,
+              'tab:top-1/2 tab:left-1/2 tab:bottom-auto tab:w-full tab:max-w-dialog tab:-translate-x-1/2 tab:-translate-y-1/2',
+              'tab:rounded-card tab:pb-0 tab:shadow-pop',
+              'tab:data-[state=open]:animate-dialog-in tab:data-[state=closed]:animate-dialog-out',
+            ],
             contentClassName
           )}
           onPointerDownOutside={(event) => {
