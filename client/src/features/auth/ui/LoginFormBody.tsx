@@ -5,7 +5,7 @@ import { Form } from '@/shared/ui/Form';
 import { InfoIcon, PlusIcon } from '@/shared/ui/icons';
 
 import { authRoutes } from '../routes';
-import { AuthShell, AuthSwitch, AuthWhatsAppNote } from './AuthShell';
+import { AuthShell, AuthSwitch } from './AuthShell';
 import { PhoneField } from './PhoneField';
 import { SavedProfileList } from './SavedProfileList';
 import type { useLoginForm } from './useLoginForm';
@@ -89,8 +89,6 @@ export function LoginFormBody({ flow }: LoginFormBodyProps) {
             }}
             error={error ?? undefined}
           />
-
-          <AuthWhatsAppNote />
 
           {notFound ? (
             <div className="border-danger/40 bg-danger/10 flex flex-col gap-2.5 rounded-panel border p-3.5 text-left">

@@ -6,8 +6,6 @@ import { cn } from '@/shared/lib/cn';
 import { ChevronLeftIcon } from '@/shared/ui/icons';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
-import { WhatsAppNotice } from './WhatsAppNotice';
-
 type AuthBack =
   | { to: To; state?: unknown; label?: string; onClick?: undefined }
   | { onClick: () => void; label?: string; to?: undefined; state?: undefined };
@@ -97,8 +95,4 @@ export function AuthSwitch({ prompt, to, label, state }: { prompt: string; to: T
       </Link>
     </span>
   );
-}
-
-export function AuthWhatsAppNote() {
-  return <WhatsAppNotice className="mt-5" />;
 }

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/cn';
+import { HScroll } from '@/shared/ui/HScroll';
 
 import { shopPaths } from '../lib/shopPaths';
 import type { ShopBrand } from '../model/schemas';
@@ -8,13 +9,15 @@ import type { ShopBrand } from '../model/schemas';
 type BrandRailProps = {
   brands?: ShopBrand[] | undefined;
   className?: string | undefined;
+  /** Parent already full-bleed — default cancels a `px-4` gutter. */
+  bleed?: boolean | undefined;
 };
 
-export function BrandRail({ brands = [], className }: BrandRailProps) {
+export function BrandRail({ brands = [], className, bleed = true }: BrandRailProps) {
   if (!brands.length) return null;
 
   return (
-    <div className={cn('no-scrollbar flex gap-2 overflow-x-auto', className)}>
+    <HScroll bleed={bleed} className={cn('gap-2', className)}>
       {brands.map((b) => {
         const to = b.slug ? shopPaths.brand(b.slug) : shopPaths.home();
         return (
@@ -34,6 +37,6 @@ export function BrandRail({ brands = [], className }: BrandRailProps) {
           </Link>
         );
       })}
-    </div>
+    </HScroll>
   );
 }

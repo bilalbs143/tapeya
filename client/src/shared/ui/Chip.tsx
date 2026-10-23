@@ -3,6 +3,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/shared/lib/cn';
 
+import { HScroll } from './HScroll';
+
 /** Selectable chips — selected = brand tint + border (not colour alone). Use Tabs for pane switches. */
 const chipVariants = cva(
   [
@@ -72,15 +74,12 @@ export function Chip({
 /** Horizontal scroll — wrapping filter rows steal vertical space on narrow screens. */
 export function ChipRow({ className, children, ...props }: ComponentProps<'div'>) {
   return (
-    <div
-      className={cn(
-        /* py-0.5: overflow-x-auto enables overflow-y and would clip borders without it */
-        'no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 py-0.5',
-        className
-      )}
+    <HScroll
+      /* py-0.5: overflow-x-auto enables overflow-y and would clip borders without it */
+      className={cn('items-center gap-2 py-0.5', className)}
       {...props}
     >
       {children}
-    </div>
+    </HScroll>
   );
 }

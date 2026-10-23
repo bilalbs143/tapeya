@@ -7,6 +7,7 @@ import { liveRoutes } from '@/features/live';
 import { APP_PATHS } from '@/shared/config/paths';
 import { cn } from '@/shared/lib/cn';
 import { BallChip } from '@/shared/ui/BallChip';
+import { HScroll } from '@/shared/ui/HScroll';
 import { LiveBadge } from '@/shared/ui/LiveBadge';
 
 import { HomeHeroCarousel } from './HomeHeroCarousel';
@@ -64,11 +65,11 @@ export function MobileHomeHeader({
               View More <span className="text-body-sm font-bold">›</span>
             </Link>
           </div>
-          <div className="no-scrollbar flex gap-2.5 overflow-x-auto px-4">
+          <HScroll bleed={false} className="gap-2.5">
             {matches.map((m) => (
               <LiveScoreCard key={m.id} match={m} />
             ))}
-          </div>
+          </HScroll>
         </div>
       ) : null}
 
@@ -83,11 +84,11 @@ export function MobileHomeHeader({
               View More <span className="text-body-sm font-bold">›</span>
             </Link>
           </div>
-          <div className="no-scrollbar flex gap-2.5 overflow-x-auto px-4">
+          <HScroll bleed={false} className="gap-2.5">
             {streaming.map((s) => (
               <LiveNowCard key={s.id} stream={s} />
             ))}
-          </div>
+          </HScroll>
         </div>
       ) : null}
     </div>

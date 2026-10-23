@@ -73,7 +73,7 @@ describe('homeSchemas', () => {
       brand: { name: 'CA' },
       vendor: { store_name: 'Sadar Sports', slug: 'sadar-sports' },
     });
-    expect(product.price).toBe('6,400');
+    expect(product.price).toBe('PKR 6,400');
     expect(product.badge).toBe('NEW');
     expect(product.image).toBe('https://cdn.example/bat.jpg');
     expect(product.slug).toBe('ca-plus-bat');

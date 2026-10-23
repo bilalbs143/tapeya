@@ -184,7 +184,7 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
           {t.value === 'explore' && reelsLoading ? <ReelBandSkeleton /> : null}
 
           {t.value === 'explore' && !reelsLoading && reels?.length ? (
-            <div className="border-border-subtle border-b px-4 py-3.5">
+            <div className="border-border-subtle border-b py-3.5">
               <ReelBand reels={reels} />
             </div>
           ) : null}

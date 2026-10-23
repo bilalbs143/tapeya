@@ -27,6 +27,7 @@ export {
   useUpdateVendorCategoryMutation,
   useUpdateVendorStoreMutation,
 } from './api/vendorShopApi';
+export { formatPkr } from './lib/money';
 export type {
   ShopBrand,
   ShopCart,

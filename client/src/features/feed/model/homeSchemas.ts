@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { formatPkr } from '@/features/shop';
+
 function teamShort(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) return '—';
@@ -208,12 +210,6 @@ export const highlightWireSchema = z
 
 export type HighlightWire = z.infer<typeof highlightWireSchema>;
 
-function formatPrice(value: number | string): string {
-  const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(n)) return String(value);
-  return new Intl.NumberFormat('en-PK', { maximumFractionDigits: 0 }).format(n);
-}
-
 function plainScore(runs: number | undefined, wickets: number | undefined): string {
   return `${runs ?? 0}/${wickets ?? 0}`;
 }
@@ -312,7 +308,7 @@ export function toHomeProduct(row: ShopProductWire): HomeProduct {
     id: row.id,
     slug: row.slug?.trim() || null,
     name: row.name,
-    price: formatPrice(price),
+    price: formatPkr(price),
     image,
     badge,
     brand: row.brand?.name ?? null,

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
+import { HScroll } from '@/shared/ui/HScroll';
 import { EmptyState, ErrorState } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
@@ -88,12 +89,12 @@ export function ProductRail({
   if (!products.length) return null;
 
   return (
-    <ul className={cn('no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4', className)}>
+    <HScroll as="ul" className={cn('gap-3', className)}>
       {products.map((p) => (
         <li key={p.id} className="w-36 shrink-0">
           <ProductCard product={p} className="h-full" />
         </li>
       ))}
-    </ul>
+    </HScroll>
   );
 }

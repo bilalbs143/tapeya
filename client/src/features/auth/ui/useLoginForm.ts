@@ -46,9 +46,8 @@ export function useLoginForm() {
   const [sending, setSending] = useState(false);
 
   const savedMode = mode === 'saved' && profiles.length > 0;
-  const signingInAs = busyPhone ? (profiles.find((p) => p.phone === busyPhone)?.name ?? 'you') : null;
   const title = loginShellTitle(savedMode);
-  const description = loginShellDescription(savedMode, signingInAs);
+  const description = loginShellDescription(savedMode);
 
   async function requestAndGo(phone: string, extra: Record<string, unknown> = {}) {
     const result = await requestOtp({ phone }).unwrap();

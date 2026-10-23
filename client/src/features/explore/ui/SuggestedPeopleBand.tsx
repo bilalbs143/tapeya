@@ -6,6 +6,7 @@ import { SectionLabel } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { VerifiedBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
+import { HScroll } from '@/shared/ui/HScroll';
 import { toast } from '@/shared/ui/toast';
 
 import { useFollowUserMutation, useUnfollowUserMutation } from '../api/exploreApi';
@@ -24,9 +25,10 @@ export function SuggestedPeopleBand({ users = [], className, title = 'Suggested 
   if (!users.length) return null;
 
   return (
-    <section className={cn('flex flex-col gap-2.5 px-4', className)}>
+    <section className={cn('flex flex-col gap-2.5', className)}>
       <SectionLabel
         as="h2"
+        className="px-4"
         action={
           <Link to={exploreRoutes.discover()} className="text-brand-text text-3xs font-bold">
             View More ›
@@ -35,11 +37,11 @@ export function SuggestedPeopleBand({ users = [], className, title = 'Suggested 
       >
         {title}
       </SectionLabel>
-      <ul className="no-scrollbar flex gap-3 overflow-x-auto">
+      <HScroll as="ul" bleed={false} className="gap-3">
         {users.slice(0, 8).map((user) => (
           <SuggestedChip key={user.id} user={user} />
         ))}
-      </ul>
+      </HScroll>
     </section>
   );
 }

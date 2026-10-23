@@ -48,11 +48,7 @@ export function SavedProfileList({
               <UserAvatar user={{ name: p.name, avatarUrl: p.avatarUrl }} className="size-10" />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-body-sm font-bold text-ink">{p.name}</span>
-                {isBusy ? (
-                  <span className="text-brand-text font-mono text-4xs font-medium tracking-wide">
-                    CHECKING THIS DEVICE
-                  </span>
-                ) : stale ? (
+                {stale ? (
                   <span className="text-danger-soft font-mono text-4xs font-medium tracking-wide">
                     CODE NEEDED · TOKEN EXPIRED
                   </span>

@@ -9,7 +9,7 @@ import { Input } from '@/shared/ui/Input';
 
 import { NICK_MAX } from '../lib/constants';
 import { authRoutes } from '../routes';
-import { AuthShell, AuthSwitch, AuthWhatsAppNote } from './AuthShell';
+import { AuthShell, AuthSwitch } from './AuthShell';
 import { PhoneField } from './PhoneField';
 import type { useRegisterForm } from './useRegisterForm';
 
@@ -111,8 +111,6 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
           hint={errors.nickname ? undefined : 'What teammates call you on the scorecard.'}
           className="h-12 rounded-panel text-sm leading-normal"
         />
-
-        <AuthWhatsAppNote />
 
         <div>
           <label className="flex cursor-pointer items-start gap-3">

@@ -21,13 +21,10 @@ describe('loginShellTitle', () => {
 });
 
 describe('loginShellDescription', () => {
-  it('covers phone, idle saved, and signing-in copy', () => {
-    expect(loginShellDescription(false, null)).toBe(
-      "Your number is the account. We'll text a 4-digit code — no password."
-    );
-    expect(loginShellDescription(true, null)).toBe(
+  it('covers phone vs saved copy without a loading swap', () => {
+    expect(loginShellDescription(false)).toBe("Your number is the account. We'll text a 4-digit code — no password.");
+    expect(loginShellDescription(true)).toBe(
       "Tap a profile to continue. We'll only text a code if this device has gone stale."
     );
-    expect(loginShellDescription(true, 'Ali')).toBe('Signing In as Ali…');
   });
 });

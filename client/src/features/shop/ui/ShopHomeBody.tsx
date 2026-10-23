@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { ScreenBar } from '@/shared/layout';
+import { HScroll } from '@/shared/ui/HScroll';
 import { SearchBar } from '@/shared/ui/SearchBar';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -61,21 +62,23 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
         </div>
 
         {!searching ? (
-          <div className="px-4 pt-3 pb-2.5">
+          <div className="pt-3 pb-2.5">
             {brandsLoading ? (
-              <div className="no-scrollbar flex gap-2.5 overflow-x-auto">
+              <HScroll className="gap-2.5" bleed={false}>
                 {[0, 1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-14 w-14 shrink-0 rounded-full" />
                 ))}
-              </div>
+              </HScroll>
             ) : brandsError ? (
-              <ErrorState
-                title="Couldn't Load Brands"
-                description="Try again in a moment."
-                onRetry={() => void refetchBrands()}
-              />
+              <div className="px-4">
+                <ErrorState
+                  title="Couldn't Load Brands"
+                  description="Try again in a moment."
+                  onRetry={() => void refetchBrands()}
+                />
+              </div>
             ) : brands.length ? (
-              <BrandRail brands={brands} />
+              <BrandRail brands={brands} bleed={false} />
             ) : null}
           </div>
         ) : (
@@ -106,11 +109,11 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
         ) : railsLoading ? (
           <div className="flex flex-col gap-4">
             <Skeleton className="h-4 w-32" />
-            <div className="no-scrollbar flex gap-3 overflow-x-auto">
+            <HScroll className="gap-3">
               {[0, 1, 2].map((i) => (
                 <Skeleton key={i} className="h-48 w-36 shrink-0 rounded-card" />
               ))}
-            </div>
+            </HScroll>
           </div>
         ) : railsError ? (
           <ErrorState title="Couldn't Load the Shop" description="Featured rails didn't answer." onRetry={retryRails} />

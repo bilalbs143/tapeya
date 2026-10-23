@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { APP_PATHS } from '@/shared/config/paths';
 import { SectionLabel } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
+import { HScroll } from '@/shared/ui/HScroll';
 import { Skeleton } from '@/shared/ui/states';
 
 import type { ReelBandItem } from '../model/schemas';
@@ -37,7 +38,7 @@ export function ReelBand({
   return (
     <section className={cn(className)}>
       {compact ? (
-        <div className="mb-2.5 flex items-baseline justify-between">
+        <div className="mb-2.5 flex items-baseline justify-between px-4">
           <h2 className="text-2xs font-extrabold text-ink">{title}</h2>
           <Link to={to} className="text-brand-text text-3xs font-bold">
             View More
@@ -46,6 +47,7 @@ export function ReelBand({
       ) : (
         <SectionLabel
           as="h2"
+          className="px-4"
           action={
             <Link to={to} className="text-brand-text text-3xs font-bold">
               View More ›
@@ -56,7 +58,7 @@ export function ReelBand({
         </SectionLabel>
       )}
 
-      <ul className="no-scrollbar flex gap-2 overflow-x-auto">
+      <HScroll as="ul" bleed={false} className="gap-2">
         {reels.map((reel) => (
           <li key={reel.id} className="shrink-0">
             <Link
@@ -83,7 +85,7 @@ export function ReelBand({
             </Link>
           </li>
         ))}
-      </ul>
+      </HScroll>
     </section>
   );
 }
@@ -92,19 +94,19 @@ export function ReelBandSkeleton({ compact = false, count = 4, className }: Reel
   const tile = compact ? 'h-[104px] w-[78px] rounded-icon' : 'h-[198px] w-[118px] rounded-card';
 
   return (
-    <div className={cn('border-border-subtle border-b px-4 py-3.5', className)} aria-hidden aria-busy="true">
-      <div className="flex items-baseline gap-2 pb-2">
+    <div className={cn('border-border-subtle border-b py-3.5', className)} aria-hidden aria-busy="true">
+      <div className="flex items-baseline gap-2 px-4 pb-2">
         <Skeleton className="h-2.5 w-14" />
         <span className="flex-1" />
         <Skeleton className="h-2.5 w-16" />
       </div>
-      <ul className="no-scrollbar flex gap-2 overflow-hidden">
+      <HScroll as="ul" bleed={false} className="gap-2 overflow-hidden">
         {Array.from({ length: count }, (_, i) => (
           <li key={i} className="shrink-0">
             <Skeleton className={tile} />
           </li>
         ))}
-      </ul>
+      </HScroll>
     </div>
   );
 }

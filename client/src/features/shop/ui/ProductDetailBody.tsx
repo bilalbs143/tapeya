@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/shared/ui/Button';
+import { HScroll } from '@/shared/ui/HScroll';
 import { SafeHtml } from '@/shared/ui/SafeHtml';
 import { StickyActionBar } from '@/shared/ui/StickyActionBar';
 
@@ -45,7 +46,7 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
         </div>
 
         {product.imageUrls.length > 1 ? (
-          <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pt-2.5">
+          <HScroll bleed={false} className="gap-2 pt-2.5">
             {product.imageUrls.map((src, i) => (
               <button
                 key={src}
@@ -60,7 +61,7 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
                 <img src={src} alt="" className="h-full w-full object-cover" />
               </button>
             ))}
-          </div>
+          </HScroll>
         ) : null}
 
         <div className="flex flex-col px-4 pt-4">

@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { HScroll } from '@/shared/ui/HScroll';
 
 import type { ShopCategory } from '../model/schemas';
 
@@ -13,7 +14,7 @@ export function CategoryChips({ categories = [], value = null, onChange, classNa
   if (!categories.length) return null;
 
   return (
-    <div className={cn('no-scrollbar flex gap-1.5 overflow-x-auto', className)} role="tablist" aria-label="Categories">
+    <HScroll className={cn('gap-1.5', className)} role="tablist" aria-label="Categories">
       <button
         type="button"
         role="tab"
@@ -44,6 +45,6 @@ export function CategoryChips({ categories = [], value = null, onChange, classNa
           </button>
         );
       })}
-    </div>
+    </HScroll>
   );
 }
