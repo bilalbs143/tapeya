@@ -70,6 +70,11 @@ export function isLiveImmersivePath(pathname: string): boolean {
   return /^\/live\/broadcast\/[^/]+$/.test(pathname) || /^\/live\/go-live\/[^/]+$/.test(pathname);
 }
 
+/** Immersive reels player (`/reels`, `/reels/:id`) — not create (`/create/reel`). */
+export function isReelsImmersivePath(pathname: string): boolean {
+  return pathname === APP_PATHS.reels || pathname.startsWith(`${APP_PATHS.reels}/`);
+}
+
 /** Fixed player; chat column gets keyboard inset only. */
 export function isLiveWatchPath(pathname: string): boolean {
   return /^\/live\/broadcast\/[^/]+$/.test(pathname);

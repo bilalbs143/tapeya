@@ -47,6 +47,7 @@ export function ReelsPageBody({
   slideHandlers,
 }: ReelsPageBodyProps) {
   if (isLoading && !ordered.length) {
+    // Full-bleed skeleton — dark `--c-skeleton*` via ReelsPage `data-theme="dark"`.
     return <Skeleton className="h-full w-full rounded-none" />;
   }
   if (isError && !ordered.length) {

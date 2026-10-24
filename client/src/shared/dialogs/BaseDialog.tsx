@@ -39,6 +39,8 @@ type BaseDialogProps = {
   showHandle?: boolean | undefined;
   /** When false, blocks outside click / Escape / close affordance (wicket summary). */
   dismissible?: boolean;
+  /** Optional Radix open-focus override — set at the call site when needed. */
+  onOpenAutoFocus?: ((event: Event) => void) | undefined;
   children: ReactNode;
 };
 
@@ -58,6 +60,7 @@ export function BaseDialog({
   showClose = true,
   showHandle,
   dismissible = true,
+  onOpenAutoFocus,
   children,
 }: BaseDialogProps) {
   const mode: DialogPresentation = presentation ?? (sheet ? 'sheet' : 'responsive');
@@ -90,6 +93,7 @@ export function BaseDialog({
             ],
             contentClassName
           )}
+          onOpenAutoFocus={onOpenAutoFocus}
           onPointerDownOutside={(event) => {
             if (!canClose) event.preventDefault();
           }}

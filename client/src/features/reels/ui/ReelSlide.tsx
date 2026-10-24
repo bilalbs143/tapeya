@@ -136,7 +136,7 @@ export function ReelSlide({
     setScrubbing(false);
   }
 
-  const bottomPad = desk ? 'bottom-4' : 'bottom-[calc(104px+env(safe-area-inset-bottom))]';
+  const bottomPad = desk ? 'bottom-4' : 'bottom-[calc(94px+env(safe-area-inset-bottom))]';
   const displayProgress = active ? progress : 0;
 
   return (

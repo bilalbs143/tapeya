@@ -18,6 +18,7 @@ export function DialogHost() {
       open
       presentation="responsive"
       showClose={showClose}
+      onOpenAutoFocus={(event) => event.preventDefault()}
       onOpenChange={(open) => {
         if (open) return;
         if (top.key === 'sessionExpired') {

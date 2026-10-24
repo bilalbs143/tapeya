@@ -1,6 +1,5 @@
 import { ReportSheet } from '@/features/feed';
 
-import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui/IconButton';
 import { ChevronDownIcon } from '@/shared/ui/icons';
 
@@ -53,8 +52,10 @@ export default function ReelsPage() {
     />
   );
 
+  // Scoped dark tokens (like overlay BottomNav) — page bg, skeleton, empty/error stay dark
+  // even when the app theme is light. Does not flip `<html>`; portals (comments/report) stay app theme.
   return (
-    <div className={cn('relative h-full', desk ? 'bg-surface' : 'bg-page')}>
+    <div data-theme="dark" className="bg-page text-ink relative h-full">
       {desk ? (
         ordered.length ? (
           <div className="flex h-full items-center justify-center gap-3 px-3 py-4">
@@ -85,7 +86,7 @@ export default function ReelsPage() {
             </div>
           </div>
         ) : (
-          // Empty / error / loading stay on themed surface — not inside the black player card.
+          // Empty / error / loading use dark page tokens — not the black player card.
           body
         )
       ) : (

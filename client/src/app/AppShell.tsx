@@ -4,7 +4,13 @@ import { useMeQuery } from '@/features/auth';
 
 import { userHandle } from '@/entities/user';
 
-import { APP_PATHS, isFixedHeightShellPath, isLiveImmersivePath, isOperatorScoringPath } from '@/shared/config/paths';
+import {
+  APP_PATHS,
+  isFixedHeightShellPath,
+  isLiveImmersivePath,
+  isOperatorScoringPath,
+  isReelsImmersivePath,
+} from '@/shared/config/paths';
 import {
   BottomNav,
   MainDrawer,
@@ -68,6 +74,9 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   if (bare) {
     // Go-live on-air needs a transparent phone shell so the native camera underlay shows through.
     const immersiveTransparent = isLiveImmersivePath(pathname);
+    // Phone reels: dark tokens for page bg + Suspense/skeleton before the player paints
+    // (same scoped `data-theme` pattern as overlay BottomNav). Desk SideNav stays app theme.
+    const reelsPhoneDark = isReelsImmersivePath(pathname);
     return (
       <div
         className={cn(
@@ -83,7 +92,12 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           </div>
         </div>
         <div
-          className={cn('relative flex min-h-0 flex-1 flex-col tab:hidden', immersiveTransparent && 'bg-transparent')}
+          data-theme={reelsPhoneDark ? 'dark' : undefined}
+          className={cn(
+            'relative flex min-h-0 flex-1 flex-col tab:hidden',
+            immersiveTransparent && 'bg-transparent',
+            reelsPhoneDark && 'bg-page text-ink'
+          )}
         >
           <Outlet />
           {showBottomNav ? <BottomNav overlay /> : null}
