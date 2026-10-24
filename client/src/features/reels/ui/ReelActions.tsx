@@ -1,8 +1,7 @@
 import { UserAvatar, userProfilePath } from '@/entities/user';
 
 import { cn } from '@/shared/lib/cn';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/DropdownMenu';
-import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, ShareIcon } from '@/shared/ui/icons';
+import { BookmarkIcon, CommentIcon, FlagIcon, HeartIcon, ShareIcon } from '@/shared/ui/icons';
 
 import type { Reel } from '../model/schemas';
 
@@ -13,10 +12,8 @@ type ReelActionsProps = {
   onFollow: () => void;
   onComments: () => void;
   onReport: () => void;
-  onBlock: () => void;
   onSave: () => void;
   onShare: () => void;
-  onDelete: () => void;
   className?: string | undefined;
 };
 
@@ -27,15 +24,12 @@ export function ReelActions({
   onFollow,
   onComments,
   onReport,
-  onBlock,
   onSave,
   onShare,
-  onDelete,
   className,
 }: ReelActionsProps) {
   const profileHref =
     reel.author.id != null ? userProfilePath({ id: reel.author.id, nickname: reel.author.nickname }) : undefined;
-  const authorLabel = reel.author.name?.trim() || 'User';
 
   return (
     <div className={cn('flex flex-col items-center gap-3', className)}>
@@ -93,25 +87,11 @@ export function ReelActions({
         <BookmarkIcon size="lg" filled={reel.saved} strokeWidth={1.8} />
       </button>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger aria-label="More" className="text-white/55">
-          <MoreIcon size="lg" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="left">
-          {isOwn ? (
-            <DropdownMenuItem destructive onSelect={onDelete}>
-              Delete Reel
-            </DropdownMenuItem>
-          ) : (
-            <>
-              <DropdownMenuItem onSelect={onReport}>Report Reel</DropdownMenuItem>
-              <DropdownMenuItem destructive onSelect={onBlock}>
-                Block {authorLabel}
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {!isOwn ? (
+        <button type="button" aria-label="Report Reel" className="text-danger-text" onClick={onReport}>
+          <FlagIcon size="lg" strokeWidth={1.8} />
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -98,4 +98,7 @@ export const reelsHandlers = [
   http.delete(`${env.VITE_API_URL}/posts/:id/save`, () =>
     HttpResponse.json({ data: { saved: false, saves_count: 1 }, type: 'SUCCESS' })
   ),
+  http.post(`${env.VITE_API_URL}/posts/:id/share`, () =>
+    HttpResponse.json({ data: { shares_count: 2 }, type: 'SUCCESS' })
+  ),
 ];

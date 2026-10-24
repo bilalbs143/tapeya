@@ -2,11 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useMeQuery } from '@/features/auth';
-import { confirmBlockUser, useFollowUserMutation } from '@/features/explore';
+import { useFollowUserMutation } from '@/features/explore';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { APP_PATHS } from '@/shared/config/paths';
-import { confirm } from '@/shared/dialogs';
 import { shareLink } from '@/shared/native/share';
 import { useKeepAwake } from '@/shared/native/useKeepAwake';
 import { selectIsAuthenticated } from '@/shared/store/authSlice';
@@ -15,18 +14,18 @@ import { toast } from '@/shared/ui/toast';
 
 import {
   reelsApi,
-  useDeleteReelMutation,
   useGetReelQuery,
   useGetReelsQuery,
   useLikeReelMutation,
   useSaveReelMutation,
+  useShareReelMutation,
   useUnlikeReelMutation,
   useUnsaveReelMutation,
 } from '../api/reelsApi';
 import { useReelPrefetch } from '../lib/useReelPrefetch';
 import { useReelsTabLayout } from '../lib/useReelsTabLayout';
 import { type Reel, REEL_TAB_META, REEL_TABS, type ReelTab } from '../model/schemas';
-import { reelRoutes } from '../routes';
+import { buildReelShareUrl } from '../routes';
 
 /** Feed query, scroll/desk navigation, and slide actions for ReelsPage. */
 export function useReelsPage() {
@@ -64,7 +63,7 @@ export function useReelsPage() {
   const [unlikeReel] = useUnlikeReelMutation();
   const [saveReel] = useSaveReelMutation();
   const [unsaveReel] = useUnsaveReelMutation();
-  const [deleteReel] = useDeleteReelMutation();
+  const [shareReel] = useShareReelMutation();
   const [followUser] = useFollowUserMutation();
 
   const ordered = useMemo(() => {
@@ -208,12 +207,15 @@ export function useReelsPage() {
   }
 
   async function share(reel: Reel) {
-    const result = await shareLink({
-      title: `${reel.author.handle} on Tapeya`,
-      text: reel.caption,
-      url: `${window.location.origin}${reelRoutes.detail(reel.id)}`,
-    });
-    if (result === 'copied') toast({ title: 'Link Copied', tone: 'success' });
+    // URL only — HTTPS deep link (Capacitor origin is unusable for shares).
+    const channel = await shareLink({ url: buildReelShareUrl(reel.id) });
+    if (channel === 'copied') toast({ title: 'Link Copied', tone: 'success' });
+    if (channel === 'cancelled' || !isAuthenticated) return;
+    try {
+      await shareReel({ id: reel.id, channel }).unwrap();
+    } catch {
+      /* share sheet already succeeded — count bump is best-effort */
+    }
   }
 
   function patchAuthorFollowing(authorId: number, following: boolean) {
@@ -247,47 +249,8 @@ export function useReelsPage() {
     }
   }
 
-  async function remove(reel: Reel) {
-    const ok = await confirm({
-      title: 'Delete This Reel?',
-      message: 'This cannot be undone.',
-      confirmLabel: 'Delete',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    try {
-      await deleteReel(reel.id).unwrap();
-      setCommentsForId(null);
-      setReportForId(null);
-      toast({ title: 'Reel Deleted', tone: 'success' });
-      const remaining = ordered.filter((r) => r.id !== reel.id);
-      if (remaining.length === 0) {
-        setActive(0);
-        return;
-      }
-      const nextIndex = Math.min(active, remaining.length - 1);
-      setActive(nextIndex);
-      const next = remaining[nextIndex];
-      if (next && focusedId === reel.id) {
-        navigate(reelRoutes.detail(next.id), { replace: true });
-      }
-    } catch (err) {
-      toast({ title: getApiErrorMessage(err, 'Could not delete reel.'), tone: 'error' });
-    }
-  }
-
   function isOwn(reel: Reel) {
     return me != null && reel.author.id != null && me.id === reel.author.id;
-  }
-
-  function blockAuthor(reel: Reel) {
-    if (reel.author.id == null) return;
-    void confirmBlockUser({
-      dispatch,
-      userId: reel.author.id,
-      userName: reel.author.name ?? 'this user',
-      onBlocked: () => navigate(APP_PATHS.home, { replace: true }),
-    });
   }
 
   const slideHandlers = (reel: Reel) => ({
@@ -295,10 +258,8 @@ export function useReelsPage() {
     onFollow: () => void follow(reel),
     onComments: () => setCommentsForId(reel.id),
     onReport: () => setReportForId(reel.id),
-    onBlock: () => blockAuthor(reel),
     onSave: () => void toggleSave(reel),
     onShare: () => void share(reel),
-    onDelete: () => void remove(reel),
   });
 
   return {

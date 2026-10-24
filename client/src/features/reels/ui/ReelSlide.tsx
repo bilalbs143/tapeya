@@ -24,10 +24,8 @@ type ReelSlideProps = {
   onFollow: () => void;
   onComments: () => void;
   onReport: () => void;
-  onBlock: () => void;
   onSave: () => void;
   onShare: () => void;
-  onDelete: () => void;
   className?: string | undefined;
 };
 
@@ -53,10 +51,8 @@ export function ReelSlide({
   onFollow,
   onComments,
   onReport,
-  onBlock,
   onSave,
   onShare,
-  onDelete,
   className,
 }: ReelSlideProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -136,7 +132,8 @@ export function ReelSlide({
     setScrubbing(false);
   }
 
-  const bottomPad = desk ? 'bottom-4' : 'bottom-[calc(94px+env(safe-area-inset-bottom))]';
+  // Phone: clear BottomNav; scrubber sits under the action rail so keep `pr` in sync with caption.
+  const bottomPad = desk ? 'bottom-4' : 'bottom-[calc(82px+env(safe-area-inset-bottom))]';
   const displayProgress = active ? progress : 0;
 
   return (
@@ -187,15 +184,19 @@ export function ReelSlide({
 
       <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-      {/* Caption above scrubber in one bottom stack — caption can grow without covering the bar. */}
+      {/*
+        Caption + scrubber: full-bleed layout with right gutter for the action rail.
+        Parent is pointer-events-none so the empty gutter does not steal Share/Save taps
+        (actions sit at a lower z-index otherwise).
+      */}
       <div
         className={cn(
-          'absolute inset-x-0 z-20 flex flex-col gap-2.5 transition-opacity',
+          'pointer-events-none absolute inset-x-0 z-20 flex flex-col gap-2.5 transition-opacity',
           bottomPad,
-          chromeHidden && 'pointer-events-none opacity-0'
+          chromeHidden && 'opacity-0'
         )}
       >
-        <div className="min-w-0 pr-[74px] pl-4">
+        <div className="pointer-events-auto min-w-0 pr-[74px] pl-4">
           <ReelCaption key={reel.id} reel={reel} />
           <p className="mt-2 font-mono text-4xs font-bold tracking-wide text-white/55 uppercase">
             {formatDurationMs(reel.durationMs)} · {reel.views.toLocaleString()} views
@@ -203,7 +204,7 @@ export function ReelSlide({
         </div>
 
         {canPlay && active ? (
-          <div className="px-4">
+          <div className="pointer-events-auto pr-[74px] pl-4">
             <Scrubber
               value={displayProgress}
               onValueChange={onScrubChange}
@@ -223,12 +224,10 @@ export function ReelSlide({
         onFollow={onFollow}
         onComments={onComments}
         onReport={onReport}
-        onBlock={onBlock}
         onSave={onSave}
         onShare={onShare}
-        onDelete={onDelete}
         className={cn(
-          'absolute right-3 z-10 transition-opacity',
+          'absolute right-3 z-30 transition-opacity',
           bottomPad,
           chromeHidden && 'pointer-events-none opacity-0'
         )}

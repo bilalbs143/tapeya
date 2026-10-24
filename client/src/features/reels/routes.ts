@@ -2,12 +2,18 @@ import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import { APP_PATHS } from '@/shared/config/paths';
+import { buildHttpsDeepLink } from '@/shared/lib/deepLinks';
 
 export const reelRoutes = {
   list: () => APP_PATHS.reels,
   detail: (id: number) => `${APP_PATHS.reels}/${id}`,
   create: () => APP_PATHS.createReel,
 };
+
+/** Public HTTPS Universal Link for a reel (never `capacitor://localhost`). */
+export function buildReelShareUrl(reelId: number): string {
+  return buildHttpsDeepLink(reelRoutes.detail(reelId));
+}
 
 const ReelsPage = lazy(() => import('./pages/ReelsPage'));
 const CreateReelPage = lazy(() => import('./pages/CreateReelPage'));

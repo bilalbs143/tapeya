@@ -17,6 +17,10 @@ const saveResultSchema = z.object({
   saves_count: z.number(),
 });
 
+const shareResultSchema = z.object({
+  shares_count: z.number(),
+});
+
 function mapReelPage(raw: unknown): CursorPage<Reel> {
   return unwrapCursorPage(reelWireSchema, toDomain)(raw);
 }
@@ -212,6 +216,30 @@ export const reelsApi = baseApi.injectEndpoints({
         }
       },
     }),
+
+    shareReel: builder.mutation<{ sharesCount: number }, { id: number; channel: string }>({
+      query: ({ id, channel }) => ({
+        url: `/posts/${id}/share`,
+        method: 'POST',
+        body: { channel },
+      }),
+      transformResponse: (raw) => {
+        const data = unwrapData(shareResultSchema)(raw);
+        return { sharesCount: data.shares_count };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        const patches = patchReelEngagement(dispatch, id, (r) => ({
+          ...r,
+          shares: r.shares + 1,
+        }));
+        try {
+          const { data } = await queryFulfilled;
+          patchReelEngagement(dispatch, id, (r) => ({ ...r, shares: data.sharesCount }));
+        } catch {
+          patches.forEach((p) => p.undo());
+        }
+      },
+    }),
   }),
 });
 
@@ -252,4 +280,5 @@ export const {
   useUnlikeReelMutation,
   useSaveReelMutation,
   useUnsaveReelMutation,
+  useShareReelMutation,
 } = reelsApi;

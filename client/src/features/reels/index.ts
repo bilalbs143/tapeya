@@ -9,6 +9,7 @@ export {
   useInitReelMultipartMutation,
   useLikeReelMutation,
   useSaveReelMutation,
+  useShareReelMutation,
   useUnlikeReelMutation,
   useUnsaveReelMutation,
 } from './api/reelsApi';
