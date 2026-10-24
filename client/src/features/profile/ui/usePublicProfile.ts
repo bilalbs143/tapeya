@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useMeQuery } from '@/features/auth';
@@ -67,12 +67,6 @@ export function usePublicProfile() {
 
   const [follow, { isLoading: following }] = useFollowUserMutation();
   const [unfollow, { isLoading: unfollowing }] = useUnfollowUserMutation();
-
-  // Canonicalize numeric deep links to `/users/:nickname` when the profile has a handle.
-  useEffect(() => {
-    if (!profile?.nickname?.trim() || parsed?.kind !== 'id') return;
-    navigate(profileRoutes.user(profile), { replace: true });
-  }, [profile, parsed, navigate]);
 
   async function handleFollowToggle() {
     if (!profile) return;

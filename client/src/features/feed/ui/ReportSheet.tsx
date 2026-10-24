@@ -33,7 +33,7 @@ const REASONS: { value: ReportReason; label: string }[] = [
 type ReportSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Noun in titles — “Report post” / “Report reel” / “Report user”. */
+  /** Noun in titles — “Report Post” / “Report Reel” / “Report User”. */
   subject?: 'post' | 'reel' | 'user' | undefined;
   /** Post or reel id when `subject` is post/reel. */
   postId?: number | null | undefined;
@@ -52,6 +52,7 @@ export function ReportSheet({ open, onOpenChange, subject = 'post', postId = nul
 
   const isUser = subject === 'user';
   const noun = subject === 'reel' ? 'reel' : subject === 'user' ? 'user' : 'post';
+  const titleNoun = noun === 'reel' ? 'Reel' : noun === 'user' ? 'User' : 'Post';
   const targetId = isUser ? userId : postId;
   const enabled = open && targetId != null && targetId > 0;
   const isLoading = reportingPost || reportingUser;
@@ -123,7 +124,7 @@ export function ReportSheet({ open, onOpenChange, subject = 'post', postId = nul
       ) : (
         <>
           <DialogHeader className="pr-5">
-            <DialogTitle>Report {noun === 'user' ? 'User' : noun}</DialogTitle>
+            <DialogTitle>Report {titleNoun}</DialogTitle>
             <DialogDescription>Tell us what’s wrong. Reports are anonymous.</DialogDescription>
           </DialogHeader>
 
