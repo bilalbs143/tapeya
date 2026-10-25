@@ -50,12 +50,13 @@ android {
             }
         }
     }
+    // Match capacitor.build.gradle (generated: Java 21). Kotlin must use the same target.
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
     buildTypes {
         release {
