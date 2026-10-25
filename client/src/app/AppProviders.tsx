@@ -9,7 +9,7 @@ import { enumsApi } from '@/shared/api/enumsApi';
 import { ThemeProvider } from '@/shared/config/theme';
 import { DialogHost } from '@/shared/dialogs';
 import { KeyboardInsetProvider } from '@/shared/native/KeyboardInsetProvider';
-import { hideNativeSplash, scheduleNativeSplashFailsafe } from '@/shared/native/splash';
+import { hideNativeSplash } from '@/shared/native/splash';
 import { hydrateAuthSession } from '@/shared/store/authSession';
 import { useAppDispatch } from '@/shared/store/hooks';
 import { store } from '@/shared/store/store';
@@ -28,7 +28,6 @@ function AuthHydration({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    scheduleNativeSplashFailsafe();
     void (async () => {
       try {
         await hydrateAuthSession(dispatch);
