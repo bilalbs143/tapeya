@@ -41,10 +41,9 @@ export function WicketSummaryBody({ open, model, flow, undoing, onUndo, onProcee
     <BaseDialog
       open={open}
       onOpenChange={() => {}}
-      sheet
       dismissible={false}
       showClose={false}
-      contentClassName="tab:max-w-dialog gap-0 overflow-hidden p-0"
+      contentClassName="gap-0 overflow-hidden p-0"
     >
       <div className="bg-danger px-5 pt-4 pb-4">
         <p className="mb-1.5 font-mono text-4xs leading-normal font-extrabold tracking-eyebrow text-white/75 uppercase">

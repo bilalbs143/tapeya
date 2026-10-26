@@ -174,7 +174,7 @@ export function WicketSheet({
         : howMeta || 'How was the batter out?';
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       {step === 'how' ? (
         <>
           <DialogHeader>

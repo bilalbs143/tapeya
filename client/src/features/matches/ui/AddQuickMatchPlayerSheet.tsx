@@ -3,7 +3,14 @@ import { useState } from 'react';
 import { isValidNational, PhoneField, toE164 } from '@/features/auth';
 import { useLookupMyUsersQuery, useLookupUsersQuery } from '@/features/profile';
 
-import { BaseDialog } from '@/shared/dialogs/BaseDialog';
+import {
+  BaseDialog,
+  DialogBody,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/dialogs/BaseDialog';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Form } from '@/shared/ui/Form';
@@ -71,12 +78,13 @@ export function AddQuickMatchPlayerSheet({
   }
 
   return (
-    <BaseDialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())} sheet>
-      <div className="flex max-h-[80dvh] flex-col gap-3 px-4 pt-2 pb-4">
-        <div>
-          <h2 className="text-title-sm font-extrabold text-ink">Add to {sideLabel}</h2>
-          <p className="text-muted mt-1 text-2xs">Pick someone on Tapeya, or type a new name and phone.</p>
-        </div>
+    <BaseDialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
+      <DialogHeader>
+        <DialogTitle>Add to {sideLabel}</DialogTitle>
+        <DialogDescription>Pick someone on Tapeya, or type a new name and phone.</DialogDescription>
+      </DialogHeader>
+
+      <DialogBody className="max-h-[80dvh] overflow-y-auto">
         <div className="bg-page-deep flex gap-1 rounded-panel p-1">
           {(
             [
@@ -138,6 +146,7 @@ export function AddQuickMatchPlayerSheet({
           </>
         ) : (
           <Form
+            id="add-quick-match-player"
             density="compact"
             onSubmit={(event) => {
               event.preventDefault();
@@ -154,12 +163,20 @@ export function AddQuickMatchPlayerSheet({
               onChange={(event) => setNational(event.target.value)}
               error={error ?? undefined}
             />
-            <Button type="submit" className="min-h-12 font-bold">
-              Add Player
-            </Button>
           </Form>
         )}
-      </div>
+      </DialogBody>
+
+      {mode === 'new' ? (
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" form="add-quick-match-player">
+            Add Player
+          </Button>
+        </DialogFooter>
+      ) : null}
     </BaseDialog>
   );
 }

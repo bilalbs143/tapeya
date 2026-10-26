@@ -62,8 +62,6 @@ export function PenaltySheet({ open, onOpenChange, onConfirm }: PenaltySheetProp
         if (!next) reset();
         onOpenChange(next);
       }}
-      sheet
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>Penalty Runs</DialogTitle>

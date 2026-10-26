@@ -48,7 +48,6 @@ export function TermsAcceptanceGate() {
   return (
     <BaseDialog
       open
-      presentation="responsive"
       onOpenChange={() => {
         /* Blocking — cannot dismiss without accepting */
       }}

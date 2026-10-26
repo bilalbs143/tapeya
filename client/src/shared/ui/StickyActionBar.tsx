@@ -16,7 +16,9 @@ export function StickyActionBar({ children, className, edge = false }: StickyAct
       className={cn(
         'border-border-subtle bg-surface/95 sticky z-20 mt-auto shrink-0 border-t px-4 pt-3 backdrop-blur-sm',
         'bottom-[var(--keyboard-inset,0px)]',
-        edge ? 'pb-[max(0.75rem,env(safe-area-inset-bottom))]' : 'pb-3',
+        // `edge`: same bottom token as BaseDialog sheets (`--dock-above-keyboard`).
+        // Non-edge: BottomNav owns the home indicator — fixed pb-3 only.
+        edge ? 'pb-[var(--dock-above-keyboard)]' : 'pb-3',
         className
       )}
     >

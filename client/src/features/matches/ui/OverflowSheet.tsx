@@ -32,7 +32,7 @@ export function OverflowSheet({
     .join(' · ');
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>More Ball Outcomes</DialogTitle>
         <DialogDescription className="font-mono text-3xs leading-normal font-medium uppercase">

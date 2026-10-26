@@ -36,8 +36,6 @@ export function WideBallSheet({ open, onOpenChange, onConfirm }: WideBallSheetPr
         if (!next) reset();
         onOpenChange(next);
       }}
-      sheet
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>Wide</DialogTitle>

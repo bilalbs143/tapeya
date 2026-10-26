@@ -60,7 +60,7 @@ export function ReelUploadProgressDialog() {
   }
 
   return (
-    <BaseDialog open={open} onOpenChange={handleOpenChange} sheet showClose={isError} contentClassName="p-0">
+    <BaseDialog open={open} onOpenChange={handleOpenChange} showClose={isError} contentClassName="p-0">
       {isError ? (
         <>
           <DialogHeader className="pr-5">

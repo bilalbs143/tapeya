@@ -97,7 +97,6 @@ export function ReportSheet({ open, onOpenChange, subject = 'post', postId = nul
     <BaseDialog
       open={open}
       onOpenChange={close}
-      sheet
       showClose={!done}
       contentClassName="flex max-h-[min(92dvh,640px)] flex-col p-0"
     >

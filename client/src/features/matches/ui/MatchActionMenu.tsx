@@ -140,12 +140,7 @@ export function MatchActionMenu({
   }
 
   return (
-    <BaseDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      sheet
-      contentClassName="flex max-h-[88vh] flex-col gap-0 p-0 tab:max-w-dialog"
-    >
+    <BaseDialog open={open} onOpenChange={onOpenChange} contentClassName="flex max-h-[88vh] flex-col gap-0 p-0">
       <DialogHeader className="border-border-subtle shrink-0 border-b">
         <DialogTitle>Action</DialogTitle>
         <DialogDescription className="font-mono text-3xs font-medium uppercase">

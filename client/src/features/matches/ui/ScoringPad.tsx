@@ -1,10 +1,16 @@
 import { useState } from 'react';
 
 import { useExtraTypeOptions } from '@/shared/api/enumsApi';
-import { BaseDialog } from '@/shared/dialogs/BaseDialog';
+import {
+  BaseDialog,
+  DialogBody,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/dialogs/BaseDialog';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { Form } from '@/shared/ui/Form';
 import { LockIcon, StumpsIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
 
@@ -182,16 +188,12 @@ export function ScoringPad({
         </Button>
       </div>
 
-      <BaseDialog open={customOpen} onOpenChange={setCustomOpen} sheet>
-        <Form
-          density="compact"
-          className="px-4 pt-2 pb-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitCustom();
-          }}
-        >
-          <h2 className="text-title-sm font-extrabold text-ink">Custom Score</h2>
+      <BaseDialog open={customOpen} onOpenChange={setCustomOpen}>
+        <DialogHeader>
+          <DialogTitle>Custom Score</DialogTitle>
+          <DialogDescription>Enter any run value from 0 to 255.</DialogDescription>
+        </DialogHeader>
+        <DialogBody>
           <Input
             label="Runs off the Bat"
             required
@@ -200,10 +202,15 @@ export function ScoringPad({
             onChange={(event) => setCustom(event.target.value.replace(/\D/g, '').slice(0, 3))}
             className="font-mono min-h-12 text-lg font-extrabold"
           />
-          <Button type="submit" className="min-h-12 font-bold" disabled={custom === ''}>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => setCustomOpen(false)}>
+            Cancel
+          </Button>
+          <Button disabled={custom === ''} onClick={submitCustom}>
             Save {custom || 'runs'}
           </Button>
-        </Form>
+        </DialogFooter>
       </BaseDialog>
 
       <OverflowSheet

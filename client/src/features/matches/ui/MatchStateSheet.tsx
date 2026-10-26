@@ -106,7 +106,7 @@ export function MatchStateSheet({
   }
 
   return (
-    <BaseDialog open onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open onOpenChange={onOpenChange}>
       {action === 'revise_target' ? (
         <>
           <DialogHeader>

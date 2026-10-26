@@ -98,7 +98,7 @@ function EditBallForm({ entry, overNo, onOpenChange, onSave, saving }: EditBallF
 
   return (
     <>
-      <BaseDialog open onOpenChange={onOpenChange} sheet showClose contentClassName="tab:max-w-dialog">
+      <BaseDialog open onOpenChange={onOpenChange} showClose>
         <DialogHeader>
           <DialogTitle>Edit Ball</DialogTitle>
           <DialogDescription>
@@ -249,7 +249,7 @@ function EditBallForm({ entry, overNo, onOpenChange, onSave, saving }: EditBallF
         </DialogFooter>
       </BaseDialog>
 
-      <BaseDialog open={customOpen} onOpenChange={setCustomOpen} sheet contentClassName="tab:max-w-dialog">
+      <BaseDialog open={customOpen} onOpenChange={setCustomOpen}>
         <DialogHeader>
           <DialogTitle>Custom Runs</DialogTitle>
           <DialogDescription>Enter any run value from 0 to 255.</DialogDescription>

@@ -72,9 +72,7 @@ export function ZonePickerSheet({ pending, strikerName, onCommit }: ZonePickerSh
       onOpenChange={(open) => {
         if (!open) skip();
       }}
-      sheet
       showClose={false}
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>Where Did It Go?</DialogTitle>

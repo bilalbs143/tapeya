@@ -66,8 +66,6 @@ export function OverthrowSheet({ open, onOpenChange, initialDeliveryType = null,
         if (!next) reset();
         onOpenChange(next);
       }}
-      sheet
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>{overthrowDialogTitle(initialDeliveryType)}</DialogTitle>

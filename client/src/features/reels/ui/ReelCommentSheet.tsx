@@ -143,11 +143,8 @@ export function ReelCommentSheet({ reelId, open, onOpenChange, commentsCount = 0
     <BaseDialog
       open={open}
       onOpenChange={close}
-      sheet
       showClose={false}
-      contentClassName={cn(
-        'bg-surface border-border-subtle flex h-[56dvh] max-h-[560px] flex-col rounded-t-sheet border p-0 tab:max-w-dialog'
-      )}
+      contentClassName={cn('bg-surface border-border-subtle flex h-[56dvh] max-h-[560px] flex-col border p-0')}
     >
       <div className="border-border-subtle relative flex min-h-[46px] items-center border-b px-4">
         <DialogTitle className="flex-1 text-sm font-extrabold">Comments ({total.toLocaleString()})</DialogTitle>

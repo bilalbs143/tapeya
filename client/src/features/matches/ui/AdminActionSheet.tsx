@@ -65,7 +65,7 @@ export function AdminActionSheet({
   const rulesRows = adminRulesRows(oversPerSide, playersPerSide);
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>{meta[0]}</DialogTitle>
         {action === 'substitute' ? (

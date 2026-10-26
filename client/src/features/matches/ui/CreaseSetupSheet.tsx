@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 
-import { BaseDialog, DialogDescription, DialogFooter, DialogTitle } from '@/shared/dialogs/BaseDialog';
+import {
+  BaseDialog,
+  DialogBody,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/dialogs/BaseDialog';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
@@ -134,19 +141,16 @@ export function CreaseSetupSheet({
       onOpenChange={(next) => {
         if (!next && dismissible) onDismiss?.();
       }}
-      sheet
       showClose={dismissible}
       dismissible={dismissible}
       contentClassName="flex max-h-[88vh] flex-col gap-0 p-0"
     >
-      <div className="border-border-subtle shrink-0 border-b px-5 pt-2 pb-3.5">
+      <DialogHeader className="border-border-subtle shrink-0 border-b pb-3.5">
         <DialogTitle>{title}</DialogTitle>
-        <DialogDescription className="font-mono text-dim mt-1 text-3xs font-medium uppercase">
-          {subtitle}
-        </DialogDescription>
+        <DialogDescription className="font-mono text-dim text-3xs font-medium uppercase">{subtitle}</DialogDescription>
 
         {needs === 'batter' ? (
-          <div className="mt-3.5 flex gap-2.5">
+          <div className="mt-2 flex gap-2.5">
             <div
               className={cn(
                 'flex min-h-14.5 flex-1 flex-col justify-center rounded-panel border border-dashed px-2.5 py-2',
@@ -177,7 +181,7 @@ export function CreaseSetupSheet({
         ) : null}
 
         {needs === 'openers' ? (
-          <div className="mt-3.5 grid grid-cols-2 gap-2">
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <SlotButton
               label="On Strike"
               name={striker?.name ?? null}
@@ -194,7 +198,7 @@ export function CreaseSetupSheet({
         ) : null}
 
         {needs === 'bowler' && bowler ? (
-          <div className="border-brand bg-brand/10 mt-3.5 flex min-h-14.5 items-center gap-2.5 rounded-panel border px-3">
+          <div className="border-brand bg-brand/10 mt-2 flex min-h-14.5 items-center gap-2.5 rounded-panel border px-3">
             <Avatar name={bowler.name} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="font-mono text-brand-text text-4xs font-bold tracking-eyebrow uppercase">Bowling</p>
@@ -203,9 +207,9 @@ export function CreaseSetupSheet({
             </div>
           </div>
         ) : null}
-      </div>
+      </DialogHeader>
 
-      <div className="flex min-h-0 flex-1 flex-col pt-2">
+      <DialogBody className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden px-0 pb-0 pt-2">
         <div className="px-4.5">
           <SearchBar
             value={query}
@@ -272,23 +276,23 @@ export function CreaseSetupSheet({
             })}
           </ul>
         )}
-      </div>
 
-      {needs === 'batter' ? (
-        <div className="text-muted mx-4.5 mb-1 flex gap-2 rounded-field px-3 py-3 text-2xs leading-relaxed">
-          <InfoIcon size="xs" className="text-dim mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-          <span>
-            If the wicket fell on the last ball of the over, Select Bowler follows this sheet automatically — two
-            prompts, never two dead ends.
-          </span>
-        </div>
-      ) : null}
+        {needs === 'batter' ? (
+          <div className="text-muted mx-4.5 mb-1 flex gap-2 rounded-field px-3 py-3 text-2xs leading-relaxed">
+            <InfoIcon size="xs" className="text-dim mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+            <span>
+              If the wicket fell on the last ball of the over, Select Bowler follows this sheet automatically — two
+              prompts, never two dead ends.
+            </span>
+          </div>
+        ) : null}
 
-      {needs === 'bowler' ? (
-        <p className="text-dim mx-4.5 mb-1 text-2xs leading-relaxed">
-          Pick from the fielding XI. Back-to-back overs and spell limits follow when the scorebook tracks them.
-        </p>
-      ) : null}
+        {needs === 'bowler' ? (
+          <p className="text-dim mx-4.5 mb-1 text-2xs leading-relaxed">
+            Pick from the fielding XI. Back-to-back overs and spell limits follow when the scorebook tracks them.
+          </p>
+        ) : null}
+      </DialogBody>
 
       <DialogFooter>
         <Button

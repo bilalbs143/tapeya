@@ -40,8 +40,6 @@ export function ExtraRunsSheet({ open, kind, onOpenChange, onConfirm }: ExtraRun
         if (!next) reset();
         onOpenChange(next);
       }}
-      sheet
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>{kind ? TITLES[kind] : 'Extras'}</DialogTitle>

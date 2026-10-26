@@ -160,7 +160,7 @@ export function MatchOverBody({
         </div>
       </div>
 
-      <BaseDialog open={picking} onOpenChange={setPicking} sheet showClose contentClassName="tab:max-w-dialog">
+      <BaseDialog open={picking} onOpenChange={setPicking} showClose>
         <DialogHeader>
           <DialogTitle>Man of the Match</DialogTitle>
           <DialogDescription className="font-mono text-3xs font-medium uppercase">
@@ -219,17 +219,12 @@ export function MatchOverBody({
             Skippable — the result stands without it.
           </p>
         </DialogBody>
-        <DialogFooter className="flex flex-col gap-2">
-          <Button
-            className="min-h-12"
-            disabled={selectedId == null || isLoading}
-            loading={isLoading}
-            onClick={() => void saveMotm()}
-          >
-            Save Man of the Match
-          </Button>
-          <Button className="min-h-12" variant="secondary" disabled={isLoading} onClick={() => setPicking(false)}>
+        <DialogFooter>
+          <Button variant="secondary" disabled={isLoading} onClick={() => setPicking(false)}>
             Skip for now
+          </Button>
+          <Button disabled={selectedId == null || isLoading} loading={isLoading} onClick={() => void saveMotm()}>
+            Save Man of the Match
           </Button>
         </DialogFooter>
       </BaseDialog>

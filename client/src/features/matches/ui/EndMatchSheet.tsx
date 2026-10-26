@@ -55,7 +55,7 @@ export function EndMatchSheet({ open, onOpenChange, oversDisplay, saving = false
   }
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>Cancel Match</DialogTitle>
         <DialogDescription>

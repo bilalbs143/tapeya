@@ -66,8 +66,6 @@ export function NoBallSheet({ open, onOpenChange, onConfirm }: NoBallSheetProps)
         if (!next) reset();
         onOpenChange(next);
       }}
-      sheet
-      contentClassName="tab:max-w-dialog"
     >
       <DialogHeader>
         <DialogTitle>No Ball</DialogTitle>

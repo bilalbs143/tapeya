@@ -55,7 +55,7 @@ export function DeclareResultSheet({
   const canApply = type === 'draw' || (type === 'award' && winnerId != null);
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>Declare Result</DialogTitle>
         <DialogDescription>

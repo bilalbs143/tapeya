@@ -31,7 +31,7 @@ export function MatchMoreSheet({ open, onOpenChange, matchId, canOperate = false
   const navigate = useNavigate();
 
   return (
-    <BaseDialog open={open} onOpenChange={onOpenChange} sheet contentClassName="tab:max-w-dialog">
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>This Match</DialogTitle>
         <DialogDescription className="font-mono text-3xs font-medium tracking-eyebrow uppercase">
