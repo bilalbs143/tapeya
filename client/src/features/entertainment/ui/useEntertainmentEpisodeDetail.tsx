@@ -10,7 +10,6 @@ import { confirm } from '@/shared/dialogs';
 import { shareLink } from '@/shared/native/share';
 import { useImmersiveLandscape } from '@/shared/native/useImmersiveLandscape';
 import { useKeepAwake } from '@/shared/native/useKeepAwake';
-import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 import { selectUserId } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 import { RotateIcon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
@@ -62,8 +61,6 @@ export function useEntertainmentEpisodeDetail({ episode, routeSerialId }: UseEnt
   const [playing, setPlaying] = useState(false);
   const [playSession, setPlaySession] = useState(0);
   const { landscape, deviceLandscape, enterLandscape, exitLandscape } = useImmersiveLandscape(true);
-  /** Fixed comments column — pad root so the dock stays above the soft keyboard. */
-  const keyboardInset = useKeyboardInset();
   useKeepAwake(playing);
   const [likes, setLikes] = useState(episode.likesCount);
   const [dislikes, setDislikes] = useState(episode.dislikesCount);
@@ -256,7 +253,6 @@ export function useEntertainmentEpisodeDetail({ episode, routeSerialId }: UseEnt
     landscape,
     deviceLandscape,
     exitLandscape,
-    keyboardInset,
     hasVideo,
     youtubeSrc,
     isUpload,

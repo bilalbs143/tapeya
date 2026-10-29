@@ -56,15 +56,44 @@
   --c-skeleton: #1e1e2a;
   --c-skeleton-shine: #282834;
 
-  /* Immersive / post backdrop paints — use via utilities below, not raw hex in features. */
+  /* Immersive / post backdrop paints — keep in sync with app composeBackgrounds. */
   --c-media-ink: #07070b;
-  --c-post-turf-from: #1e5a34;
-  --c-post-turf-to: #0c2a19;
-  --c-post-floodlit-from: #0a2b52;
-  --c-post-floodlit-to: #05070e;
   --c-media-deep-from: #123049;
-  --grad-post-turf: radial-gradient(120% 100% at 50% 0%, var(--c-post-turf-from), var(--c-post-turf-to));
-  --grad-post-floodlit: linear-gradient(165deg, var(--c-post-floodlit-from), var(--c-post-floodlit-to));
+  --c-post-accent-gold: #f0b94a;
+  --grad-post-pitch:
+    radial-gradient(circle at 12% 0%, rgba(110, 245, 175, 0.2), transparent 38%),
+    radial-gradient(circle at 100% 100%, rgba(218, 152, 17, 0.15), transparent 40%),
+    linear-gradient(145deg, #0d5238 0%, #12613e 48%, #07291e 100%);
+  --grad-post-night:
+    radial-gradient(circle at 12% -8%, rgba(129, 140, 248, 0.38), transparent 42%),
+    radial-gradient(circle at 96% 105%, rgba(56, 189, 248, 0.22), transparent 44%),
+    linear-gradient(150deg, #17143d 0%, #29265f 48%, #0b1029 100%);
+  --grad-post-gold:
+    radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.38), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(117, 67, 0, 0.18), transparent 44%),
+    linear-gradient(145deg, #f0b94a 0%, #e5a012 48%, #c88408 100%);
+  --grad-post-balls:
+    radial-gradient(circle at 8% -5%, rgba(240, 185, 74, 0.2), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(218, 152, 17, 0.12), transparent 42%),
+    linear-gradient(145deg, #292015 0%, #18130d 52%, #090a08 100%);
+  --grad-post-wickets:
+    radial-gradient(circle at 90% -5%, rgba(255, 213, 128, 0.18), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(218, 152, 17, 0.13), transparent 42%),
+    linear-gradient(145deg, #593512 0%, #754819 47%, #281706 100%);
+  --grad-post-bats:
+    radial-gradient(ellipse 60% 40% at 12% -10%, rgba(255, 247, 220, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 88% -10%, rgba(255, 247, 220, 0.1), transparent 60%),
+    linear-gradient(160deg, #1a1712 0%, #2a2318 45%, #0d0c09 100%);
+  --grad-post-boundary:
+    radial-gradient(circle at 8% -8%, rgba(251, 146, 60, 0.23), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.18), transparent 42%),
+    linear-gradient(145deg, #711b24 0%, #961d2c 48%, #3b0c13 100%);
+  --grad-post-century:
+    radial-gradient(circle at 10% -8%, rgba(240, 185, 74, 0.24), transparent 40%),
+    radial-gradient(circle at 100% 105%, rgba(217, 70, 239, 0.16), transparent 44%),
+    linear-gradient(145deg, #4d193c 0%, #682750 48%, #250b1e 100%);
+  --grad-post-overlay-dark: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0, 0, 0, 0.14), transparent 72%);
+  --grad-post-overlay-light: radial-gradient(ellipse 72% 62% at 50% 50%, rgba(255, 245, 214, 0.13), transparent 72%);
   --grad-media-deep: linear-gradient(165deg, var(--c-media-deep-from), var(--c-media-ink));
   --grad-stripe-soft: repeating-linear-gradient(
     135deg,
@@ -519,12 +548,44 @@ body {
   }
 }
 
-@utility bg-post-turf {
-  background-image: var(--grad-post-turf);
+@utility bg-post-pitch {
+  background-image: var(--grad-post-pitch);
 }
 
-@utility bg-post-floodlit {
-  background-image: var(--grad-post-floodlit);
+@utility bg-post-night {
+  background-image: var(--grad-post-night);
+}
+
+@utility bg-post-gold {
+  background-image: var(--grad-post-gold);
+}
+
+@utility bg-post-balls {
+  background-image: var(--grad-post-balls);
+}
+
+@utility bg-post-wickets {
+  background-image: var(--grad-post-wickets);
+}
+
+@utility bg-post-bats {
+  background-image: var(--grad-post-bats);
+}
+
+@utility bg-post-boundary {
+  background-image: var(--grad-post-boundary);
+}
+
+@utility bg-post-century {
+  background-image: var(--grad-post-century);
+}
+
+@utility bg-post-overlay-dark {
+  background-image: var(--grad-post-overlay-dark);
+}
+
+@utility bg-post-overlay-light {
+  background-image: var(--grad-post-overlay-light);
 }
 
 @utility bg-media-deep {

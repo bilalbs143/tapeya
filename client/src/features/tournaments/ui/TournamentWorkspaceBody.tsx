@@ -22,13 +22,45 @@ type TournamentWorkspaceBodyProps = {
   tournament: Tournament;
 };
 
-/** Stages, team lists, sticky bar, and attach dialog for TournamentWorkspacePage. */
+/** Sticky actions — page owns DockScreen. */
+export function TournamentWorkspaceFooter({ flow, tournament }: TournamentWorkspaceBodyProps) {
+  const { empty, canAdd, hasGroups, neediest, openAttach } = flow;
+
+  if (empty) {
+    return (
+      <StickyActionBar>
+        <Button className="w-full font-bold" onClick={() => openAttach(hasGroups ? 1 : undefined)}>
+          Add first team
+        </Button>
+      </StickyActionBar>
+    );
+  }
+
+  return (
+    <StickyActionBar>
+      <div className="flex gap-2">
+        <Button
+          variant="secondary"
+          className="flex-1"
+          disabled={!canAdd}
+          onClick={() => openAttach(neediest != null ? neediest.g : hasGroups ? 1 : undefined)}
+        >
+          Add team
+        </Button>
+        <Button asChild className="flex-1">
+          <Link to={tournamentRoutes.squad(tournament.id)}>Squads</Link>
+        </Button>
+      </div>
+    </StickyActionBar>
+  );
+}
+
+/** Stages, team lists, and attach dialog for TournamentWorkspacePage. */
 export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspaceBodyProps) {
   const {
     teamsQuery,
     teams,
     squadCounts,
-    hasGroups,
     teamCap,
     canAdd,
     atCap,
@@ -49,14 +81,14 @@ export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspac
 
   return (
     <>
-      <div className="border-border-subtle flex shrink-0 gap-2 border-b px-4 py-3.5">
+      <div className="border-border-subtle flex gap-2 border-b px-4 py-3.5">
         {stages.map((s) => (
           <StageCard key={s.key} label={s.label} value={s.value} tone={s.tone} />
         ))}
       </div>
 
       {empty ? (
-        <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+        <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
           <div className="border-border-subtle bg-surface-raised mb-5 grid h-20 w-20 place-items-center rounded-panel border">
             <UsersIcon className="text-brand-text h-8 w-8" />
           </div>
@@ -69,7 +101,7 @@ export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspac
           </p>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col gap-4 px-4 pt-3.5 pb-6">
+        <div className="flex flex-col gap-4 px-4 pt-3.5 pb-6">
           {atCap && !fixtures ? (
             <Alert
               tone="info"
@@ -169,30 +201,6 @@ export function TournamentWorkspaceBody({ flow, tournament }: TournamentWorkspac
             <Link to={tournamentRoutes.public(tournament.id)}>Public Page</Link>
           </Button>
         </div>
-      )}
-
-      {empty ? (
-        <StickyActionBar>
-          <Button className="w-full font-bold" onClick={() => openAttach(hasGroups ? 1 : undefined)}>
-            Add first team
-          </Button>
-        </StickyActionBar>
-      ) : (
-        <StickyActionBar>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              disabled={!canAdd}
-              onClick={() => openAttach(neediest != null ? neediest.g : hasGroups ? 1 : undefined)}
-            >
-              Add team
-            </Button>
-            <Button asChild className="flex-1">
-              <Link to={tournamentRoutes.squad(tournament.id)}>Squads</Link>
-            </Button>
-          </div>
-        </StickyActionBar>
       )}
 
       {dialog.open ? (

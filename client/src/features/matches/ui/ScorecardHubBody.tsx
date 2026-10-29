@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import type { ScorecardHubMatch } from '@/features/tournaments';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Chip, ChipRow } from '@/shared/ui/Chip';
 import { LiveBadge } from '@/shared/ui/LiveBadge';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
@@ -55,9 +55,7 @@ export function ScorecardHubBody({ flow }: ScorecardHubBodyProps) {
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Score Card" subtitle="Open Tournament Fixtures" onBack={goBack} />
-
+    <PageDock header={<ScreenBar title="Score Card" subtitle="Open Tournament Fixtures" onBack={goBack} />}>
       <div className="flex flex-col gap-2.5 px-4 pt-4 pb-6">
         {showTournamentChips ? (
           <ChipRow>
@@ -103,6 +101,6 @@ export function ScorecardHubBody({ flow }: ScorecardHubBodyProps) {
           />
         )}
       </div>
-    </div>
+    </PageDock>
   );
 }

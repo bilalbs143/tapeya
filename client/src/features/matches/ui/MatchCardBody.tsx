@@ -1,11 +1,9 @@
-import { cn } from '@/shared/lib/cn';
 import { EmptyState, Skeleton } from '@/shared/ui/states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { creaseBatters } from '../lib/fanMatchView';
 import type { ScoringFixture } from '../model/scoringFixture';
 import { CommentaryFeed } from './CommentaryFeed';
-import { FanLiveDock } from './FanLiveDock';
 import { FanLivePanel } from './FanLivePanel';
 import { FanPublicScoreCard } from './FanPublicScoreCard';
 import { MatchInfoPanel } from './MatchInfoPanel';
@@ -39,14 +37,13 @@ export function MatchCardBody({ flow, fixture }: MatchCardBodyProps) {
     band,
     xiSides,
     notStarted,
-    showLiveDock,
     hasTable,
   } = flow;
 
   return (
     <>
       {/* Body under match header — tabs stay here, never in the header chrome. */}
-      <div className={cn('flex flex-col gap-3 px-4 pt-4', showLiveDock ? 'pb-4' : 'pb-6')}>
+      <div className="flex flex-col gap-3 px-4 pt-4 pb-6">
         {!notStarted && band ? <FanPublicScoreCard band={band} className="px-0 pb-0" /> : null}
 
         {notStarted ? (
@@ -152,15 +149,6 @@ export function MatchCardBody({ flow, fixture }: MatchCardBodyProps) {
           ) : null}
         </Tabs>
       </div>
-
-      {showLiveDock && fixture.stream != null ? (
-        <FanLiveDock
-          streamId={fixture.stream.id}
-          homeShort={fixture.home?.short ?? 'HOME'}
-          awayShort={fixture.away?.short ?? 'AWAY'}
-          onOpenScorecard={() => selectTab('scorecard')}
-        />
-      ) : null}
     </>
   );
 }

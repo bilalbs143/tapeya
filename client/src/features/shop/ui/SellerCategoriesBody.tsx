@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { IconButton } from '@/shared/ui/IconButton';
 import { PlusIcon } from '@/shared/ui/icons';
@@ -33,20 +33,22 @@ export function SellerCategoriesBody({ flow }: SellerCategoriesBodyProps) {
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar
-        title="Categories"
-        subtitle="Shelves for Your Products"
-        onBack={goSeller}
-        action={
-          canEdit ? (
-            <IconButton label="Add Category" onClick={openCreate}>
-              <PlusIcon className="h-4 w-4" strokeWidth={2.4} />
-            </IconButton>
-          ) : undefined
-        }
-      />
-
+    <PageDock
+      header={
+        <ScreenBar
+          title="Categories"
+          subtitle="Shelves for Your Products"
+          onBack={goSeller}
+          action={
+            canEdit ? (
+              <IconButton label="Add Category" onClick={openCreate}>
+                <PlusIcon className="h-4 w-4" strokeWidth={2.4} />
+              </IconButton>
+            ) : undefined
+          }
+        />
+      }
+    >
       <div className="flex flex-col gap-3 px-4 pt-3.5 pb-8">
         <p className="text-muted text-2xs leading-relaxed">{intro}</p>
 
@@ -115,6 +117,6 @@ export function SellerCategoriesBody({ flow }: SellerCategoriesBodyProps) {
       </div>
 
       <SellerCategoryDialog open={dialogOpen} onOpenChange={setDialogOpen} category={editing} canEdit={canEdit} />
-    </div>
+    </PageDock>
   );
 }

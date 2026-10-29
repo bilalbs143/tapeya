@@ -1,3 +1,4 @@
+import { PageDock } from '@/shared/layout';
 import { ErrorState, ProfileHeaderSkeleton, Skeleton } from '@/shared/ui/states';
 
 import { useYouPage } from '../ui/useYouPage';
@@ -10,26 +11,27 @@ export default function YouPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ProfileHeaderSkeleton />
+      <PageDock header={<ProfileHeaderSkeleton />}>
         <div className="grid grid-cols-3 gap-1.5 p-4">
           <Skeleton className="aspect-reel-poster rounded-icon" />
           <Skeleton className="aspect-reel-poster rounded-icon" />
           <Skeleton className="aspect-reel-poster rounded-icon" />
         </div>
-      </div>
+      </PageDock>
     );
   }
 
   if (isError || !me) {
     return (
-      <div className="px-4 py-8">
-        <ErrorState
-          title="Couldn't Load Your Profile"
-          description="Check your connection and try again."
-          onRetry={() => void refetch()}
-        />
-      </div>
+      <PageDock>
+        <div className="px-4 py-8">
+          <ErrorState
+            title="Couldn't Load Your Profile"
+            description="Check your connection and try again."
+            onRetry={() => void refetch()}
+          />
+        </div>
+      </PageDock>
     );
   }
 

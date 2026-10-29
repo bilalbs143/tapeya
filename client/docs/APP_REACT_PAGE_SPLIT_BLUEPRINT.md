@@ -24,12 +24,12 @@ features/<name>/
   lib/<name>Helpers.test.ts     # Unit tests for pure helpers
 ```
 
-| Layer                   | Owns                                                                                        | Must not                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| **Page**                | `useParams` / search params, loading·error·empty **gates**, `ScreenBar`, wiring hook → body | Business rules, long JSX forms, RTK `unwrap` soup                 |
-| **Hook** (`ui/use*.ts`) | Local state, derived values, mutations, toasts, navigation side-effects                     | Import other `ui/*` presentational components; return JSX         |
-| **Body / Form / Steps** | Markup, fields, sticky bars, dialogs                                                        | Own RTK queries that the page already gated (prefer props / hook) |
-| **Lib**                 | Pure functions, option tables, copy builders, payload builders                              | Import `ui/*` or React (except types)                             |
+| Layer                   | Owns                                                                                                     | Must not                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Page**                | `useParams` / search params, loading·error·empty **gates**, `DockScreen`/`PageDock` + wiring hook → body | Business rules, long JSX forms, RTK `unwrap` soup                 |
+| **Hook** (`ui/use*.ts`) | Local state, derived values, mutations, toasts, navigation side-effects                                  | Import other `ui/*` presentational components; return JSX         |
+| **Body / Form / Steps** | Markup, fields, sticky bars, dialogs                                                                     | Own RTK queries that the page already gated (prefer props / hook) |
+| **Lib**                 | Pure functions, option tables, copy builders, payload builders                                           | Import `ui/*` or React (except types)                             |
 
 **Naming patterns we already use (pick one that fits):**
 
@@ -69,7 +69,7 @@ Copy this checklist into the PR / chat when you start a page. Do **not** skip st
 5. [ ] Move **pure** constants / formatters / gates → `lib/*.ts` + **tests**.
 6. [ ] Move state + side effects → `ui/use*.ts` (no JSX).
 7. [ ] Move markup → `ui/*Body` (or Form / Steps / Detail / Panels).
-8. [ ] Rewrite page to: gates + `ScreenBar` (if chrome isn’t inside body) + compose hook/body.
+8. [ ] Rewrite page to: gates + `DockScreen`/`PageDock` (or chrome inside body) + compose hook/body.
 9. [ ] Preserve `key={entity.id}` on bodies when remount-on-id-change mattered.
 
 ### Phase C — Validate (must pass before ✅)
@@ -78,7 +78,7 @@ Copy this checklist into the PR / chat when you start a page. Do **not** skip st
 11. [ ] `npx eslint --fix` on touched files (import sort).
 12. [ ] `npm test -- <path-to-new-lib-tests>` (and any related feature tests).
 13. [ ] `npx tsc -b --noEmit` — **no new errors** on the files you touched (ignore pre-existing noise elsewhere).
-14. [ ] Smoke mentally: back nav, empty/error gates, primary CTA, sticky bar still sibling of body (layout doc).
+14. [ ] Smoke mentally: back nav, empty/error gates, primary CTA, footer still `DockScreen`/`PageDock` `footer` (layout doc).
 15. [ ] Mark the row ✅ in **§5 inventory** and note line counts (before → after page).
 
 **Stop condition:** If typecheck/tests fail because of the split, fix **this** page before starting another.

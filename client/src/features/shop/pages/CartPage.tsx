@@ -1,23 +1,26 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
-import { CartPageBody } from '../ui/CartPageBody';
+import { CartPageBody, CartPageFooter } from '../ui/CartPageBody';
 import { useCartPage } from '../ui/useCartPage';
 
 export default function CartPage() {
   const flow = useCartPage();
   const { isLoading, isError, refetch, lines, goHome } = flow;
+  const ready = !isLoading && !isError && lines.length > 0;
 
-  const header = <ScreenBar title="Selected Items" subtitle="Review Before Checkout" onBack={goHome} />;
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+  return (
+    <DockScreen
+      title="Selected Items"
+      subtitle="Review Before Checkout"
+      onBack={goHome}
+      footer={ready ? <CartPageFooter flow={flow} /> : undefined}
+    >
+      {isLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-4" aria-busy="true" aria-label="Loading Cart">
           <Skeleton className="h-3 w-28" />
           {[0, 1].map((i) => (
@@ -36,14 +39,7 @@ export default function CartPage() {
             <Skeleton className="mt-3 h-4 w-1/3" />
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      ) : isError ? (
         <div className="px-4 py-8">
           <ErrorState
             title="Couldn't Load Your Cart"
@@ -51,15 +47,8 @@ export default function CartPage() {
             onRetry={() => void refetch()}
           />
         </div>
-      </div>
-    );
-  }
-
-  if (!lines.length) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
-        <div className="flex flex-1 flex-col px-4">
+      ) : !lines.length ? (
+        <div className="flex min-h-full flex-col px-4">
           <EmptyState
             size="lg"
             title="Your Cart Is Empty"
@@ -71,14 +60,9 @@ export default function CartPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-surface flex min-h-full flex-col">
-      {header}
-      <CartPageBody flow={flow} />
-    </div>
+      ) : (
+        <CartPageBody flow={flow} />
+      )}
+    </DockScreen>
   );
 }

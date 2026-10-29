@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -12,13 +12,9 @@ import { useSellerHub } from '../ui/useSellerHub';
 export default function SellerHubPage() {
   const flow = useSellerHub();
   const { goHome, store, storeLoading, storeError, needsApply, refetchStore } = flow;
-
-  const header = <ScreenBar title="Seller Hub" subtitle="Store, Products and Orders" onBack={goHome} />;
-
-  if (storeLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+  return (
+    <DockScreen title="Seller Hub" subtitle="Store, Products and Orders" onBack={goHome}>
+      {storeLoading ? (
         <div className="flex flex-col gap-5 px-4 pt-4 pb-6" aria-busy="true" aria-label="Loading Seller Hub">
           <Skeleton className="h-12 w-full rounded-panel" />
           <div className="border-border-subtle rounded-card border p-4">
@@ -55,15 +51,8 @@ export default function SellerHubPage() {
             ))}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (needsApply) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
-        <div className="flex flex-1 flex-col px-4">
+      ) : needsApply ? (
+        <div className="flex min-h-full flex-col px-4">
           <EmptyState
             size="lg"
             title="Sell on Tapeya"
@@ -75,14 +64,7 @@ export default function SellerHubPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  if (storeError || !store) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      ) : storeError || !store ? (
         <div className="px-4 py-8">
           <ErrorState
             title="Couldn't Load Seller Hub"
@@ -95,14 +77,9 @@ export default function SellerHubPage() {
             </Button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-surface flex min-h-full flex-col">
-      {header}
-      <SellerHubBody flow={flow} store={store} />
-    </div>
+      ) : (
+        <SellerHubBody flow={flow} store={store} />
+      )}
+    </DockScreen>
   );
 }

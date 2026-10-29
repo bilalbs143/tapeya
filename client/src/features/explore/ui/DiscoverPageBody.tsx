@@ -1,4 +1,4 @@
-import { ScreenBar, SectionLabel } from '@/shared/layout';
+import { PageDock, ScreenBar, SectionLabel } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { EmptyState, ErrorState, UserRowSkeleton } from '@/shared/ui/states';
@@ -18,9 +18,9 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
   const { users, isLoading, isError, refetch, goHome } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />
-
+    <PageDock
+      header={<ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />}
+    >
       <div className="flex flex-col gap-3 px-4 py-3.5">
         {isLoading ? (
           <Card className="p-3.5">
@@ -66,6 +66,6 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
           </Card>
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

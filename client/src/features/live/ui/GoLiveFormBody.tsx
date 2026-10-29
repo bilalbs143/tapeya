@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import {
   BaseDialog,
   DialogBody,
@@ -6,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/dialogs/BaseDialog';
+import { PageDock } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
@@ -20,6 +23,7 @@ type GoLiveFlow = ReturnType<typeof useGoLiveForm>;
 
 type GoLiveFormBodyProps = {
   flow: GoLiveFlow;
+  header: ReactNode;
 };
 
 function OrientationTile({
@@ -55,7 +59,7 @@ function OrientationTile({
 }
 
 /** Title, orientation, thumbnail, sticky Go Live, and terms dialog. */
-export function GoLiveFormBody({ flow }: GoLiveFormBodyProps) {
+export function GoLiveFormBody({ flow, header }: GoLiveFormBodyProps) {
   const {
     fileRef,
     title,
@@ -78,93 +82,98 @@ export function GoLiveFormBody({ flow }: GoLiveFormBodyProps) {
 
   return (
     <>
-      <Form
-        id="go-live-form"
-        density="compact"
-        className="flex flex-1 flex-col px-4 pt-3.5 pb-4"
-        onSubmit={(e) => void go(e)}
-      >
-        <Input
-          label="Title"
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Sunday Cup — Semi 1"
-          maxLength={100}
-        />
-        <Textarea
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Ground, teams, anything viewers should know."
-          maxLength={500}
-        />
-
-        <Field label="Orientation" required hint="Locked once you are live — viewers can't be re-framed mid-stream.">
-          {() => (
-            <div className="flex gap-2.5">
-              {enumsLoading || orientationOptions.length === 0 ? (
-                <p className="text-dim text-3xs">Loading Orientation Options…</p>
-              ) : (
-                orientationOptions.map((opt) => (
-                  <OrientationTile
-                    key={opt.value}
-                    active={orientation === opt.value}
-                    label={opt.label}
-                    shape={opt.value === 'landscape' ? 'landscape' : 'portrait'}
-                    onClick={() => setOrientationDraft(opt.value)}
-                  />
-                ))
-              )}
-            </div>
-          )}
-        </Field>
-
-        <Field label="Stream Thumbnail" hint="JPG, PNG or WebP, max 5 MB.">
-          {({ id }) => (
-            <>
-              <button
-                type="button"
-                id={id}
-                onClick={() => fileRef.current?.click()}
-                className="border-border text-muted flex h-12 w-full items-center justify-center gap-2 rounded-field border border-dashed text-xs font-semibold"
+      <PageDock
+        header={header}
+        footer={
+          <StickyActionBar>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="submit"
+                form="go-live-form"
+                variant="positive"
+                className="w-full"
+                disabled={!canSubmit}
+                loading={createState.isLoading}
               >
-                {thumbPreview ? (
-                  <img src={thumbPreview} alt="" className="h-8 w-14 rounded object-cover" />
-                ) : (
-                  <span aria-hidden>+</span>
-                )}
-                {thumbPreview ? 'Replace Thumbnail' : 'Add Thumbnail'}
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={pickThumb}
-              />
-            </>
-          )}
-        </Field>
-      </Form>
+                Go Live
+              </Button>
+              <p className="text-dim text-center text-3xs leading-relaxed">
+                Your stream will appear on the Live hub within about a minute.
+              </p>
+            </div>
+          </StickyActionBar>
+        }
+      >
+        <Form
+          id="go-live-form"
+          density="compact"
+          className="flex flex-col px-4 pt-3.5 pb-4"
+          onSubmit={(e) => void go(e)}
+        >
+          <Input
+            label="Title"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Sunday Cup — Semi 1"
+            maxLength={100}
+          />
+          <Textarea
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Ground, teams, anything viewers should know."
+            maxLength={500}
+          />
 
-      <StickyActionBar>
-        <div className="flex flex-col gap-2">
-          <Button
-            type="submit"
-            form="go-live-form"
-            variant="positive"
-            className="w-full"
-            disabled={!canSubmit}
-            loading={createState.isLoading}
-          >
-            Go Live
-          </Button>
-          <p className="text-dim text-center text-3xs leading-relaxed">
-            Your stream will appear on the Live hub within about a minute.
-          </p>
-        </div>
-      </StickyActionBar>
+          <Field label="Orientation" required hint="Locked once you are live — viewers can't be re-framed mid-stream.">
+            {() => (
+              <div className="flex gap-2.5">
+                {enumsLoading || orientationOptions.length === 0 ? (
+                  <p className="text-dim text-3xs">Loading Orientation Options…</p>
+                ) : (
+                  orientationOptions.map((opt) => (
+                    <OrientationTile
+                      key={opt.value}
+                      active={orientation === opt.value}
+                      label={opt.label}
+                      shape={opt.value === 'landscape' ? 'landscape' : 'portrait'}
+                      onClick={() => setOrientationDraft(opt.value)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </Field>
+
+          <Field label="Stream Thumbnail" hint="JPG, PNG or WebP, max 5 MB.">
+            {({ id }) => (
+              <>
+                <button
+                  type="button"
+                  id={id}
+                  onClick={() => fileRef.current?.click()}
+                  className="border-border text-muted flex h-12 w-full items-center justify-center gap-2 rounded-field border border-dashed text-xs font-semibold"
+                >
+                  {thumbPreview ? (
+                    <img src={thumbPreview} alt="" className="h-8 w-14 rounded object-cover" />
+                  ) : (
+                    <span aria-hidden>+</span>
+                  )}
+                  {thumbPreview ? 'Replace Thumbnail' : 'Add Thumbnail'}
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={pickThumb}
+                />
+              </>
+            )}
+          </Field>
+        </Form>
+      </PageDock>
 
       <BaseDialog open={!termsOk} onOpenChange={() => {}} showClose={false} dismissible={false}>
         <DialogHeader>

@@ -1,6 +1,6 @@
 import { UploadVideoPlayer, YoutubeProxyPlayer } from '@/features/live';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { PlayFillIcon, RotateIcon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
 import { ImmersiveLandscapeStage } from '@/shared/ui/ImmersiveLandscapeStage';
@@ -78,11 +78,14 @@ export function HighlightDetailBody({ clip, related }: HighlightDetailBodyProps)
     },
   ];
 
-  // Fixed shell (AppShell fixedFrame): player + meta stay put; only “More Highlights” scrolls.
+  // Dock-fill: player + meta stay put; only “More Highlights” scrolls inside.
   return (
-    <div className="bg-surface flex h-full min-h-0 flex-col overflow-hidden">
-      {!landscape ? <ScreenBar title="Highlight" subtitle="Match Clip" sticky={false} onBack={goList} /> : null}
-
+    <PageDock
+      body="fill"
+      padKeyboard={!landscape}
+      header={!landscape ? <ScreenBar title="Highlight" subtitle="Match Clip" onBack={goList} /> : undefined}
+      className={landscape ? 'overflow-visible' : undefined}
+    >
       <div className={cn('relative shrink-0 overflow-hidden tab:rounded-field', landscape && 'overflow-visible')}>
         <ImmersiveLandscapeStage landscape={landscape} deviceLandscape={deviceLandscape} onExit={exitLandscape}>
           {!playing && clip.thumbnailUrl ? (
@@ -156,6 +159,6 @@ export function HighlightDetailBody({ clip, related }: HighlightDetailBodyProps)
           ) : null}
         </>
       ) : null}
-    </div>
+    </PageDock>
   );
 }

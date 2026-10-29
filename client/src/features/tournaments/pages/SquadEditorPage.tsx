@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -56,59 +56,48 @@ export default function SquadEditorPage() {
     );
   }
 
-  if (!validId) {
+  const detailBack = () => navigate(tournamentRoutes.detail(tournamentId));
+  const listBack = () => navigate(tournamentRoutes.list());
+
+  if (
+    validId &&
+    !tournamentQuery.isLoading &&
+    !teamsQuery.isLoading &&
+    !tournamentQuery.isError &&
+    tournamentQuery.data &&
+    teams.length > 0 &&
+    selectedTeam
+  ) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Squads" subtitle="Build Each Team’s XI" onBack={() => navigate(tournamentRoutes.list())} />
-        <div className="px-4 py-8">
-          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
-        </div>
-      </div>
+      <SquadTeamEditor
+        key={selectedTeam.id}
+        tournamentId={tournamentId}
+        tournament={tournamentQuery.data}
+        teams={teams}
+        selectedTeam={selectedTeam}
+        onSelectTeam={selectTeam}
+        onBack={detailBack}
+      />
     );
   }
 
-  if (tournamentQuery.isLoading || teamsQuery.isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Squads"
-          subtitle="Build Each Team’s XI"
-          onBack={() => navigate(tournamentRoutes.detail(tournamentId))}
-        />
+  return (
+    <DockScreen title="Squads" subtitle="Build Each Team’s XI" onBack={validId ? detailBack : listBack}>
+      {!validId ? (
+        <div className="px-4 py-8">
+          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
+        </div>
+      ) : tournamentQuery.isLoading || teamsQuery.isLoading ? (
         <div className="flex flex-col gap-3 px-4 py-6">
           <Skeleton className="h-10 w-full rounded-field" />
           <Skeleton className="h-24 w-full rounded-card" />
           <Skeleton className="h-40 w-full rounded-card" />
         </div>
-      </div>
-    );
-  }
-
-  if (tournamentQuery.isError || !tournamentQuery.data) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Squads"
-          subtitle="Build Each Team’s XI"
-          onBack={() => navigate(tournamentRoutes.detail(tournamentId))}
-        />
+      ) : tournamentQuery.isError || !tournamentQuery.data ? (
         <div className="px-4 py-8">
           <ErrorState title="Couldn't Load Tournament" onRetry={() => void tournamentQuery.refetch()} />
         </div>
-      </div>
-    );
-  }
-
-  const tournament = tournamentQuery.data;
-
-  if (!teams.length || !selectedTeam) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Squads"
-          subtitle="Build Each Team’s XI"
-          onBack={() => navigate(tournamentRoutes.detail(tournamentId))}
-        />
+      ) : !teams.length || !selectedTeam ? (
         <div className="px-4 py-8">
           <EmptyState
             title="No Team to Edit"
@@ -120,19 +109,7 @@ export default function SquadEditorPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <SquadTeamEditor
-      key={selectedTeam.id}
-      tournamentId={tournamentId}
-      tournament={tournament}
-      teams={teams}
-      selectedTeam={selectedTeam}
-      onSelectTeam={selectTeam}
-      onBack={() => navigate(tournamentRoutes.detail(tournamentId))}
-    />
+      ) : null}
+    </DockScreen>
   );
 }

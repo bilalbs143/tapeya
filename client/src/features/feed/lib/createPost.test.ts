@@ -10,20 +10,20 @@ import {
 } from './createPost';
 
 describe('createPostApiBackgroundId', () => {
-  it('maps UI tokens to API ids', () => {
-    expect(createPostApiBackgroundId('none')).toBeNull();
-    expect(createPostApiBackgroundId('turf')).toBe('pitch');
-    expect(createPostApiBackgroundId('floodlit')).toBe('night');
+  it('maps UI selection to API ids', () => {
+    expect(createPostApiBackgroundId('plain')).toBeNull();
+    expect(createPostApiBackgroundId('pitch')).toBe('pitch');
+    expect(createPostApiBackgroundId('century')).toBe('century');
   });
 });
 
 describe('createPostActiveBackground', () => {
   it('forces plain when media is attached', () => {
-    expect(createPostActiveBackground('turf', 'hi', true)).toBe('none');
+    expect(createPostActiveBackground('pitch', 'hi', true)).toBe('plain');
   });
 
   it('keeps selection when caption is short and text-only', () => {
-    expect(createPostActiveBackground('floodlit', 'hi', false)).toBe('floodlit');
+    expect(createPostActiveBackground('night', 'hi', false)).toBe('night');
   });
 });
 

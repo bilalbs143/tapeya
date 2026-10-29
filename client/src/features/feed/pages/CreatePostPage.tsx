@@ -8,9 +8,9 @@ export default function CreatePostPage() {
   const flow = useCreatePost();
 
   return (
-    <div className="bg-surface flex h-full min-h-0 flex-col overflow-hidden">
-      <ScreenBar title="Create Post" subtitle="Text or Photo" onBack={flow.goHome} className="shrink-0" />
-      <CreatePostFormBody flow={flow} />
-    </div>
+    <CreatePostFormBody
+      flow={flow}
+      header={<ScreenBar title="Create Post" subtitle="Text or Photo" onBack={flow.goHome} />}
+    />
   );
 }

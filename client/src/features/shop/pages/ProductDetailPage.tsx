@@ -1,12 +1,12 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
 import { CartLink } from '../ui/CartLink';
-import { ProductDetailBody } from '../ui/ProductDetailBody';
+import { ProductDetailBody, ProductDetailFooter } from '../ui/ProductDetailBody';
 import { useProductDetail } from '../ui/useProductDetail';
 
 /** Product detail — /shop/products/:slug (API resolves by slug, optional ?vendor=). */
@@ -19,35 +19,32 @@ export default function ProductDetailPage() {
 
   const flow = useProductDetail(productSlug, vendor);
   const { product, isLoading, isError, refetch, barSubtitle, goBack, goHome } = flow;
+  const ready = Boolean(productSlug) && !isLoading && !isError && product != null;
 
-  if (!productSlug) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={goHome} />
+  const onBack = !productSlug || isError || !product ? goHome : goBack;
+  const subtitle = ready ? barSubtitle : 'Gear and Kits';
+
+  return (
+    <DockScreen
+      title="Shop"
+      subtitle={subtitle}
+      onBack={onBack}
+      action={<CartLink />}
+      footer={ready ? <ProductDetailFooter flow={flow} /> : undefined}
+    >
+      {!productSlug ? (
         <div className="px-4 py-8">
           <EmptyState title="This Product Is Gone" description="The link is wrong." />
         </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={goBack} action={<CartLink />} />
-        <Skeleton className="h-64 w-full" />
-        <div className="flex flex-col gap-3 px-4 pt-4">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-5 w-1/3" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !product) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={goHome} action={<CartLink />} />
+      ) : isLoading ? (
+        <>
+          <Skeleton className="h-64 w-full" />
+          <div className="flex flex-col gap-3 px-4 pt-4">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-5 w-1/3" />
+          </div>
+        </>
+      ) : isError || !product ? (
         <div className="flex flex-col items-center gap-4 px-4 py-8">
           <ErrorState
             title="This Product Is Gone"
@@ -58,14 +55,9 @@ export default function ProductDetailPage() {
             <Link to={shopPaths.home()}>Back to Shop</Link>
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Shop" subtitle={barSubtitle} onBack={goBack} action={<CartLink />} />
-      <ProductDetailBody flow={flow} />
-    </div>
+      ) : (
+        <ProductDetailBody flow={flow} />
+      )}
+    </DockScreen>
   );
 }

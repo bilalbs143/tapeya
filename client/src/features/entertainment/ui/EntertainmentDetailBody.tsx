@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { EmptyState } from '@/shared/ui/states';
 
 import { entertainmentEpisodeBadge, entertainmentEpisodeViewsLabel } from '../lib/entertainmentDetail';
@@ -15,9 +15,7 @@ type EntertainmentDetailBodyProps = {
 /** Show description + episode rows. */
 export function EntertainmentDetailBody({ serial, onBack }: EntertainmentDetailBodyProps) {
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title={serial.title} subtitle="Episodes" onBack={onBack} />
-
+    <PageDock header={<ScreenBar title={serial.title} subtitle="Episodes" onBack={onBack} />}>
       <div className="flex flex-col gap-5 px-4 pt-3.5 pb-8">
         {serial.description ? <p className="text-muted text-2xs leading-relaxed">{serial.description}</p> : null}
 
@@ -52,6 +50,6 @@ export function EntertainmentDetailBody({ serial, onBack }: EntertainmentDetailB
           )}
         </section>
       </div>
-    </div>
+    </PageDock>
   );
 }

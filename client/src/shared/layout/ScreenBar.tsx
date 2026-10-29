@@ -15,6 +15,10 @@ type ScreenBarProps = {
   below?: ReactNode;
   /** When the title is clipped (e.g. Share/Rotate in the action slot), slide to reveal it. */
   slideTitle?: boolean | undefined;
+  /**
+   * Prefer `PageDock` for pinned chrome. Default off — only use sticky when the bar
+   * must pin inside a non-PageDock scroll column (legacy / media shells).
+   */
   sticky?: boolean | undefined;
   className?: string | undefined;
 };
@@ -27,7 +31,7 @@ export function ScreenBar({
   action,
   below,
   slideTitle = false,
-  sticky = true,
+  sticky = false,
   className,
 }: ScreenBarProps) {
   const bar = (
@@ -36,7 +40,7 @@ export function ScreenBar({
         'bg-surface flex items-start gap-2 px-3.5 py-2',
         below ? null : 'border-border-subtle border-b',
         sticky && !below && 'sticky top-0 z-20',
-        'tab:static tab:gap-3 tab:border-b-0 tab:px-4 tab:pt-5 tab:pb-4',
+        'tab:gap-3 tab:border-b-0 tab:px-4 tab:pt-5 tab:pb-4',
         className
       )}
     >
@@ -87,18 +91,9 @@ export function ScreenBar({
   if (!below) return bar;
 
   return (
-    <div
-      className={cn(
-        'border-border-subtle bg-surface border-b tab:static tab:border-b-0',
-        sticky && 'sticky top-0 z-20'
-      )}
-    >
+    <div className={cn('border-border-subtle bg-surface border-b tab:border-b-0', sticky && 'sticky top-0 z-20')}>
       {bar}
-      <div
-        className={cn(sticky && 'tab:border-border-subtle tab:bg-surface tab:sticky tab:top-0 tab:z-20 tab:border-b')}
-      >
-        {below}
-      </div>
+      <div className={cn(sticky && 'tab:border-border-subtle tab:bg-surface tab:border-b')}>{below}</div>
     </div>
   );
 }

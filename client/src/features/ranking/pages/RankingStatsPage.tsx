@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { EmptyState } from '@/shared/ui/states';
 
 import { RankingStatsBody } from '../ui/RankingStatsBody';
@@ -15,12 +15,11 @@ export default function RankingStatsPage() {
 
   if (!valid) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Stats" subtitle="Full Ranking Table" onBack={goList} />
+      <PageDock header={<ScreenBar title="Stats" subtitle="Full Ranking Table" onBack={goList} />}>
         <div className="px-4 py-8">
           <EmptyState title="Unknown Ranking" description="Pick a category from Top players." />
         </div>
-      </div>
+      </PageDock>
     );
   }
 

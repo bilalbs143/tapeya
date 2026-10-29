@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -25,10 +25,15 @@ export default function EntertainmentEpisodePage() {
     skip: !valid,
   });
 
-  if (!valid) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Episode" subtitle="Entertainment" onBack={() => navigate(entertainmentPaths.list())} />
+  const episodeBack = () => navigate(Number.isFinite(sid) ? entertainmentPaths.detail(sid) : entertainmentPaths.list());
+
+  if (valid && !isLoading && !isError && episode) {
+    return <EntertainmentEpisodeDetail key={episode.id} episode={episode} routeSerialId={sid} />;
+  }
+
+  return (
+    <DockScreen title="Episode" subtitle="Entertainment" onBack={episodeBack}>
+      {!valid ? (
         <div className="px-4 py-8">
           <EmptyState
             title="Episode Not Found"
@@ -40,42 +45,20 @@ export default function EntertainmentEpisodePage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Episode"
-          subtitle="Entertainment"
-          onBack={() => navigate(Number.isFinite(sid) ? entertainmentPaths.detail(sid) : entertainmentPaths.list())}
-        />
-        <Skeleton className="aspect-video w-full rounded-none" />
-        <div className="flex flex-col gap-3 px-4 pt-4">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-11 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !episode) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Episode"
-          subtitle="Entertainment"
-          onBack={() => navigate(Number.isFinite(sid) ? entertainmentPaths.detail(sid) : entertainmentPaths.list())}
-        />
+      ) : isLoading ? (
+        <>
+          <Skeleton className="aspect-video w-full rounded-none" />
+          <div className="flex flex-col gap-3 px-4 pt-4">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+        </>
+      ) : (
         <div className="px-4 py-8">
           <ErrorState title="Couldn’t Load This Episode" onRetry={() => void refetch()} />
         </div>
-      </div>
-    );
-  }
-
-  return <EntertainmentEpisodeDetail key={episode.id} episode={episode} routeSerialId={sid} />;
+      )}
+    </DockScreen>
+  );
 }

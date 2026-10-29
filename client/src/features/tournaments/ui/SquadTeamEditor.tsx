@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Alert } from '@/shared/ui/Alert';
 import { Avatar } from '@/shared/ui/Avatar';
@@ -53,10 +53,8 @@ export function SquadTeamEditor({
   } = useSquadTeamEditor({ tournamentId, tournament, teams, selectedTeam });
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Squads" subtitle={subtitle} onBack={onBack} action={<SavePill state={saveState} />} />
-
-      <div className="flex flex-1 flex-col gap-4 px-4 pt-3.5 pb-6">
+    <DockScreen title="Squads" subtitle={subtitle} onBack={onBack} action={<SavePill state={saveState} />}>
+      <div className="flex flex-col gap-4 px-4 pt-3.5 pb-6">
         <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
           {teams.map((tm) => {
             const on = tm.id === selectedTeam.id;
@@ -239,7 +237,7 @@ export function SquadTeamEditor({
           }
         />
       ) : null}
-    </div>
+    </DockScreen>
   );
 }
 

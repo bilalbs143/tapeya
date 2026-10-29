@@ -34,6 +34,9 @@ function postFixture(overrides: Partial<PostWire> & Pick<PostWire, 'id' | 'type'
 
 const fixtures: PostWire[] = [
   postFixture({ id: 1, type: 'text', body: 'Great spell from the openers.', background_id: 'pitch' }),
+  postFixture({ id: 11, type: 'text', body: 'Floodlights on. Game on.', background_id: 'night' }),
+  postFixture({ id: 12, type: 'text', body: 'Brand gold energy.', background_id: 'gold' }),
+  postFixture({ id: 13, type: 'text', body: 'Century knock.', background_id: 'century' }),
   postFixture({
     id: 2,
     type: 'image',

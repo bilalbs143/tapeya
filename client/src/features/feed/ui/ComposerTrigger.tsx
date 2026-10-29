@@ -34,7 +34,7 @@ export function ComposerTrigger({ user, className }: ComposerTriggerProps) {
           onClick={() => navigate(feedRoutes.create())}
           className="text-dim min-w-0 flex-1 truncate text-left text-2xs tab:text-body-sm"
         >
-          <span className="tab:hidden">Share Your Cricket Moment…</span>
+          <span className="tab:hidden">Share your cricket moment…</span>
           <span className="hidden tab:inline">Post a result, a clip, or find a match this Sunday…</span>
         </button>
 

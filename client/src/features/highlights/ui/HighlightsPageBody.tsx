@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { SearchBar } from '@/shared/ui/SearchBar';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -54,20 +54,25 @@ export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
   const { q, setQ, debounced, results, clips, isLoading, isError, refetch, goBack } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Highlights" subtitle="Clips From the Pitch" onBack={goBack} />
-
-      <div className="flex flex-col gap-4 px-4 pt-3.5 pb-6">
-        <SearchBar
-          value={q}
-          onValueChange={setQ}
-          placeholder="Search Highlights…"
-          label="Search Highlights"
-          size="md"
-          className="w-full"
-          inputClassName="h-[46px] rounded-panel"
-        />
-
+    <PageDock
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title="Highlights" subtitle="Clips From the Pitch" onBack={goBack} />
+          <div className="px-4 pt-3.5 pb-3">
+            <SearchBar
+              value={q}
+              onValueChange={setQ}
+              placeholder="Search Highlights…"
+              label="Search Highlights"
+              size="md"
+              className="w-full"
+              inputClassName="h-[46px] rounded-panel"
+            />
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4 px-4 pb-6">
         {isLoading ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-4" aria-busy="true" aria-label="Loading Highlights">
             {[0, 1, 2, 3].map((i) => (
@@ -102,6 +107,6 @@ export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
           <HighlightGrid clips={clips} />
         )}
       </div>
-    </div>
+    </PageDock>
   );
 }

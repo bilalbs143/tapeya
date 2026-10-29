@@ -154,7 +154,7 @@ Do not invent a new global store for one screen.
 
 Overlays (`BaseDialog` etc.) **must** use `tab:` for sheet→centred dialog — never `sm:`.
 
-5. Page layout: follow [APP_REACT_PAGE_LAYOUT.md](./APP_REACT_PAGE_LAYOUT.md) — `bg-surface flex min-h-full flex-col`, body `px-4`, `ScreenBar`, `StickyActionBar` as sibling (never nested in `px-*` form).
+5. Page layout: follow [APP_REACT_PAGE_LAYOUT.md](./APP_REACT_PAGE_LAYOUT.md) — `DockScreen` / `PageDock` for docked pages (home feed stays document scroll), body `px-4`, `StickyActionBar` as `footer` (never nested in `px-*` form).
 6. **Gutters vs density:** page body = `px-4` only. Nested cards/rows may use `px-3.5` / `px-3`. Prefer token heights (`h-10`–`h-12`); `h-[Npx]` only for media chrome, OTP digits, or documented tapeya-ui parity.
 
 ---
@@ -306,7 +306,7 @@ cd client && npm run typecheck && npm run test && npm run lint
 | `useMemo` on every derived string | Compute in render |
 | Hand-rolled modal with `div` + click-outside | Radix / `shared/dialogs` |
 | Page-level `px-3` / `px-[15px]` | Canonical `px-4` |
-| Sticky CTA inside padded form | `StickyActionBar` sibling |
+| Sticky CTA inside padded form | `StickyActionBar` via `DockScreen`/`PageDock` `footer` |
 | Toast-only error with no field link | Field error + `aria-describedby` |
 | `any` in `transformResponse` | Zod parse |
 | Second design-system Button | Extend / variant on `shared/ui/Button` |
@@ -327,7 +327,7 @@ cd client && npm run typecheck && npm run test && npm run lint
 
 ### UI
 - [ ] Tokens only (no new hex / arbitrary px radii)
-- [ ] Page layout doc followed (ScreenBar / gutters / sticky)
+- [ ] Page layout doc followed (DockScreen/PageDock / gutters / footer CTA)
 - [ ] Icons from @/shared/ui/icons
 - [ ] Copy casing doc followed
 - [ ] Loading / empty / error states present

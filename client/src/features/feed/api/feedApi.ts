@@ -5,6 +5,7 @@ import { mergeCursorPages } from '@/shared/api/mergeCursorPages';
 import type { CursorPage } from '@/shared/api/types';
 import { unwrapCursorPage, unwrapData, unwrapMessage } from '@/shared/api/unwrap';
 
+import type { PostBackgroundId } from '../lib/composeBackgrounds';
 import {
   type Comment,
   type CommentPage,
@@ -79,7 +80,7 @@ function mapComment(raw: unknown): Comment {
 export type CreateTextPostInput = {
   body: string;
   /** API background_id — omit / null = plain. */
-  backgroundId?: 'pitch' | 'night' | null | undefined;
+  backgroundId?: PostBackgroundId | null | undefined;
 };
 
 export type CreateImagePostInput = {

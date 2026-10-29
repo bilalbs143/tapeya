@@ -11,19 +11,19 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 ## 1. Non-negotiable rules
 
 1. **Shell owns chrome; pages own content.** `AppShell` does **not** add page gutters. Every page must apply the canonical gutters below.
-2. **One page root.** Almost every screen starts with:
-
-   ```tsx
-   <div className="bg-surface flex min-h-full flex-col">
-   ```
-
-3. **One horizontal gutter for body content: `px-4`.** Do not mix `px-3`, `px-3.5`, `px-[15px]`, or `px-[18px]` in page bodies. (`px-3.5` is reserved for ScreenBar phone chrome and the desk rail.)
-4. **Use `ScreenBar` for subpages.** Do not hand-roll back + title + border. Exception: first-class types that explicitly omit it (hero detail, feed home, profile shelf, immersive, auth).
-5. **Use `StickyActionBar` for commit CTAs** on shell pages. Sibling of the body — never nested inside a `px-*` form. Never pass `-mx-*`.
-6. **Safe area is not a page concern** when BottomNav (or shell chrome) already owns the bottom inset. StickyActionBar has **no** safe-area pad. Immersive / hide-nav surfaces own their own insets.
-7. **Empty / Error / Loading live under the header**, inside the page column — never replace the whole shell.
-8. **No double chrome.** One title row only (ScreenBar **or** step header — not both). One sticky footer only.
-9. **Tokens only.** No new hex, arbitrary `px-[Npx]` gutters, or one-off `pb-safe` utilities outside the patterns in this doc.
+2. **Pick the right page shell** (see §2):
+   - **Docked** (most subpages): `DockScreen` or `PageDock` — fixed-height frame; middle pane scrolls.
+   - **Document** (home feed only): grow with content; shell column scrolls.
+   - **Immersive / auth:** bare shell or `AuthShell` — no `PageDock`.
+3. **Prefer `DockScreen`** when the header is a plain `ScreenBar`. Use raw `PageDock` for custom headers (profile, hero, wizard progress) or when the page already owns `ScreenBar` props.
+4. **One horizontal gutter for body content: `px-4`.** Do not mix `px-3`, `px-3.5`, `px-[15px]`, or `px-[18px]` in page bodies. (`px-3.5` is reserved for ScreenBar phone chrome and the desk rail.)
+5. **Use `ScreenBar` for subpages.** Do not hand-roll back + title + border. Exception: first-class types that explicitly omit it (hero detail, feed home, profile shelf, immersive, auth).
+6. **Use `StickyActionBar` for commit CTAs** — pass as `DockScreen` / `PageDock` `footer`. Sibling of the scroll body — never nested inside a `px-*` form. Never pass `-mx-*`.
+7. **Safe area is not a page concern** when BottomNav (or shell chrome) already owns the bottom inset. StickyActionBar has **no** safe-area pad on normal shell pages (`edge` only when BottomNav is hidden). Immersive surfaces own their own insets.
+8. **Empty / Error / Loading live under the header**, inside the dock body — never replace the whole shell. Keep one `PageDock` for the route; switch states as children.
+9. **No double chrome.** One title row only (ScreenBar **or** step header — not both). One footer dock only.
+10. **Tokens only.** No new hex, arbitrary `px-[Npx]` gutters, or one-off `pb-safe` utilities outside the patterns in this doc.
+11. **Full-height ancestors.** If you wrap `PageDock` (e.g. in `Tabs`), the wrapper must be `h-full min-h-0` so the dock can resolve height. Prefer `PageDock` as the outermost page root when possible.
 
 ---
 
@@ -31,7 +31,7 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 
 | Mode | Route examples | What the page gets |
 |---|---|---|
-| **Normal** | Feed, shop, tournaments, matches list/setup, profile, go-live form, support | TopBar / SideNav, scroll column, `tab:max-w-[800px]`, optional desk rail, BottomNav (phone) |
+| **Normal** | Shop, tournaments, matches list/setup, profile, go-live form, support, CMS | TopBar / SideNav, `tab:max-w-[800px]`, optional desk rail, BottomNav (phone) |
 | **Bare** | Reels, match score/toss, live watch / on-air | Full viewport; phone may overlay BottomNav; **no** max-width column; page owns height + safe areas |
 | **Auth** | Login, Register, OTP | Outside `AppShell` — use `AuthShell` only |
 
@@ -42,6 +42,17 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 - Live immersive: `/live/broadcast/:id`, `/live/go-live/:id`
 
 Hub `/live` and form `/live/go-live` **keep** BottomNav.
+
+### Page scroll contracts (normal shell)
+
+| Contract | Primitive | Who scrolls | Use for |
+|---|---|---|---|
+| **Dock-scroll** | `DockScreen` / `PageDock` (`body="scroll"`, default) | Middle pane (`data-page-scroll`) | Forms, lists, details, gates |
+| **Dock-fill** | `PageDock body="fill"` | Children layout (`flex-1`); often no page scroll | Upload stages, success faces that pin a footer |
+| **Document** | No `PageDock` | `ShellScrollport` | **Home feed only** |
+| **Immersive** | Bare `AppShell` | Feature-owned | Reels, on-air, scoring pad |
+
+`PageDock` registers with the shell (`pageDockStore`) so `AppShell` uses a fixed-height frame (`overflow-hidden` on the shell column). Route changes reset shell + `[data-scroll-to-top]` panes via `scrollShellToTop`.
 
 ### Breakpoints (code, not folklore)
 
@@ -65,8 +76,8 @@ Use **only** these roles. If you need a new step, update this table first.
 | **ScreenBar desk** | `tab:px-4 tab:pt-5 tab:pb-4` | Built into `ScreenBar` |
 | **Body top under ScreenBar** | `pt-3.5` | Compact forms / dense hubs |
 | **Body top (roomier)** | `pt-4` | Lists, multi-section forms |
-| **Body bottom (scroll end, no sticky)** | `pb-6` or `pb-8` | Prefer `pb-6` hubs; `pb-8` long lists |
-| **Body bottom (before StickyActionBar)** | `pb-4` | Leaves air above the sticky border |
+| **Body bottom (scroll end, no footer)** | `pb-6` or `pb-8` | Prefer `pb-6` hubs; `pb-8` long lists |
+| **Body bottom (before StickyActionBar)** | `pb-4` | Leaves air above the footer border |
 | **Section stack (hub)** | `gap-5` | Cards / bands stacked on hubs |
 | **Section stack (dense hub)** | `gap-3.5` | Live hub–style |
 | **Form density compact** | `gap-3.5` | ScreenBar + StickyActionBar screens |
@@ -83,16 +94,16 @@ Use **only** these roles. If you need a new step, update this table first.
 ### Vertical rhythm (mental model)
 
 ```
-┌─ ScreenBar (phone sticky) ─────────────────────┐
+┌─ ScreenBar (PageDock header — pinned) ─────────┐
 │  px-3.5 py-2  ·  tab: px-4 pt-5 pb-4           │
-├────────────────────────────────────────────────┤
+├─ data-page-scroll (flex-1 overflow-y-auto) ────┤
 │  Body: px-4 + pt-3.5|pt-4                      │
 │  gaps: 3.5 (compact) · 5 (hub) · 6 (default)   │
-│  pb-4 if sticky follows · else pb-6|pb-8       │
-├─ StickyActionBar (optional) ───────────────────┤
-│  px-4 pt-3 pb-3  ·  no safe-area               │
+│  pb-4 if footer follows · else pb-6|pb-8       │
+├─ StickyActionBar (PageDock footer — pinned) ───┤
+│  px-4 pt-3 pb-3  ·  no safe-area (normal)      │
 └────────────────────────────────────────────────┘
-         ↑ sits above BottomNav in scrollport
+         ↑ above BottomNav; keyboard pad on PageDock
 ```
 
 ---
@@ -106,40 +117,38 @@ Every new or ported screen **must** declare its type in the PR/description and f
 **When:** Support, Interest, Go Live form, Seller store/apply/product, Checkout, Cart, Start Match, Quick Match, Match settings (content), etc.
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <ScreenBar title="…" subtitle="…" onBack={() => navigate(…)} />
-
-  <Form
-    id="page-form"
-    density="compact"
-    className="px-4 pt-3.5 pb-4"
-    onSubmit={…}
-  >
+<DockScreen
+  title="…"
+  subtitle="…"
+  onBack={() => navigate(…)}
+  footer={
+    <StickyActionBar>
+      <Button type="submit" form="page-form" className="min-h-12 w-full">
+        Save Changes
+      </Button>
+    </StickyActionBar>
+  }
+>
+  <Form id="page-form" density="compact" className="px-4 pt-3.5 pb-4" onSubmit={…}>
     {/* fields — no outer px-* */}
   </Form>
-
-  <StickyActionBar>
-    <Button type="submit" form="page-form" className="min-h-12 w-full">
-      Save Changes
-    </Button>
-  </StickyActionBar>
-</div>
+</DockScreen>
 ```
 
 **Rules**
 
-- StickyActionBar is a **sibling** of `Form`, not a child.
-- Do not put `flex-1` on StickyActionBar. `mt-auto` on the bar parks it when content is short.
-- Loading / error: replace **body only**, keep ScreenBar:
+- `footer={…}` is a **sibling** of the scroll body, not a child of `Form`.
+- Loading / error: keep `DockScreen` / `PageDock`; swap **children** only:
 
   ```tsx
-  <ScreenBar … />
-  <div className="px-4 py-8">
-    <ErrorState title="…" onRetry={…} />
-  </div>
+  <DockScreen title="…" onBack={…}>
+    <div className="px-4 py-8">
+      <ErrorState title="…" onRetry={…} />
+    </div>
+  </DockScreen>
   ```
 
-**Reference:** `features/support/pages/SupportPage.tsx`
+**Reference:** `features/shop/pages/CartPage.tsx`, `features/support/ui/SupportFormBody.tsx`
 
 ---
 
@@ -148,30 +157,21 @@ Every new or ported screen **must** declare its type in the PR/description and f
 **When:** Edit Profile (grouped sections, optional full-bleed media).
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <ScreenBar title="Edit Profile" … />
-
+<DockScreen title="Edit Profile" onBack={…} footer={<StickyActionBar>…</StickyActionBar>}>
   {/* Optional full-bleed media — no px */}
   <div className="…cover…">{/* edge to edge */}</div>
 
   <Form density="default" className="pb-4" …>
-    <div className="px-4 pt-4 flex flex-col gap-6">
+    <div className="flex flex-col gap-6 px-4 pt-4">
       {/* sections */}
     </div>
   </Form>
-
-  <StickyActionBar>
-    <div className="flex gap-2">
-      <Button variant="secondary" className="min-h-12 flex-1">Discard</Button>
-      <Button type="submit" form="…" className="min-h-12 flex-1">Save Changes</Button>
-    </div>
-  </StickyActionBar>
-</div>
+</DockScreen>
 ```
 
-**Rules:** Full-bleed media may break out of `px-4`. Field blocks always return to `px-4`. Sticky bar still owns its own `px-4`.
+**Rules:** Full-bleed media may break out of `px-4`. Field blocks always return to `px-4`. Footer still owns its own `px-4`.
 
-**Reference:** `features/profile/ui/EditProfileForm.tsx`
+**Reference:** `features/profile/pages/EditProfilePage.tsx`
 
 ---
 
@@ -180,21 +180,18 @@ Every new or ported screen **must** declare its type in the PR/description and f
 **When:** Matches list, Tournaments list, Live hub, Shop home, Notifications, Rankings, Highlights list, Serials list.
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <ScreenBar title="…" subtitle="…" onBack={…} /* or sticky={false} if below= */ />
-
-  {/* Optional sticky filters / search — ScreenBar below= OR sibling under bar */}
+<DockScreen title="…" subtitle="…" onBack={…}>
   <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
     {/* sections / cards / EmptyState */}
   </div>
-</div>
+</DockScreen>
 ```
 
 **Dense hub variant:** `gap-3.5 px-4 pt-3.5 pb-6` (Live hub).
 
 **Rules**
 
-- Prefer `<ScreenBar>` over hand-rolled headers. Keep create tiles / filter chips in the **page body** under the bar (not `below=`), same as Score Card / Matches.
+- Prefer `<ScreenBar>` / `DockScreen` over hand-rolled headers. Keep create tiles / filter chips in the **page body** under the bar (not `below=`), same as Score Card / Matches.
 - FAB / primary create: ScreenBar `action` **or** first body row — not a second floating header.
 - Empty: inside the body stack, `EmptyState` with `size="lg"` when the list is the whole page.
 - No StickyActionBar unless the hub itself commits (rare).
@@ -211,25 +208,28 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 | Model | Use when |
 |---|---|
-| **ScreenBar only** | Steps are short; subtitle shows “Step 2 of 3” |
+| **ScreenBar only** | Steps are short; subtitle shows “Step 2 of 3”; progress via `below=` |
 | **Step chrome only** | Wizard owns progress UI; page does **not** also mount ScreenBar |
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <ScreenBar title="Create Tournament" subtitle="Step 2 of 3 · Format" onBack={…} />
-
+<PageDock
+  header={<ScreenBar title="Create Tournament" subtitle="Step 2 of 3 · Format" onBack={…} below={…} />}
+  footer={
+    <StickyActionBar>
+      <div className="flex gap-2">
+        <Button variant="secondary" className="min-h-12 flex-1">Back</Button>
+        <Button type="submit" form="…" className="min-h-12 flex-1">Continue</Button>
+      </div>
+    </StickyActionBar>
+  }
+>
   <Form density="compact" className="px-4 pt-3.5 pb-4" …>
     …
   </Form>
-
-  <StickyActionBar>
-    <div className="flex gap-2">
-      <Button variant="secondary" className="min-h-12 flex-1">Back</Button>
-      <Button type="submit" form="…" className="min-h-12 flex-1">Continue</Button>
-    </div>
-  </StickyActionBar>
-</div>
+</PageDock>
 ```
+
+Keep success / loading inside the **same** `PageDock` (switch children / footer) so chrome does not unmount.
 
 **Anti-pattern:** Page-level ScreenBar **plus** wizard “Step N of 3” header with its own `px-4` — double chrome.
 
@@ -240,22 +240,15 @@ Every new or ported screen **must** declare its type in the PR/description and f
 **When:** Product detail, Post detail (with ScreenBar), highlight detail, order detail, public profile (with ScreenBar).
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <ScreenBar title="…" onBack={…} action={optional} />
-
+<DockScreen title="…" onBack={…} action={optional} footer={optionalCommerceFooter}>
   {/* Optional edge-to-edge media */}
-  <div className="px-4 pt-4 pb-6 flex flex-col gap-4">
+  <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
     {/* content */}
   </div>
-
-  {/* Optional commerce CTA */}
-  <StickyActionBar>
-    <Button className="min-h-12 w-full">Add to Cart</Button>
-  </StickyActionBar>
-</div>
+</DockScreen>
 ```
 
-**Thread + composer variant (Post detail):** comments body `px-4`; bottom composer uses the **same** sticky contract as StickyActionBar when BottomNav is visible (no extra safe-area). Prefer aligning `CommentComposer` sticky styles with StickyActionBar over inventing a third footer.
+**Thread + composer variant (Post detail):** comments body `px-4`; bottom composer uses the **same** footer contract as StickyActionBar when BottomNav is visible (no extra safe-area). Prefer aligning `CommentComposer` with StickyActionBar over inventing a third footer.
 
 ---
 
@@ -264,21 +257,11 @@ Every new or ported screen **must** declare its type in the PR/description and f
 **When:** Public tournament cover, marketing-style detail with full-bleed hero.
 
 ```tsx
-<div className="bg-surface flex min-h-full flex-col">
-  <div className="relative">
-    {/* cover h-[…] full bleed */}
-    <button
-      type="button"
-      aria-label="Back"
-      className="absolute inset-x-3.5 top-[max(14px,env(safe-area-inset-top))] …"
-      onClick={…}
-    />
-  </div>
-
-  <div className="px-4 pt-3.5 pb-6 flex flex-col gap-4">
+<PageDock header={<HeroWithFloatingBack … />}>
+  <div className="flex flex-col gap-4 px-4 pt-3.5 pb-6">
     {/* title, tabs, panels */}
   </div>
-</div>
+</PageDock>
 ```
 
 **Rules:** Floating back is the only header chrome. Tabs/content return to `px-4`. Do not also mount ScreenBar.
@@ -289,8 +272,9 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 **When:** You page, public profile tabs shelf.
 
-- Header component (`ProfileHeader`) replaces ScreenBar.
-- Tabs: `px-4`.
+- Header component (`ProfileHeader`) replaces ScreenBar — usually in `PageDock` `header` (pinned) or scroll body.
+- If `Tabs` wraps `PageDock`, give `Tabs` `className="flex h-full min-h-0 flex-col"`.
+- Tabs triggers: `px-4` on the strip wrapper.
 - Grid / shelves: `p-4` or `px-4 pt-4 pb-6`.
 - No StickyActionBar (edit lives on a Type A/B subpage).
 
@@ -300,7 +284,8 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 **When:** Home feed with sticky tab strip.
 
-- No ScreenBar.
+- **No `PageDock`** — document scroll in the shell column.
+- Root: `bg-surface flex min-h-full flex-col`.
 - Sticky tabs: `px-4` (match body gutter).
 - Post cards: full-bleed horizontal (edge borders), not inset cards unless design system says so.
 - Optional `useShellRail` for desk rail content.
@@ -342,13 +327,15 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 ## 5. StickyActionBar contract
 
+Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom`), not the bar.
+
 | Do | Don’t |
 |---|---|
-| Sibling of body inside `flex min-h-full flex-col` | Nest inside `Form` or any `px-*` wrapper |
+| Pass as `DockScreen` / `PageDock` `footer` | Nest inside `Form` or any `px-*` wrapper |
 | Let the bar own `px-4` | Pass `className="px-…"` or `-mx-4` |
 | `min-h-12` primary buttons | Random heights per screen |
-| Rely on BottomNav for home-indicator inset | Add `pb-[max(…,env(safe-area-inset-bottom))]` on shell pages |
-| Use for Save / Submit / Continue / Checkout | Use for “View more” mid-page links |
+| Rely on BottomNav for home-indicator inset | Add `pb-[max(…,env(safe-area-inset-bottom))]` on normal shell pages |
+| Use `edge` only when BottomNav is hidden | Use for “View more” mid-page links |
 
 **Dual actions:**
 
@@ -375,9 +362,11 @@ Primitive: `shared/ui/StickyActionBar.tsx`.
 | `onBack` | Required; button `tab:hidden` |
 | `action` | Top-aligned with title (icons, text button, Post) |
 | `below` | Tabs/filters stuck with title on phone; drops title bottom border |
-| `sticky` | Default `true` on phone; forced static from `tab:` |
+| `sticky` | **Default off.** Prefer `PageDock` header for pinned chrome. Opt in only for non-dock scroll columns (legacy / media). |
 
 **Do not** re-implement ScreenBar padding/typography in feature code.
+
+Tap title → `scrollShellToTop` (shell + page scroll panes).
 
 ---
 
@@ -385,7 +374,7 @@ Primitive: `shared/ui/StickyActionBar.tsx`.
 
 | State | Placement | Classes |
 |---|---|---|
-| Loading (skeletons) | Under ScreenBar | `px-4 pt-4` or `px-4 py-6` |
+| Loading (skeletons) | Under ScreenBar / in dock body | `px-4 pt-4` or `px-4 py-6` |
 | Loading (spinner block) | Under ScreenBar | Prefer local skeletons; `LoadingState` if used |
 | Error | Under ScreenBar | Wrapper `px-4 py-8` + `<ErrorState />` |
 | Empty (page) | Under ScreenBar / in hub body | `<EmptyState size="lg" />` inside `px-4` stack |
@@ -410,15 +399,15 @@ Do **not** double-pad: `ErrorState` already includes internal padding — the ou
 ## 9. Checklist (paste into PR)
 
 - [ ] Page type declared (A–J)
-- [ ] Root: `bg-surface flex min-h-full flex-col` (or Type I `h-full` / Type J AuthShell)
+- [ ] Root: `DockScreen` / `PageDock` (or Type H document / Type I `h-full` / Type J AuthShell)
 - [ ] Body gutter `px-4` only (no ad-hoc horizontal pad)
 - [ ] Header: ScreenBar **or** documented exception (F/G/H/I/J)
-- [ ] StickyActionBar sibling + `min-h-12` CTAs if committing
-- [ ] No double header / double sticky footer
+- [ ] StickyActionBar via `footer` + `min-h-12` CTAs if committing
+- [ ] No double header / double footer; one dock per route
 - [ ] Empty/Error under header with `px-4 py-8` wrapper when needed
 - [ ] Safe area only if immersive / hide-nav
 - [ ] Copy casing follows [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md)
-- [ ] Form density: `compact` with sticky, `default` for multi-section edit
+- [ ] Form density: `compact` with footer CTA, `default` for multi-section edit
 
 ---
 
@@ -434,8 +423,8 @@ Track and burn down — do not copy these patterns into new screens:
 6. Skill `reference.md` claiming SideNav at `sm:` → code uses `tab:` (this doc wins)
 7. Immersive scoring / live watch still use feature-local `px-3.5` docks — keep consistent **within** Type I; do not copy onto normal shell pages
 8. Feed home sticky tabs (Type H) — intentional non-ScreenBar; keep `px-4` gutter alignment
-9. ~~Pass 2 shell hubs/forms~~ — Shop home/seller hubs, Start/Quick Match, Ranking, Go Live sticky CTA heights/gutters aligned to this scale
-10. ~~Pass 3 remaining shell pages~~ — OrderSuccess/Workspace/Upcoming gutters; Broadcast Graphics sticky `min-h-12`; Product Detail `pb-4`; Create Reel StickyActionBar sibling; FanLiveDock sticky (no safe-area over BottomNav); Discover/PublicTournament roots; empty wrappers `px-4`
+9. ~~Pass 2–3 shell hubs/forms~~ — gutters / StickyActionBar heights aligned
+10. ~~Layout root~~ — docked pages use `PageDock` / `DockScreen` (not hand-rolled `min-h-full` + CSS sticky)
 
 ---
 
@@ -443,13 +432,13 @@ Track and burn down — do not copy these patterns into new screens:
 
 | Type | Shell | Header | Body | Footer |
 |---|---|---|---|---|
-| A Subpage form | Normal | ScreenBar | `Form` compact `px-4 pt-3.5 pb-4` | StickyActionBar |
-| B Multi-section edit | Normal | ScreenBar | `Form` default + `px-4` sections | StickyActionBar (dual) |
-| C Hub / list | Normal | ScreenBar (± `below`) | `gap-5 px-4 pt-4 pb-6` | BottomNav only |
-| D Wizard | Normal | ScreenBar **or** step chrome | compact `px-4` | StickyActionBar |
-| E Detail | Normal | ScreenBar | `px-4` ± media | Optional StickyActionBar |
-| F Hero detail | Normal | Floating back | Hero + `px-4` | None |
-| G Profile shelf | Normal | ProfileHeader | Tabs `px-4` | None |
-| H Feed / home | Normal | Sticky tabs | Full-bleed cards | None |
+| A Subpage form | Normal + dock | `DockScreen` / ScreenBar | `Form` compact `px-4 pt-3.5 pb-4` | StickyActionBar (`footer`) |
+| B Multi-section edit | Normal + dock | `DockScreen` | `Form` default + `px-4` sections | StickyActionBar dual |
+| C Hub / list | Normal + dock | `DockScreen` (± `below`) | `gap-5 px-4 pt-4 pb-6` | BottomNav only |
+| D Wizard | Normal + dock | ScreenBar **or** step chrome | compact `px-4` | StickyActionBar |
+| E Detail | Normal + dock | `DockScreen` | `px-4` ± media | Optional StickyActionBar |
+| F Hero detail | Normal + dock | Floating back | Hero + `px-4` | None |
+| G Profile shelf | Normal + dock | ProfileHeader | Tabs `px-4` | None |
+| H Feed / home | Normal **document** | Sticky tabs | Full-bleed cards | None |
 | I Immersive | Bare | Custom + safe-area | Full viewport | Own dock |
 | J Auth | None | AuthShell | Auth gutters | AuthShell `action` |

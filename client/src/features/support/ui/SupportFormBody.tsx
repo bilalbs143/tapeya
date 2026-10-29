@@ -1,6 +1,6 @@
 import type { UserSummary } from '@/entities/user';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
 import { Form } from '@/shared/ui/Form';
@@ -38,9 +38,16 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Contact Us" subtitle="Help and Feedback" onBack={goHome} />
-
+    <PageDock
+      header={<ScreenBar title="Contact Us" subtitle="Help and Feedback" onBack={goHome} />}
+      footer={
+        <StickyActionBar>
+          <Button type="submit" form="support-form" variant="positive" className="w-full font-bold" loading={isLoading}>
+            {isLoading ? 'Sending…' : 'Send Message'}
+          </Button>
+        </StickyActionBar>
+      }
+    >
       <Form id="support-form" density="compact" onSubmit={(ev) => void onSubmit(ev)} className="px-4 pt-3.5 pb-4">
         <p className="text-muted text-2xs leading-relaxed">
           {supportPhone
@@ -149,12 +156,6 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
           )}
         </Field>
       </Form>
-
-      <StickyActionBar>
-        <Button type="submit" form="support-form" variant="positive" className="w-full font-bold" loading={isLoading}>
-          {isLoading ? 'Sending…' : 'Send Message'}
-        </Button>
-      </StickyActionBar>
-    </div>
+    </PageDock>
   );
 }

@@ -59,32 +59,39 @@ export function ReelBand({
       )}
 
       <HScroll as="ul" bleed={false} className="gap-2">
-        {reels.map((reel) => (
-          <li key={reel.id} className="shrink-0">
-            <Link
-              to={feedRoutes.reel(reel.id)}
-              aria-label={`Reel, ${reel.views.toLocaleString()} views`}
-              className={cn(
-                'relative block overflow-hidden bg-[image:var(--gradient-media-placeholder)]',
-                compact ? 'h-[104px] w-[78px] rounded-icon' : 'h-[198px] w-[118px] rounded-card'
-              )}
-            >
-              {reel.poster ? (
-                <img
-                  src={reel.poster}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ) : null}
-              <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
-              <span className="font-mono absolute bottom-1 left-1.5 text-4xs font-bold text-white">
-                {reel.views.toLocaleString()}
-              </span>
-            </Link>
-          </li>
-        ))}
+        {reels.map((reel) => {
+          const handle = reel.nickname ? `@${reel.nickname}` : null;
+          const showHandle = Boolean(handle) && handle !== reel.name;
+          return (
+            <li key={reel.id} className="shrink-0">
+              <Link
+                to={feedRoutes.reel(reel.id)}
+                aria-label={`Watch reel by ${reel.name}`}
+                className={cn(
+                  'relative block overflow-hidden bg-[image:var(--gradient-media-placeholder)]',
+                  compact ? 'h-[104px] w-[78px] rounded-icon' : 'h-[198px] w-[118px] rounded-card'
+                )}
+              >
+                {reel.poster ? (
+                  <img
+                    src={reel.poster}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : null}
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute inset-x-1.5 bottom-1.5 min-w-0">
+                  <span className="block truncate text-4xs font-semibold text-white">{reel.name}</span>
+                  {showHandle ? (
+                    <span className="mt-px block truncate text-4xs font-medium text-white/70">{handle}</span>
+                  ) : null}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </HScroll>
     </section>
   );

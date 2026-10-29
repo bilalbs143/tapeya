@@ -3,7 +3,7 @@ import { ProfileStats } from '@/features/stats';
 
 import { userHandle } from '@/entities/user';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/DropdownMenu';
 import { MoreIcon } from '@/shared/ui/icons';
@@ -45,31 +45,33 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar
-        title="Profile"
-        subtitle={profile ? `@${userHandle(profile)}` : 'Player Card'}
-        onBack={goBack}
-        action={
-          profile ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label="Profile Options"
-                className="text-muted hover:bg-surface-raised hover:text-ink grid h-8 w-8 place-items-center rounded-icon"
-              >
-                <MoreIcon size="sm" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setReportOpen(true)}>Report User</DropdownMenuItem>
-                <DropdownMenuItem destructive onSelect={() => void handleBlock()}>
-                  {profile.isBlocked ? 'Unblock' : `Block ${profile.name?.trim() || 'User'}`}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null
-        }
-      />
-
+    <PageDock
+      header={
+        <ScreenBar
+          title="Profile"
+          subtitle={profile ? `@${userHandle(profile)}` : 'Player Card'}
+          onBack={goBack}
+          action={
+            profile ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Profile Options"
+                  className="text-muted hover:bg-surface-raised hover:text-ink grid h-8 w-8 place-items-center rounded-icon"
+                >
+                  <MoreIcon size="sm" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => setReportOpen(true)}>Report User</DropdownMenuItem>
+                  <DropdownMenuItem destructive onSelect={() => void handleBlock()}>
+                    {profile.isBlocked ? 'Unblock' : `Block ${profile.name?.trim() || 'User'}`}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null
+          }
+        />
+      }
+    >
       {isLoading ? <ProfileHeaderSkeleton /> : null}
 
       {isError || (!isLoading && !profile) ? (
@@ -79,7 +81,7 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
       ) : null}
 
       {profile ? (
-        <Tabs value={tab} onValueChange={selectTab} className="flex min-h-0 flex-1 flex-col">
+        <Tabs value={tab} onValueChange={selectTab} className="flex flex-col">
           <ProfileHeader
             variant="public"
             user={profile}
@@ -159,6 +161,6 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
       {profile ? (
         <ReportSheet subject="user" userId={profile.id} open={reportOpen} onOpenChange={setReportOpen} />
       ) : null}
-    </div>
+    </PageDock>
   );
 }

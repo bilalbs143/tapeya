@@ -70,7 +70,7 @@ Overlays (`BaseDialog`) **must** use `tab:`, never `sm:`, for the sheet→centre
 6. `OtpDebugBanner` and any `debugOtp` nav state: **DEV only** (`import.meta.env.DEV`).
 7. PhoneField / OtpInput stay under `features/auth` until a second consumer needs them. Do not add a WhatsApp banner on login/register.
 8. Horizontal product/story rails use `HScroll` (`-mx-4 px-4` bleed) so scroll goes edge-to-edge like Facebook; keep section labels in `px-4`.
-9. `StickyActionBar` — sibling of the form/body inside a full-bleed `flex min-h-full flex-col` page (not nested inside a `flex-1` form). Owns `px-4`; never nest inside another `px-*` or pass `-mx-*`.
+9. `StickyActionBar` — pass as `DockScreen` / `PageDock` `footer` (sibling of the scroll body, not nested in a `px-*` form). Owns `px-4`; never pass `-mx-*`. Home feed stays document scroll (no `PageDock`). See `docs/APP_REACT_PAGE_LAYOUT.md`.
 
 ## Icons (non-negotiable)
 

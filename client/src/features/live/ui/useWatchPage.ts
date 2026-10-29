@@ -7,7 +7,6 @@ import { settingsByKey, useGetPublicSystemSettingsQuery } from '@/shared/api/sys
 import { APP_PATHS } from '@/shared/config/paths';
 import { buildLiveBroadcastShareUrl, shareLink } from '@/shared/native/share';
 import { useImmersiveLandscape } from '@/shared/native/useImmersiveLandscape';
-import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 import { selectIsAuthenticated, selectUserId } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 import { toast } from '@/shared/ui/toast';
@@ -58,8 +57,6 @@ export function useWatchPage(streamId: number, valid: boolean) {
   const { landscape, deviceLandscape, enterLandscape, exitLandscape } = useImmersiveLandscape(
     Boolean(stream) && allowRotate
   );
-  /** Fixed chat column — pad root so ChatDock stays above the soft keyboard. */
-  const keyboardInset = useKeyboardInset();
   const [draft, setDraft] = useState('');
   const lastSend = useRef(0);
   const { hearts: floatingHearts, spawnBurst, removeHeart, clearHearts } = useFloatingHearts();
@@ -194,7 +191,6 @@ export function useWatchPage(streamId: number, valid: boolean) {
     enterLandscape,
     exitLandscape,
     allowRotate,
-    keyboardInset,
     draft,
     setDraft,
     floatingHearts,

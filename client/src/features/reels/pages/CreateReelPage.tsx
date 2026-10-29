@@ -44,7 +44,7 @@ export default function CreateReelPage() {
   const uploadUploading = uploadSession.status === 'uploading';
 
   return (
-    <div className="bg-surface text-ink mx-auto flex h-full min-h-0 w-full max-w-[560px] flex-1 flex-col overflow-hidden">
+    <>
       <input
         ref={fileRef}
         type="file"
@@ -55,14 +55,14 @@ export default function CreateReelPage() {
         onChange={(e) => void handleFileChange(e)}
       />
 
-      <ScreenBar
-        title={chromeTitle}
-        subtitle={step === CREATE_REEL_STEPS.PREVIEW ? 'Preview Before Posting' : 'Upload a Short Clip'}
-        onBack={onBack}
-        className="shrink-0"
-      />
-
       <CreateReelSteps
+        header={
+          <ScreenBar
+            title={chromeTitle}
+            subtitle={step === CREATE_REEL_STEPS.PREVIEW ? 'Preview Before Posting' : 'Upload a Short Clip'}
+            onBack={onBack}
+          />
+        }
         step={step}
         setStep={setStep}
         videoRef={videoRef}
@@ -91,6 +91,6 @@ export default function CreateReelPage() {
         goDetails={() => void goDetails()}
         handlePublish={(e) => void handlePublish(e)}
       />
-    </div>
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { profileRoutes } from '@/features/profile';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { formatRankIndex } from '../model/schemas';
@@ -19,9 +19,7 @@ export function RankingStatsBody({ flow }: RankingStatsBodyProps) {
   const { subtitle, rows, columns, isLoading, isError, refetch, goList } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Stats" subtitle={subtitle} onBack={goList} />
-
+    <PageDock header={<ScreenBar title="Stats" subtitle={subtitle} onBack={goList} />}>
       <div className="px-4 pt-4 pb-8">
         {isLoading ? (
           <div
@@ -96,6 +94,6 @@ export function RankingStatsBody({ flow }: RankingStatsBodyProps) {
           </div>
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

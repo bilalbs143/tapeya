@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
@@ -18,10 +18,8 @@ export function RankingPageBody({ flow }: RankingPageBodyProps) {
   const { tab, setTab, batting, bowling, sixes, fours, topBatters, topBowlers, mostSixes, mostFours, goBack } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Top Players" subtitle="Open Tournament Leaders" onBack={goBack} />
-
-      <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col px-4 pt-4 pb-8">
+    <PageDock header={<ScreenBar title="Top Players" subtitle="Open Tournament Leaders" onBack={goBack} />}>
+      <Tabs value={tab} onValueChange={setTab} className="flex flex-col px-4 pt-4 pb-8">
         <TabsList
           variant="underline"
           className="mb-4 h-auto w-full justify-start gap-1.5 rounded-none border-0 bg-transparent p-0"
@@ -87,6 +85,6 @@ export function RankingPageBody({ flow }: RankingPageBodyProps) {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageDock>
   );
 }

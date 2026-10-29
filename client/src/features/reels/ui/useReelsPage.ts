@@ -68,15 +68,14 @@ export function useReelsPage() {
 
   const ordered = useMemo(() => {
     const feedItems = data?.items ?? [];
+    if (feedTab !== 'explore' || !focusedId) return feedItems;
     if (focusedReel && !feedItems.some((r) => r.id === focusedReel.id)) {
       return [focusedReel, ...feedItems];
     }
-    if (focusedId && feedItems.length) {
-      const hit = feedItems.find((r) => r.id === focusedId);
-      if (hit) return [hit, ...feedItems.filter((r) => r.id !== hit.id)];
-    }
+    const hit = feedItems.find((r) => r.id === focusedId);
+    if (hit) return [hit, ...feedItems.filter((r) => r.id !== hit.id)];
     return feedItems;
-  }, [data?.items, focusedId, focusedReel]);
+  }, [data?.items, feedTab, focusedId, focusedReel]);
 
   const current = ordered[active] ?? ordered[0];
 

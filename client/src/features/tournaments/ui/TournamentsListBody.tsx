@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { APP_PATHS } from '@/shared/config/paths';
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Alert } from '@/shared/ui/Alert';
 import { Button } from '@/shared/ui/Button';
@@ -78,29 +78,31 @@ export function TournamentsListBody({ flow }: TournamentsListBodyProps) {
   const { isLoading, isError, refetch, needsYou, previous, isEmpty, summary, goHome, goCreate } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar
-        title="My Tournaments"
-        subtitle={summary}
-        onBack={goHome}
-        action={
-          !isEmpty && !isLoading ? (
-            <Button
-              size="sm"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-icon p-0"
-              aria-label="Create Tournament"
-              onClick={goCreate}
-            >
-              <PlusIcon size="sm" strokeWidth={2.6} />
-            </Button>
-          ) : undefined
-        }
-      />
-
+    <PageDock
+      header={
+        <ScreenBar
+          title="My Tournaments"
+          subtitle={summary}
+          onBack={goHome}
+          action={
+            !isEmpty && !isLoading ? (
+              <Button
+                size="sm"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-icon p-0"
+                aria-label="Create Tournament"
+                onClick={goCreate}
+              >
+                <PlusIcon size="sm" strokeWidth={2.6} />
+              </Button>
+            ) : undefined
+          }
+        />
+      }
+    >
       {isEmpty ? (
         <EmptyState
           size="lg"
-          className="flex-1"
+          className="min-h-full"
           icon={<TrophyIcon size="lg" className="text-brand-text" />}
           title="No Tournaments Yet"
           description="Pick the format, dates and venue. Your workspace opens as soon as you create — then add teams and fixtures."
@@ -118,7 +120,7 @@ export function TournamentsListBody({ flow }: TournamentsListBodyProps) {
       ) : null}
 
       {!isEmpty ? (
-        <div className="flex flex-1 flex-col gap-5 px-4 pt-4 pb-6">
+        <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
           {isLoading ? (
             <>
               <HubSkeleton />
@@ -142,6 +144,6 @@ export function TournamentsListBody({ flow }: TournamentsListBodyProps) {
           {!isLoading ? <HubBody needsYou={needsYou} previous={previous} /> : null}
         </div>
       ) : null}
-    </div>
+    </PageDock>
   );
 }

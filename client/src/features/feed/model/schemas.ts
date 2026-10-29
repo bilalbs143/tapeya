@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import type { PostBackgroundId } from '../lib/composeBackgrounds';
+import { isPostBackgroundId } from '../lib/composeBackgrounds';
+
 /** Wire `type` → UI `kind`. */
 export const postTypeWireSchema = z.enum(['text', 'image', 'video', 'repost']);
 export type PostTypeWire = z.infer<typeof postTypeWireSchema>;
@@ -97,8 +100,8 @@ export type Post = {
   author: PostAuthor;
   age: string;
   body: string | null;
-  /** Design-pack text backdrops; mapped from API background_id. `null` = plain text (no box). */
-  background: 'turf' | 'floodlit' | null;
+  /** API `background_id` (pitch, night, gold, …). `null` = plain text (no box). */
+  background: PostBackgroundId | null;
   photos: PostPhoto[];
   poster: string | null;
   duration: string | null;
@@ -155,9 +158,7 @@ export function formatDurationMs(ms: number | null | undefined): string | null {
 }
 
 function mapBackground(id: string | null | undefined): Post['background'] {
-  if (id === 'pitch') return 'turf';
-  if (id === 'night') return 'floodlit';
-  return null;
+  return isPostBackgroundId(id) ? id : null;
 }
 
 function mapKind(type: PostTypeWire): PostKind {
@@ -265,19 +266,24 @@ export const reelBandItemWireSchema = z.object({
   id: z.number(),
   cover_url: z.string().nullable().optional(),
   playback: z.object({ poster_url: z.string().nullable().optional() }).nullable().optional(),
-  counts: z.object({ views: z.number().optional() }).passthrough(),
+  creator: creatorWireSchema.optional(),
+  counts: z.object({ views: z.number().optional() }).passthrough().optional(),
 });
 
 export type ReelBandItem = {
   id: number;
   poster: string | null;
-  views: number;
+  name: string;
+  nickname: string | null;
 };
 
 export function toReelBandItem(wire: z.infer<typeof reelBandItemWireSchema>): ReelBandItem {
+  const name = wire.creator?.name?.trim() || 'Reel';
+  const nickname = wire.creator?.nickname?.trim() || null;
   return {
     id: wire.id,
     poster: wire.playback?.poster_url ?? wire.cover_url ?? null,
-    views: wire.counts.views ?? 0,
+    name,
+    nickname,
   };
 }

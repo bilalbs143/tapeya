@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { CommentComposer, CommentThread } from '@/features/feed';
 import { UploadVideoPlayer, YoutubeProxyPlayer } from '@/features/live';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { PlayFillIcon } from '@/shared/ui/icons';
@@ -35,7 +35,6 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
     landscape,
     deviceLandscape,
     exitLandscape,
-    keyboardInset,
     hasVideo,
     youtubeSrc,
     isUpload,
@@ -58,21 +57,45 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
     episodeActions,
   } = useEntertainmentEpisodeDetail({ episode, routeSerialId });
 
-  // Fixed shell (AppShell fixedFrame): player + meta stay put; only comments scroll.
+  // Dock-fill: player + meta stay put; comments scroll; composer in footer.
   return (
-    <div
-      className={cn('bg-surface flex h-full min-h-0 flex-col overflow-hidden', landscape && 'overflow-visible')}
-      style={{ paddingBottom: landscape ? 0 : keyboardInset }}
+    <PageDock
+      body="fill"
+      padKeyboard={!landscape}
+      header={
+        !landscape ? (
+          <ScreenBar
+            title="Episode"
+            subtitle={episode.serial?.title ?? 'Entertainment'}
+            onBack={() => navigate(backTo)}
+          />
+        ) : undefined
+      }
+      footer={
+        !landscape ? (
+          <CommentComposer
+            className="shrink-0"
+            user={{
+              id: me?.id,
+              name: me?.name ?? null,
+              nickname: me?.nickname,
+              avatarUrl: me?.avatarUrl ?? null,
+            }}
+            draft={draft}
+            onDraftChange={setDraft}
+            replyTo={replyTo}
+            onCancelReply={() => {
+              setReplyTo(null);
+              setDraft('');
+            }}
+            onSend={() => void sendComment()}
+            sending={sending}
+            inputRef={composerInputRef}
+          />
+        ) : undefined
+      }
+      className={landscape ? 'overflow-visible' : undefined}
     >
-      {!landscape ? (
-        <ScreenBar
-          title="Episode"
-          subtitle={episode.serial?.title ?? 'Entertainment'}
-          sticky={false}
-          onBack={() => navigate(backTo)}
-        />
-      ) : null}
-
       <div className={cn('relative shrink-0 overflow-hidden tab:rounded-field', landscape && 'overflow-visible')}>
         <ImmersiveLandscapeStage landscape={landscape} deviceLandscape={deviceLandscape} onExit={exitLandscape}>
           {!playing && poster ? (
@@ -143,7 +166,7 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
             ) : null}
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <h2 className="font-mono text-muted flex shrink-0 items-center px-4 pt-3 pb-2 text-4xs font-bold tracking-eyebrow uppercase">
               Comments{commentsTotal > 0 ? ` · ${commentsTotal}` : ''}
             </h2>
@@ -176,29 +199,9 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
                 />
               ) : null}
             </div>
-
-            <CommentComposer
-              className="shrink-0"
-              user={{
-                id: me?.id,
-                name: me?.name ?? null,
-                nickname: me?.nickname,
-                avatarUrl: me?.avatarUrl ?? null,
-              }}
-              draft={draft}
-              onDraftChange={setDraft}
-              replyTo={replyTo}
-              onCancelReply={() => {
-                setReplyTo(null);
-                setDraft('');
-              }}
-              onSend={() => void sendComment()}
-              sending={sending}
-              inputRef={composerInputRef}
-            />
           </div>
         </>
       ) : null}
-    </div>
+    </PageDock>
   );
 }

@@ -48,19 +48,25 @@ export function ReelsPageBody({
 }: ReelsPageBodyProps) {
   if (isLoading && !ordered.length) {
     // Full-bleed skeleton — dark `--c-skeleton*` via ReelsPage `data-theme="dark"`.
-    return <Skeleton className="h-full w-full rounded-none" />;
+    return (
+      <div className="relative h-full">
+        <Skeleton className="h-full w-full rounded-none" />
+        <ReelsPageChrome desk={desk} feedTab={feedTab} onSelectTab={onSelectTab} />
+      </div>
+    );
   }
   if (isError && !ordered.length) {
     return (
-      <div className="flex h-full items-center justify-center px-6">
+      <div className="relative flex h-full items-center justify-center px-6">
         <ErrorState title="Couldn't Load Reels" onRetry={onRetry} />
+        <ReelsPageChrome desk={desk} feedTab={feedTab} onSelectTab={onSelectTab} />
       </div>
     );
   }
   if (!ordered.length) {
     const copy = reelsEmptyCopy(feedTab);
     return (
-      <div className="flex h-full items-center justify-center px-6">
+      <div className="relative flex h-full items-center justify-center px-6">
         <EmptyState
           title={copy.title}
           description={copy.description}
@@ -72,6 +78,7 @@ export function ReelsPageBody({
             ) : null
           }
         />
+        <ReelsPageChrome desk={desk} feedTab={feedTab} onSelectTab={onSelectTab} />
       </div>
     );
   }

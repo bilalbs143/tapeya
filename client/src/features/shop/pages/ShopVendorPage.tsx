@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, Skeleton } from '@/shared/ui/states';
 
@@ -13,22 +13,15 @@ export default function ShopVendorPage() {
   const vendorSlug = slug?.trim() ?? '';
   const flow = useShopVendor(vendorSlug);
   const { vendor, vendorLoading, vendorError, goHome, onMissingStoreAction } = flow;
+  const ready = Boolean(vendorSlug) && !vendorLoading && !vendorError && vendor != null;
 
-  if (!vendorSlug) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Store" subtitle="Seller Catalogue" onBack={goHome} />
+  return (
+    <DockScreen title="Store" subtitle={ready ? vendor.storeName : 'Seller Catalogue'} onBack={goHome}>
+      {!vendorSlug ? (
         <div className="px-4 py-8">
           <EmptyState title="Store Not Found" description="That link is incomplete." />
         </div>
-      </div>
-    );
-  }
-
-  if (vendorLoading && !vendor) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Store" subtitle="Seller Catalogue" onBack={goHome} />
+      ) : vendorLoading && !vendor ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-24 w-full rounded-card" />
           <Skeleton className="h-11 w-full rounded-panel" />
@@ -38,14 +31,7 @@ export default function ShopVendorPage() {
             ))}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (vendorError || !vendor) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Store" subtitle="Seller Catalogue" onBack={goHome} />
+      ) : vendorError || !vendor ? (
         <div className="px-4 py-8">
           <EmptyState
             size="lg"
@@ -58,9 +44,9 @@ export default function ShopVendorPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  return <ShopVendorBody flow={flow} />;
+      ) : (
+        <ShopVendorBody flow={flow} />
+      )}
+    </DockScreen>
+  );
 }

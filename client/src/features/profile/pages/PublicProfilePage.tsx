@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
 import { APP_PATHS } from '@/shared/config/paths';
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { ErrorState, ProfileHeaderSkeleton } from '@/shared/ui/states';
 
 import { PublicProfileBody } from '../ui/PublicProfileBody';
@@ -14,26 +14,29 @@ export default function PublicProfilePage() {
 
   if (!parsed) {
     return (
-      <div className="px-4 py-8">
-        <ErrorState title="Profile Not Found" description="That link doesn’t look right." />
-      </div>
+      <PageDock>
+        <div className="px-4 py-8">
+          <ErrorState title="Profile Not Found" description="That link doesn’t look right." />
+        </div>
+      </PageDock>
     );
   }
 
   if (resolving) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Profile" subtitle="Player Card" onBack={goBack} />
+      <PageDock header={<ScreenBar title="Profile" subtitle="Player Card" onBack={goBack} />}>
         <ProfileHeaderSkeleton />
-      </div>
+      </PageDock>
     );
   }
 
   if (resolveFailed || userId == null) {
     return (
-      <div className="px-4 py-8">
-        <ErrorState title="Profile Not Found" description="No player matches that handle." />
-      </div>
+      <PageDock>
+        <div className="px-4 py-8">
+          <ErrorState title="Profile Not Found" description="No player matches that handle." />
+        </div>
+      </PageDock>
     );
   }
 

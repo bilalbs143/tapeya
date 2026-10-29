@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, OrderCardSkeleton, Skeleton } from '@/shared/ui/states';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
@@ -99,9 +99,7 @@ export function SellerOrdersBody({ flow }: SellerOrdersBodyProps) {
   const { readOnlyNote, current, previous, isLoading, isError, refetch, goSeller } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Orders" subtitle="Orders for Your Store" onBack={goSeller} />
-
+    <PageDock header={<ScreenBar title="Orders" subtitle="Orders for Your Store" onBack={goSeller} />}>
       <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
         {readOnlyNote ? <p className="text-muted text-2xs leading-relaxed">{readOnlyNote}</p> : null}
 
@@ -132,6 +130,6 @@ export function SellerOrdersBody({ flow }: SellerOrdersBodyProps) {
         {!isLoading && !isError && current.length ? <OrderSection label="Current" orders={current} /> : null}
         {!isLoading && !isError && previous.length ? <OrderSection label="Previous" orders={previous} /> : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

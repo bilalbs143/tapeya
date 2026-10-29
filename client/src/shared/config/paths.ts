@@ -95,19 +95,10 @@ export function isPostDetailPath(pathname: string): boolean {
   return /^\/feed\/\d+$/.test(pathname);
 }
 
-/** Compose flows — pin shell height for absolute preview stages. */
-export function isCreateFlowPath(pathname: string): boolean {
-  return pathname === APP_PATHS.create || pathname.startsWith(`${APP_PATHS.create}/`);
-}
-
-/** Fixed-frame path registry — pages use full-height column + inner `overflow-y-auto` scroll. */
-export const FIXED_HEIGHT_SHELL_PATHS: readonly ((pathname: string) => boolean)[] = [
-  isLiveWatchPath,
-  isHighlightDetailPath,
-  isEntertainmentEpisodePath,
-  isPostDetailPath,
-  isCreateFlowPath,
-];
+/** Legacy fixed-frame path registry. Media detail (Post/Watch/Highlight/Episode) now uses
+ *  `PageDock` (`body="fill"`) which registers fixed-frame via `retainPageDock`. Keep empty
+ *  unless a bare shell still needs path-based fixed height without PageDock. */
+export const FIXED_HEIGHT_SHELL_PATHS: readonly ((pathname: string) => boolean)[] = [];
 
 export function isFixedHeightShellPath(pathname: string): boolean {
   return FIXED_HEIGHT_SHELL_PATHS.some((match) => match(pathname));

@@ -4,8 +4,10 @@ import { useMeQuery } from '@/features/auth';
 
 import { userHasVendorAccess, userProfilePath } from '@/entities/user';
 
+import { DockScreen } from '@/shared/layout';
+
 import { shopPaths } from '../lib/shopPaths';
-import { SellerApplyFormBody } from '../ui/SellerApplyFormBody';
+import { SellerApplyFormBody, SellerApplyFormFooter } from '../ui/SellerApplyFormBody';
 import { useSellerApplyForm } from '../ui/useSellerApplyForm';
 
 /** Posts ApplyVendorRequest fields to POST /shop/vendor/apply. */
@@ -22,5 +24,14 @@ export default function SellerApplyPage() {
     return <Navigate to={userProfilePath(me)} replace />;
   }
 
-  return <SellerApplyFormBody flow={flow} />;
+  return (
+    <DockScreen
+      title="Become a Seller"
+      subtitle="Apply to Sell on Tapeya"
+      onBack={flow.goHome}
+      footer={<SellerApplyFormFooter flow={flow} />}
+    >
+      <SellerApplyFormBody flow={flow} />
+    </DockScreen>
+  );
 }

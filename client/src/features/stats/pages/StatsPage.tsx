@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 
 import { ProfileStats } from '../ui/ProfileStats';
 
@@ -10,11 +10,10 @@ export default function StatsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Stats" subtitle="Your Batting and Bowling" onBack={() => navigate(-1)} />
+    <PageDock header={<ScreenBar title="Stats" subtitle="Your Batting and Bowling" onBack={() => navigate(-1)} />}>
       <div className="px-4 pt-3.5 pb-6">
         <ProfileStats />
       </div>
-    </div>
+    </PageDock>
   );
 }

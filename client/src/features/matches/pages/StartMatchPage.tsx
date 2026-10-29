@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 
 import { APP_PATHS } from '@/shared/config/paths';
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { matchRoutes } from '../routes';
-import { StartMatchFormBody } from '../ui/StartMatchFormBody';
+import { StartMatchFormBody, StartMatchFormFooter } from '../ui/StartMatchFormBody';
 import { useStartMatchForm } from '../ui/useStartMatchForm';
 
 /** POST tournament match → toss page (or save fixture). */
@@ -14,30 +14,31 @@ export default function StartMatchPage() {
   const flow = useStartMatchForm();
   const { navigate, tournaments, tournamentsLoading, tournamentsError, refetchTournaments, selected } = flow;
 
-  if (tournamentsLoading && tournaments.length === 0) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Start a Match"
-          subtitle="Pick Tournament and Sides"
-          onBack={() => navigate(matchRoutes.list())}
-        />
+  const listBack = () => navigate(matchRoutes.list());
+  const formBack = () => navigate(selected ? `${APP_PATHS.tournaments}/${selected.id}` : matchRoutes.list());
+
+  const ready = !tournamentsLoading && !tournamentsError && tournaments.length > 0;
+  const emptyTournaments = !tournamentsLoading && !tournamentsError && tournaments.length === 0;
+
+  return (
+    <DockScreen
+      title="Start a Match"
+      subtitle={
+        ready
+          ? 'Everything here is fixed once ball 1 is scored'
+          : emptyTournaments
+            ? 'No Tournament Ready'
+            : 'Pick Tournament and Sides'
+      }
+      onBack={ready ? formBack : listBack}
+      footer={ready ? <StartMatchFormFooter flow={flow} /> : undefined}
+    >
+      {tournamentsLoading && tournaments.length === 0 ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-12 w-full rounded-field" aria-label="Loading Tournaments" />
           <Skeleton className="h-24 w-full rounded-field" />
         </div>
-      </div>
-    );
-  }
-
-  if (tournamentsError) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Start a Match"
-          subtitle="Pick Tournament and Sides"
-          onBack={() => navigate(matchRoutes.list())}
-        />
+      ) : tournamentsError ? (
         <div className="px-4 py-8">
           <ErrorState
             title="Couldn’t Load Tournaments"
@@ -45,14 +46,7 @@ export default function StartMatchPage() {
             onRetry={() => void refetchTournaments()}
           />
         </div>
-      </div>
-    );
-  }
-
-  if (!tournaments.length) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Start a Match" subtitle="No Tournament Ready" onBack={() => navigate(matchRoutes.list())} />
+      ) : emptyTournaments ? (
         <div className="flex flex-col gap-3 px-4 py-8 text-center">
           <h1 className="text-title-sm leading-normal font-extrabold tracking-[-.02em] text-ink">
             No tournament is ready for a fixture
@@ -70,18 +64,9 @@ export default function StartMatchPage() {
             </Button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar
-        title="Start a Match"
-        subtitle="Everything here is fixed once ball 1 is scored"
-        onBack={() => navigate(selected ? `${APP_PATHS.tournaments}/${selected.id}` : matchRoutes.list())}
-      />
-      <StartMatchFormBody flow={flow} />
-    </div>
+      ) : (
+        <StartMatchFormBody flow={flow} />
+      )}
+    </DockScreen>
   );
 }

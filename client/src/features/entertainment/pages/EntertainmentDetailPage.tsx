@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { EmptyState, EpisodeRowSkeleton, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { parseEntertainmentSerialId } from '../lib/entertainmentDetail';
@@ -17,19 +17,17 @@ export default function EntertainmentDetailPage() {
 
   if (serialId == null) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Show" subtitle="Episodes" onBack={goList} />
+      <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
         <div className="px-4 py-8">
           <EmptyState title="Show Not Found" description="That link looks wrong." />
         </div>
-      </div>
+      </PageDock>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Show" subtitle="Episodes" onBack={goList} />
+      <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
         <div className="flex flex-col gap-5 px-4 pt-3.5 pb-8" aria-busy="true" aria-label="Loading Show">
           <div className="flex flex-col gap-1.5">
             <Skeleton className="h-2.5 w-full" />
@@ -43,18 +41,17 @@ export default function EntertainmentDetailPage() {
             ))}
           </section>
         </div>
-      </div>
+      </PageDock>
     );
   }
 
   if (isError || !serial) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Show" subtitle="Episodes" onBack={goList} />
+      <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
         <div className="px-4 py-8">
           <ErrorState title="Couldn’t Load This Show" onRetry={() => void refetch()} />
         </div>
-      </div>
+      </PageDock>
     );
   }
 

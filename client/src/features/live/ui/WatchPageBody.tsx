@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ImmersiveLandscapeStage } from '@/shared/ui/ImmersiveLandscapeStage';
@@ -29,7 +29,6 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
     enterLandscape,
     exitLandscape,
     allowRotate,
-    keyboardInset,
     draft,
     setDraft,
     floatingHearts,
@@ -65,14 +64,16 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
   );
 
   return (
-    <div
-      className="bg-surface flex h-full min-h-0 flex-1 flex-col overflow-hidden"
-      style={{ paddingBottom: landscape ? 0 : keyboardInset }}
+    <PageDock
+      body="fill"
+      padKeyboard={!landscape}
+      header={
+        !landscape ? (
+          <ScreenBar title={stream.title} subtitle={stream.host.name} onBack={goLiveList} slideTitle />
+        ) : undefined
+      }
+      className={landscape ? 'overflow-visible' : undefined}
     >
-      {!landscape ? (
-        <ScreenBar title={stream.title} subtitle={stream.host.name} onBack={goLiveList} slideTitle />
-      ) : null}
-
       <div className={cn('flex min-h-0 flex-1 flex-col', landscape ? 'overflow-visible' : 'overflow-hidden')}>
         <div className={cn('relative shrink-0 overflow-hidden tab:rounded-field', landscape && 'overflow-visible')}>
           <ImmersiveLandscapeStage
@@ -81,7 +82,6 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
             onExit={exitLandscape}
             overlay={landscape ? statusOverlay : null}
           >
-            {/* Stage owns aspect-video / fullscreen — player always fills it (same as Highlights). */}
             <StreamPlayer
               status={String(stream.status)}
               playback={stream.playback}
@@ -139,6 +139,6 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
           </>
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

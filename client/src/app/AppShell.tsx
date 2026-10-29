@@ -20,6 +20,7 @@ import {
   ShellTopNav,
   SideNav,
   SideRail,
+  usePageDockActive,
   useShellRailValue,
 } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
@@ -51,6 +52,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const keyboardInset = useKeyboardInset();
+  const pageDockActive = usePageDockActive();
 
   const sideUser = me
     ? {
@@ -69,7 +71,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     isLiveImmersivePath(pathname);
   const keyboardOpen = keyboardInset > 0;
   const showBottomNav = isAuthenticated && !hideBottomNav && !keyboardOpen;
-  const fixedFrame = isFixedHeightShellPath(pathname);
+  const fixedFrame = isFixedHeightShellPath(pathname) || pageDockActive;
 
   if (bare) {
     // Go-live on-air needs a transparent phone shell so the native camera underlay shows through.
@@ -126,12 +128,15 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <ShellScrollport className={cn('flex min-h-0 flex-1', fixedFrame ? 'overflow-hidden' : 'overflow-y-auto')}>
-              <main className="flex min-w-0 flex-1 flex-col">
+            <ShellScrollport
+              fill={fixedFrame}
+              className={cn('min-h-0 flex-1', fixedFrame ? 'overflow-hidden' : 'overflow-y-auto')}
+            >
+              <main className={cn('flex min-w-0 flex-col', fixedFrame ? 'h-full min-h-0' : 'flex-1')}>
                 <div
                   className={cn(
-                    'mx-auto flex w-full flex-1 flex-col tab:max-w-[800px]',
-                    fixedFrame ? 'h-full min-h-0 overflow-hidden' : 'min-h-full'
+                    'mx-auto flex w-full flex-col tab:max-w-[800px]',
+                    fixedFrame ? 'h-full min-h-0 overflow-hidden' : 'min-h-full flex-1'
                   )}
                 >
                   <Outlet />

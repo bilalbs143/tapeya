@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { IconButton } from '@/shared/ui/IconButton';
@@ -35,22 +35,24 @@ export function SellerProductsBody({ flow }: SellerProductsBodyProps) {
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar
-        title="Products"
-        subtitle="Catalogue for Your Store"
-        onBack={goSeller}
-        action={
-          canEdit ? (
-            <IconButton label="Add Product" asChild>
-              <Link to={shopPaths.sellerProductNew()}>
-                <PlusIcon className="h-4 w-4" strokeWidth={2.4} />
-              </Link>
-            </IconButton>
-          ) : undefined
-        }
-      />
-
+    <PageDock
+      header={
+        <ScreenBar
+          title="Products"
+          subtitle="Catalogue for Your Store"
+          onBack={goSeller}
+          action={
+            canEdit ? (
+              <IconButton label="Add Product" asChild>
+                <Link to={shopPaths.sellerProductNew()}>
+                  <PlusIcon className="h-4 w-4" strokeWidth={2.4} />
+                </Link>
+              </IconButton>
+            ) : undefined
+          }
+        />
+      }
+    >
       <div className="flex flex-col gap-5 px-4 pt-3.5 pb-8">
         <p className="text-muted text-2xs leading-relaxed">{intro}</p>
 
@@ -130,6 +132,6 @@ export function SellerProductsBody({ flow }: SellerProductsBodyProps) {
           </ul>
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

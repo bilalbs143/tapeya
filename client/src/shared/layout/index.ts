@@ -1,9 +1,12 @@
 export { BottomNav } from './BottomNav';
+export { DockScreen } from './DockScreen';
 export { MainDrawer } from './MainDrawer';
 export { BOTTOM_NAV, CREATE_NAV, PRIMARY_NAV, type PrimaryNavItem, SIDE_NAV } from './navConfig';
 export type { NavGroup, NavItem } from './navGroups';
 export { buildNavGroups, isActivePath } from './navGroups';
 export { NavGroupList } from './navMenu';
+export { PageDock } from './PageDock';
+export { usePageDockActive } from './pageDockStore';
 export { ScreenBar } from './ScreenBar';
 export { SectionLabel } from './SectionLabel';
 export { ShellProvider } from './ShellContext';

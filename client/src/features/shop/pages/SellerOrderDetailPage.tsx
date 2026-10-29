@@ -1,12 +1,16 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { ErrorState, FormFieldsSkeleton, ListRowSkeleton, Skeleton } from '@/shared/ui/states';
 
 import { useGetVendorOrderQuery, useGetVendorStoreQuery } from '../api/vendorShopApi';
 import { shopPaths } from '../lib/shopPaths';
-import { SellerOrderDetailBody } from '../ui/SellerOrderDetailBody';
+import {
+  SellerOrderDetailBody,
+  SellerOrderDetailFlowProvider,
+  SellerOrderDetailFooter,
+} from '../ui/SellerOrderDetailBody';
 
 /** Status + tracking via POST …/status; payment via POST …/payment. */
 export default function SellerOrderDetailPage() {
@@ -18,32 +22,27 @@ export default function SellerOrderDetailPage() {
   const { data: store } = useGetVendorStoreQuery();
   const orderQuery = useGetVendorOrderQuery(orderId, { skip: !valid });
 
-  if (!valid) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Order"
-          subtitle="Fulfillment and Tracking"
-          onBack={() => navigate(shopPaths.sellerOrders())}
-        />
+  const listBack = () => navigate(shopPaths.sellerOrders());
+  const order = orderQuery.data;
+  const ready = valid && !orderQuery.isLoading && !orderQuery.isError && order != null;
+  const storeApproved = store?.status === 'approved';
+  const storeStatusLabel = store?.statusLabel;
+
+  const dock = (
+    <DockScreen
+      title="Order"
+      subtitle={ready ? order.vendorOrderNumber : 'Fulfillment and Tracking'}
+      onBack={listBack}
+      footer={ready ? <SellerOrderDetailFooter /> : undefined}
+    >
+      {!valid ? (
         <div className="flex flex-col items-center gap-4 px-4 py-8 text-center">
           <p className="text-sm font-bold text-ink">Order Not Found</p>
           <Button asChild variant="secondary">
             <Link to={shopPaths.sellerOrders()}>All Orders</Link>
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  if (orderQuery.isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Order"
-          subtitle="Fulfillment and Tracking"
-          onBack={() => navigate(shopPaths.sellerOrders())}
-        />
+      ) : orderQuery.isLoading ? (
         <div className="flex flex-col gap-4 px-4 pt-4" aria-busy="true" aria-label="Loading Order">
           <div className="border-border-subtle rounded-card border p-4">
             <div className="flex items-start gap-2.5">
@@ -66,31 +65,23 @@ export default function SellerOrderDetailPage() {
           <FormFieldsSkeleton rows={3} />
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
-      </div>
-    );
-  }
-
-  if (orderQuery.isError || !orderQuery.data) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar
-          title="Order"
-          subtitle="Fulfillment and Tracking"
-          onBack={() => navigate(shopPaths.sellerOrders())}
-        />
+      ) : orderQuery.isError || !order ? (
         <div className="px-4 py-8">
           <ErrorState title="Couldn’t Load This Order" onRetry={() => void orderQuery.refetch()} />
         </div>
-      </div>
+      ) : (
+        <SellerOrderDetailBody key={order.id} />
+      )}
+    </DockScreen>
+  );
+
+  if (ready) {
+    return (
+      <SellerOrderDetailFlowProvider order={order} storeApproved={storeApproved} storeStatusLabel={storeStatusLabel}>
+        {dock}
+      </SellerOrderDetailFlowProvider>
     );
   }
 
-  return (
-    <SellerOrderDetailBody
-      key={orderQuery.data.id}
-      order={orderQuery.data}
-      storeApproved={store?.status === 'approved'}
-      storeStatusLabel={store?.statusLabel}
-    />
-  );
+  return dock;
 }

@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { EmptyState, ErrorState } from '@/shared/ui/states';
 
+import { FanLiveDock } from '../ui/FanLiveDock';
 import { FanShareButton } from '../ui/FanMatchHeader';
 import { MatchCardBody } from '../ui/MatchCardBody';
 import { MatchCardSkeleton } from '../ui/MatchScoreSkeleton';
@@ -16,41 +17,37 @@ export default function MatchCardPage() {
   const validId = Number.isFinite(matchId) && matchId > 0;
 
   const flow = useMatchCard(matchId, validId);
-  const { navigate, fixtureQuery, fixture, chrome, showShare, share } = flow;
+  const { navigate, fixtureQuery, fixture, chrome, showShare, share, showLiveDock, selectTab } = flow;
 
-  const header = (
-    <ScreenBar
-      title={chrome.title}
-      subtitle={chrome.subtitle || undefined}
-      onBack={() => navigate(-1)}
-      action={showShare ? <FanShareButton onClick={() => void share()} /> : undefined}
-    />
-  );
+  const onBack = () => navigate(-1);
+  const ready = validId && !fixtureQuery.isLoading && !fixtureQuery.isError && fixture != null;
+  const title = ready ? chrome.title : 'Match';
+  const subtitle = ready ? chrome.subtitle || undefined : undefined;
 
-  if (!validId) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+  return (
+    <DockScreen
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
+      action={ready && showShare ? <FanShareButton onClick={() => void share()} /> : undefined}
+      footer={
+        ready && showLiveDock && fixture.stream != null ? (
+          <FanLiveDock
+            streamId={fixture.stream.id}
+            homeShort={fixture.home?.short ?? 'HOME'}
+            awayShort={fixture.away?.short ?? 'AWAY'}
+            onOpenScorecard={() => selectTab('scorecard')}
+          />
+        ) : undefined
+      }
+    >
+      {!validId ? (
         <div className="px-4 py-8">
           <EmptyState title="Match Not Found" description="This scorecard link is no longer valid." />
         </div>
-      </div>
-    );
-  }
-
-  if (fixtureQuery.isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Match" onBack={() => navigate(-1)} />
+      ) : fixtureQuery.isLoading ? (
         <MatchCardSkeleton />
-      </div>
-    );
-  }
-
-  if (fixtureQuery.isError || !fixture) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Match" onBack={() => navigate(-1)} />
+      ) : fixtureQuery.isError || !fixture ? (
         <div className="px-4 py-8">
           <ErrorState
             title="Couldn't Load This Match"
@@ -58,14 +55,9 @@ export default function MatchCardPage() {
             onRetry={() => void fixtureQuery.refetch()}
           />
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-surface flex min-h-full flex-col">
-      {header}
-      <MatchCardBody flow={flow} fixture={fixture} />
-    </div>
+      ) : (
+        <MatchCardBody flow={flow} fixture={fixture} />
+      )}
+    </DockScreen>
   );
 }

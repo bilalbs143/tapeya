@@ -51,6 +51,7 @@ export {
   FormSection,
   type FormSectionProps,
 } from './Form';
+export { HashtagChipField } from './HashtagChipField';
 export { HScroll } from './HScroll';
 export { IconButton, type IconButtonProps, type IconButtonSize, type IconButtonVariant } from './IconButton';
 export { Input, type InputProps, Textarea, type TextareaProps } from './Input';

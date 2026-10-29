@@ -3,8 +3,26 @@ import { describe, expect, it } from 'vitest';
 import {
   canUseComposeBackgrounds,
   COMPOSE_BACKGROUND_MAX_CHARS,
+  COMPOSE_TEXT_BACKGROUNDS,
+  POST_BACKGROUND_IDS,
   resolveBackgroundIdForSubmit,
+  SELECTABLE_COMPOSE_TEXT_BACKGROUNDS,
 } from './composeBackgrounds';
+
+describe('catalog', () => {
+  it('covers every persisted API id plus plain', () => {
+    const ids = COMPOSE_TEXT_BACKGROUNDS.map((b) => b.id);
+    expect(ids).toContain('plain');
+    for (const id of POST_BACKGROUND_IDS) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it('hides retired bats from the picker but keeps it renderable', () => {
+    expect(SELECTABLE_COMPOSE_TEXT_BACKGROUNDS.map((b) => b.id)).not.toContain('bats');
+    expect(COMPOSE_TEXT_BACKGROUNDS.map((b) => b.id)).toContain('bats');
+  });
+});
 
 describe('canUseComposeBackgrounds', () => {
   it('allows short text without media', () => {
@@ -26,6 +44,7 @@ describe('resolveBackgroundIdForSubmit', () => {
 
   it('keeps styled id when allowed', () => {
     expect(resolveBackgroundIdForSubmit({ backgroundId: 'pitch', body: 'hi' })).toBe('pitch');
+    expect(resolveBackgroundIdForSubmit({ backgroundId: 'century', body: 'hi' })).toBe('century');
   });
 
   it('drops styled id when over limit or has media', () => {

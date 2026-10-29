@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import { ProductCardSkeleton } from '../ui/ProductCard';
-import { ShopBrandBody } from '../ui/ShopBrandBody';
+import { ShopBrandBody, ShopBrandHeaderBelow } from '../ui/ShopBrandBody';
 import { useShopBrand } from '../ui/useShopBrand';
 
 export default function ShopBrandPage() {
@@ -13,22 +13,23 @@ export default function ShopBrandPage() {
   const brandSlug = slug?.trim() ?? '';
   const flow = useShopBrand(brandSlug);
   const { brand, brandsLoading, brandsError, refetchBrands, goHome } = flow;
+  const ready = Boolean(brandSlug) && !brandsLoading && !brandsError && brand != null;
 
-  if (!brandSlug) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={goHome} />
+  const title = ready ? brand.name : !brandSlug || (!brandsLoading && !brand) ? 'Shop' : 'Brand';
+  const subtitle = ready || (brandSlug && (brandsLoading || brandsError)) ? 'Products in This Brand' : 'Gear and Kits';
+
+  return (
+    <DockScreen
+      title={title}
+      subtitle={subtitle}
+      onBack={goHome}
+      below={ready ? <ShopBrandHeaderBelow flow={flow} /> : undefined}
+    >
+      {!brandSlug ? (
         <div className="px-4 py-8">
           <EmptyState title="Brand Not Found" description="That link is incomplete." />
         </div>
-      </div>
-    );
-  }
-
-  if (brandsLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Brand" subtitle="Products in This Brand" onBack={goHome} />
+      ) : brandsLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-11 w-full rounded-panel" />
           <Skeleton className="h-8 w-full rounded-chip" />
@@ -38,25 +39,11 @@ export default function ShopBrandPage() {
             ))}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (brandsError) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Brand" subtitle="Products in This Brand" onBack={goHome} />
+      ) : brandsError ? (
         <div className="px-4 py-8">
           <ErrorState title="Couldn’t Load Brands" onRetry={() => void refetchBrands()} />
         </div>
-      </div>
-    );
-  }
-
-  if (!brand) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={goHome} />
+      ) : !brand ? (
         <div className="px-4 py-8">
           <EmptyState
             size="lg"
@@ -69,9 +56,9 @@ export default function ShopBrandPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  return <ShopBrandBody flow={flow} />;
+      ) : (
+        <ShopBrandBody flow={flow} />
+      )}
+    </DockScreen>
+  );
 }

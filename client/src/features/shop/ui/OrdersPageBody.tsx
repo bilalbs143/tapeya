@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 
 import { formatPkr } from '../lib/money';
@@ -69,18 +68,14 @@ function OrderSection({ label, orders }: { label: string; orders: ShopOrder[] })
   );
 }
 
-/** Current / previous buyer order sections. */
+/** Current / previous buyer order sections — page owns DockScreen. */
 export function OrdersPageBody({ flow }: OrdersPageBodyProps) {
-  const { current, previous, goHome } = flow;
+  const { current, previous } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="My Orders" subtitle="Track Purchases and Returns" onBack={goHome} />
-
-      <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
-        {current.length ? <OrderSection label="Current" orders={current} /> : null}
-        {previous.length ? <OrderSection label="Previous" orders={previous} /> : null}
-      </div>
+    <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
+      {current.length ? <OrderSection label="Current" orders={current} /> : null}
+      {previous.length ? <OrderSection label="Previous" orders={previous} /> : null}
     </div>
   );
 }

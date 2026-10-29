@@ -4,8 +4,8 @@ import { userCanApplyAsSeller, userHasVendorAccess } from './vendorAccess';
 
 describe('vendorAccess', () => {
   it('treats no store as apply, not hub', () => {
-    expect(userHasVendorAccess({})).toBe(false);
-    expect(userCanApplyAsSeller({})).toBe(true);
+    expect(userHasVendorAccess({ vendor: null })).toBe(false);
+    expect(userCanApplyAsSeller({ vendor: null })).toBe(true);
     expect(userHasVendorAccess(null)).toBe(false);
     expect(userCanApplyAsSeller(undefined)).toBe(true);
   });

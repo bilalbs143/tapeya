@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useDeleteAccountMutation, useMeQuery } from '@/features/auth';
@@ -6,7 +5,7 @@ import { useDeleteAccountMutation, useMeQuery } from '@/features/auth';
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { APP_PATHS } from '@/shared/config/paths';
 import { confirm } from '@/shared/dialogs';
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { ErrorState, FormFieldsSkeleton, Skeleton } from '@/shared/ui/states';
 import { toast } from '@/shared/ui/toast';
 
@@ -18,7 +17,6 @@ export default function EditProfilePage() {
   const navigate = useNavigate();
   const { data: me, isLoading, isError, refetch } = useMeQuery();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
-  const [unsaved, setUnsaved] = useState(0);
 
   async function handleDelete() {
     const ok = await confirm({
@@ -36,12 +34,20 @@ export default function EditProfilePage() {
     }
   }
 
-  const subtitle = unsaved > 0 ? `${unsaved} unsaved ${unsaved === 1 ? 'change' : 'changes'}` : undefined;
+  if (!isLoading && !isError && me) {
+    return (
+      <EditProfileForm
+        key={me.id}
+        user={me}
+        deleting={deleting}
+        onDelete={() => void handleDelete()}
+        onSaved={() => navigate(profileRoutes.you())}
+      />
+    );
+  }
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Edit Profile" subtitle={subtitle} onBack={() => navigate(profileRoutes.you())} />
-
+    <DockScreen title="Edit Profile" onBack={() => navigate(profileRoutes.you())}>
       {isLoading ? (
         <div className="flex flex-col gap-4 px-4 py-6" aria-busy="true" aria-label="Loading Profile Editor">
           <Skeleton className="aspect-hero-banner w-full rounded-panel" />
@@ -51,24 +57,11 @@ export default function EditProfilePage() {
           <FormFieldsSkeleton rows={5} />
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
-      ) : null}
-
-      {isError || (!isLoading && !me) ? (
+      ) : (
         <div className="px-4 py-8">
           <ErrorState title="Couldn't Load Your Profile" onRetry={() => void refetch()} />
         </div>
-      ) : null}
-
-      {me ? (
-        <EditProfileForm
-          key={me.id}
-          user={me}
-          deleting={deleting}
-          onUnsavedCount={setUnsaved}
-          onDelete={() => void handleDelete()}
-          onSaved={() => navigate(profileRoutes.you())}
-        />
-      ) : null}
-    </div>
+      )}
+    </DockScreen>
   );
 }

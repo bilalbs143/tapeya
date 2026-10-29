@@ -29,7 +29,43 @@ type StartMatchFormBodyProps = {
   flow: StartMatchFormFlow;
 };
 
-/** Fixture form, sticky actions, and pick dialogs for StartMatchPage. */
+/** Sticky actions — page owns DockScreen. */
+export function StartMatchFormFooter({ flow }: StartMatchFormBodyProps) {
+  const { ready, busy, submit } = flow;
+
+  return (
+    <StickyActionBar>
+      <div className="flex w-full flex-col gap-2.5">
+        <Button
+          variant="positive"
+          className="w-full font-bold"
+          disabled={!ready || Boolean(busy)}
+          loading={busy === 'start'}
+          onClick={() => void submit('start')}
+        >
+          Start Match
+        </Button>
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="secondary"
+            className="shrink-0 px-4 font-bold"
+            disabled={!ready || Boolean(busy)}
+            loading={busy === 'save'}
+            onClick={() => void submit('save')}
+          >
+            Save Fixture
+          </Button>
+          <p className="text-muted min-w-0 flex-1 text-3xs leading-[1.45]">
+            <span className="text-ink font-bold">Start Match</span> opens the toss now.{' '}
+            <span className="text-ink font-bold">Save Fixture</span> files it for later.
+          </p>
+        </div>
+      </div>
+    </StickyActionBar>
+  );
+}
+
+/** Fixture form and pick dialogs for StartMatchPage. */
 export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
   const {
     tournaments,
@@ -48,7 +84,6 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
     away,
     resolvedHomeId,
     resolvedAwayId,
-    ready,
     venue,
     setVenueOverride,
     date,
@@ -59,7 +94,6 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
     setOvers,
     players,
     setPlayers,
-    busy,
     thumbPreview,
     thumbInput,
     pickThumb,
@@ -69,13 +103,12 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
     setPickTournament,
     selectTournament,
     pickTeam,
-    submit,
     openTournamentPicker,
   } = flow;
 
   return (
     <>
-      <Form density="compact" className="flex flex-1 flex-col px-4 pt-4 pb-4" onSubmit={(e) => e.preventDefault()}>
+      <Form density="compact" className="flex flex-col px-4 pt-4 pb-4" onSubmit={(e) => e.preventDefault()}>
         <Field label="Tournament" required>
           <button
             type="button"
@@ -236,35 +269,6 @@ export function StartMatchFormBody({ flow }: StartMatchFormBodyProps) {
           </p>
         </div>
       </Form>
-
-      <StickyActionBar>
-        <div className="flex w-full flex-col gap-2.5">
-          <Button
-            variant="positive"
-            className="w-full font-bold"
-            disabled={!ready || Boolean(busy)}
-            loading={busy === 'start'}
-            onClick={() => void submit('start')}
-          >
-            Start Match
-          </Button>
-          <div className="flex items-center gap-2.5">
-            <Button
-              variant="secondary"
-              className="shrink-0 px-4 font-bold"
-              disabled={!ready || Boolean(busy)}
-              loading={busy === 'save'}
-              onClick={() => void submit('save')}
-            >
-              Save Fixture
-            </Button>
-            <p className="text-muted min-w-0 flex-1 text-3xs leading-[1.45]">
-              <span className="text-ink font-bold">Start Match</span> opens the toss now.{' '}
-              <span className="text-ink font-bold">Save Fixture</span> files it for later.
-            </p>
-          </div>
-        </div>
-      </StickyActionBar>
 
       <TeamPickDialog
         open={Boolean(pickSlot)}

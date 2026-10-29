@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, Skeleton } from '@/shared/ui/states';
 
@@ -14,9 +14,7 @@ type ShopSlugBodyProps = {
 /** Loading skeleton or not-found empty for unresolved `/shop/:slug`. */
 export function ShopSlugBody({ mode, description, emptySize, onBack }: ShopSlugBodyProps) {
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Shop" subtitle="Gear and Kits" onBack={onBack} />
-
+    <PageDock header={<ScreenBar title="Shop" subtitle="Gear and Kits" onBack={onBack} />}>
       {mode === 'loading' ? (
         <div className="flex flex-col gap-3 px-4 pt-4" aria-busy="true" aria-label="Loading Shop Page">
           <Skeleton className="h-24 w-full rounded-card" />
@@ -41,6 +39,6 @@ export function ShopSlugBody({ mode, description, emptySize, onBack }: ShopSlugB
           />
         </div>
       )}
-    </div>
+    </PageDock>
   );
 }

@@ -2,12 +2,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { getApiErrorMessage, isNotFoundError } from '@/shared/api/errors';
 import { APP_PATHS } from '@/shared/config/paths';
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, FormFieldsSkeleton, Skeleton } from '@/shared/ui/states';
 
 import { useGetInterestCampaignQuery } from '../api/interestApi';
-import { InterestFormBody } from '../ui/InterestFormBody';
+import type { InterestShowPayload } from '../model/schemas';
+import { InterestFormBody, InterestFormFooter } from '../ui/InterestFormBody';
+import { useInterestForm } from '../ui/useInterestForm';
 
 /** Submit scalars via POST, then media via `/media/interest-submission/...`. */
 export default function InterestPage() {
@@ -18,12 +20,19 @@ export default function InterestPage() {
     skip: !slug,
   });
 
-  const header = <ScreenBar title="Interest" subtitle="Register Your Interest" onBack={() => navigate(-1)} />;
-
-  if (!slug) {
+  if (slug && !isLoading && !isError && data) {
     return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      <InterestFormDock
+        key={`${data.campaign.slug}-${data.mySubmission?.id ?? 'new'}-${data.mySubmission?.status ?? 'none'}`}
+        slug={slug}
+        payload={data}
+      />
+    );
+  }
+
+  return (
+    <DockScreen title="Interest" subtitle="Register Your Interest" onBack={() => navigate(-1)}>
+      {!slug ? (
         <div className="px-4 py-8">
           <EmptyState
             title="Interest Form Not Found"
@@ -35,14 +44,7 @@ export default function InterestPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      ) : isLoading ? (
         <div className="flex flex-col gap-4 px-4 pt-4" aria-busy="true" aria-label="Loading Interest Form">
           <Skeleton className="h-3 w-2/3" />
           <div className="flex items-center gap-3">
@@ -52,14 +54,7 @@ export default function InterestPage() {
           <FormFieldsSkeleton rows={4} />
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
-      </div>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      ) : (
         <div className="px-4 py-8">
           {isNotFoundError(error) ? (
             <EmptyState
@@ -79,15 +74,23 @@ export default function InterestPage() {
             />
           )}
         </div>
-      </div>
-    );
-  }
+      )}
+    </DockScreen>
+  );
+}
+
+function InterestFormDock({ slug, payload }: { slug: string; payload: InterestShowPayload }) {
+  const flow = useInterestForm(slug, payload);
+  const { campaign, goBack } = flow;
 
   return (
-    <InterestFormBody
-      key={`${data.campaign.slug}-${data.mySubmission?.id ?? 'new'}-${data.mySubmission?.status ?? 'none'}`}
-      slug={slug}
-      payload={data}
-    />
+    <DockScreen
+      title={campaign.tournamentName}
+      subtitle="Register Your Interest"
+      onBack={goBack}
+      footer={<InterestFormFooter flow={flow} />}
+    >
+      <InterestFormBody flow={flow} />
+    </DockScreen>
   );
 }

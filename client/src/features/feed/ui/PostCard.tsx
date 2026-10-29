@@ -14,14 +14,11 @@ import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, PlayFillIcon, RepostIco
 import { MediaFrame } from '@/shared/ui/media';
 import { toast } from '@/shared/ui/toast';
 
+import { getFeedTextBackground } from '../lib/composeBackgrounds';
 import type { Post, PostPhoto } from '../model/schemas';
 import { feedRoutes } from '../routes';
 import { ReportSheet } from './ReportSheet';
-
-const BACKDROPS = {
-  turf: 'bg-post-turf text-white',
-  floodlit: 'bg-post-floodlit text-white',
-} as const;
+import { TextPostBackground } from './TextPostBackground';
 
 type PostCardProps = {
   post: Post;
@@ -46,6 +43,7 @@ export function PostCard({
 }: PostCardProps) {
   const dispatch = useAppDispatch();
   const { author, age, body, kind, background, counts, liked, saved } = post;
+  const textBg = kind === 'text' ? getFeedTextBackground(background) : null;
   const href = kind === 'video' ? feedRoutes.reel(post.id) : feedRoutes.post(post.id);
   const commentsHref = `${href}#comments`;
   const profileHref = userProfilePath({ id: author.id, nickname: author.nickname });
@@ -152,12 +150,11 @@ export function PostCard({
 
       {/* Plain text = body only (no box). Styled background_id keeps the centered backdrop. */}
       {kind === 'text' && body ? (
-        background ? (
-          <Link
-            to={href}
-            className={cn('grid min-h-[150px] place-items-center px-6 py-6 text-center', BACKDROPS[background])}
-          >
-            <span className="text-title-sm text-pretty font-bold whitespace-pre-wrap">{body}</span>
+        textBg ? (
+          <Link to={href} className="block">
+            <TextPostBackground background={textBg} className="min-h-[150px]" rounded={false}>
+              <p className={cn('text-pretty whitespace-pre-wrap', textBg.textClass)}>{body}</p>
+            </TextPostBackground>
           </Link>
         ) : (
           <Link to={href} className="text-body block max-w-[42ch] px-3.5 pb-2.5 text-sm leading-relaxed">

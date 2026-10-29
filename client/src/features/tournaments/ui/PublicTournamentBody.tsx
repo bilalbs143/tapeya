@@ -5,9 +5,9 @@ import { interestRoutes } from '@/features/interest';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ChevronLeftIcon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
+import { TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
-import { PUBLIC_TOURNAMENT_TABS, type PublicTournamentTab } from '../lib/publicTournament';
+import { PUBLIC_TOURNAMENT_TABS } from '../lib/publicTournament';
 import type { Tournament } from '../model/schemas';
 import { tournamentRoutes } from '../tournamentPaths';
 import { PublicTournamentLiveTab } from './PublicTournamentLiveTab';
@@ -15,10 +15,14 @@ import { PublicTournamentStatsTab } from './PublicTournamentStatsTab';
 import { PublicTournamentTableTab } from './PublicTournamentTableTab';
 import { TournamentFixturesPanel } from './TournamentFixturesPanel';
 import { TournamentSquadsPanel, TournamentTeamsPanel } from './TournamentTeamsPanel';
-import { usePublicTournament } from './usePublicTournament';
+import type { usePublicTournament } from './usePublicTournament';
 
 type PublicTournamentBodyProps = {
   tournament: Tournament;
+};
+
+type PublicTournamentFlowProps = PublicTournamentBodyProps & {
+  flow: ReturnType<typeof usePublicTournament>;
 };
 
 function ReactionPill({
@@ -61,14 +65,10 @@ function ReactionPill({
   );
 }
 
-/** Hero, reactions, and Live · Schedule · Table · Teams · Squads · Stats. */
-export function PublicTournamentBody({ tournament }: PublicTournamentBodyProps) {
-  const flow = usePublicTournament(tournament);
+/** Hero, reactions, tabs chrome — page owns PageDock. */
+export function PublicTournamentHeader({ tournament, flow }: PublicTournamentFlowProps) {
   const {
     navigate,
-    tab,
-    teamParam,
-    setTab,
     likes,
     dislikes,
     shares,
@@ -83,7 +83,7 @@ export function PublicTournamentBody({ tournament }: PublicTournamentBodyProps) 
   } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
+    <>
       <div className="relative h-[196px] shrink-0 overflow-hidden bg-[repeating-linear-gradient(135deg,var(--c-surface-raised),var(--c-surface-raised)_8px,var(--c-page)_8px,var(--c-page)_16px)]">
         {tournament.coverImage ? (
           <img src={tournament.coverImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -166,47 +166,54 @@ export function PublicTournamentBody({ tournament }: PublicTournamentBodyProps) 
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as PublicTournamentTab)} className="flex min-h-0 flex-col pb-6">
-        <div className="border-border-subtle border-b px-4">
-          <TabsList
-            variant="underline"
-            className="no-scrollbar w-full justify-start gap-0 overflow-x-auto rounded-none border-0 bg-transparent p-0"
-          >
-            {PUBLIC_TOURNAMENT_TABS.map(({ value, label }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="data-[state=active]:shadow-[inset_0_-2px_0_var(--color-brand)] text-dim data-[state=active]:text-ink shrink-0 rounded-none border-b-0 px-3 pb-2.5 text-2xs font-semibold data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:font-bold"
-              >
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
+      <div className="border-border-subtle border-b px-4">
+        <TabsList
+          variant="underline"
+          className="no-scrollbar w-full justify-start gap-0 overflow-x-auto rounded-none border-0 bg-transparent p-0"
+        >
+          {PUBLIC_TOURNAMENT_TABS.map(({ value, label }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="data-[state=active]:shadow-[inset_0_-2px_0_var(--color-brand)] text-dim data-[state=active]:text-ink shrink-0 rounded-none border-b-0 px-3 pb-2.5 text-2xs font-semibold data-[state=active]:border-transparent data-[state=active]:bg-transparent data-[state=active]:font-bold"
+            >
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    </>
+  );
+}
 
-        <TabsContent value="live" className="mt-0 px-4 pt-3.5">
-          <PublicTournamentLiveTab tournamentId={tournament.id} />
-        </TabsContent>
-        <TabsContent value="schedule" className="mt-0 px-4 pt-3.5">
-          <TournamentFixturesPanel tournamentId={tournament.id} groupCount={tournament.groupCount} />
-        </TabsContent>
-        <TabsContent value="table" className="mt-0 px-4 pt-3.5">
-          <PublicTournamentTableTab tournamentId={tournament.id} />
-        </TabsContent>
-        <TabsContent value="teams" className="mt-0 px-4 pt-3.5">
-          <TournamentTeamsPanel tournamentId={tournament.id} onOpenSquad={(teamId) => setTab('squads', teamId)} />
-        </TabsContent>
-        <TabsContent value="squads" className="mt-0 px-4 pt-3.5">
-          <TournamentSquadsPanel
-            tournamentId={tournament.id}
-            teamParam={teamParam}
-            onSelect={(teamId) => setTab('squads', teamId)}
-          />
-        </TabsContent>
-        <TabsContent value="stats" className="mt-0 px-4 pt-3.5">
-          <PublicTournamentStatsTab tournamentId={tournament.id} />
-        </TabsContent>
-      </Tabs>
+/** Tab panels — ancestor owns Tabs + PageDock. */
+export function PublicTournamentBody({ tournament, flow }: PublicTournamentFlowProps) {
+  const { teamParam, setTab } = flow;
+
+  return (
+    <div className="pb-6">
+      <TabsContent value="live" className="mt-0 px-4 pt-3.5">
+        <PublicTournamentLiveTab tournamentId={tournament.id} />
+      </TabsContent>
+      <TabsContent value="schedule" className="mt-0 px-4 pt-3.5">
+        <TournamentFixturesPanel tournamentId={tournament.id} groupCount={tournament.groupCount} />
+      </TabsContent>
+      <TabsContent value="table" className="mt-0 px-4 pt-3.5">
+        <PublicTournamentTableTab tournamentId={tournament.id} />
+      </TabsContent>
+      <TabsContent value="teams" className="mt-0 px-4 pt-3.5">
+        <TournamentTeamsPanel tournamentId={tournament.id} onOpenSquad={(teamId) => setTab('squads', teamId)} />
+      </TabsContent>
+      <TabsContent value="squads" className="mt-0 px-4 pt-3.5">
+        <TournamentSquadsPanel
+          tournamentId={tournament.id}
+          teamParam={teamParam}
+          onSelect={(teamId) => setTab('squads', teamId)}
+        />
+      </TabsContent>
+      <TabsContent value="stats" className="mt-0 px-4 pt-3.5">
+        <PublicTournamentStatsTab tournamentId={tournament.id} />
+      </TabsContent>
     </div>
   );
 }

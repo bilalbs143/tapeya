@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useMeQuery } from '@/features/auth';
 
 import { useTournamentTypeOptions } from '@/shared/api/enumsApi';
 import { getApiErrorMessage } from '@/shared/api/errors';
+import { PageDock } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { DEFAULT_COUNTRY } from '@/shared/model/location';
 import { Button } from '@/shared/ui/Button';
@@ -39,6 +40,7 @@ type WizardState = {
 };
 
 type CreateTournamentWizardProps = {
+  header: ReactNode;
   onCreated: (id: number) => void;
   /** Controlled step from the page ScreenBar (avoids double chrome). */
   step: number;
@@ -48,7 +50,13 @@ type CreateTournamentWizardProps = {
 
 /** Create tournament wizard body; page owns ScreenBar. Success → organizer workspace. */
 
-export function CreateTournamentWizard({ onCreated, step, onStepChange, initial }: CreateTournamentWizardProps) {
+export function CreateTournamentWizard({
+  header,
+  onCreated,
+  step,
+  onStepChange,
+  initial,
+}: CreateTournamentWizardProps) {
   const { data: me } = useMeQuery();
   const [createTournament, { isLoading }] = useCreateTournamentMutation();
   const {
@@ -127,23 +135,74 @@ export function CreateTournamentWizard({ onCreated, step, onStepChange, initial 
 
   if (sent) {
     return (
-      <SentFace
-        name={f.name || 'Your tournament'}
-        onOpen={() => {
-          if (createdId != null) onCreated(createdId);
-        }}
-        onAnother={() => {
-          setSent(false);
-          onStepChange(0);
-          setCreatedId(null);
-        }}
-      />
+      <PageDock
+        body="fill"
+        header={header}
+        footer={
+          <StickyActionBar>
+            <div className="flex flex-col gap-2">
+              <Button
+                className="min-h-12 font-bold"
+                onClick={() => {
+                  if (createdId != null) onCreated(createdId);
+                }}
+              >
+                Open Workspace
+              </Button>
+              <Button
+                variant="secondary"
+                className="min-h-11 font-semibold"
+                onClick={() => {
+                  setSent(false);
+                  onStepChange(0);
+                  setCreatedId(null);
+                }}
+              >
+                Create Another
+              </Button>
+            </div>
+          </StickyActionBar>
+        }
+      >
+        <SentFace name={f.name || 'Your tournament'} />
+      </PageDock>
     );
   }
 
   return (
-    <div className="bg-surface flex min-h-full flex-1 flex-col">
-      <Form density="compact" className="flex flex-1 flex-col px-4 pt-3.5 pb-4" onSubmit={(e) => e.preventDefault()}>
+    <PageDock
+      header={header}
+      footer={
+        <StickyActionBar>
+          <div className="flex gap-2">
+            {step === 0 ? (
+              <Button variant="secondary" className="flex-1 font-semibold" asChild>
+                <Link to={tournamentRoutes.list()}>Cancel</Link>
+              </Button>
+            ) : (
+              <Button variant="secondary" className="flex-1 font-semibold" onClick={() => onStepChange(step - 1)}>
+                Back
+              </Button>
+            )}
+            {step < 2 ? (
+              <Button className="flex-1 font-bold" disabled={!stepOk} onClick={() => onStepChange(step + 1)}>
+                {step === 0 ? 'Structure' : 'Where & When'}
+              </Button>
+            ) : (
+              <Button
+                className="flex-1 font-bold"
+                disabled={!stepOk || isLoading}
+                loading={isLoading}
+                onClick={() => void submit()}
+              >
+                Open Workspace
+              </Button>
+            )}
+          </div>
+        </StickyActionBar>
+      }
+    >
+      <Form density="compact" className="flex flex-col px-4 pt-3.5 pb-4" onSubmit={(e) => e.preventDefault()}>
         {step === 0 ? (
           <>
             <FormSection title="Organizer Contact">
@@ -303,41 +362,13 @@ export function CreateTournamentWizard({ onCreated, step, onStepChange, initial 
           </>
         ) : null}
       </Form>
-
-      <StickyActionBar>
-        <div className="flex gap-2">
-          {step === 0 ? (
-            <Button variant="secondary" className="flex-1 font-semibold" asChild>
-              <Link to={tournamentRoutes.list()}>Cancel</Link>
-            </Button>
-          ) : (
-            <Button variant="secondary" className="flex-1 font-semibold" onClick={() => onStepChange(step - 1)}>
-              Back
-            </Button>
-          )}
-          {step < 2 ? (
-            <Button className="flex-1 font-bold" disabled={!stepOk} onClick={() => onStepChange(step + 1)}>
-              {step === 0 ? 'Structure' : 'Where & When'}
-            </Button>
-          ) : (
-            <Button
-              className="flex-1 font-bold"
-              disabled={!stepOk || isLoading}
-              loading={isLoading}
-              onClick={() => void submit()}
-            >
-              Open Workspace
-            </Button>
-          )}
-        </div>
-      </StickyActionBar>
-    </div>
+    </PageDock>
   );
 }
 
-function SentFace({ name, onOpen, onAnother }: { name: string; onOpen: () => void; onAnother: () => void }) {
+function SentFace({ name }: { name: string }) {
   return (
-    <div className="flex flex-1 flex-col px-4 py-8">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-8">
       <p className="font-mono text-positive text-4xs font-bold tracking-eyebrow uppercase">Ready</p>
       <h1 className="mt-2 text-title font-extrabold tracking-tight text-ink">{name}</h1>
       <p className="text-muted mt-2 text-body-sm leading-relaxed">
@@ -358,14 +389,6 @@ function SentFace({ name, onOpen, onAnother }: { name: string; onOpen: () => voi
           </li>
         ))}
       </ol>
-      <div className="mt-auto flex flex-col gap-2 pt-8">
-        <Button className="min-h-12 font-bold" onClick={onOpen}>
-          Open Workspace
-        </Button>
-        <Button variant="secondary" className="min-h-11 font-semibold" onClick={onAnother}>
-          Create Another
-        </Button>
-      </div>
     </div>
   );
 }

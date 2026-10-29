@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useGetPublicSystemSettingsQuery } from '@/shared/api/systemSettingsApi';
 import { APP_PATHS } from '@/shared/config/paths';
+import { formatHashtagLabel, mergeCaptionWithHashtags } from '@/shared/lib/hashtags';
 import { toast } from '@/shared/ui/toast';
 
 import {
@@ -17,7 +18,6 @@ import {
   CREATE_REEL_STEPS,
   type CreateReelLocationState,
   type CreateReelStep,
-  formatReelHashtagLabel,
   settingInt,
 } from '../lib/createReelFlow';
 import { captureHtmlVideoFrameJpeg } from '../lib/extractReelPoster';
@@ -224,9 +224,7 @@ export function useCreateReelFlow() {
 
     const file = selectedFile;
     const sessionPosterUrl = posterUrl;
-    const tagSuffix = formatReelHashtagLabel(hashtags);
-    const baseCaption = caption.trim();
-    const postCaption = [baseCaption, tagSuffix].filter(Boolean).join(baseCaption && tagSuffix ? ' ' : '') || undefined;
+    const postCaption = mergeCaptionWithHashtags(caption, hashtags) || undefined;
 
     try {
       const precheck = await validateReelVideoForUpload(file, uploadLimits);
@@ -302,7 +300,7 @@ export function useCreateReelFlow() {
 
   const chromeTitle =
     step === CREATE_REEL_STEPS.EMPTY ? 'New Reel' : step === CREATE_REEL_STEPS.PREVIEW ? 'Preview' : 'Details';
-  const hashLabel = hashtags ? formatReelHashtagLabel(hashtags) : 'Hashtags';
+  const hashLabel = hashtags ? formatHashtagLabel(hashtags) : 'Hashtags';
 
   return {
     fileRef,

@@ -1,4 +1,4 @@
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { CommentRowSkeleton, EmptyState, ErrorState, PostSkeleton } from '@/shared/ui/states';
 
@@ -20,7 +20,6 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
     userId,
     me,
     composerInputRef,
-    keyboardInset,
     data,
     isLoading,
     isError,
@@ -48,11 +47,31 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
   } = flow;
 
   return (
-    /* Opaque compose footer (not sticky overlay — iOS showed media through dock sides). */
-    <div className="bg-surface flex h-full min-h-0 flex-col overflow-hidden" style={{ paddingBottom: keyboardInset }}>
-      <ScreenBar title="Activity Feed" subtitle="Post and Comments" sticky={false} onBack={goHome} />
-
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-scroll-to-top>
+    <PageDock
+      body="fill"
+      header={<ScreenBar title="Activity Feed" subtitle="Post and Comments" onBack={goHome} />}
+      footer={
+        data ? (
+          <CommentComposer
+            className="shrink-0"
+            user={{
+              id: me?.id,
+              name: me?.name ?? null,
+              nickname: me?.nickname,
+              avatarUrl: me?.avatarUrl ?? null,
+            }}
+            draft={draft}
+            onDraftChange={setDraft}
+            replyTo={replyTo}
+            onCancelReply={cancelReply}
+            onSend={() => void sendComment()}
+            sending={sending}
+            inputRef={composerInputRef}
+          />
+        ) : undefined
+      }
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-scroll-to-top="">
         {!valid ? (
           <div className="flex flex-col items-center gap-3 px-4 py-8">
             <ErrorState title="Couldn't Load This Post" />
@@ -122,25 +141,6 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
           </div>
         ) : null}
       </div>
-
-      {data ? (
-        <CommentComposer
-          className="shrink-0"
-          user={{
-            id: me?.id,
-            name: me?.name ?? null,
-            nickname: me?.nickname,
-            avatarUrl: me?.avatarUrl ?? null,
-          }}
-          draft={draft}
-          onDraftChange={setDraft}
-          replyTo={replyTo}
-          onCancelReply={cancelReply}
-          onSend={() => void sendComment()}
-          sending={sending}
-          inputRef={composerInputRef}
-        />
-      ) : null}
-    </div>
+    </PageDock>
   );
 }

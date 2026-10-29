@@ -1,5 +1,6 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { useUpdateProfileMutation } from '@/features/auth';
@@ -9,6 +10,7 @@ import { userHandle } from '@/entities/user';
 
 import { usePlayerProfileEnums } from '@/shared/api/enumsApi';
 import { getApiErrorMessage, parseApiError } from '@/shared/api/errors';
+import { DockScreen } from '@/shared/layout';
 import { cdnUrl } from '@/shared/lib/cdn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
@@ -33,11 +35,11 @@ import {
   profileGaps,
   toUpdateProfileWire,
 } from '../model/schemas';
+import { profileRoutes } from '../routes';
 
 type EditProfileFormProps = {
   user: UserSummary;
   onSaved?: (() => void) | undefined;
-  onUnsavedCount?: ((count: number) => void) | undefined;
   onDelete?: (() => void) | undefined;
   deleting?: boolean | undefined;
 };
@@ -47,7 +49,8 @@ const AVATAR_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 const PROFILE_COVER_URL = cdnUrl('app/images/standard/profile-header.jpg');
 
-export function EditProfileForm({ user, onSaved, onUnsavedCount, onDelete, deleting }: EditProfileFormProps) {
+export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfileFormProps) {
+  const navigate = useNavigate();
   const photoInput = useRef<HTMLInputElement>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl);
@@ -109,9 +112,7 @@ export function EditProfileForm({ user, onSaved, onUnsavedCount, onDelete, delet
   const avatarDirty = Boolean(avatarFile) || clearedAvatar;
   const unsaved = Object.keys(dirtyFields).length + (avatarDirty ? 1 : 0);
 
-  useEffect(() => {
-    onUnsavedCount?.(unsaved);
-  }, [onUnsavedCount, unsaved]);
+  const subtitle = unsaved > 0 ? `${unsaved} unsaved ${unsaved === 1 ? 'change' : 'changes'}` : undefined;
 
   function pickFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -187,7 +188,29 @@ export function EditProfileForm({ user, onSaved, onUnsavedCount, onDelete, delet
   const left = gaps.length;
 
   return (
-    <>
+    <DockScreen
+      title="Edit Profile"
+      subtitle={subtitle}
+      onBack={() => navigate(profileRoutes.you())}
+      footer={
+        <StickyActionBar>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="shrink-0 px-4 font-bold"
+              disabled={unsaved === 0 || isLoading}
+              onClick={discard}
+            >
+              Discard
+            </Button>
+            <Button type="submit" form="edit-profile-form" className="flex-1 font-bold" loading={isLoading}>
+              Save Changes
+            </Button>
+          </div>
+        </StickyActionBar>
+      }
+    >
       <Form
         id="edit-profile-form"
         density="default"
@@ -408,24 +431,7 @@ export function EditProfileForm({ user, onSaved, onUnsavedCount, onDelete, delet
           ) : null}
         </div>
       </Form>
-
-      <StickyActionBar>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            className="shrink-0 px-4 font-bold"
-            disabled={unsaved === 0 || isLoading}
-            onClick={discard}
-          >
-            Discard
-          </Button>
-          <Button type="submit" form="edit-profile-form" className="flex-1 font-bold" loading={isLoading}>
-            Save Changes
-          </Button>
-        </div>
-      </StickyActionBar>
-    </>
+    </DockScreen>
   );
 }
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { SearchBar } from '@/shared/ui/SearchBar';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -57,20 +57,25 @@ export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
   const { q, setQ, debounced, data, results, isLoading, isError, refetch, goBack } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Entertainment" subtitle="Episodes and Seasons" onBack={goBack} />
-
-      <div className="flex flex-col gap-4 px-4 pt-3.5 pb-8">
-        <SearchBar
-          value={q}
-          onValueChange={setQ}
-          placeholder="Search Entertainment…"
-          label="Search Entertainment"
-          size="md"
-          className="w-full"
-          inputClassName="h-11 rounded-panel"
-        />
-
+    <PageDock
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title="Entertainment" subtitle="Episodes and Seasons" onBack={goBack} />
+          <div className="px-4 pt-3.5 pb-3">
+            <SearchBar
+              value={q}
+              onValueChange={setQ}
+              placeholder="Search Entertainment…"
+              label="Search Entertainment"
+              size="md"
+              className="w-full"
+              inputClassName="h-11 rounded-panel"
+            />
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4 px-4 pb-8">
         {isLoading ? (
           <ul className="grid grid-cols-3 gap-2">
             {Array.from({ length: 9 }, (_, i) => (
@@ -99,6 +104,6 @@ export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
           <SerialGrid serials={data} />
         )}
       </div>
-    </div>
+    </PageDock>
   );
 }

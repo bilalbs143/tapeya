@@ -1,3 +1,4 @@
+export { AspectPortraitIcon } from './AspectPortraitIcon';
 export { BallIcon } from './BallIcon';
 export { BarChartIcon } from './BarChartIcon';
 export { BatIcon } from './BatIcon';
@@ -61,6 +62,7 @@ export { SunIcon } from './SunIcon';
 export { ThumbsDownIcon } from './ThumbsDownIcon';
 export { ThumbsUpIcon } from './ThumbsUpIcon';
 export { TrashIcon } from './TrashIcon';
+export { TrimIcon } from './TrimIcon';
 export { TrophyIcon } from './TrophyIcon';
 export { UndoIcon } from './UndoIcon';
 export { UsersIcon } from './UsersIcon';

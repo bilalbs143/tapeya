@@ -19,7 +19,7 @@ export function FanLiveDock({ streamId, homeShort, awayShort, onOpenScorecard }:
   const streamTo = streamId != null ? liveRoutes.broadcast(streamId) : liveRoutes.list();
 
   return (
-    <div className="border-border-subtle bg-veil/95 sticky bottom-[var(--keyboard-inset,0px)] z-20 mt-auto flex items-center gap-2 border-t px-4 pt-3 pb-3 backdrop-blur-[16px] tab:hidden">
+    <div className="border-border-subtle bg-veil/95 flex shrink-0 items-center gap-2 border-t px-4 pt-3 pb-3 backdrop-blur-lg tab:hidden">
       <Button className="min-h-12 flex-1 rounded-field text-body-sm font-bold" onClick={() => navigate(streamTo)}>
         <span className="inline-flex items-center gap-2">
           <PlayIcon size="xs" strokeWidth={2} className="h-[15px] w-[15px]" />

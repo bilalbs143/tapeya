@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMeQuery } from '@/features/auth';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
+import { formatHashtagLabel, mergeCaptionWithHashtags } from '@/shared/lib/hashtags';
 import { toast } from '@/shared/ui/toast';
 
 import { useCreatePostMutation } from '../api/feedApi';
@@ -23,21 +24,26 @@ export function useCreatePost() {
   const [params] = useSearchParams();
   const wantPhotos = params.get('media') === 'photo';
   const fileRef = useRef<HTMLInputElement>(null);
+  const hashRef = useRef<HTMLInputElement>(null);
 
   const { data: me } = useMeQuery();
   const [createPost, { isLoading }] = useCreatePostMutation();
 
   const [body, setBody] = useState('');
-  const [background, setBackground] = useState<CreatePostUiBackground>('none');
+  const [background, setBackground] = useState<CreatePostUiBackground>('plain');
   const [photos, setPhotos] = useState<File[]>([]);
+  /** Plain posts only — same chip pattern as create reel; ignored when a frame is on. */
+  const [hashtags, setHashtags] = useState('');
+  const [hashEditing, setHashEditing] = useState(false);
 
   const hasMedia = photos.length > 0;
   const showBackgrounds = canUseComposeBackgrounds(body, hasMedia);
   const activeBackground = createPostActiveBackground(background, body, hasMedia);
-  const withBg = activeBackground !== 'none';
+  const withBg = activeBackground !== 'plain';
   const limit = createPostCharLimit(withBg);
   const over = body.length > limit;
   const canPost = createPostCanPublish(body, hasMedia, over);
+  const hashLabel = hashtags ? formatHashtagLabel(hashtags) : 'Hashtags';
 
   const previewUrls = useMemo(() => photos.map((file) => URL.createObjectURL(file)), [photos]);
 
@@ -51,11 +57,23 @@ export function useCreatePost() {
     if (wantPhotos) fileRef.current?.click();
   }, [wantPhotos]);
 
+  useEffect(() => {
+    if (hashEditing) hashRef.current?.focus();
+  }, [hashEditing]);
+
   function pickPhotos(files: FileList | null) {
     if (!files?.length) return;
     const next = [...photos, ...Array.from(files)].slice(0, 10);
     setPhotos(next);
-    setBackground('none');
+    setBackground('plain');
+  }
+
+  function selectBackground(next: CreatePostUiBackground) {
+    setBackground(next);
+    if (next !== 'plain') {
+      setHashtags('');
+      setHashEditing(false);
+    }
   }
 
   function removePhoto(index: number) {
@@ -75,15 +93,16 @@ export function useCreatePost() {
     if (!canPost || isLoading) return;
     try {
       const apiId = createPostApiBackgroundId(activeBackground);
+      const submitBody = withBg ? body.trim() : mergeCaptionWithHashtags(body, hashtags);
       const backgroundId = resolveBackgroundIdForSubmit({
         backgroundId: apiId,
-        body: body.trim(),
+        body: submitBody,
         hasMedia,
       });
       const post = hasMedia
-        ? await createPost({ body: body.trim(), images: photos }).unwrap()
+        ? await createPost({ body: submitBody, images: photos }).unwrap()
         : await createPost({
-            body: body.trim(),
+            body: submitBody,
             backgroundId: backgroundId ?? null,
           }).unwrap();
       toast({ title: 'Post Created', tone: 'success' });
@@ -96,10 +115,11 @@ export function useCreatePost() {
   return {
     me,
     fileRef,
+    hashRef,
     body,
     setBody,
     background,
-    setBackground,
+    setBackground: selectBackground,
     photos,
     hasMedia,
     showBackgrounds,
@@ -110,6 +130,11 @@ export function useCreatePost() {
     canPost,
     isLoading,
     previewUrls,
+    hashtags,
+    setHashtags,
+    hashEditing,
+    setHashEditing,
+    hashLabel,
     pickPhotos,
     removePhoto,
     goHome,

@@ -92,6 +92,7 @@ export default function ReelsPage() {
       ) : (
         <>
           {body}
+          {/* Tabs stay mounted on empty/loading so Following / Saved remain switchable. */}
           {ordered.length ? <ReelsPageChrome desk={false} feedTab={feedTab} onSelectTab={selectTab} /> : null}
           {ordered.length && muted && soundTip && active === 0 ? (
             <button

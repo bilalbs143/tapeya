@@ -39,7 +39,7 @@ describe('toDomain', () => {
     expect(post.background).toBeNull();
   });
 
-  it('maps pitch background_id to turf and image type alias', () => {
+  it('keeps API background_id and maps image type alias', () => {
     const wire: PostWire = {
       id: 1,
       type: 'text',
@@ -49,8 +49,10 @@ describe('toDomain', () => {
       viewer: { liked: false, saved: false },
       creator: { id: 1, name: 'A', nickname: 'a', avatar_url: null },
     };
-    expect(toDomain(wire).background).toBe('turf');
+    expect(toDomain(wire).background).toBe('pitch');
     expect(toDomain(wire).kind).toBe('text');
+    expect(toDomain({ ...wire, background_id: 'gold' }).background).toBe('gold');
+    expect(toDomain({ ...wire, background_id: 'unknown' }).background).toBeNull();
   });
 
   it('unwraps nested repost_of into original + reposter', () => {

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { APP_PATHS } from '@/shared/config/paths';
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -20,9 +20,7 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
   const { subtitle, matches, isLoading, isError, refetch, onResume, onSaveToss, onOpen, goHome } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Matches" subtitle={subtitle} onBack={goHome} />
-
+    <PageDock header={<ScreenBar title="Matches" subtitle={subtitle} onBack={goHome} />}>
       <div className="flex flex-col gap-5 px-4 pt-4 pb-8">
         <CreateMatchTiles startMatchTo={APP_PATHS.startMatch} quickMatchTo={APP_PATHS.quickMatch} />
 
@@ -83,6 +81,6 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
           <MatchListSections matches={matches} onResume={onResume} onSaveToss={onSaveToss} onOpen={onOpen} />
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

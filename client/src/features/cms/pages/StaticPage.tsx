@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { SafeHtml } from '@/shared/ui/SafeHtml';
 import { ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -26,10 +26,16 @@ export default function StaticPage() {
   const is404 = status === 404 || status === 'NOT_FOUND';
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title={data?.title ?? 'Page'} subtitle={isLegalRoute ? 'Legal' : 'Info'} onBack={() => navigate(-1)} />
-
-      <div className="flex flex-1 flex-col px-4 pt-3.5 pb-8">
+    <PageDock
+      header={
+        <ScreenBar
+          title={data?.title ?? 'Page'}
+          subtitle={isLegalRoute ? 'Legal' : 'Info'}
+          onBack={() => navigate(-1)}
+        />
+      }
+    >
+      <div className="flex flex-col px-4 pt-3.5 pb-8">
         {!slug ? <ErrorState title="Page Not Found" description="This link is not valid." /> : null}
 
         {slug && busy ? (
@@ -60,6 +66,6 @@ export default function StaticPage() {
           />
         ) : null}
       </div>
-    </div>
+    </PageDock>
   );
 }

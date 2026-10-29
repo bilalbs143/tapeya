@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -11,38 +11,22 @@ import { useOrdersPage } from '../ui/useOrdersPage';
 export default function OrdersPage() {
   const flow = useOrdersPage();
   const { current, previous, isLoading, isError, refetch, goHome } = flow;
+  const ready = !isLoading && !isError && (current.length > 0 || previous.length > 0);
 
-  const header = <ScreenBar title="My Orders" subtitle="Track Purchases and Returns" onBack={goHome} />;
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+  return (
+    <DockScreen title="My Orders" subtitle="Track Purchases and Returns" onBack={goHome}>
+      {isLoading ? (
         <div className="flex flex-col gap-2.5 px-4 pt-4">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-24 w-full rounded-card" />
           ))}
         </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
+      ) : isError ? (
         <div className="px-4 py-8">
           <ErrorState title="Couldn't Load Orders" onRetry={() => void refetch()} />
         </div>
-      </div>
-    );
-  }
-
-  if (!current.length && !previous.length) {
-    return (
-      <div className="bg-surface flex min-h-full flex-col">
-        {header}
-        <div className="flex flex-1 flex-col px-4">
+      ) : !ready ? (
+        <div className="flex min-h-full flex-col px-4">
           <EmptyState
             size="lg"
             title="No Orders Yet"
@@ -54,9 +38,9 @@ export default function OrdersPage() {
             }
           />
         </div>
-      </div>
-    );
-  }
-
-  return <OrdersPageBody flow={flow} />;
+      ) : (
+        <OrdersPageBody flow={flow} />
+      )}
+    </DockScreen>
+  );
 }

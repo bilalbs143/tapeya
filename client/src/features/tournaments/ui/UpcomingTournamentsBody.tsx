@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { ScreenBar } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { PinIcon } from '@/shared/ui/icons';
 import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -50,9 +50,7 @@ export function UpcomingTournamentsBody({ flow }: UpcomingTournamentsBodyProps) 
   const { upcoming, isLoading, isError, refetch, goBack } = flow;
 
   return (
-    <div className="bg-surface flex min-h-full flex-col">
-      <ScreenBar title="Upcoming Tournaments" subtitle="Open Events You Can Follow" onBack={goBack} />
-
+    <PageDock header={<ScreenBar title="Upcoming Tournaments" subtitle="Open Events You Can Follow" onBack={goBack} />}>
       <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-6">
         {isLoading ? (
           <div className="flex flex-col gap-3">
@@ -73,6 +71,6 @@ export function UpcomingTournamentsBody({ flow }: UpcomingTournamentsBodyProps) 
           />
         )}
       </div>
-    </div>
+    </PageDock>
   );
 }

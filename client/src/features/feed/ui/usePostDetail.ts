@@ -5,7 +5,6 @@ import { useMeQuery } from '@/features/auth';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { confirm } from '@/shared/dialogs';
-import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 import { selectUserId } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 import { toast } from '@/shared/ui/toast';
@@ -35,8 +34,6 @@ export function usePostDetail(postId: number, valid: boolean) {
   const userId = useAppSelector(selectUserId);
   const { data: me } = useMeQuery();
   const composerInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
-  /** Pad compose footer above soft keyboard (matches Watch chat dock). */
-  const keyboardInset = useKeyboardInset();
 
   const { data, isLoading, isError, refetch } = useGetPostQuery(postId, { skip: !valid });
   const {
@@ -181,7 +178,6 @@ export function usePostDetail(postId: number, valid: boolean) {
     userId,
     me,
     composerInputRef,
-    keyboardInset,
     data,
     isLoading,
     isError,
