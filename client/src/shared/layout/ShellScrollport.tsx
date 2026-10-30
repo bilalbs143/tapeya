@@ -61,6 +61,8 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
 
   useEffect(() => {
     if (keyboardInset <= 0) return;
+    // Lock shell while the keyboard is open — PageDock pads; do not pan chrome away.
+    scrollShellToTop('instant' as ScrollBehavior);
     let raf = 0;
     let timer = 0;
     raf = requestAnimationFrame(() => {
@@ -74,7 +76,10 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
   }, [keyboardInset]);
 
   return (
-    <div data-shell-scrollport className={cn(className)}>
+    <div
+      data-shell-scrollport
+      className={cn(className, keyboardInset > 0 && fill && 'overflow-hidden overscroll-none')}
+    >
       {/* Flex stays on the inner wrapper — sticky ScreenBar breaks if the overflow
           scroller itself is `display: flex`. `fill` caps height for PageDock scroll. */}
       <div className={cn('flex w-full flex-col', fill ? 'h-full min-h-0' : 'min-h-full')}>{children}</div>

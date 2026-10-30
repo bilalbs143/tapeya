@@ -3,14 +3,8 @@ import { Keyboard, type KeyboardInfo } from '@capacitor/keyboard';
 import { isNativePlatform } from '@/shared/platform/platform';
 
 /**
- * Soft-keyboard height → `--keyboard-inset` for PageDock / sheets / docks.
- *
- * Contract (iOS + Android must match):
- * - WebView stays full height; JS owns the lift.
- * - Capacitor `Keyboard.resize: 'none'` (iOS). Never `resizeOnFullScreen`.
- * - Android `MainActivity` `windowSoftInputMode="adjustNothing"`.
- * - Android `SystemBars.insetsHandling: 'disable'` so Cap does not also pad the
- *   decor view by IME height (that double-count is the white gap above the keyboard).
+ * Soft-keyboard height → `--keyboard-inset` (PageDock / sheets).
+ * Pair with Keyboard.resize none, Android adjustNothing, SystemBars insetsHandling disable.
  */
 
 const CSS_VAR = '--keyboard-inset';
