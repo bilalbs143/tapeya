@@ -327,9 +327,7 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 
 ## 5. StickyActionBar contract
 
-Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom` from `--keyboard-inset`), not the bar.
-
-**Native keyboard contract (iOS + Android):** Capacitor `Keyboard.resize: 'none'` keeps the WebView full height; the app pads from `@capacitor/keyboard` height. On Android, `MainActivity` must also use `android:windowSoftInputMode="adjustNothing"`. Do **not** use `adjustResize` / `adjustPan` or `Keyboard.resizeOnFullScreen` — those shrink the native frame while CSS still assumes full height and produce a white gap above the keyboard with the compose dock missing.
+Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom`), not the bar.
 
 | Do | Don’t |
 |---|---|
