@@ -18,12 +18,6 @@ export const enumsFixture = {
     { value: 'right_arm_medium', label: 'Right-Arm Medium' },
     { value: 'left_arm_orthodox', label: 'Left-Arm Orthodox' },
   ],
-  cricket_format: [
-    { value: 'tape_ball', label: 'Tape Ball' },
-    { value: 'hard_ball', label: 'Hard Ball' },
-    { value: 'tennis_ball', label: 'Tennis Ball' },
-    { value: 'hard_tennis', label: 'Hard Tennis' },
-  ],
   tournament_type: [
     { value: 'open_tournament', label: 'Open Tournament' },
     { value: 'private_tournament', label: 'Private Tournament' },

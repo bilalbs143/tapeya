@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\User;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\TossChoiceEnum;
 use App\Utils\Services\OtpService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -46,7 +45,6 @@ class StoreQuickMatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cricket_format' => ['required', 'string', Rule::in(CricketFormatEnum::values())],
             'overs' => ['required', 'integer', 'min:1', 'max:255'],
             'players_per_side' => ['required', 'integer', 'min:2', 'max:20'],
             'home' => ['required', 'array'],

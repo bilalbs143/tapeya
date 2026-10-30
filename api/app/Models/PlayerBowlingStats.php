@@ -10,7 +10,7 @@ class PlayerBowlingStats extends Model
     protected $table = 'player_bowling_stats';
 
     protected $fillable = [
-        'player_id', 'tournament_type', 'cricket_format',
+        'player_id', 'tournament_type',
         'matches', 'innings', 'overs', 'maidens', 'runs_conceded', 'wickets', 'no_balls', 'wides',
         'best_bowling_innings', 'best_bowling_match', 'five_wickets', 'ten_wickets', 'average', 'economy', 'strike_rate',
     ];

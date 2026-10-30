@@ -49,8 +49,8 @@ use Illuminate\Support\Facades\Hash;
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
  *     gets one fixture per group. Several matches use today’s date for the scorecard schedule tab.
  *   - One completed match per tournament (first fixture) with innings, balls, and materialized career
- *     stats via RefreshMatchStatsJob. Covers all four cricket formats; two open_tournament + tape_ball
- *     events (LSC + PTO) so cross-tournament bucket aggregation can be tested.
+ *     stats via RefreshMatchStatsJob. Includes two open_tournament events so cross-tournament
+ *     bucket aggregation can be tested.
  */
 class ScoringDemoSeeder extends Seeder
 {
@@ -173,8 +173,7 @@ class ScoringDemoSeeder extends Seeder
     ];
 
     /**
-     * Explicit type × format mapping — one row per cricket format plus a second open + tape_ball
-     * tournament for cross-event career aggregation.
+     * Demo tournament configs (varied types/sizes) for cross-event career aggregation.
      *
      * @var list<array{name: string, short: string, type: string, teams: int, groups: int, city: string, venue: string}>
      */

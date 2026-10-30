@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGetRankingsQuery } from '../api/rankingApi';
-import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '../lib/constants';
+import { RANKING_TOURNAMENT_TYPE } from '../lib/constants';
 import { isRankingHubTab, type RankingHubTab, topRankingSlice } from '../lib/rankingPage';
 import { toBatterCard, toBowlerCard, toOtherCard } from '../model/schemas';
 
 function useOpenRankings(category: 'batting' | 'bowling', sort: string) {
   return useGetRankingsQuery({
     tournamentType: RANKING_TOURNAMENT_TYPE,
-    cricketFormat: RANKING_CRICKET_FORMAT,
     category,
     sort,
   });

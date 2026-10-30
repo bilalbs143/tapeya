@@ -37,7 +37,6 @@ class QuickMatchTest extends TestCase
         $existing = $this->activeUser(['phone' => '+923009990001']);
 
         return array_merge([
-            'cricket_format' => 'tape_ball',
             'overs' => 10,
             'players_per_side' => 2,
             'home' => [
@@ -135,7 +134,6 @@ class QuickMatchTest extends TestCase
         $quickRow = PlayerBattingStats::query()
             ->where('player_id', $strikerId)
             ->where('tournament_type', 'quick')
-            ->where('cricket_format', 'tape_ball')
             ->first();
         $this->assertNotNull($quickRow);
         $this->assertSame(4, (int) $quickRow->runs);

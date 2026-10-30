@@ -9,7 +9,6 @@ export const QUICK_MATCH_OVERS_MIN = 1;
 export const QUICK_MATCH_OVERS_MAX = 255;
 export const QUICK_MATCH_PLAYERS_MIN = 2;
 export const QUICK_MATCH_PLAYERS_MAX = 20;
-export const QUICK_MATCH_DEFAULT_BALL = 'tape_ball';
 
 export type QuickMatchSetupStatus = { alert: boolean; text: string };
 

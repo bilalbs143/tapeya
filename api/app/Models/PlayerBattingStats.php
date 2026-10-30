@@ -10,7 +10,7 @@ class PlayerBattingStats extends Model
     protected $table = 'player_batting_stats';
 
     protected $fillable = [
-        'player_id', 'tournament_type', 'cricket_format',
+        'player_id', 'tournament_type',
         'matches', 'innings', 'not_outs', 'runs', 'balls_faced', 'fours', 'sixes', 'dots',
         'highest_score', 'hundreds', 'fifties', 'average', 'strike_rate',
     ];

@@ -19,9 +19,7 @@ export function ScheduledMatchRow({ match, onOpen, className }: ScheduledMatchRo
         ? `${match.home.name} vs ${match.away.name}`
         : 'Match';
   const meta = match.tournamentShort
-    ? [timeOf(match.matchTime), match.overs != null ? `${match.overs} overs` : match.formatLabel]
-        .filter(Boolean)
-        .join(' · ')
+    ? [timeOf(match.matchTime), match.overs != null ? `${match.overs} overs` : null].filter(Boolean).join(' · ')
     : `Quick Match · ${match.overs ?? 10} overs`;
 
   return (

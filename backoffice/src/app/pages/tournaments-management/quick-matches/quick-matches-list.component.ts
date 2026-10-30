@@ -30,7 +30,6 @@ import { QuickMatchDetailDialogComponent } from './quick-match-detail-dialog/qui
 const DEFAULT_FILTERS = {
   q: '',
   status: '',
-  cricket_format: '',
   from_date: null as Date | null,
   to_date: null as Date | null,
 } as const;
@@ -62,7 +61,7 @@ export class QuickMatchesListComponent implements OnInit, OnDestroy {
   private readonly sub = new Subscription();
 
   public searchForm: FormGroup;
-  public readonly displayedColumns: string[] = ['sr', 'when', 'teams', 'creator', 'venue', 'format', 'status', 'actions'];
+  public readonly displayedColumns: string[] = ['sr', 'when', 'teams', 'creator', 'venue', 'status', 'actions'];
   public dataSource = new MatTableDataSource<QuickMatchRow>([]);
   public readonly emptyCell = EMPTY_CELL;
   public totalRecords = 0;
@@ -70,13 +69,11 @@ export class QuickMatchesListComponent implements OnInit, OnDestroy {
   public pageSize: number;
   public isLoading = false;
   public readonly matchStatusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('match_status');
-  public readonly cricketFormatOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('cricket_format');
 
   constructor() {
     this.searchForm = this.fb.group({
       q: [DEFAULT_FILTERS.q],
       status: [DEFAULT_FILTERS.status],
-      cricket_format: [DEFAULT_FILTERS.cricket_format],
       from_date: [DEFAULT_FILTERS.from_date],
       to_date: [DEFAULT_FILTERS.to_date],
     });
@@ -111,7 +108,6 @@ export class QuickMatchesListComponent implements OnInit, OnDestroy {
         page: this.currentPage + 1,
         per_page: this.pageSize,
         status: filters.status || undefined,
-        cricket_format: filters.cricket_format || undefined,
         q: (filters.q ?? '').trim() || undefined,
         from_date: fromDate || undefined,
         to_date: toDate || undefined,

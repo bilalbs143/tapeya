@@ -6,7 +6,6 @@ import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
 import { Form } from '@/shared/ui/Form';
 import { NumberStepper } from '@/shared/ui/NumberStepper';
-import { ErrorState, Skeleton } from '@/shared/ui/states';
 import { StickyActionBar } from '@/shared/ui/StickyActionBar';
 
 import {
@@ -16,7 +15,7 @@ import {
   QUICK_MATCH_PLAYERS_MIN,
 } from '../lib/quickMatchForm';
 import { AddQuickMatchPlayerSheet } from './AddQuickMatchPlayerSheet';
-import { QuickMatchChoiceChip, QuickMatchRoster, QuickMatchVersusCard } from './QuickMatchSetupPanels';
+import { QuickMatchRoster, QuickMatchVersusCard } from './QuickMatchSetupPanels';
 import type { useQuickMatchForm } from './useQuickMatchForm';
 
 type QuickMatchFormFlow = ReturnType<typeof useQuickMatchForm>;
@@ -30,10 +29,6 @@ type QuickMatchFormBodyProps = {
 export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
   const {
     isLoading,
-    ballTypes,
-    enumsLoading,
-    enumsError,
-    refetchEnums,
     homeName,
     setHomeName,
     awayName,
@@ -48,11 +43,8 @@ export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
     setOvers,
     players,
     setSideSize,
-    resolvedBall,
-    setBall,
     gate,
     takenIds,
-    ballLabel,
     status,
     addPlayer,
     start,
@@ -101,31 +93,6 @@ export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
         }
       >
         <Form density="compact" className="flex flex-col px-4 pt-4 pb-4" onSubmit={(e) => e.preventDefault()}>
-          <Field label="Ball Type" required>
-            {enumsError ? (
-              <ErrorState
-                title="Couldn’t Load Ball Types"
-                description="Formats come from the server."
-                onRetry={() => void refetchEnums()}
-              />
-            ) : enumsLoading && ballTypes.length === 0 ? (
-              <Skeleton className="h-10 w-full rounded-panel" aria-label="Loading Ball Types" />
-            ) : (
-              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Ball Type">
-                {ballTypes.map((item) => (
-                  <QuickMatchChoiceChip
-                    key={item.value}
-                    selected={resolvedBall === item.value}
-                    disabled={enumsLoading}
-                    onClick={() => setBall(item.value)}
-                  >
-                    {item.label}
-                  </QuickMatchChoiceChip>
-                ))}
-              </div>
-            )}
-          </Field>
-
           <Field label="Overs" required>
             <NumberStepper
               value={overs}
@@ -152,7 +119,6 @@ export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
 
           <QuickMatchVersusCard
             overs={overs}
-            ballLabel={ballLabel}
             players={players}
             homeName={homeName}
             awayName={awayName}

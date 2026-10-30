@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\QuickMatch;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
@@ -50,7 +49,6 @@ class CasualCareerStatsTest extends TestCase
         $row = PlayerBattingStats::query()
             ->where('player_id', $striker->id)
             ->where('tournament_type', 'quick')
-            ->where('cricket_format', CricketFormatEnum::TAPE_BALL->value)
             ->first();
 
         $this->assertNotNull($row);
@@ -83,7 +81,7 @@ class CasualCareerStatsTest extends TestCase
         $striker = $this->squad[0];
         $this->scoreRunsOnMatch($quick, $striker->id, 40);
 
-        $ot = $this->createTournamentMatch('open_tournament', 'tape_ball');
+        $ot = $this->createTournamentMatch('open_tournament');
         $this->scoreRunsOnMatch($ot, $striker->id, 11);
 
         $this->getJson('/api/v1/users/'.$striker->id.'/stats?'.http_build_query([
@@ -109,7 +107,7 @@ class CasualCareerStatsTest extends TestCase
 
     public function test_quick_refresh_does_not_bust_rankings_cache(): void
     {
-        $ot = $this->createTournamentMatch('open_tournament', 'tape_ball');
+        $ot = $this->createTournamentMatch('open_tournament');
         $striker = $this->squad[0];
         $this->scoreRunsOnMatch($ot, $striker->id, 50);
 
@@ -123,7 +121,6 @@ class CasualCareerStatsTest extends TestCase
         $otRow = PlayerBattingStats::query()
             ->where('player_id', $striker->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'all')
             ->first();
         $this->assertNotNull($otRow);
         $this->assertSame(50, (int) $otRow->runs);
@@ -133,7 +130,6 @@ class CasualCareerStatsTest extends TestCase
     {
         $match = $this->createQuickMatch($this->owner, [
             'status' => MatchStatusEnum::IN_PROGRESS->value,
-            'cricket_format' => CricketFormatEnum::TAPE_BALL,
             'players_per_side' => 2,
             'overs' => 5,
         ]);
@@ -159,7 +155,7 @@ class CasualCareerStatsTest extends TestCase
         return $match->fresh();
     }
 
-    private function createTournamentMatch(string $tournamentType, string $cricketFormat): TournamentMatch
+    private function createTournamentMatch(string $tournamentType): TournamentMatch
     {
         $tournament = Tournament::create([
             'organizer_id' => $this->owner->id,
@@ -193,7 +189,6 @@ class CasualCareerStatsTest extends TestCase
             'match_date' => now()->toDateString(),
             'match_time' => '10:00:00',
             'venue_name' => 'Test Ground',
-            'cricket_format' => $cricketFormat,
             'players_per_side' => 2,
             'overs' => 5,
             'status' => MatchStatusEnum::IN_PROGRESS->value,

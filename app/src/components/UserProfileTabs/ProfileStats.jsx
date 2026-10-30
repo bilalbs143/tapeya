@@ -137,7 +137,7 @@ export function ProfileStats({ userId: userIdProp } = {}) {
   );
 
   const { data: statsData, isLoading: statsLoading } = useGetPlayerStatsQuery(
-    { userId, tournament_type: tournamentType, cricket_format: 'all' },
+    { userId, tournament_type: tournamentType },
     { skip: !userId },
   );
   const { data: teamsData = [], isLoading: teamsLoading } = useGetPlayerTeamsQuery(userId, { skip: !userId });

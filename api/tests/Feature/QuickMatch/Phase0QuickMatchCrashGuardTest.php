@@ -30,8 +30,7 @@ class Phase0QuickMatchCrashGuardTest extends TestCase
             ->assertJsonPath('data.tournament', null)
             ->assertJsonPath('data.venue_name', null)
             ->assertJsonPath('data.can_operate', true)
-            ->assertJsonPath('data.created_by', $owner->id)
-            ->assertJsonPath('data.cricket_format', 'tape_ball');
+            ->assertJsonPath('data.created_by', $owner->id);
     }
 
     public function test_stranger_get_match_does_not_fatal_and_cannot_operate(): void

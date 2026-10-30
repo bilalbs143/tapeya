@@ -4,7 +4,6 @@ import { buildQuickMatchPayload, playerError, type QuickMatchDraft, quickMatchGa
 
 function draft(over: Partial<QuickMatchDraft> = {}): QuickMatchDraft {
   return {
-    cricketFormat: 'tape_ball',
     overs: 10,
     playersPerSide: 2,
     homeName: 'City Blues',
@@ -58,5 +57,9 @@ describe('buildQuickMatchPayload', () => {
       { name: 'Ali Khan', phone: '+923001234567' },
       { user_id: 9 },
     ]);
+  });
+
+  it('does not send cricket_format', () => {
+    expect(buildQuickMatchPayload(draft())).not.toHaveProperty('cricket_format');
   });
 });

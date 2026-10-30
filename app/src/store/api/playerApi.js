@@ -1,4 +1,4 @@
-import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '@/lib/constants/ranking';
+import { RANKING_TOURNAMENT_TYPE } from '@/lib/constants/ranking';
 
 import { baseApi } from './baseApi';
 
@@ -9,9 +9,9 @@ import { baseApi } from './baseApi';
 export const playerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPlayerStats: builder.query({
-      query: ({ userId, tournament_type = 'all', cricket_format = 'all' }) => ({
+      query: ({ userId, tournament_type = 'all' }) => ({
         url: `/users/${userId}/stats`,
-        params: { tournament_type, cricket_format },
+        params: { tournament_type },
       }),
       transformResponse: (response) => response?.data ?? response ?? null,
       providesTags: (result, error, { userId }) => (result ? [{ type: 'User', id: `stats-${userId}` }] : []),
@@ -21,18 +21,10 @@ export const playerApi = baseApi.injectEndpoints({
      * Params may be omitted — API derives category/sort from the user's profile when absent.
      */
     getPlayerRankingPosition: builder.query({
-      query: ({
-        userId,
-        tournament_type = RANKING_TOURNAMENT_TYPE,
-        cricket_format = RANKING_CRICKET_FORMAT,
-        category,
-        sort,
-        min_innings,
-      }) => ({
+      query: ({ userId, tournament_type = RANKING_TOURNAMENT_TYPE, category, sort, min_innings }) => ({
         url: `/users/${userId}/ranking-position`,
         params: {
           tournament_type,
-          cricket_format,
           ...(category != null ? { category } : {}),
           ...(sort != null ? { sort } : {}),
           ...(min_innings != null ? { min_innings } : {}),

@@ -84,10 +84,7 @@ export class PlayersService {
     return this.http.post<{ data: PlayerCsvImportResult }>(`${this.baseUrl}/import-csv`, formData);
   }
 
-  public getStats(
-    playerId: number,
-    params: { tournament_type?: string; cricket_format?: string } = {}
-  ): Observable<{ data: PlayerStatsResponse }> {
+  public getStats(playerId: number, params: { tournament_type?: string } = {}): Observable<{ data: PlayerStatsResponse }> {
     return this.http.get<{ data: PlayerStatsResponse }>(`v1/users/${playerId}/stats`, {
       params: toHttpParams(params as Record<string, unknown>),
     });
@@ -138,7 +135,6 @@ export interface PlayerFieldingStats {
 export interface PlayerStatsResponse {
   player_id: number;
   tournament_type: string;
-  cricket_format: string;
   batting: PlayerBattingStats;
   bowling: PlayerBowlingStats;
   fielding: PlayerFieldingStats;

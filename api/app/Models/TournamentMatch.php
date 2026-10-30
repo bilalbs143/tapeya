@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Casts\AsFile;
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +18,6 @@ class TournamentMatch extends BaseModel
         'kind',
         'tournament_id',
         'created_by',
-        'cricket_format',
         'group_index',
         'home_team_id',
         'away_team_id',
@@ -57,7 +55,6 @@ class TournamentMatch extends BaseModel
     {
         return [
             'kind' => MatchKindEnum::class,
-            'cricket_format' => CricketFormatEnum::class,
             'match_date' => 'date',
             'status' => MatchStatusEnum::class,
             'cancel_points_awarded_each' => 'boolean',
@@ -220,9 +217,9 @@ class TournamentMatch extends BaseModel
             : MatchKindEnum::tryFrom((string) $this->kind);
 
         if ($kind === MatchKindEnum::QUICK) {
-            if ($this->tournament_id !== null || $this->cricket_format === null || $this->created_by === null) {
+            if ($this->tournament_id !== null || $this->created_by === null) {
                 throw new InvalidArgumentException(
-                    'Quick matches require tournament_id null, cricket_format, and created_by.'
+                    'Quick matches require tournament_id null and created_by.'
                 );
             }
 

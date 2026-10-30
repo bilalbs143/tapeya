@@ -333,9 +333,9 @@
       </mat-card>
     </div>
 
-    <!-- ── Row 3: Tournaments by Format + Matches by Format ── -->
+    <!-- ── Row 3: Tournaments by Type ── -->
     <div
-      class="col-span-12 lg:col-span-6"
+      class="col-span-12"
       role="region"
       aria-labelledby="chart-t-format-title"
     >
@@ -367,47 +367,6 @@
                 }"
                 [yaxis]="formatBarYaxis"
                 [colors]="formatBarColors"
-                [grid]="chartGrid"
-              ></apx-chart>
-            </div>
-          }
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <div
-      class="col-span-12 lg:col-span-6"
-      role="region"
-      aria-labelledby="chart-m-format-title"
-    >
-      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-col">
-        <mat-card-header class="pb-3">
-          <mat-card-title id="chart-m-format-title">Matches by Cricket Format</mat-card-title>
-          <mat-card-subtitle class="block max-w-none whitespace-normal text-sm leading-snug">
-            Via tournament format assignment
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content class="flex min-h-0 flex-1 flex-col">
-          @if (!hasMatchFormatData()) {
-            <div class="flex min-h-[160px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-8">
-              <p class="m-0 text-sm">No format data yet.</p>
-            </div>
-          } @else {
-            <div
-              role="img"
-              aria-label="Horizontal Bar Chart of Match Counts by Cricket Format"
-            >
-              <apx-chart
-                [series]="matchFormatSeries()"
-                [chart]="formatBarChart"
-                [plotOptions]="formatBarPlotOptions"
-                [dataLabels]="formatBarDataLabels"
-                [xaxis]="{
-                  categories: matchFormatCategories(),
-                  labels: { style: { colors: 'var(--mat-sys-on-surface-variant)', fontSize: '12px' } },
-                }"
-                [yaxis]="formatBarYaxis"
-                [colors]="matchFormatColors"
                 [grid]="chartGrid"
               ></apx-chart>
             </div>

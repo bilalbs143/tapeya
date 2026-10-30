@@ -63,7 +63,6 @@ export const rankingHandlers = [
     return HttpResponse.json({
       data: {
         tournament_type: 'open_tournament',
-        cricket_format: 'all',
         category,
         sort,
         rankings: rankings.map((row, i) => ({ ...row, rank: i + 1 })),

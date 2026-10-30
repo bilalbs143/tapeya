@@ -2,7 +2,6 @@
 
 namespace App\Services\Stats;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
@@ -17,8 +16,7 @@ use App\Services\PlayerStatsService;
 
 /**
  * Refresh career buckets in player_*_stats.
- * Tournament path: open / private — one career row per type (cricket_format=all).
- * Quick path: tournament_type='quick' keyed by match cricket_format (no rankings bust).
+ * One career row per player × tournament_type / stats bucket (no cricket_format).
  */
 final class PlayerAccumulativeStatsRecomputer
 {
@@ -39,7 +37,6 @@ final class PlayerAccumulativeStatsRecomputer
 
         $eventType = $tournament->tournament_type;
         $eventTypeValue = $eventType instanceof TournamentTypeEnum ? $eventType->value : (string) $eventType;
-        $cricketFormatValue = 'all';
 
         $matchIdsInBucket = TournamentMatch::query()
             ->whereHas('tournament', fn ($q) => $q->where('tournament_type', $eventTypeValue))
@@ -47,9 +44,9 @@ final class PlayerAccumulativeStatsRecomputer
             ->all();
 
         foreach ($playerIds as $playerId) {
-            $this->refreshAccumulativeBatting((int) $playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
-            $this->refreshAccumulativeBowling((int) $playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
-            $this->refreshAccumulativeFielding((int) $playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
+            $this->refreshAccumulativeBatting((int) $playerId, $eventTypeValue, $matchIdsInBucket);
+            $this->refreshAccumulativeBowling((int) $playerId, $eventTypeValue, $matchIdsInBucket);
+            $this->refreshAccumulativeFielding((int) $playerId, $eventTypeValue, $matchIdsInBucket);
         }
 
         PlayerStatsService::bustRankingsCache();
@@ -67,34 +64,24 @@ final class PlayerAccumulativeStatsRecomputer
             return;
         }
 
-        $cricketFormat = $match->cricket_format;
-        $cricketFormatValue = $cricketFormat instanceof CricketFormatEnum
-            ? $cricketFormat->value
-            : (string) $cricketFormat;
-
-        if ($cricketFormatValue === '') {
-            return;
-        }
-
         $bucket = StatsBucketEnum::QUICK->value;
 
         $matchIdsInBucket = TournamentMatch::query()
             ->where('kind', MatchKindEnum::QUICK)
-            ->where('cricket_format', $cricketFormatValue)
             ->pluck('id')
             ->all();
 
         foreach ($playerIds as $playerId) {
-            $this->refreshAccumulativeBatting((int) $playerId, $bucket, $cricketFormatValue, $matchIdsInBucket);
-            $this->refreshAccumulativeBowling((int) $playerId, $bucket, $cricketFormatValue, $matchIdsInBucket);
-            $this->refreshAccumulativeFielding((int) $playerId, $bucket, $cricketFormatValue, $matchIdsInBucket);
+            $this->refreshAccumulativeBatting((int) $playerId, $bucket, $matchIdsInBucket);
+            $this->refreshAccumulativeBowling((int) $playerId, $bucket, $matchIdsInBucket);
+            $this->refreshAccumulativeFielding((int) $playerId, $bucket, $matchIdsInBucket);
         }
     }
 
     /**
      * @param  list<int|string>  $matchIdsInBucket
      */
-    private function refreshAccumulativeBatting(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
+    private function refreshAccumulativeBatting(int $playerId, string $eventType, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchBatting::where('player_id', $playerId)
             ->whereIn('match_id', $matchIdsInBucket)
@@ -103,7 +90,6 @@ final class PlayerAccumulativeStatsRecomputer
         if ($rows->isEmpty()) {
             PlayerBattingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
-                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
@@ -129,7 +115,7 @@ final class PlayerAccumulativeStatsRecomputer
         $strikeRate = $ballsFaced > 0 ? round(100 * $runs / $ballsFaced, 2) : null;
 
         PlayerBattingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
+            ['player_id' => $playerId, 'tournament_type' => $eventType],
             [
                 'matches' => $matches,
                 'innings' => $innings,
@@ -151,7 +137,7 @@ final class PlayerAccumulativeStatsRecomputer
     /**
      * @param  list<int|string>  $matchIdsInBucket
      */
-    private function refreshAccumulativeBowling(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
+    private function refreshAccumulativeBowling(int $playerId, string $eventType, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchBowling::where('player_id', $playerId)
             ->whereIn('match_id', $matchIdsInBucket)
@@ -160,7 +146,6 @@ final class PlayerAccumulativeStatsRecomputer
         if ($rows->isEmpty()) {
             PlayerBowlingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
-                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
@@ -191,7 +176,7 @@ final class PlayerAccumulativeStatsRecomputer
         );
 
         PlayerBowlingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
+            ['player_id' => $playerId, 'tournament_type' => $eventType],
             [
                 'matches' => $matches,
                 'innings' => $innings,
@@ -215,7 +200,7 @@ final class PlayerAccumulativeStatsRecomputer
     /**
      * @param  list<int|string>  $matchIdsInBucket
      */
-    private function refreshAccumulativeFielding(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
+    private function refreshAccumulativeFielding(int $playerId, string $eventType, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchFielding::where('player_id', $playerId)
             ->whereIn('match_id', $matchIdsInBucket)
@@ -224,14 +209,13 @@ final class PlayerAccumulativeStatsRecomputer
         if ($rows->isEmpty()) {
             PlayerFieldingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
-                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
         }
 
         PlayerFieldingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
+            ['player_id' => $playerId, 'tournament_type' => $eventType],
             [
                 'matches' => $rows->count(),
                 'catches' => $rows->sum('catches'),

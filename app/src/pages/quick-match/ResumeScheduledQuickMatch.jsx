@@ -33,11 +33,6 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
   const { data: enums = {} } = useGetEnumsQuery();
   const oversOptions = useMemo(() => getMatchOversOptions(enums.match_overs), [enums.match_overs]);
   const playersPerSideOptions = useMemo(() => getPlayersPerSideOptions(enums.players_per_side), [enums.players_per_side]);
-  const formatOptions = useMemo(() => {
-    const list = enums.cricket_format;
-    if (!Array.isArray(list)) return [];
-    return list.map((o) => ({ value: o.value, label: o.label ?? o.value }));
-  }, [enums.cricket_format]);
 
   const [updateQuickMatch, { isLoading: isSaving }] = useUpdateQuickMatchMutation();
   const [addQuickMatchPlayer] = useAddQuickMatchPlayerMutation();
@@ -45,7 +40,6 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
   const [updateToss, { isLoading: isTossing }] = useUpdateTossMutation();
 
   const canOperate = Boolean(match.can_operate);
-  const [cricketFormat, setCricketFormat] = useState(match.cricket_format ?? '');
   const [overs, setOvers] = useState(match.overs ?? 20);
   const [playersPerSide, setPlayersPerSide] = useState(match.players_per_side ?? 11);
 
@@ -60,7 +54,6 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
 
   const buildSettingsBody = () => ({
     matchId: match.id,
-    cricket_format: cricketFormat,
     overs: Number(overs),
     players_per_side: Number(playersPerSide),
   });
@@ -182,17 +175,8 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
           {canOperate ? (
             <>
               <QuickMatchSettingsFields
-                cricketFormat={cricketFormat}
                 overs={overs}
                 playersPerSide={playersPerSide}
-                formatOptions={formatOptions}
-                onOpenBallType={() =>
-                  openDialog('startMatchBallType', {
-                    initialValue: cricketFormat,
-                    options: formatOptions,
-                    onSelect: (v) => setCricketFormat(v),
-                  })
-                }
                 onOpenOvers={() =>
                   openDialog('startMatchOvers', {
                     initialOvers: overs,

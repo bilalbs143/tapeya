@@ -5,10 +5,6 @@ import { z } from 'zod';
 export const QUICK_MATCH_NAME = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
 export const QUICK_MATCH_PHONE = /^\+[1-9]\d{6,14}$/;
 
-/** Cricket format value from `GET /enums` → `cricket_format`. */
-
-export type BallTypeId = string;
-
 /** Chip on a side. `userId` is a Tapeya account; otherwise a walk-up. */
 
 export type QuickMatchPlayer = {
@@ -18,7 +14,6 @@ export type QuickMatchPlayer = {
 };
 
 export type QuickMatchDraft = {
-  cricketFormat: BallTypeId;
   overs: number;
   playersPerSide: number;
   homeName: string;
@@ -29,8 +24,8 @@ export type QuickMatchDraft = {
 
 export type QuickMatchPlayerWire = { user_id: number } | { name: string; phone: string };
 
+/** StoreQuickMatchRequest body (overs, sides, players). */
 export type QuickMatchPayload = {
-  cricket_format: BallTypeId;
   overs: number;
   players_per_side: number;
   home: { name: string; players: QuickMatchPlayerWire[] };
@@ -106,7 +101,6 @@ function toWire(player: QuickMatchPlayer): QuickMatchPlayerWire {
 
 export function buildQuickMatchPayload(draft: QuickMatchDraft): QuickMatchPayload {
   return {
-    cricket_format: draft.cricketFormat,
     overs: draft.overs,
     players_per_side: draft.playersPerSide,
     home: { name: draft.homeName.trim(), players: draft.homePlayers.map(toWire) },

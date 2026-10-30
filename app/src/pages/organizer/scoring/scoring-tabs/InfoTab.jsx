@@ -24,14 +24,12 @@ export function InfoTab({ liveScore: liveScoreProp }) {
       : null;
 
   const isQuick = apiMatch?.kind === 'quick';
-  const formatLabel = apiMatch?.cricket_format_label ?? apiMatch?.cricket_format;
 
   return (
     <div className="mt-4 pb-10">
       {isQuick ? (
         <p className="text-brand mb-4 text-center text-[12px] font-bold tracking-wide uppercase">
           Quick Match
-          {formatLabel ? ` · ${formatLabel}` : ''}
           {overs != null ? ` · ${overs} ov` : ''}
         </p>
       ) : null}

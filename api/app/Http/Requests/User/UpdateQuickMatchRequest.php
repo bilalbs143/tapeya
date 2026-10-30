@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\User;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Models\TournamentMatch;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateQuickMatchRequest extends FormRequest
 {
@@ -25,7 +23,6 @@ class UpdateQuickMatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cricket_format' => ['sometimes', 'string', Rule::in(CricketFormatEnum::values())],
             'overs' => ['sometimes', 'integer', 'min:1', 'max:255'],
             'players_per_side' => ['sometimes', 'integer', 'min:2', 'max:20'],
             // Reassign a side's team before toss. Semantics (team_id vs name, both-empty

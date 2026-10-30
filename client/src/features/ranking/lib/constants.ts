@@ -1,7 +1,6 @@
 /** Product scope for public leaderboards (matches `app/` ranking constants). */
 
 export const RANKING_TOURNAMENT_TYPE = 'open_tournament' as const;
-export const RANKING_CRICKET_FORMAT = 'all' as const;
 
 export const RANKING_STAT_TYPES = ['run-scorers', 'wicket-takers', 'sixes', 'fours'] as const;
 export type RankingStatType = (typeof RANKING_STAT_TYPES)[number];

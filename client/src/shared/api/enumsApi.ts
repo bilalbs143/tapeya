@@ -35,16 +35,6 @@ export function usePlayerProfileEnums() {
   };
 }
 
-export function useCricketFormatOptions() {
-  const { data: enums, isLoading, isError, refetch } = useGetEnumsQuery();
-  return {
-    options: enumOptions(enums, 'cricket_format'),
-    isLoading,
-    isError,
-    refetch,
-  };
-}
-
 export function useDismissalOptions() {
   const { data: enums, isLoading, isError, refetch } = useGetEnumsQuery();
   return {

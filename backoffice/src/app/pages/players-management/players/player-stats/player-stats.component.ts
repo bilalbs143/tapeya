@@ -87,7 +87,7 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
             this.isLoadingStats = true;
             this.stats = null;
 
-            return this.playersService.getStats(this.player.id, { tournament_type, cricket_format: 'all' }).pipe(
+            return this.playersService.getStats(this.player.id, { tournament_type }).pipe(
               catchError(() => {
                 this.isLoadingStats = false;
                 this.messageService.error('Failed to load player stats.');

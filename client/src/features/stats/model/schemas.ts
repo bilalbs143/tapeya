@@ -52,7 +52,6 @@ const fieldingWireSchema = z.object({
 export const playerStatsWireSchema = z.object({
   player_id: z.number(),
   tournament_type: z.string(),
-  cricket_format: z.string(),
   batting: battingWireSchema,
   bowling: bowlingWireSchema,
   fielding: fieldingWireSchema,
@@ -97,7 +96,6 @@ export type FieldingStats = {
 export type PlayerStats = {
   playerId: number;
   tournamentType: string;
-  cricketFormat: string;
   batting: BattingStats;
   bowling: BowlingStats;
   fielding: FieldingStats;
@@ -107,7 +105,6 @@ export function toPlayerStats(wire: PlayerStatsWire): PlayerStats {
   return {
     playerId: wire.player_id,
     tournamentType: wire.tournament_type,
-    cricketFormat: wire.cricket_format,
     batting: {
       matches: wire.batting.matches,
       innings: wire.batting.innings,

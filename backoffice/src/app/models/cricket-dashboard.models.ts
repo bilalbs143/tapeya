@@ -23,7 +23,6 @@ export interface CricketDashboardStats {
   };
 
   tournaments_by_type: TournamentTypeCount[];
-  matches_by_format: CricketFormatCount[];
 
   top_teams_by_wins: TopTeamRow[];
 
@@ -47,12 +46,6 @@ export interface CricketDashboardStats {
 
 export interface TournamentTypeCount {
   type: string;
-  label: string;
-  count: number;
-}
-
-export interface CricketFormatCount {
-  format: string;
   label: string;
   count: number;
 }

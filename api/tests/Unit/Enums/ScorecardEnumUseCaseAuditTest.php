@@ -5,7 +5,6 @@ namespace Tests\Unit\Enums;
 use App\Enums\Broadcast\GraphicCommandDisplayModeEnum;
 use App\Enums\Broadcast\GraphicCommandKeyEnum;
 use App\Enums\Broadcast\GraphicCommandTypeEnum;
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\DeclareResultTypeEnum;
 use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\ExtraTypeEnum;
@@ -270,7 +269,6 @@ class ScorecardEnumUseCaseAuditTest extends TestCase
     public function test_match_setup_enums(): void
     {
         $this->assertSame(['bat', 'bowl'], TossChoiceEnum::values());
-        $this->assertCount(4, CricketFormatEnum::cases());
         $this->assertSame(
             [5, 10, 15, 20, 25, 30, 40, 50],
             MatchOversEnum::values(),

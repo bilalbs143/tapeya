@@ -412,13 +412,7 @@ export default function ScorecardStatusDetails() {
 
   const kindLabel =
     apiMatch.kind === 'quick'
-      ? [
-          'Quick Match',
-          apiMatch.cricket_format_label ?? apiMatch.cricket_format,
-          apiMatch.overs != null ? `${apiMatch.overs} ov` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')
+      ? ['Quick Match', apiMatch.overs != null ? `${apiMatch.overs} ov` : null].filter(Boolean).join(' · ')
       : null;
 
   const sharePath = standalone ? buildQuickMatchScorecardPath(matchId) : null;
