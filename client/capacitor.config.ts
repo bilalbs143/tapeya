@@ -17,6 +17,10 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
       backgroundColor: '#000000ff',
     },
+    // WebView stays full height; JS lifts chrome via `--keyboard-inset` (PageDock / sheets).
+    // Android also needs MainActivity `windowSoftInputMode=adjustNothing` — without it the
+    // Activity still adjustResize's, CSS viewport stays full-screen, and a white gap appears
+    // above the keyboard. Never set `resizeOnFullScreen: true` (forces native resize).
     Keyboard: {
       resize: 'none',
     },

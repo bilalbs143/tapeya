@@ -2,7 +2,15 @@ import { Keyboard, type KeyboardInfo } from '@capacitor/keyboard';
 
 import { isNativePlatform } from '@/shared/platform/platform';
 
-/** Single keyboard inset for `Keyboard.resize: 'none'` — publishes `--keyboard-inset`; disables native scroll while open. */
+/**
+ * Single keyboard inset for `Keyboard.resize: 'none'` — publishes `--keyboard-inset`;
+ * disables native scroll while open.
+ *
+ * Pairing (required on both platforms for the same contract):
+ * - Capacitor `Keyboard.resize: 'none'` (never `resizeOnFullScreen`)
+ * - Android `MainActivity` `windowSoftInputMode="adjustNothing"` so the Activity does not
+ *   shrink under the IME while JS still pads — that double-count shows as a white gap.
+ */
 
 const CSS_VAR = '--keyboard-inset';
 
