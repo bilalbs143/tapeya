@@ -2,13 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { SearchBar } from '@/shared/ui/SearchBar';
-import {
-  EmptyState,
-  ErrorState,
-  HighlightGridSkeleton,
-  HighlightRowSkeleton,
-  SKELETON,
-} from '@/shared/ui/states';
+import { EmptyState, ErrorState, HighlightGridSkeleton, HighlightRowSkeleton, SKELETON } from '@/shared/ui/states';
 
 import { highlightsSearchEmptyTitle } from '../lib/highlightsPage';
 import { formatHighlightDate, type Highlight } from '../model/schemas';
