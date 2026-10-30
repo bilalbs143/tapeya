@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, HighlightRowSkeleton, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { useGetHighlightQuery, useGetHighlightsQuery } from '../api/highlightsApi';
 import { relatedHighlights } from '../model/schemas';
@@ -20,6 +20,7 @@ export default function HighlightDetailPage() {
   const { data: catalog = [] } = useGetHighlightsQuery({ perPage: 50 });
 
   const goList = () => navigate(highlightRoutes.list());
+  const relatedCount = SKELETON.relatedRows;
 
   if (validId && !isLoading && !isError && clip) {
     return <HighlightDetailBody key={clip.id} clip={clip} related={relatedHighlights(catalog, clip.id)} />;
@@ -46,6 +47,12 @@ export default function HighlightDetailPage() {
             <Skeleton className="h-6 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-11 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5 px-4 pt-4 pb-6" aria-busy="true" aria-label="Loading Related">
+            <Skeleton className="mb-1 h-2.5 w-24" />
+            {Array.from({ length: relatedCount }, (_, i) => (
+              <HighlightRowSkeleton key={i} />
+            ))}
           </div>
         </>
       ) : (

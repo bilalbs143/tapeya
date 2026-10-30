@@ -1,6 +1,6 @@
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { CommentRowSkeleton, EmptyState, ErrorState, PostSkeleton } from '@/shared/ui/states';
+import { CommentRowSkeleton, EmptyState, ErrorState, PostSkeleton, SKELETON } from '@/shared/ui/states';
 
 import { CommentComposer } from './CommentComposer';
 import { CommentThread } from './CommentThread';
@@ -15,6 +15,8 @@ type PostDetailBodyProps = {
 
 /** Post card, comment thread, and compose footer for PostDetailPage. */
 export function PostDetailBody({ flow }: PostDetailBodyProps) {
+  const commentSkeletonCount = SKELETON.comments;
+
   const {
     valid,
     userId,
@@ -88,8 +90,13 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
         ) : null}
 
         {valid && isLoading ? (
-          <div className="px-4 pt-3.5">
+          <div className="flex flex-col pt-3.5" aria-busy="true" aria-label="Loading Post">
             <PostSkeleton className="rounded-none border-0 border-b shadow-none" />
+            <div className="flex flex-col gap-3.5 px-4 py-2">
+              {Array.from({ length: commentSkeletonCount }, (_, i) => (
+                <CommentRowSkeleton key={i} />
+              ))}
+            </div>
           </div>
         ) : null}
 
@@ -110,7 +117,7 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
           <div id="comments" className="scroll-mt-14 flex flex-col px-4 pt-1 pb-4">
             {commentsLoading ? (
               <div className="flex flex-col gap-3.5 py-2" aria-busy="true" aria-label="Loading Comments">
-                {[0, 1, 2].map((i) => (
+                {Array.from({ length: commentSkeletonCount }, (_, i) => (
                   <CommentRowSkeleton key={i} />
                 ))}
               </div>

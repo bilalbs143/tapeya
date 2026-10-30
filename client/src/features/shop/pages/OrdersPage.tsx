@@ -16,8 +16,8 @@ export default function OrdersPage() {
   return (
     <DockScreen title="My Orders" subtitle="Track Purchases and Returns" onBack={goHome}>
       {isLoading ? (
-        <div className="flex flex-col gap-2.5 px-4 pt-4">
-          {[0, 1, 2].map((i) => (
+        <div className="flex flex-col gap-2.5 px-4 pt-4" aria-busy="true" aria-label="Loading Orders">
+          {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-24 w-full rounded-card" />
           ))}
         </div>

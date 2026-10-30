@@ -1,7 +1,7 @@
 import { PageDock, ScreenBar, SectionLabel } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
-import { EmptyState, ErrorState, UserRowSkeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON, UserRowSkeleton } from '@/shared/ui/states';
 
 import { DISCOVER_SECTION_LABEL } from '../lib/discoverPage';
 import { SuggestedUserRow } from './SuggestedUserRow';
@@ -16,6 +16,7 @@ type DiscoverPageBodyProps = {
 /** Suggested players list with loading / empty gates. */
 export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
   const { users, isLoading, isError, refetch, goHome } = flow;
+  const rowCount = SKELETON.userRows;
 
   return (
     <PageDock
@@ -26,7 +27,7 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
           <Card className="p-3.5">
             <SectionLabel as="h2">{DISCOVER_SECTION_LABEL}</SectionLabel>
             <ul className="flex flex-col gap-2.5" aria-busy="true" aria-label="Loading Suggestions">
-              {[0, 1, 2, 3, 4].map((i) => (
+              {Array.from({ length: rowCount }, (_, i) => (
                 <li key={i}>
                   <UserRowSkeleton />
                 </li>

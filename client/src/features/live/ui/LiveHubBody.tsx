@@ -1,5 +1,5 @@
 import { PageDock, ScreenBar } from '@/shared/layout';
-import { EmptyState, ErrorState, StreamCardSkeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON, StreamCardSkeleton } from '@/shared/ui/states';
 
 import { StreamCard } from './StreamCard';
 import type { useLiveHub } from './useLiveHub';
@@ -13,14 +13,16 @@ type LiveHubBodyProps = {
 /** Live-only stream cards for the hub. */
 export function LiveHubBody({ flow }: LiveHubBodyProps) {
   const { streams, isLoading, isError, isFetching, refetch, goHome } = flow;
+  const streamSkeletonCount = SKELETON.streamCards;
 
   return (
     <PageDock header={<ScreenBar title="Live" subtitle="Watch Live Streams" onBack={goHome} />}>
       <div className="flex flex-col gap-3.5 px-4 pt-3.5 pb-6">
         {isLoading ? (
           <ul className="-mx-4 flex flex-col" aria-busy="true" aria-label="Loading Live Streams">
-            <StreamCardSkeleton />
-            <StreamCardSkeleton />
+            {Array.from({ length: streamSkeletonCount }, (_, i) => (
+              <StreamCardSkeleton key={i} />
+            ))}
           </ul>
         ) : isError ? (
           <ErrorState

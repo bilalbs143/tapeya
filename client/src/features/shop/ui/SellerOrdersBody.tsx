@@ -106,7 +106,7 @@ export function SellerOrdersBody({ flow }: SellerOrdersBodyProps) {
         {isLoading ? (
           <section className="flex flex-col gap-2.5" aria-busy="true" aria-label="Loading Orders">
             <Skeleton className="h-2.5 w-16" />
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <OrderCardSkeleton key={i} />
             ))}
           </section>

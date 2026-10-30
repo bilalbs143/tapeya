@@ -1,5 +1,5 @@
 import { PageDock } from '@/shared/layout';
-import { ErrorState, ProfileHeaderSkeleton, Skeleton } from '@/shared/ui/states';
+import { ErrorState, ProfileHeaderSkeleton, ReelGridSkeleton, SKELETON } from '@/shared/ui/states';
 
 import { useYouPage } from '../ui/useYouPage';
 import { YouPageBody } from '../ui/YouPageBody';
@@ -8,15 +8,12 @@ import { YouPageBody } from '../ui/YouPageBody';
 export default function YouPage() {
   const flow = useYouPage();
   const { me, isLoading, isError, refetch } = flow;
+  const reelCount = SKELETON.reelGrid;
 
   if (isLoading) {
     return (
       <PageDock header={<ProfileHeaderSkeleton />}>
-        <div className="grid grid-cols-3 gap-1.5 p-4">
-          <Skeleton className="aspect-reel-poster rounded-icon" />
-          <Skeleton className="aspect-reel-poster rounded-icon" />
-          <Skeleton className="aspect-reel-poster rounded-icon" />
-        </div>
+        <ReelGridSkeleton count={reelCount} className="gap-1.5 p-4 [&>*]:rounded-icon" />
       </PageDock>
     );
   }

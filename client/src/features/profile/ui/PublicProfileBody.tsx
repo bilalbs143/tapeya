@@ -7,7 +7,14 @@ import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/DropdownMenu';
 import { MoreIcon } from '@/shared/ui/icons';
-import { EmptyState, ErrorState, ProfileHeaderSkeleton, Skeleton } from '@/shared/ui/states';
+import {
+  EmptyState,
+  ErrorState,
+  PostSkeleton,
+  ProfileHeaderSkeleton,
+  ReelGridSkeleton,
+  SKELETON,
+} from '@/shared/ui/states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { PUBLIC_PROFILE_TABS } from '../lib/publicProfile';
@@ -23,6 +30,8 @@ type PublicProfileBodyProps = {
 
 /** Header, Reels · Posts · Stats shelves, and report sheet. */
 export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
+  const reelCount = SKELETON.reelGrid;
+  const postCount = SKELETON.posts;
   const {
     profile,
     isLoading,
@@ -115,11 +124,7 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
 
           <TabsContent value="reels" className="mt-0 p-4">
             {reelsLoading ? (
-              <div className="grid grid-cols-3 gap-1.5">
-                <Skeleton className="aspect-reel-poster rounded-icon" />
-                <Skeleton className="aspect-reel-poster rounded-icon" />
-                <Skeleton className="aspect-reel-poster rounded-icon" />
-              </div>
+              <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
             ) : reelsPage?.items.length ? (
               <ReelGrid reels={reelsPage.items} />
             ) : (
@@ -129,9 +134,10 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
 
           <TabsContent value="posts" className="mt-0">
             {postsLoading ? (
-              <div className="flex flex-col gap-2 p-4">
-                <Skeleton className="h-24 w-full rounded-card" />
-                <Skeleton className="h-24 w-full rounded-card" />
+              <div className="flex flex-col" aria-busy="true" aria-label="Loading Posts">
+                {Array.from({ length: postCount }, (_, i) => (
+                  <PostSkeleton key={i} className="rounded-none border-0 border-b shadow-none" />
+                ))}
               </div>
             ) : postsPage?.items.length ? (
               <div className="flex flex-col">

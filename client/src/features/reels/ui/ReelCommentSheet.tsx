@@ -20,8 +20,7 @@ import { cn } from '@/shared/lib/cn';
 import { selectUserId } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 import { CloseIcon } from '@/shared/ui/icons';
-import { Spinner } from '@/shared/ui/Spinner';
-import { EmptyState, ErrorState } from '@/shared/ui/states';
+import { CommentRowSkeleton, EmptyState, ErrorState } from '@/shared/ui/states';
 import { toast } from '@/shared/ui/toast';
 
 import { reelsApi } from '../api/reelsApi';
@@ -160,8 +159,10 @@ export function ReelCommentSheet({ reelId, open, onOpenChange, commentsCount = 0
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4">
         {!enabled ? null : isLoading ? (
-          <div className="flex justify-center py-10">
-            <Spinner label="Loading Comments" />
+          <div className="flex flex-col gap-3.5 py-3" aria-busy="true" aria-label="Loading Comments">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <CommentRowSkeleton key={i} />
+            ))}
           </div>
         ) : isError ? (
           <div className="py-6">

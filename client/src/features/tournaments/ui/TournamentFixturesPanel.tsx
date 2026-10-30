@@ -25,7 +25,7 @@ export function TournamentFixturesPanel({ tournamentId, groupCount }: Tournament
   if (isLoading) {
     return (
       <div className="flex flex-col gap-2">
-        {[0, 1].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-16 w-full rounded-card" />
         ))}
       </div>

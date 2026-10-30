@@ -33,14 +33,15 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
               </div>
               <Skeleton className="h-[100px] w-full rounded-card" />
               <Skeleton className="h-[100px] w-full rounded-card" />
+              <Skeleton className="h-[100px] w-full rounded-card" />
             </section>
             <section className="flex flex-col gap-2">
               <Skeleton className="h-2.5 w-20" />
               <div className="border-border-subtle overflow-hidden rounded-panel border">
-                {[0, 1, 2].map((i) => (
+                {[0, 1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className={`flex min-h-[52px] items-center gap-2.5 px-3.5${i < 2 ? ' border-border-subtle border-b' : ''}`}
+                    className={`flex min-h-[52px] items-center gap-2.5 px-3.5${i < 4 ? ' border-border-subtle border-b' : ''}`}
                   >
                     <div className="flex w-10 shrink-0 flex-col items-center gap-1">
                       <Skeleton className="h-3.5 w-5" />

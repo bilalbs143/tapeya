@@ -274,6 +274,68 @@ export function OrderCardSkeleton({ className }: SkeletonProps) {
   );
 }
 
+export function HighlightTileSkeleton({ className }: SkeletonProps) {
+  return (
+    <div className={cn('flex flex-col gap-2', className)} aria-hidden>
+      <Skeleton className="aspect-video w-full rounded-field" />
+      <Skeleton className="h-2.5 w-4/5" />
+      <Skeleton className="h-2 w-1/3" />
+    </div>
+  );
+}
+
+/** Profile / public reel shelf — 3 cols phone, optional denser tab grid via className. */
+export function ReelGridSkeleton({
+  count = 9,
+  className,
+}: SkeletonProps & {
+  count?: number | undefined;
+}) {
+  return (
+    <div className={cn('grid grid-cols-3 gap-0.5', className)} aria-busy="true" aria-label="Loading Reels">
+      {Array.from({ length: count }, (_, i) => (
+        <Skeleton key={i} className="aspect-reel-poster w-full rounded-none" />
+      ))}
+    </div>
+  );
+}
+
+/** Highlight library grid — 2 cols phone / 3 tab. */
+export function HighlightGridSkeleton({
+  count = 6,
+  className,
+}: SkeletonProps & {
+  count?: number | undefined;
+}) {
+  return (
+    <div
+      className={cn('grid grid-cols-2 gap-x-3 gap-y-4 tab:grid-cols-3', className)}
+      aria-busy="true"
+      aria-label="Loading Highlights"
+    >
+      {Array.from({ length: count }, (_, i) => (
+        <HighlightTileSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+/** Related highlight / search result row (matches HighlightThumb size). */
+export function HighlightRowSkeleton({ className }: SkeletonProps) {
+  return (
+    <div
+      className={cn('border-border-subtle bg-surface flex items-center gap-3 rounded-panel border p-2.5', className)}
+      aria-hidden
+    >
+      <Skeleton className="h-[46px] w-[78px] shrink-0 rounded-icon" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Skeleton className="h-2.5 w-4/5" />
+        <Skeleton className="h-2 w-12" />
+      </div>
+    </div>
+  );
+}
+
 type LoadingStateProps = {
   label?: string | undefined;
   description?: string | undefined;

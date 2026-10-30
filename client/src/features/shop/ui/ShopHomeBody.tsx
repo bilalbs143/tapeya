@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { HScroll } from '@/shared/ui/HScroll';
 import { SearchBar } from '@/shared/ui/SearchBar';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
 import { BrandRail } from './BrandRail';
@@ -21,6 +21,9 @@ type ShopHomeBodyProps = {
 
 /** ScreenBar + search + brands pinned; product rails/grid scroll. */
 export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
+  const brandCount = SKELETON.brandRail;
+  const productCount = SKELETON.productGrid;
+  const railCount = SKELETON.productRail;
   const {
     query,
     setQuery,
@@ -66,7 +69,7 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
             <div className="pt-3 pb-2.5">
               {brandsLoading ? (
                 <HScroll className="gap-2.5" bleed={false}>
-                  {[0, 1, 2, 3, 4].map((i) => (
+                  {Array.from({ length: brandCount }, (_, i) => (
                     <Skeleton key={i} className="h-14 w-14 shrink-0 rounded-full" />
                   ))}
                 </HScroll>
@@ -93,8 +96,8 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
           <>
             <ShopSectionHeader title={searchHeading} />
             {searchLoading ? (
-              <div className="grid grid-cols-2 gap-3">
-                {[0, 1, 2, 3].map((i) => (
+              <div className="grid grid-cols-2 gap-3 tab:grid-cols-3" aria-busy="true" aria-label="Loading Products">
+                {Array.from({ length: productCount }, (_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
               </div>
@@ -109,10 +112,10 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
             )}
           </>
         ) : railsLoading ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading Shop">
             <Skeleton className="h-4 w-32" />
             <HScroll className="gap-3">
-              {[0, 1, 2].map((i) => (
+              {Array.from({ length: railCount }, (_, i) => (
                 <Skeleton key={i} className="h-48 w-36 shrink-0 rounded-card" />
               ))}
             </HScroll>

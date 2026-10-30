@@ -2,7 +2,7 @@ import { exploreRoutes, SuggestedPeopleBand } from '@/features/explore';
 
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, PostSkeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, PostSkeleton, SKELETON } from '@/shared/ui/states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { FEED_COMPOSER_TABS, FEED_EXPLORE_INSERT, FEED_TABS } from '../lib/feedPage';
@@ -83,6 +83,7 @@ function TabEmpty({
 
 /** Home chrome, tab strip, and post column for FeedPage. */
 export function FeedPageBody({ flow }: FeedPageBodyProps) {
+  const postSkeletonCount = SKELETON.posts;
   const {
     navigate,
     tab,
@@ -191,8 +192,9 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
 
           {showInitialLoading ? (
             <div className="flex flex-col" aria-busy="true" aria-label="Loading Feed">
-              <PostSkeleton className="rounded-none border-0 border-b shadow-none" />
-              <PostSkeleton className="rounded-none border-0 border-b shadow-none" />
+              {Array.from({ length: postSkeletonCount }, (_, i) => (
+                <PostSkeleton key={i} className="rounded-none border-0 border-b shadow-none" />
+              ))}
             </div>
           ) : null}
 

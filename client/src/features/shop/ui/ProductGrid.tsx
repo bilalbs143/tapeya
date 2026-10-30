@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { HScroll } from '@/shared/ui/HScroll';
-import { EmptyState, ErrorState } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
 import type { ShopProduct } from '../model/schemas';
@@ -26,10 +26,16 @@ export function ProductGrid({
   className,
   showFeatured = true,
 }: ProductGridProps) {
+  const productCount = SKELETON.productGrid;
+
   if (status === 'loading') {
     return (
-      <div className={cn('grid grid-cols-2 gap-3 tab:grid-cols-3', className)}>
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div
+        className={cn('grid grid-cols-2 gap-3 tab:grid-cols-3', className)}
+        aria-busy="true"
+        aria-label="Loading Products"
+      >
+        {Array.from({ length: productCount }).map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
       </div>

@@ -88,9 +88,9 @@ export function NotificationsBody({ flow }: NotificationsBodyProps) {
   return (
     <div className="flex flex-1 flex-col pb-6">
       {listQuery.isLoading && items.length === 0 ? (
-        <div className="flex flex-col gap-3 px-4 pt-4">
-          {[1, 0.75, 0.5].map((opacity, i) => (
-            <div key={i} style={{ opacity }} className="flex gap-3 py-2">
+        <div className="flex flex-col gap-3 px-4 pt-4" aria-busy="true" aria-label="Loading Notifications">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="flex gap-3 py-2">
               <Skeleton className="h-9 w-9 rounded-full" />
               <div className="flex flex-1 flex-col gap-1.5">
                 <Skeleton className="h-2 w-16" />

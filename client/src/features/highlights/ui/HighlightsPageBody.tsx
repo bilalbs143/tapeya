@@ -2,7 +2,13 @@ import { Link } from 'react-router-dom';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { SearchBar } from '@/shared/ui/SearchBar';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import {
+  EmptyState,
+  ErrorState,
+  HighlightGridSkeleton,
+  HighlightRowSkeleton,
+  SKELETON,
+} from '@/shared/ui/states';
 
 import { highlightsSearchEmptyTitle } from '../lib/highlightsPage';
 import { formatHighlightDate, type Highlight } from '../model/schemas';
@@ -18,7 +24,7 @@ type HighlightsPageBodyProps = {
 
 function HighlightGrid({ clips }: { clips: Highlight[] }) {
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-4 tab:grid-cols-3">
       {clips.map((c) => (
         <Link key={c.id} to={highlightRoutes.detail(c.id)} className="group flex flex-col gap-2">
           <HighlightThumb src={c.thumbnailUrl} className="aspect-video w-full rounded-field" />
@@ -52,6 +58,8 @@ function SearchRow({ clip }: { clip: Highlight }) {
 /** Search + grid or compact search results. */
 export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
   const { q, setQ, debounced, results, clips, isLoading, isError, refetch, goBack } = flow;
+  const gridCount = SKELETON.highlightGrid;
+  const searchRowCount = SKELETON.relatedRows;
 
   return (
     <PageDock
@@ -74,15 +82,17 @@ export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
     >
       <div className="flex flex-col gap-4 px-4 pb-6">
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-4" aria-busy="true" aria-label="Loading Highlights">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <Skeleton className="aspect-video w-full rounded-field" />
-                <Skeleton className="h-2.5 w-4/5" />
-                <Skeleton className="h-2 w-1/3" />
-              </div>
-            ))}
-          </div>
+          debounced.trim() ? (
+            <ul className="flex flex-col gap-1.5" aria-busy="true" aria-label="Loading Highlights">
+              {Array.from({ length: searchRowCount }, (_, i) => (
+                <li key={i}>
+                  <HighlightRowSkeleton />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <HighlightGridSkeleton count={gridCount} />
+          )
         ) : isError ? (
           <ErrorState
             title="Could Not Load Highlights"

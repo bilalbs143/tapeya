@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { SearchBar } from '@/shared/ui/SearchBar';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { entertainmentEpisodesLabel, entertainmentSearchEmptyTitle } from '../lib/entertainmentPage';
 import { entertainmentPaths } from '../lib/entertainmentPaths';
@@ -55,6 +55,7 @@ function SearchRow({ serial }: { serial: DramaSerial }) {
 /** Search + poster grid or compact search results. */
 export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
   const { q, setQ, debounced, data, results, isLoading, isError, refetch, goBack } = flow;
+  const showCount = SKELETON.showGrid;
 
   return (
     <PageDock
@@ -77,8 +78,8 @@ export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
     >
       <div className="flex flex-col gap-4 px-4 pb-8">
         {isLoading ? (
-          <ul className="grid grid-cols-3 gap-2">
-            {Array.from({ length: 9 }, (_, i) => (
+          <ul className="grid grid-cols-3 gap-2" aria-busy="true" aria-label="Loading Entertainment">
+            {Array.from({ length: showCount }, (_, i) => (
               <li key={i}>
                 <Skeleton className="aspect-show-poster w-full rounded-field" />
               </li>

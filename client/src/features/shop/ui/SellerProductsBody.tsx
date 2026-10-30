@@ -71,7 +71,7 @@ export function SellerProductsBody({ flow }: SellerProductsBodyProps) {
             aria-busy="true"
             aria-label="Loading Products"
           >
-            {Array.from({ length: 4 }, (_, i) => (
+            {Array.from({ length: 6 }, (_, i) => (
               <li key={i}>
                 <ListRowSkeleton />
               </li>

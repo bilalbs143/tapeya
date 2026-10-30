@@ -72,7 +72,7 @@ export function RankingSection({
 
       {loading ? (
         <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading Rankings">
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-page flex items-center gap-3 rounded-panel p-3">
               <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
