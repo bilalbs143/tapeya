@@ -2,7 +2,16 @@ import { Keyboard, type KeyboardInfo } from '@capacitor/keyboard';
 
 import { isNativePlatform } from '@/shared/platform/platform';
 
-/** Single keyboard inset for `Keyboard.resize: 'none'` — publishes `--keyboard-inset`; disables native scroll while open. */
+/**
+ * Soft-keyboard height → `--keyboard-inset` for PageDock / sheets / docks.
+ *
+ * Contract (iOS + Android must match):
+ * - WebView stays full height; JS owns the lift.
+ * - Capacitor `Keyboard.resize: 'none'` (iOS). Never `resizeOnFullScreen`.
+ * - Android `MainActivity` `windowSoftInputMode="adjustNothing"`.
+ * - Android `SystemBars.insetsHandling: 'disable'` so Cap does not also pad the
+ *   decor view by IME height (that double-count is the white gap above the keyboard).
+ */
 
 const CSS_VAR = '--keyboard-inset';
 
@@ -34,6 +43,7 @@ async function setNativeScrollDisabled(disabled: boolean) {
 
 function onKeyboardShow(info: KeyboardInfo) {
   void setNativeScrollDisabled(true);
+  // Android Keyboard plugin reports dp (= CSS px in WebView). iOS reports points.
   publish(info.keyboardHeight);
 }
 
@@ -85,6 +95,7 @@ export function startKeyboardInsetTracking(): () => void {
 
   if (isNativePlatform()) {
     let cancelled = false;
+    // iOS fires Will*; Android is Did*-reliable. Subscribe to both.
     void Keyboard.addListener('keyboardWillShow', onKeyboardShow).then((h) => {
       if (cancelled) void h.remove();
       else nativeHandles.push(h);

@@ -327,7 +327,16 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 
 ## 5. StickyActionBar contract
 
-Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom`), not the bar.
+Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom` from `--keyboard-inset`), not the bar.
+
+**Native keyboard contract (iOS + Android):** WebView stays full height; JS pads from `@capacitor/keyboard` height via `--keyboard-inset`.
+
+| Platform | Required native settings |
+|---|---|
+| iOS | `Keyboard.resize: 'none'` |
+| Android | `MainActivity` `windowSoftInputMode="adjustNothing"` **and** `SystemBars.insetsHandling: 'disable'` |
+
+Capacitor 8’s SystemBars otherwise pads the decor view by IME height (often a white band) while JS also pads → double lift / missing compose. Do **not** set `Keyboard.resizeOnFullScreen`. Safe-area uses `env(safe-area-inset-*)` (`viewport-fit=cover`).
 
 | Do | Don’t |
 |---|---|
