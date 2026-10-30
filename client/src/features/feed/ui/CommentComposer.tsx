@@ -3,7 +3,12 @@ import { type RefObject } from 'react';
 import { UserAvatar, userProfilePath } from '@/entities/user';
 
 import { cn } from '@/shared/lib/cn';
-import { COMMENT_COMPOSE_ACTION, COMMENT_COMPOSE_DOCK, COMMENT_COMPOSE_PILL } from '@/shared/ui/commentComposeChrome';
+import {
+  COMMENT_COMPOSE_ACTION,
+  COMMENT_COMPOSE_DOCK,
+  COMMENT_COMPOSE_DOCK_WATCH,
+  COMMENT_COMPOSE_PILL,
+} from '@/shared/ui/commentComposeChrome';
 import { SendIcon } from '@/shared/ui/icons';
 
 import { type Comment, COMMENT_MAX } from '../model/commentSchemas';
@@ -25,6 +30,8 @@ type CommentComposerProps = {
   sending?: boolean | undefined;
   inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null> | undefined;
   className?: string | undefined;
+  /** Pad home indicator when BottomNav is hidden (watch / episode). */
+  edge?: boolean | undefined;
 };
 
 /** Comment compose dock — parent handles keyboard inset. */
@@ -38,6 +45,7 @@ export function CommentComposer({
   sending = false,
   inputRef,
   className,
+  edge = false,
 }: CommentComposerProps) {
   const canSend = Boolean(draft.trim()) && !sending;
   const profileHref = user.id != null ? userProfilePath({ id: user.id, nickname: user.nickname }) : undefined;
@@ -47,7 +55,7 @@ export function CommentComposer({
   }
 
   return (
-    <div className={cn(COMMENT_COMPOSE_DOCK, className)}>
+    <div className={cn(edge ? COMMENT_COMPOSE_DOCK_WATCH : COMMENT_COMPOSE_DOCK, className)}>
       {replyTo ? (
         <div className="border-border-subtle bg-page overflow-hidden rounded-panel border">
           <div className="border-border-subtle bg-brand/12 flex items-center gap-2 border-b px-3 py-2">

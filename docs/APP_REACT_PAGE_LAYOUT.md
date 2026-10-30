@@ -39,9 +39,9 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 
 - `/create` and children
 - Operator scoring: `/matches/:id/(score|toss|settings|graphics)`
-- Live immersive: `/live/broadcast/:id`, `/live/go-live/:id`
+- Media players: `/live/broadcast/:id`, `/live/go-live/:id`, `/highlights/:id`, `/entertainment/:serialId/e/:episodeId`
 
-Hub `/live` and form `/live/go-live` **keep** BottomNav.
+Hub `/live`, form `/live/go-live`, `/highlights` list, and entertainment show pages **keep** BottomNav.
 
 ### Page scroll contracts (normal shell)
 

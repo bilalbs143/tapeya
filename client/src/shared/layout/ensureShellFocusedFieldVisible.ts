@@ -23,8 +23,7 @@ function nearestScrollport(from: Element): HTMLElement | null {
 
 /**
  * Scroll the nearest page/shell scroller so the focused field stays in view.
- * PageDock already pads for keyboard — skip footer / fill-stage composers so the shell
- * does not pan the player/header away (episode watch, post detail, live chat).
+ * Skip PageDock footer / fill-stage fields — `paddingBottom` already keeps them visible.
  * No-op inside dialogs/sheets.
  */
 export function ensureShellFocusedFieldVisible(): void {
@@ -33,7 +32,6 @@ export function ensureShellFocusedFieldVisible(): void {
   const active = document.activeElement;
   if (!isEditable(active)) return;
   if (active.closest('[role="dialog"]')) return;
-  // Dock chrome / fill-stage fields: PageDock `paddingBottom` owns visibility.
   if (active.closest('[data-page-dock]') && !active.closest(`[${PAGE_SCROLL_ATTR}]`)) return;
 
   const scrollport = nearestScrollport(active);

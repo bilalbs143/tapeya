@@ -8,6 +8,7 @@ import {
   APP_PATHS,
   isFixedHeightShellPath,
   isLiveImmersivePath,
+  isMediaPlayerBottomNavHiddenPath,
   isOperatorScoringPath,
   isReelsImmersivePath,
 } from '@/shared/config/paths';
@@ -63,12 +64,12 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     : null;
   const topUser = sideUser ? { name: sideUser.name, avatarUrl: sideUser.avatarUrl } : null;
 
-  // Create post/reel + Watch + Go Live on-air — ScreenBar owns back; no BottomNav.
+  // Create / scoring / media players (watch, highlight, episode) — ScreenBar owns back; no BottomNav.
   const hideBottomNav =
     pathname === APP_PATHS.create ||
     pathname.startsWith(`${APP_PATHS.create}/`) ||
     isOperatorScoringPath(pathname) ||
-    isLiveImmersivePath(pathname);
+    isMediaPlayerBottomNavHiddenPath(pathname);
   const keyboardOpen = keyboardInset > 0;
   const showBottomNav = isAuthenticated && !hideBottomNav && !keyboardOpen;
   const fixedFrame = isFixedHeightShellPath(pathname) || pageDockActive;
