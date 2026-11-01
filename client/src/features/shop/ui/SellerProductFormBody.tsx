@@ -311,17 +311,17 @@ export function SellerProductFormBody() {
             {existingImages.map((src) => (
               <span
                 key={src}
-                className="border-border-subtle bg-surface-raised h-16 w-16 overflow-hidden rounded-panel border"
+                className="border-border-subtle bg-surface-raised aspect-shop-product w-16 overflow-hidden rounded-panel border"
               >
-                <img src={src} alt="" className="h-full w-full object-cover" />
+                <img src={src} alt="" className="h-full w-full object-contain" />
               </span>
             ))}
             {previews.map((src) => (
               <span
                 key={src}
-                className="border-border-subtle bg-surface-raised h-16 w-16 overflow-hidden rounded-panel border"
+                className="border-border-subtle bg-surface-raised aspect-shop-product w-16 overflow-hidden rounded-panel border"
               >
-                <img src={src} alt="" className="h-full w-full object-cover" />
+                <img src={src} alt="" className="h-full w-full object-contain" />
               </span>
             ))}
           </div>

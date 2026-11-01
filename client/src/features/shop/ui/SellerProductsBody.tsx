@@ -107,9 +107,9 @@ export function SellerProductsBody({ flow }: SellerProductsBodyProps) {
                   to={shopPaths.sellerProductEdit(p.id)}
                   className="hover:bg-surface-raised flex items-center gap-3 p-3.5"
                 >
-                  <span className="bg-surface-raised border-border-subtle flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-panel border">
+                  <span className="bg-surface-raised border-border-subtle flex aspect-shop-product w-12 shrink-0 items-center justify-center overflow-hidden rounded-panel border">
                     {p.imageUrls[0] ? (
-                      <img src={p.imageUrls[0]} alt="" className="h-full w-full object-cover" />
+                      <img src={p.imageUrls[0]} alt="" className="h-full w-full object-contain" />
                     ) : (
                       <span className="text-dim font-mono text-4xs font-bold">
                         {sellerProductThumbInitials(p.name)}

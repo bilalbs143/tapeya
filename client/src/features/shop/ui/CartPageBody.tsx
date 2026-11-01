@@ -57,8 +57,11 @@ export function CartPageBody({ flow }: CartPageBodyProps) {
                 });
                 return (
                   <li key={l.id} className="flex gap-3 p-3.5">
-                    <Link to={detailTo} className="bg-surface-raised h-16 w-16 shrink-0 overflow-hidden rounded-panel">
-                      {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : null}
+                    <Link
+                      to={detailTo}
+                      className="bg-surface-raised aspect-shop-product w-14 shrink-0 overflow-hidden rounded-panel"
+                    >
+                      {thumb ? <img src={thumb} alt="" className="h-full w-full object-contain" /> : null}
                     </Link>
 
                     <div className="flex min-w-0 flex-1 flex-col gap-1.5">

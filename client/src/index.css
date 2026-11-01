@@ -229,7 +229,7 @@
   /* --- App-next only: media aspect ratios (mirrors MEDIA_ASPECT) --- */
   --aspect-highlight: 16 / 9;
   --aspect-tournament-cover: 16 / 9;
-  --aspect-shop-product: 1 / 1;
+  --aspect-shop-product: 3 / 4;
   --aspect-reel-poster: 9 / 16;
   --aspect-show-poster: 2 / 3;
   --aspect-post-image: 4 / 3;

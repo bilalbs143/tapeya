@@ -1052,7 +1052,7 @@ Define once in `aspectRatios.ts`. Tailwind theme maps tokens to numeric ratios:
 export const MEDIA_ASPECT = {
   highlight: 16 / 9,       // video thumbnails — matches detail player
   tournamentCover: 16 / 9,
-  shopProduct: 1,
+  shopProduct: 3 / 4,
   reelPoster: 9 / 16,
   postImage: 4 / 3,        // feed photo posts — max landscape; portrait uses contain policy below
   heroBanner: 21 / 9,      // marketing slider — wide only
@@ -1067,7 +1067,7 @@ Register in Tailwind v4 `@theme` so utilities stay consistent:
 ```css
 @theme {
   --aspect-highlight: 16 / 9;
-  --aspect-shop-product: 1 / 1;
+  --aspect-shop-product: 3 / 4;
   --aspect-reel-poster: 9 / 16;
   /* … */
 }
@@ -1150,7 +1150,7 @@ For each `MediaKind`, API stores or generates thumbnails at the canonical ratio:
 | Kind | Upload rule | Stored fields |
 |------|-------------|---------------|
 | `highlight` | Center-crop thumbnail to **16:9** from video frame | `thumbnail_url` (+ optional `thumbnail_url@400w`) |
-| `shopProduct` | Square **1:1** crop | `image_url` |
+| `shopProduct` | Portrait **3:4** frame | `image_url` |
 | `reelPoster` | **9:16** frame from video | `thumbnail_url` |
 | `tournamentCover` | **16:9** | `cover_image` |
 
@@ -1173,7 +1173,7 @@ Use in `srcSet` for responsive images; **`MediaFrame` aspect token stays constan
 
 Default **`cover`** when backend delivers canonical ratio (preferred — no letterboxing).
 
-Use **`contain`** only for user-uploaded post images with unknown aspect — still wrap in `MediaFrame kind="postImage"` so max bounds are consistent; optional blurred `background-image` fill for empty bands.
+Use **`contain`** for user-uploaded post images with unknown aspect — still wrap in `MediaFrame kind="postImage"` so max bounds are consistent; optional blurred `background-image` fill for empty bands. Also use **`contain`** for `shopProduct` while seller uploads are mixed aspect (bats/apparel); prefer CDN **3:4** crops later so `cover` can return without letterboxing.
 
 #### Full content-type registry (rewrite)
 
@@ -1181,7 +1181,7 @@ Use **`contain`** only for user-uploaded post images with unknown aspect — sti
 |-----------|-------|---------|
 | `highlight` | 16:9 | Home slider, feed widget, list, detail, more row, search |
 | `tournamentCover` | 16:9 | Upcoming list, tournament detail header |
-| `shopProduct` | 1:1 | Shop grid, cart line, product detail gallery |
+| `shopProduct` | 3:4 | Shop grid, cart line, product detail gallery |
 | `reelPoster` | 9:16 | Reels player poster, profile reel grid |
 | `postImage` | 4:3 | Feed photo posts (contain if portrait) |
 | `heroBanner` | 21:9 | Home hero slider only |

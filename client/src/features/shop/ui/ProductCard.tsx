@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/cn';
+import { MediaFrame } from '@/shared/ui/media';
 import { Skeleton } from '@/shared/ui/states';
 
 import { shopPaths } from '../lib/shopPaths';
@@ -25,18 +26,9 @@ export function ProductCard({ product, className, showFeatured = true }: Product
         className
       )}
     >
-      <span className="bg-surface-raised relative block aspect-square overflow-hidden">
-        {thumb ? (
-          <img
-            src={thumb}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-        ) : null}
-
+      <MediaFrame kind="shopProduct" src={thumb} alt="" fit="contain" rounded="none" className="bg-surface-raised">
         {showFeaturedBadge || off ? (
-          <span className="absolute top-2 left-2 flex flex-col items-start gap-1">
+          <span className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1">
             {showFeaturedBadge ? (
               <span className="bg-brand font-mono rounded-chip px-1.5 py-1 text-4xs font-bold tracking-[.1em] text-white uppercase">
                 Featured
@@ -51,11 +43,11 @@ export function ProductCard({ product, className, showFeatured = true }: Product
         ) : null}
 
         {product.outOfStock ? (
-          <span className="bg-veil-scrim absolute inset-0 grid place-items-center">
+          <span className="bg-veil-scrim absolute inset-0 z-10 grid place-items-center">
             <span className="font-mono text-3xs font-bold tracking-eyebrow text-white uppercase">Out of Stock</span>
           </span>
         ) : null}
-      </span>
+      </MediaFrame>
 
       <span className="flex flex-1 flex-col gap-1.5 p-3">
         <span className="line-clamp-2 text-body-sm leading-snug font-bold text-ink">{product.name}</span>
@@ -78,7 +70,7 @@ export function ProductCard({ product, className, showFeatured = true }: Product
 export function ProductCardSkeleton({ className }: { className?: string | undefined }) {
   return (
     <div className={cn('border-border-subtle bg-surface overflow-hidden rounded-card border', className)} aria-hidden>
-      <Skeleton className="aspect-square w-full rounded-none" />
+      <Skeleton className="aspect-shop-product w-full rounded-none" />
       <div className="flex flex-col gap-2 p-3">
         <Skeleton className="h-3 w-[85%]" />
         <Skeleton className="h-2.5 w-[55%]" />
