@@ -132,21 +132,31 @@ export const FEED_TAB_PATH: Record<FeedTab, string> = {
   saved: '/feed/saved',
 };
 
-export function formatRelativeAge(iso: string | null | undefined): string {
+/** Human relative age for feed/comment chrome — “2 hours ago”, not compact “2h”. */
+export function formatRelativeAge(iso: string | null | undefined, now = Date.now()): string {
   if (!iso) return '';
   const then = Date.parse(iso);
   if (Number.isNaN(then)) return '';
-  const seconds = Math.max(0, Math.floor((Date.now() - then) / 1000));
-  if (seconds < 60) return `${seconds}s`;
+  const seconds = Math.max(0, Math.floor((now - then) / 1000));
+  if (seconds < 45) return 'Just now';
+
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${weeks}w`;
-  return new Date(then).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (weeks < 5) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+
+  const when = new Date(then);
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+  if (when.getFullYear() !== new Date(now).getFullYear()) opts.year = 'numeric';
+  return when.toLocaleDateString(undefined, opts);
 }
 
 export function formatDurationMs(ms: number | null | undefined): string | null {

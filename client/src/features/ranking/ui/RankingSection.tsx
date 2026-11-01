@@ -8,6 +8,8 @@ import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 
 import type { RankingCard } from '../model/schemas';
 
+const RANKING_PLAYER_SHELL = 'border-border-subtle bg-surface rounded-panel border p-3';
+
 type RankingPlayerCardProps = {
   player: RankingCard;
   rank: number;
@@ -18,10 +20,7 @@ export function RankingPlayerCard({ player, rank, className }: RankingPlayerCard
   return (
     <Link
       to={profileRoutes.user(player.playerId)}
-      className={cn(
-        'bg-page flex items-center gap-3 rounded-panel p-3 transition-opacity active:opacity-90',
-        className
-      )}
+      className={cn(RANKING_PLAYER_SHELL, 'flex items-center gap-3 transition-opacity active:opacity-90', className)}
     >
       <Avatar name={player.name} size="lg" className="shrink-0" />
       <div className="min-w-0 flex-1">
@@ -73,7 +72,7 @@ export function RankingSection({
       {loading ? (
         <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading Rankings">
           {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-page flex items-center gap-3 rounded-panel p-3">
+            <div key={i} className={cn(RANKING_PLAYER_SHELL, 'flex items-center gap-3')}>
               <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <Skeleton className="h-3 w-32" />

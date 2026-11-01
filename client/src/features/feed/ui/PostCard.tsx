@@ -102,9 +102,9 @@ export function PostCard({
           to={profileHref}
           avatarSize="md"
           meta={
-            <p className="text-dim font-mono text-4xs font-medium tracking-[.04em] uppercase">
+            <p className="text-dim text-4xs font-medium">
               {age}
-              {isOwn ? ' · YOU' : null}
+              {isOwn ? ' · You' : null}
             </p>
           }
         />
@@ -202,11 +202,7 @@ export function PostCard({
               })}
               avatarSize="xs"
               className="gap-2"
-              meta={
-                <span className="text-dim font-mono block text-4xs font-medium tracking-[.04em] uppercase">
-                  {post.original.age}
-                </span>
-              }
+              meta={<span className="text-dim block text-4xs font-medium">{post.original.age}</span>}
             />
           </div>
           {post.original.body ? (

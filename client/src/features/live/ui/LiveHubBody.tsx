@@ -16,7 +16,7 @@ export function LiveHubBody({ flow }: LiveHubBodyProps) {
   const streamSkeletonCount = SKELETON.streamCards;
 
   return (
-    <PageDock header={<ScreenBar title="Live" subtitle="Watch Live Streams" onBack={goHome} className="border-b-0" />}>
+    <PageDock header={<ScreenBar title="Live" subtitle="Watch Live Streams" onBack={goHome} />}>
       {isLoading ? (
         <ul className="flex flex-col pb-6" aria-busy="true" aria-label="Loading Live Streams">
           {Array.from({ length: streamSkeletonCount }, (_, i) => (

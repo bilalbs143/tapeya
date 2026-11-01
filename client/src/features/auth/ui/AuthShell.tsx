@@ -64,8 +64,8 @@ export function AuthShell({ children, footer, action, back, title, description, 
             className
           )}
         >
-          <div className="flex justify-center pt-8 pb-9 sm:pt-0 sm:pb-8">
-            <AuthLogo className="h-12 sm:h-[52px]" />
+          <div className="flex justify-center pt-6 pb-8 sm:pt-0 sm:pb-9">
+            <AuthLogo className="h-20 w-auto max-w-[min(100%,300px)] sm:h-[92px]" />
           </div>
 
           {title || description ? (

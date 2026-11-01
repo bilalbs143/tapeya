@@ -73,8 +73,6 @@ function PublicTournamentLoaded({ tournament }: { tournament: Tournament }) {
             subtitle={place}
             onBack={() => navigate(-1)}
             slideTitle
-            // Flush cover sits directly under the bar — no hairline gap.
-            className="border-b-0"
             action={
               <IconButton
                 label="Share"
