@@ -133,6 +133,6 @@ export function filterByTitle(items: Highlight[], query: string): Highlight[] {
   return items.filter((h) => h.title.toLowerCase().includes(q));
 }
 
-export function relatedHighlights(items: Highlight[], currentId: number, limit = 5): Highlight[] {
+export function relatedHighlights(items: Highlight[], currentId: number, limit = 10): Highlight[] {
   return items.filter((h) => h.id !== currentId).slice(0, limit);
 }

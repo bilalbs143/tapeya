@@ -13,8 +13,11 @@ import { CreateTournamentWizard } from '../ui/CreateTournamentWizard';
 export default function CreateTournamentPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
   const stepMeta = CREATE_TOURNAMENT_STEPS[step] ?? CREATE_TOURNAMENT_STEPS[0];
-  const subtitle = `Step ${step + 1} of ${CREATE_TOURNAMENT_STEPS.length} · ${stepMeta.label}`;
+  const subtitle = done
+    ? 'Tournament created'
+    : `Step ${step + 1} of ${CREATE_TOURNAMENT_STEPS.length} · ${stepMeta.label}`;
 
   return (
     <CreateTournamentWizard
@@ -24,19 +27,22 @@ export default function CreateTournamentPage() {
           subtitle={subtitle}
           onBack={() => navigate(tournamentRoutes.list())}
           below={
-            <div className="flex gap-1.5 px-4 pt-1 pb-3">
-              {CREATE_TOURNAMENT_STEPS.map((s, i) => (
-                <span
-                  key={s.id}
-                  className={cn('h-1 flex-1 rounded-full', i <= step ? 'bg-brand' : 'bg-surface-raised')}
-                />
-              ))}
-            </div>
+            done ? undefined : (
+              <div className="flex gap-1.5 px-4 pt-1 pb-3">
+                {CREATE_TOURNAMENT_STEPS.map((s, i) => (
+                  <span
+                    key={s.id}
+                    className={cn('h-1 flex-1 rounded-full', i <= step ? 'bg-brand' : 'bg-surface-raised')}
+                  />
+                ))}
+              </div>
+            )
           }
         />
       }
       step={step}
       onStepChange={setStep}
+      onSentChange={setDone}
       onCreated={(id) => navigate(tournamentRoutes.detail(id), { replace: true })}
     />
   );

@@ -498,7 +498,8 @@ body {
   background-color: var(--c-page);
   color: var(--c-body);
   font-family: var(--font-sans);
-  height: 100dvh;
+  /* AppShell is `fixed inset-0` — document just needs a non-scrolling canvas. */
+  height: 100%;
   overflow: hidden;
 }
 
@@ -508,7 +509,7 @@ body {
  */
 
 #root {
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
 }
 

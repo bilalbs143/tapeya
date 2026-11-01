@@ -14,6 +14,7 @@ import {
 } from '@/shared/config/paths';
 import {
   BottomNav,
+  KeyboardInsetPad,
   MainDrawer,
   ShellProvider,
   ShellRailProvider,
@@ -22,6 +23,7 @@ import {
   SideNav,
   SideRail,
   usePageDockActive,
+  useShellKeyboardPadEnabled,
   useShellRailValue,
 } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
@@ -35,8 +37,11 @@ type AppShellProps = {
   className?: string | undefined;
 };
 
-/** Shell chrome by breakpoint: phone TopBar+BottomNav; tab+ SideNav; desk+ SideRail. */
-
+/**
+ * App chrome. Root is `fixed inset-0` so it tracks the WebView layout box
+ * (`Keyboard.resize: none` — that box does not move with the soft keyboard).
+ * Keyboard lift + opaque L/R fill: last-child `KeyboardInsetPad` (shared with dialogs).
+ */
 export function AppShell({ bare = false, className }: AppShellProps) {
   return (
     <ShellProvider>
@@ -54,6 +59,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const keyboardInset = useKeyboardInset();
   const pageDockActive = usePageDockActive();
+  const shellKeyboardPad = useShellKeyboardPadEnabled();
 
   const sideUser = me
     ? {
@@ -64,7 +70,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     : null;
   const topUser = sideUser ? { name: sideUser.name, avatarUrl: sideUser.avatarUrl } : null;
 
-  // Create / scoring / media players (watch, highlight, episode) — ScreenBar owns back; no BottomNav.
+  // Create / scoring / media + post detail — ScreenBar owns back; no BottomNav.
   const hideBottomNav =
     pathname === APP_PATHS.create ||
     pathname.startsWith(`${APP_PATHS.create}/`) ||
@@ -83,7 +89,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     return (
       <div
         className={cn(
-          'relative flex h-dvh flex-col overflow-hidden',
+          'fixed inset-0 flex flex-col overflow-hidden',
           immersiveTransparent ? 'bg-transparent' : undefined,
           className
         )}
@@ -105,12 +111,13 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           <Outlet />
           {showBottomNav ? <BottomNav overlay /> : null}
         </div>
+        <KeyboardInsetPad enabled={shellKeyboardPad && !immersiveTransparent} />
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-page flex h-dvh flex-col overflow-hidden', className)}>
+    <div className={cn('bg-page fixed inset-0 flex flex-col overflow-hidden', className)}>
       {isAuthenticated ? (
         <>
           <ShellTopNav user={topUser} />
@@ -155,6 +162,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           </div>
         </div>
       </div>
+      <KeyboardInsetPad enabled={shellKeyboardPad} />
     </div>
   );
 }

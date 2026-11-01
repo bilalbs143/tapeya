@@ -3,8 +3,13 @@ import { Keyboard, type KeyboardInfo } from '@capacitor/keyboard';
 import { isNativePlatform } from '@/shared/platform/platform';
 
 /**
- * Soft-keyboard height → `--keyboard-inset` (PageDock / sheets).
- * Pair with Keyboard.resize none, Android adjustNothing, SystemBars insetsHandling disable.
+ * Soft-keyboard height → `--keyboard-inset`.
+ *
+ * Capacitor contract:
+ * - `Keyboard.resize: 'none'` — WebView bounds stay fixed; AppShell is `fixed inset-0`.
+ * - Consumers lift via shared `KeyboardInsetPad` (AppShell, BaseDialog) — height = this var.
+ * - `Keyboard.setScroll({ isDisabled: true })` — WKWebView must not auto-scroll focused fields.
+ * - Android: `adjustNothing` + SystemBars `insetsHandling: disable`.
  */
 
 const CSS_VAR = '--keyboard-inset';
@@ -36,14 +41,12 @@ async function setNativeScrollDisabled(disabled: boolean) {
 }
 
 function onKeyboardShow(info: KeyboardInfo) {
-  void setNativeScrollDisabled(true);
-  // Android Keyboard plugin reports dp (= CSS px in WebView). iOS reports points.
+  // Android reports dp (= CSS px). iOS reports points. Last event wins (Will* → Did*).
   publish(info.keyboardHeight);
 }
 
 function onKeyboardHide() {
   publish(0);
-  void setNativeScrollDisabled(false);
 }
 
 function isEditableTarget(el: EventTarget | null): boolean {
@@ -53,7 +56,7 @@ function isEditableTarget(el: EventTarget | null): boolean {
   return el.isContentEditable;
 }
 
-/** Web: only publish inset while an editable is focused (ignore URL-bar viewport shrink). */
+/** Web: inset only while an editable is focused (ignore URL-bar viewport shrink). */
 function bindWebVisualViewport() {
   const vv = window.visualViewport;
   if (!vv) return () => undefined;
@@ -89,7 +92,8 @@ export function startKeyboardInsetTracking(): () => void {
 
   if (isNativePlatform()) {
     let cancelled = false;
-    // iOS fires Will*; Android is Did*-reliable. Subscribe to both.
+    void setNativeScrollDisabled(true);
+
     void Keyboard.addListener('keyboardWillShow', onKeyboardShow).then((h) => {
       if (cancelled) void h.remove();
       else nativeHandles.push(h);

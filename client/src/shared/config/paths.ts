@@ -90,17 +90,22 @@ export function isEntertainmentEpisodePath(pathname: string): boolean {
   return /^\/entertainment\/[^/]+\/e\/[^/]+$/.test(pathname);
 }
 
-/**
- * 16:9 media player routes — hide BottomNav (ScreenBar owns back).
- * Live watch / go-live on-air, highlight detail, entertainment episode.
- */
-export function isMediaPlayerBottomNavHiddenPath(pathname: string): boolean {
-  return isLiveImmersivePath(pathname) || isHighlightDetailPath(pathname) || isEntertainmentEpisodePath(pathname);
-}
-
 /** Fixed post + scrollable comments. */
 export function isPostDetailPath(pathname: string): boolean {
   return /^\/feed\/\d+$/.test(pathname);
+}
+
+/**
+ * Detail shells with ScreenBar + compose/chat dock — hide BottomNav (same as watch).
+ * Live watch / go-live on-air, highlight detail, entertainment episode, post detail.
+ */
+export function isMediaPlayerBottomNavHiddenPath(pathname: string): boolean {
+  return (
+    isLiveImmersivePath(pathname) ||
+    isHighlightDetailPath(pathname) ||
+    isEntertainmentEpisodePath(pathname) ||
+    isPostDetailPath(pathname)
+  );
 }
 
 /** Legacy fixed-frame path registry. Media detail (Post/Watch/Highlight/Episode) now uses

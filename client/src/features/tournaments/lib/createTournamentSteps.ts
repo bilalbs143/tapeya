@@ -1,5 +1,4 @@
 export const CREATE_TOURNAMENT_STEPS = [
-  { id: 'who', label: 'Who & What' },
-  { id: 'structure', label: 'Structure' },
+  { id: 'details', label: 'Details' },
   { id: 'when', label: 'Where & When' },
 ] as const;

@@ -8,7 +8,7 @@ export const SKELETON = {
   reelGrid: 9,
   posts: 4,
   highlightGrid: 9,
-  relatedRows: 5,
+  relatedRows: 10,
   episodeRows: 8,
   showGrid: 12,
   productGrid: 9,

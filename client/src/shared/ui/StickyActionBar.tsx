@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 
 type StickyActionBarProps = {
   children: ReactNode;
@@ -12,19 +11,17 @@ type StickyActionBarProps = {
 
 /**
  * Footer CTA dock for `PageDock` (sibling of the page scroller — not sticky).
- * Keyboard lift is owned by PageDock’s paddingBottom.
+ * Keyboard lift + L/R fill: AppShell’s `KeyboardInsetPad` (opaque `bg-surface`).
  */
 export function StickyActionBar({ children, className, edge = false }: StickyActionBarProps) {
-  const keyboardInset = useKeyboardInset();
-  // Closed + edge: home-indicator via `--dock-above-keyboard` (subtracts inset → 0 while open).
-  // Keyboard open (or non-edge): same `pb-3` breathing room as above BottomNav.
-  const bottomPad = edge && keyboardInset <= 0 ? 'pb-[var(--dock-above-keyboard)]' : 'pb-3';
-
   return (
     <div
       className={cn(
-        'border-border-subtle bg-surface/95 shrink-0 border-t px-4 pt-3 backdrop-blur-sm',
-        bottomPad,
+        // Opaque surface — same as comment compose / dialog footer (no see-through above keyboard).
+        'border-border-subtle bg-surface isolate shrink-0 border-t px-4 pt-3',
+        // Normal: BottomNav owns home-indicator — fixed breathing room.
+        // Edge (no nav): home-indicator via `--safe-above-keyboard` (0 while keyboard covers it).
+        edge ? 'pb-[max(10px,var(--safe-above-keyboard))]' : 'pb-3',
         className
       )}
     >

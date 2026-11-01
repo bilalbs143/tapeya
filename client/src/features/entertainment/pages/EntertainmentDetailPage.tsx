@@ -30,7 +30,6 @@ export default function EntertainmentDetailPage() {
     return (
       <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
         <div className="flex flex-col gap-5 px-4 pt-3.5 pb-8" aria-busy="true" aria-label="Loading Show">
-          <Skeleton className="aspect-show-poster w-full max-w-[200px] rounded-field tab:max-w-[240px]" />
           <div className="flex flex-col gap-1.5">
             <Skeleton className="h-2.5 w-full" />
             <Skeleton className="h-2.5 w-4/5" />
@@ -38,9 +37,11 @@ export default function EntertainmentDetailPage() {
           </div>
           <section className="flex flex-col gap-2.5">
             <Skeleton className="h-2.5 w-16" />
-            {Array.from({ length: episodeCount }, (_, i) => (
-              <EpisodeRowSkeleton key={i} />
-            ))}
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: episodeCount }, (_, i) => (
+                <EpisodeRowSkeleton key={i} />
+              ))}
+            </div>
           </section>
         </div>
       </PageDock>

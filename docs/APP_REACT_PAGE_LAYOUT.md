@@ -103,7 +103,7 @@ Use **only** these roles. If you need a new step, update this table first.
 ├─ StickyActionBar (PageDock footer — pinned) ───┤
 │  px-4 pt-3 pb-3  ·  no safe-area (normal)      │
 └────────────────────────────────────────────────┘
-         ↑ above BottomNav; keyboard pad on PageDock
+         ↑ above BottomNav; KeyboardInsetPad fills `--keyboard-inset`
 ```
 
 ---
@@ -327,9 +327,9 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 
 ## 5. StickyActionBar contract
 
-Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom` from `--keyboard-inset`), not the bar.
+Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift + opaque L/R fill is **`KeyboardInsetPad`** (last child of AppShell / dialog sheets). `PageDock` / this bar do not pad the inset. Landscape media sets `padKeyboard={false}` on `PageDock` to suppress the shell pad.
 
-**Native keyboard:** WebView full height; JS pads via `--keyboard-inset`. iOS: `Keyboard.resize: 'none'`. Android: `adjustNothing` + `SystemBars.insetsHandling: 'disable'` (avoids Cap 8 double IME pad / white gap). No `resizeOnFullScreen`.
+**Native keyboard:** `Keyboard.resize: 'none'` keeps the WebView box fixed; AppShell is `fixed inset-0` + `KeyboardInsetPad`. Same pad component in `BaseDialog`. `Keyboard.setScroll` disabled. Android: `adjustNothing` + `SystemBars.insetsHandling: 'disable'`. No `resizeOnFullScreen`.
 
 | Do | Don’t |
 |---|---|

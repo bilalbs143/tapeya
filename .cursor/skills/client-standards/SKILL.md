@@ -100,9 +100,9 @@ See architecture §12.1.
 
 ## Enums (single source of truth)
 
-Dropdowns, chips, and scoring option lists that map to Laravel enums **must** come from `GET /enums` via `shared/api/enumsApi` (`useGetEnumsQuery`, `usePlayerProfileEnums`, `useCricketFormatOptions`, `useDismissalOptions`, …).
+Dropdowns, chips, and scoring option lists that map to Laravel enums **must** come from `GET /enums` via `shared/api/enumsApi` (`useGetEnumsQuery`, `usePlayerProfileEnums`, `useDismissalOptions`, …).
 
-- **Never** hardcode option tables for API enums (`playing_role`, `cricket_format`, `dismissal_type`, `stats_bucket`, …).
+- **Never** hardcode option tables for API enums (`playing_role`, `dismissal_type`, `stats_bucket`, …).
 - UI copy for those options comes from API `label` (and metadata like `requires_fielder` / `valid_on_free_hit`).
 - Pure cricket **logic** / unit tests may still use string literals for known values; UI lists must prefer enum metadata.
 - While loading: disabled Select/Chip row or skeleton — do **not** invent fallback option lists that can drift from the API.

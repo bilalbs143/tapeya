@@ -29,11 +29,12 @@ describe('media detail path helpers', () => {
 });
 
 describe('isMediaPlayerBottomNavHiddenPath', () => {
-  it('hides nav for watch, go-live on-air, highlight detail, and episode', () => {
+  it('hides nav for watch, go-live on-air, highlight, episode, and post detail', () => {
     expect(isMediaPlayerBottomNavHiddenPath('/live/broadcast/12')).toBe(true);
     expect(isMediaPlayerBottomNavHiddenPath('/live/go-live/44')).toBe(true);
     expect(isMediaPlayerBottomNavHiddenPath('/highlights/9')).toBe(true);
     expect(isMediaPlayerBottomNavHiddenPath('/entertainment/2/e/1')).toBe(true);
+    expect(isMediaPlayerBottomNavHiddenPath('/feed/3')).toBe(true);
   });
 
   it('keeps nav on hubs and lists', () => {
@@ -42,6 +43,8 @@ describe('isMediaPlayerBottomNavHiddenPath', () => {
     expect(isMediaPlayerBottomNavHiddenPath('/highlights')).toBe(false);
     expect(isMediaPlayerBottomNavHiddenPath('/entertainment')).toBe(false);
     expect(isMediaPlayerBottomNavHiddenPath('/entertainment/2')).toBe(false);
+    expect(isMediaPlayerBottomNavHiddenPath('/feed')).toBe(false);
+    expect(isMediaPlayerBottomNavHiddenPath('/')).toBe(false);
   });
 });
 

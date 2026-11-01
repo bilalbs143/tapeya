@@ -1,8 +1,6 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useMeQuery } from '@/features/auth';
-
 import { useTournamentTypeOptions } from '@/shared/api/enumsApi';
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { PageDock } from '@/shared/layout';
@@ -12,7 +10,8 @@ import { Button } from '@/shared/ui/Button';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { Field } from '@/shared/ui/Field';
-import { Form, FormRow, FormSection } from '@/shared/ui/Form';
+import { Form, FormRow } from '@/shared/ui/Form';
+import { CheckIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
 import { NumberStepper } from '@/shared/ui/NumberStepper';
 import { ErrorState, Skeleton } from '@/shared/ui/states';
@@ -45,19 +44,20 @@ type CreateTournamentWizardProps = {
   /** Controlled step from the page ScreenBar (avoids double chrome). */
   step: number;
   onStepChange: (step: number) => void;
+  /** Lets the page swap subtitle / hide step progress on the success face. */
+  onSentChange?: ((sent: boolean) => void) | undefined;
   initial?: Partial<WizardState> | undefined;
 };
 
 /** Create tournament wizard body; page owns ScreenBar. Success → organizer workspace. */
-
 export function CreateTournamentWizard({
   header,
   onCreated,
   step,
   onStepChange,
+  onSentChange,
   initial,
 }: CreateTournamentWizardProps) {
-  const { data: me } = useMeQuery();
   const [createTournament, { isLoading }] = useCreateTournamentMutation();
   const {
     options: tournamentTypes,
@@ -87,8 +87,8 @@ export function CreateTournamentWizard({
   const dateError = f.starts && f.ends && f.ends < f.starts ? "End date can't be before the start." : null;
 
   const stepOk = useMemo(() => {
-    if (step === 0) return f.name.trim().length > 0 && f.shortName.trim().length > 0;
-    if (step === 1) {
+    if (step === 0) {
+      if (!f.name.trim() || !f.shortName.trim()) return false;
       if (f.teamCap < 2 || f.teamCap > 500) return false;
       if (f.structure === 'groups' && (f.groupCount < 2 || f.groupCount > 16)) return false;
       return true;
@@ -124,6 +124,7 @@ export function CreateTournamentWizard({
       if (result.data) {
         setCreatedId(result.data.id);
         setSent(true);
+        onSentChange?.(true);
       }
     } catch (error) {
       toast({
@@ -140,25 +141,26 @@ export function CreateTournamentWizard({
         header={header}
         footer={
           <StickyActionBar>
-            <div className="flex flex-col gap-2">
-              <Button
-                className="min-h-12 font-bold"
-                onClick={() => {
-                  if (createdId != null) onCreated(createdId);
-                }}
-              >
-                Open Workspace
-              </Button>
+            <div className="flex gap-2">
               <Button
                 variant="secondary"
-                className="min-h-11 font-semibold"
+                className="min-h-12 flex-1 font-bold"
                 onClick={() => {
                   setSent(false);
+                  onSentChange?.(false);
                   onStepChange(0);
                   setCreatedId(null);
                 }}
               >
                 Create Another
+              </Button>
+              <Button
+                className="min-h-12 flex-1 font-bold"
+                onClick={() => {
+                  if (createdId != null) onCreated(createdId);
+                }}
+              >
+                Open Workspace
               </Button>
             </div>
           </StickyActionBar>
@@ -176,17 +178,17 @@ export function CreateTournamentWizard({
         <StickyActionBar>
           <div className="flex gap-2">
             {step === 0 ? (
-              <Button variant="secondary" className="flex-1 font-semibold" asChild>
+              <Button variant="secondary" className="shrink-0 px-4 font-bold" asChild>
                 <Link to={tournamentRoutes.list()}>Cancel</Link>
               </Button>
             ) : (
-              <Button variant="secondary" className="flex-1 font-semibold" onClick={() => onStepChange(step - 1)}>
+              <Button variant="secondary" className="shrink-0 px-4 font-bold" onClick={() => onStepChange(step - 1)}>
                 Back
               </Button>
             )}
-            {step < 2 ? (
+            {step < 1 ? (
               <Button className="flex-1 font-bold" disabled={!stepOk} onClick={() => onStepChange(step + 1)}>
-                {step === 0 ? 'Structure' : 'Where & When'}
+                Where & When
               </Button>
             ) : (
               <Button
@@ -205,60 +207,45 @@ export function CreateTournamentWizard({
       <Form density="compact" className="flex flex-col px-4 pt-3.5 pb-4" onSubmit={(e) => e.preventDefault()}>
         {step === 0 ? (
           <>
-            <FormSection title="Organizer Contact">
-              <div className="border-border-subtle bg-surface flex min-h-11 items-center justify-between gap-3 rounded-panel border px-3.5 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm leading-normal font-extrabold text-ink">{me?.name || 'Organizer'}</p>
-                  <p className="text-dim font-mono mt-0.5 text-4xs font-bold tracking-[.1em] uppercase">From Profile</p>
-                </div>
-              </div>
-            </FormSection>
+            <Input
+              label="Name"
+              required
+              value={f.name}
+              maxLength={60}
+              onChange={(e) => setF((s) => ({ ...s, name: e.target.value.slice(0, 60) }))}
+            />
+            <Input
+              label="Short Name"
+              required
+              value={f.shortName}
+              maxLength={64}
+              hint="Used on scorecards and the live ticker."
+              onChange={(e) => setF((s) => ({ ...s, shortName: e.target.value.slice(0, 64) }))}
+            />
 
-            <FormSection title="The Tournament">
-              <Input
-                label="Name"
-                required
-                value={f.name}
-                maxLength={60}
-                onChange={(e) => setF((s) => ({ ...s, name: e.target.value.slice(0, 60) }))}
-              />
-              <Input
-                label="Short Name"
-                required
-                value={f.shortName}
-                maxLength={64}
-                hint="Used on scorecards and the live ticker."
-                onChange={(e) => setF((s) => ({ ...s, shortName: e.target.value.slice(0, 64) }))}
-              />
+            <Field label="Tournament Type">
+              {() =>
+                typeError ? (
+                  <ErrorState title="Couldn’t Load Tournament Types" onRetry={() => void refetchTypes()} />
+                ) : typeLoading && tournamentTypes.length === 0 ? (
+                  <Skeleton className="h-20 w-full rounded-panel" aria-label="Loading Tournament Types" />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {tournamentTypes.map((opt) => (
+                      <ChoiceCard
+                        key={opt.value}
+                        on={resolvedType === opt.value}
+                        onClick={() => setF((s) => ({ ...s, type: opt.value }))}
+                      >
+                        {opt.label.replace(/ Tournament$/i, '')}
+                      </ChoiceCard>
+                    ))}
+                  </div>
+                )
+              }
+            </Field>
 
-              <Field label="Tournament Type">
-                {() =>
-                  typeError ? (
-                    <ErrorState title="Couldn’t Load Tournament Types" onRetry={() => void refetchTypes()} />
-                  ) : typeLoading && tournamentTypes.length === 0 ? (
-                    <Skeleton className="h-20 w-full rounded-panel" aria-label="Loading Tournament Types" />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      {tournamentTypes.map((opt) => (
-                        <ChoiceCard
-                          key={opt.value}
-                          on={resolvedType === opt.value}
-                          onClick={() => setF((s) => ({ ...s, type: opt.value }))}
-                        >
-                          {opt.label.replace(/ Tournament$/i, '')}
-                        </ChoiceCard>
-                      ))}
-                    </div>
-                  )
-                }
-              </Field>
-            </FormSection>
-          </>
-        ) : null}
-
-        {step === 1 ? (
-          <>
-            <Field label="Number of Teams" required hint="2–500. You add the teams yourself in the workspace.">
+            <Field label="Number of Teams" required>
               <NumberStepper
                 value={f.teamCap}
                 min={2}
@@ -303,7 +290,7 @@ export function CreateTournamentWizard({
           </>
         ) : null}
 
-        {step === 2 ? (
+        {step === 1 ? (
           <>
             <Input
               label="Venue"
@@ -336,27 +323,18 @@ export function CreateTournamentWizard({
                 onChange={(ends) => setF((s) => ({ ...s, ends }))}
               />
             </FormRow>
-            <Field label="Prize">
-              {({ id }) => (
-                <div className="border-border bg-surface focus-within:outline-brand flex h-11 items-center rounded-panel border px-3 focus-within:outline-2 focus-within:outline-offset-0">
-                  <span className="text-dim font-mono mr-2 text-xs font-bold">PKR</span>
-                  <input
-                    id={id}
-                    value={f.prize}
-                    onChange={(e) => setF((s) => ({ ...s, prize: e.target.value }))}
-                    placeholder="150,000"
-                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-ink outline-none"
-                  />
-                </div>
-              )}
-            </Field>
+            <Input
+              label="Prize"
+              value={f.prize}
+              placeholder="e.g. Trophy + cash"
+              onChange={(e) => setF((s) => ({ ...s, prize: e.target.value }))}
+            />
             <div className="border-border-subtle bg-surface rounded-card border px-3.5 py-3.5">
               <p className="font-mono text-brand-text text-4xs font-bold tracking-eyebrow uppercase">
                 What happens next
               </p>
               <p className="text-body mt-2 text-2xs leading-relaxed">
-                Your tournament opens in My tournaments right away. Add teams and fixtures from the workspace — nothing
-                is public until you publish fixtures.
+                Opens in My tournaments. Add teams and fixtures from the workspace.
               </p>
             </div>
           </>
@@ -366,26 +344,40 @@ export function CreateTournamentWizard({
   );
 }
 
+const NEXT_STEPS = [
+  { label: 'Created', done: true },
+  { label: 'Add Teams', done: false },
+  { label: 'Publish Fixtures', done: false },
+] as const;
+
 function SentFace({ name }: { name: string }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-8">
-      <p className="font-mono text-positive text-4xs font-bold tracking-eyebrow uppercase">Ready</p>
-      <h1 className="mt-2 text-title font-extrabold tracking-tight text-ink">{name}</h1>
-      <p className="text-muted mt-2 text-body-sm leading-relaxed">
-        Workspace is open. Add teams, finish squads, then schedule fixtures.
-      </p>
-      <ol className="border-border-subtle mt-6 flex flex-col gap-3 rounded-card border p-3.5">
-        {['Created', 'Add Teams', 'Publish Fixtures'].map((label, i) => (
-          <li key={label} className="flex items-center gap-3">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-3.5 pb-4">
+      <div className="flex flex-col items-center pt-4 text-center">
+        <span className="border-positive/40 bg-positive/14 grid h-14 w-14 place-items-center rounded-sheet border">
+          <CheckIcon size="lg" strokeWidth={2.2} className="text-positive-2 h-7 w-7" />
+        </span>
+        <h1 className="mt-4 text-title leading-snug font-extrabold tracking-tight text-ink">{name}</h1>
+        <p className="text-muted mt-2 max-w-[36ch] text-body-sm leading-relaxed" role="status">
+          Add teams, finish squads, then publish fixtures from the workspace.
+        </p>
+      </div>
+
+      <ol className="border-border-subtle bg-surface mt-6 divide-border-subtle flex flex-col divide-y rounded-card border">
+        {NEXT_STEPS.map((item, i) => (
+          <li key={item.label} className="flex items-center gap-3 px-3.5 py-3">
             <span
               className={cn(
-                'font-mono grid h-7 w-7 place-items-center rounded-full text-2xs font-bold',
-                i === 0 ? 'bg-positive/16 text-positive' : 'bg-surface-raised text-dim'
+                'font-mono grid h-7 w-7 shrink-0 place-items-center rounded-full text-2xs font-bold',
+                item.done ? 'bg-positive/16 text-positive' : 'bg-surface-raised text-dim'
               )}
+              aria-hidden
             >
-              {i + 1}
+              {item.done ? <CheckIcon size="sm" strokeWidth={2.6} className="h-3.5 w-3.5" /> : i + 1}
             </span>
-            <span className={cn('text-body-sm font-semibold', i === 0 ? 'text-ink' : 'text-muted')}>{label}</span>
+            <span className={cn('text-body-sm font-semibold', item.done ? 'text-ink' : 'text-muted')}>
+              {item.label}
+            </span>
           </li>
         ))}
       </ol>

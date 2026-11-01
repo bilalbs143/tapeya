@@ -72,14 +72,13 @@ export function DeclareSquadScreen(props: DeclareSquadScreenProps) {
         onOpenChange={onOpenChange}
         showClose={false}
         showHandle={false}
-        contentClassName={cn(
-          // Full-height sheet on phone; re-assert centred card at `tab+` so twMerge
-          // does not leave the mobile insets fighting BaseDialog chrome.
+        // Shell owns insets + dock pad; body layout stays on contentClassName (`p-0` safe).
+        shellClassName={cn(
           'inset-x-0 top-[max(48px,env(safe-area-inset-top))] bottom-0',
           'tab:top-1/2 tab:left-1/2 tab:right-auto tab:bottom-auto',
-          'tab:-translate-x-1/2 tab:-translate-y-1/2 tab:max-h-[min(90dvh,720px)]',
-          'flex h-auto max-h-none flex-col overflow-hidden p-0 pb-0 shadow-pop'
+          'tab:-translate-x-1/2 tab:-translate-y-1/2 tab:max-h-[min(90dvh,720px)] tab:shadow-pop'
         )}
+        contentClassName="flex h-auto max-h-none flex-col overflow-hidden p-0"
       >
         <DialogHeader className="border-border-subtle shrink-0 border-b pr-5 pb-3">
           <span aria-hidden className="bg-surface-raised mx-auto mb-2 block h-1 w-9.5 rounded-full tab:hidden" />
