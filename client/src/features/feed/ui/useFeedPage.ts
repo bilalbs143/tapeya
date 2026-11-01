@@ -50,6 +50,9 @@ export function useFeedPage() {
   const exhausted = Boolean(data && !data.hasMore);
   const showInitialLoading = isLoading && !data;
   const refreshing = isFetching && !isLoading && !cursor && Boolean(data);
+  const loadingMore = isFetching && Boolean(cursor);
+  const canLoadMore = Boolean(posts.length > 0 && data?.hasMore && data.nextCursor);
+  const nextCursor = data?.nextCursor;
 
   function selectTab(next: string) {
     setTab(next as FeedTab);
@@ -83,13 +86,18 @@ export function useFeedPage() {
     }
   }
 
-  const canLoadMore = Boolean(posts.length > 0 && data?.hasMore && data.nextCursor);
-  const nextCursor = data?.nextCursor;
-
   const loadMoreRef = useCursorSentinel({
-    enabled: canLoadMore && !isFetching,
+    enabled: canLoadMore,
+    shellRoot: true,
+    // Remount when a fetch ends so a still-visible sentinel can fire again.
+    recheckKey: isFetching ? 'busy' : (nextCursor ?? 'done'),
     onIntersect: () => {
-      if (nextCursor && !isFetching) setCursor(nextCursor);
+      if (isFetching || !nextCursor) return;
+      if (cursor === nextCursor) {
+        void refetch();
+        return;
+      }
+      setCursor(nextCursor);
     },
   });
 
@@ -117,6 +125,7 @@ export function useFeedPage() {
     exhausted,
     showInitialLoading,
     refreshing,
+    loadingMore,
     canLoadMore,
     loadMoreRef,
     reposting,

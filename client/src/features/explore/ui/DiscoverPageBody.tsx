@@ -45,8 +45,8 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
             <SearchBar
               value={query}
               onValueChange={setQuery}
-              placeholder="Search players and users"
-              label="Search Players"
+              placeholder="Search Player"
+              label="Search Player"
               size="md"
               className="w-full"
               count={searching && !isLoading && !isError ? searchHeading : undefined}

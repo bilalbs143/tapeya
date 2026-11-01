@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/DropdownMenu';
-import { BellIcon, CartIcon, ChevronDownIcon, MenuIcon, PlusIcon } from '@/shared/ui/icons';
+import { BellIcon, CartIcon, ChevronDownIcon, MenuIcon, PlusIcon, SearchIcon } from '@/shared/ui/icons';
 import { LiveBadge } from '@/shared/ui/LiveBadge';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
@@ -115,6 +115,14 @@ export function TopBar({ liveCount = 0, unread, action, className }: TopBarProps
         <ThemeToggle className="bg-surface-raised text-body hover:text-ink h-8 w-8 rounded-full" />
 
         <Link
+          to={APP_PATHS.discover}
+          aria-label="Search Player"
+          className="bg-surface-raised text-body focus-visible:outline-brand relative grid h-8 w-8 shrink-0 place-items-center rounded-full focus-visible:outline-2"
+        >
+          <SearchIcon size="xs" strokeWidth={1.9} className="h-3.5 w-3.5" />
+        </Link>
+
+        <Link
           to={APP_PATHS.notifications}
           aria-label="Notifications"
           className="bg-surface-raised text-body focus-visible:outline-brand relative grid h-8 w-8 shrink-0 place-items-center rounded-full focus-visible:outline-2"
@@ -171,6 +179,14 @@ export function DesktopTopBar({
         >
           <PlusIcon size="xs" strokeWidth={2.2} className="h-3.5 w-3.5" />
           Score a Match
+        </Link>
+
+        <Link
+          to={APP_PATHS.discover}
+          aria-label="Search Player"
+          className="relative grid h-9 w-9 place-items-center rounded-field bg-white/12 text-white hover:bg-white/18"
+        >
+          <SearchIcon size="sm" strokeWidth={1.9} className="h-4 w-4" />
         </Link>
 
         <Link

@@ -88,14 +88,12 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
     navigate,
     tab,
     selectTab,
-    cursor,
     userId,
     me,
     home,
     posts,
     data,
     isError,
-    isFetching,
     refetch,
     reels,
     reelsLoading,
@@ -103,6 +101,7 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
     exhausted,
     showInitialLoading,
     refreshing,
+    loadingMore,
     canLoadMore,
     loadMoreRef,
     reposting,
@@ -263,9 +262,9 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
           ) : null}
 
           {/* One sentinel on the active tab only — shared ref cannot attach to every TabsContent. */}
-          {t.value === tab && canLoadMore ? (
-            <div ref={loadMoreRef} className="flex h-10 items-center justify-center" aria-hidden={!isFetching}>
-              {isFetching && cursor ? (
+          {t.value === tab && (canLoadMore || loadingMore) ? (
+            <div ref={loadMoreRef} className="flex h-10 items-center justify-center" aria-hidden={!loadingMore}>
+              {loadingMore ? (
                 <span role="status" className="text-dim font-mono text-4xs font-semibold tracking-[.06em] uppercase">
                   Loading More…
                 </span>
