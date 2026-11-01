@@ -1,4 +1,5 @@
 export { BottomNav } from './BottomNav';
+export { BrandMark } from './BrandMark';
 export { DockScreen } from './DockScreen';
 export { KeyboardInsetPad } from './KeyboardInsetPad';
 export { MainDrawer } from './MainDrawer';

@@ -6,6 +6,8 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
+import { AppBootLoader } from './AppBootLoader';
+
 /**
  * Gates `/live/go-live*` the same way the MainDrawer "Go Live" CTA is gated
  * (`can_broadcast`). Web is allowed so operators can create a stream and copy RTMP
@@ -21,7 +23,7 @@ export function RequireBroadcastAccess() {
   }
 
   if (isLoading && !me) {
-    return <div className="text-muted p-8 text-sm">Loading Session…</div>;
+    return <AppBootLoader label="Loading Session" />;
   }
 
   if (isError || !me?.canBroadcast) {
