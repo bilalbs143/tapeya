@@ -69,7 +69,13 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
       padKeyboard={!landscape}
       header={
         !landscape ? (
-          <ScreenBar title={stream.title} subtitle={stream.host.name} onBack={goLiveList} slideTitle />
+          <ScreenBar
+            title={stream.title}
+            subtitle={stream.host.name}
+            onBack={goLiveList}
+            slideTitle
+            className="border-b-0"
+          />
         ) : undefined
       }
       className={landscape ? 'overflow-visible' : undefined}

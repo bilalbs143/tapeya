@@ -30,7 +30,7 @@ type CommentComposerProps = {
   sending?: boolean | undefined;
   inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null> | undefined;
   className?: string | undefined;
-  /** Pad home indicator when BottomNav is hidden (watch / episode). */
+  /** Pad home indicator when BottomNav is hidden (post detail / watch / episode / reel sheet). */
   edge?: boolean | undefined;
 };
 

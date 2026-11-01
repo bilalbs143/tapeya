@@ -55,6 +55,7 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
       footer={
         data ? (
           <CommentComposer
+            edge
             className="shrink-0"
             user={{
               id: me?.id,

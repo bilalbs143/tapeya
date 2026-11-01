@@ -4,7 +4,7 @@ import { interestRoutes } from '@/features/interest';
 
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { ChevronLeftIcon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
+import { ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
 import { TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { PUBLIC_TOURNAMENT_TABS } from '../lib/publicTournament';
@@ -65,10 +65,9 @@ function ReactionPill({
   );
 }
 
-/** Hero, reactions, tabs chrome — page owns PageDock. */
+/** Cover → meta → tabs. ScreenBar owns back + share; cover is flush under the bar. */
 export function PublicTournamentHeader({ tournament, flow }: PublicTournamentFlowProps) {
   const {
-    navigate,
     likes,
     dislikes,
     shares,
@@ -77,7 +76,6 @@ export function PublicTournamentHeader({ tournament, flow }: PublicTournamentFlo
     handleLike,
     handleDislike,
     handleShare,
-    place,
     counts,
     interestSlug,
   } = flow;
@@ -93,36 +91,13 @@ export function PublicTournamentHeader({ tournament, flow }: PublicTournamentFlo
           </span>
         )}
         <div className="from-page pointer-events-none absolute inset-x-0 bottom-0 h-[90px] bg-linear-to-t to-transparent" />
-        <div className="absolute inset-x-3.5 top-[max(14px,env(safe-area-inset-top))] z-10 flex items-center justify-between">
-          <button
-            type="button"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            className="border-border-subtle bg-veil grid h-[34px] w-[34px] place-items-center rounded-full border backdrop-blur-[10px]"
-          >
-            <ChevronLeftIcon className="text-ink h-4 w-4" strokeWidth={2.2} />
-          </button>
-          <button
-            type="button"
-            aria-label="Share"
-            onClick={() => void handleShare()}
-            className="border-border-subtle bg-veil grid h-[34px] w-[34px] place-items-center rounded-full border backdrop-blur-[10px]"
-          >
-            <ShareIcon className="text-ink h-[15px] w-[15px]" strokeWidth={2} />
-          </button>
-        </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 px-4 pb-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-lg leading-tight font-extrabold text-ink">{tournament.name}</h1>
-          <p className="font-mono text-body text-2xs font-medium">{place}</p>
-          {counts ? <p className="text-dim font-mono text-3xs font-medium">{counts}</p> : null}
-          {tournament.prize ? <p className="text-muted text-2xs font-semibold">Prize · {tournament.prize}</p> : null}
-          {tournament.champion ? (
-            <p className="text-positive-2 text-2xs font-bold">Champions · {tournament.champion}</p>
-          ) : null}
-        </div>
+      <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-3">
+        {counts ? <p className="text-dim font-mono text-3xs font-medium">{counts}</p> : null}
+        {tournament.champion ? (
+          <p className="text-positive-2 text-2xs font-bold">Champions · {tournament.champion}</p>
+        ) : null}
 
         {interestSlug ? (
           <Button asChild variant="primary" className="h-12 w-full rounded-field text-body-sm font-bold">

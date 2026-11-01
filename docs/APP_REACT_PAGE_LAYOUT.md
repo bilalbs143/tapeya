@@ -248,13 +248,13 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 </DockScreen>
 ```
 
-**Thread + composer variant (Post detail):** comments body `px-4`; bottom composer uses the **same** footer contract as StickyActionBar when BottomNav is visible (no extra safe-area). Prefer aligning `CommentComposer` with StickyActionBar over inventing a third footer.
+**Thread + composer variant (Post detail):** comments body `px-4`. `/feed/:id` hides BottomNav (`isMediaPlayerBottomNavHiddenPath`) — pass `CommentComposer edge` so the dock uses `--safe-above-keyboard` (same as watch `ChatDock` / episode / reel sheet). Do not invent a third footer padding.
 
 ---
 
 ### Type F — Hero detail (no ScreenBar)
 
-**When:** Public tournament cover, marketing-style detail with full-bleed hero.
+**When:** Marketing-style detail that truly needs full-bleed hero chrome (rare). Prefer **Type E** + ScreenBar when back/share fit the standard bar (public tournament uses Type E).
 
 ```tsx
 <PageDock header={<HeroWithFloatingBack … />}>
@@ -420,7 +420,7 @@ Track and burn down — do not copy these patterns into new screens:
 1. ~~Hand-rolled hub headers (Matches / Tournaments)~~ → `ScreenBar` (create tiles in body)
 2. ~~Create Tournament double chrome~~ → ScreenBar subtitle + progress `below`; wizard body only
 3. ~~Create Post ScreenBar `action` commit~~ → `StickyActionBar`
-4. ~~`CommentComposer` safe-area vs StickyActionBar~~ → sticky matches StickyActionBar when BottomNav visible
+4. ~~`CommentComposer` safe-area vs StickyActionBar~~ → `edge` when BottomNav hidden; default matches StickyActionBar when nav visible
 5. ~~`ListRow` `px-[15px]`~~ → `px-4 py-3`
 6. Skill `reference.md` claiming SideNav at `sm:` → code uses `tab:` (this doc wins)
 7. Immersive scoring / live watch still use feature-local `px-3.5` docks — keep consistent **within** Type I; do not copy onto normal shell pages
