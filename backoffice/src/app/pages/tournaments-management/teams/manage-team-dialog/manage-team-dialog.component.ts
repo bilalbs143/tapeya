@@ -16,6 +16,7 @@ import { type TeamRow, type TeamSavePayload, type TeamUserCandidate, TeamsServic
 import { UsersService } from 'src/app/services/users.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import { TEAM_LOGO_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ManageTeamDialogData {
   mode: 'create' | 'edit';
@@ -51,6 +52,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
 
   public readonly roleChipSeparatorKeys = [ENTER, COMMA] as const;
   public isSubmitting = false;
+  public readonly logoAspect = TEAM_LOGO_ASPECT;
 
   public get title(): string {
     return this.data.mode === 'create' ? 'Create Team' : `Edit Team — ${this.data.team?.name ?? ''}`;

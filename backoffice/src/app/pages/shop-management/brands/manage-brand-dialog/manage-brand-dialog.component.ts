@@ -10,6 +10,7 @@ import type { Brand, SaveBrandPayload } from 'src/app/services/shop/brand.servic
 import { BrandService } from 'src/app/services/shop/brand.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import { SHOP_BRAND_LOGO_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
 export interface ManageBrandDialogData {
@@ -32,6 +33,7 @@ export class ManageBrandDialogComponent {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly logoAspect = SHOP_BRAND_LOGO_ASPECT;
 
   private readonly originalHasLogo = !!this.data.brand?.logo;
 

@@ -10,6 +10,7 @@ import type { Category, SaveCategoryPayload } from 'src/app/services/shop/catego
 import { CategoryService } from 'src/app/services/shop/category.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import { SHOP_CATEGORY_IMAGE_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
 export interface ManageCategoryDialogData {
@@ -33,6 +34,7 @@ export class ManageCategoryDialogComponent implements OnInit {
   public form!: FormGroup;
   public isSubmitting = false;
   public parentCategories: Category[] = [];
+  public readonly imageAspect = SHOP_CATEGORY_IMAGE_ASPECT;
 
   private readonly originalHasImage = !!this.data.category?.image;
 

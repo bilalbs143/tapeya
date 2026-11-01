@@ -17,6 +17,10 @@ import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import {
+  TOURNAMENT_COVER_IMAGE_UPLOAD_HINT,
+  TOURNAMENT_DISPLAY_IMAGE_UPLOAD_HINT,
+} from 'src/app/shared/constants/thumbnail.constants';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
 function tournamentDateOrderValidator(group: AbstractControl): ValidationErrors | null {
@@ -73,6 +77,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly displayImageHint = TOURNAMENT_DISPLAY_IMAGE_UPLOAD_HINT;
+  public readonly coverImageHint = TOURNAMENT_COVER_IMAGE_UPLOAD_HINT;
   public countriesList: Country[] = [];
   public cities: { id: number; name: string }[] = [];
   public organizerOptions: OrganizerOption[] = [];

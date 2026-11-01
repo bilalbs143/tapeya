@@ -15,6 +15,7 @@ import {
   type FileUploadValue,
   fileUploadRequired,
 } from 'src/app/shared/components/file-upload/file-upload.component';
+import { HIGHLIGHT_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ManageHighlightDialogData {
   mode: 'create' | 'edit';
@@ -46,6 +47,7 @@ export class ManageHighlightDialogComponent {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly thumbnailHint = HIGHLIGHT_THUMBNAIL_UPLOAD_HINT;
 
   private readonly originalHasThumbnail = !!this.data.highlight?.thumbnail;
   private readonly originalHasVideo = this.data.highlight?.video_source === 'upload' && !!this.data.highlight?.video;

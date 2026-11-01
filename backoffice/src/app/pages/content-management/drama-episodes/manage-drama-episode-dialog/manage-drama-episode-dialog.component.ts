@@ -16,6 +16,7 @@ import {
   type FileUploadValue,
   fileUploadRequired,
 } from 'src/app/shared/components/file-upload/file-upload.component';
+import { DRAMA_EPISODE_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ManageDramaEpisodeDialogData {
   mode: 'create' | 'edit';
@@ -46,6 +47,7 @@ export class ManageDramaEpisodeDialogComponent {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly thumbnailHint = DRAMA_EPISODE_THUMBNAIL_UPLOAD_HINT;
   public uploadPercent: number | null = null;
   public uploadLabel = '';
   private readonly originalHasThumbnail = !!this.data.episode?.thumbnail;

@@ -357,7 +357,7 @@
             label="Display Image"
             accept="image/jpeg,image/png,image/webp"
             acceptLabel="JPG, PNG, WebP"
-            hint="Shown on the tournament listing card. 800×600 px recommended."
+            [hint]="displayImageHint"
             [maxSizeMb]="5"
           ></app-file-upload>
         </div>
@@ -368,7 +368,7 @@
             label="Cover Image"
             accept="image/jpeg,image/png,image/webp"
             acceptLabel="JPG, PNG, WebP"
-            hint="Full-width banner shown on the tournament detail page. 1920×600 px recommended."
+            [hint]="coverImageHint"
             [maxSizeMb]="5"
           ></app-file-upload>
         </div>
