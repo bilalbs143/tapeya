@@ -4,6 +4,7 @@ export {
   useFollowUserMutation,
   useGetSuggestedUsersQuery,
   useReportUserMutation,
+  useSearchUsersQuery,
   useUnblockUserMutation,
   useUnfollowUserMutation,
 } from './api/exploreApi';

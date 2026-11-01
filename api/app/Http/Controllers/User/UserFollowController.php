@@ -87,7 +87,8 @@ class UserFollowController extends Controller
             ->whereIn('id', $followedIds)
             ->orderBy('name')
             ->limit($limit)
-            ->get($columns);
+            ->get($columns)
+            ->each(fn (User $user) => $user->setAttribute('viewer_is_following', true));
 
         $others = collect();
         if ($followed->count() < $limit) {
@@ -95,7 +96,8 @@ class UserFollowController extends Controller
                 ->whereNotIn('id', $followedIds)
                 ->orderBy('name')
                 ->limit($limit - $followed->count())
-                ->get($columns);
+                ->get($columns)
+                ->each(fn (User $user) => $user->setAttribute('viewer_is_following', false));
         }
 
         return $this->success(UserMentionResource::collection($followed->concat($others)));

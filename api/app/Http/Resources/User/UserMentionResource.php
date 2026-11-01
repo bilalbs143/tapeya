@@ -19,6 +19,8 @@ class UserMentionResource extends JsonResource
             'nickname' => $this->nickname,
             'avatar_url' => MediaDisk::url($this->avatar),
             'is_official' => (bool) $this->is_official,
+            // Set by UserFollowController::search (followed vs others). Mentions ignore this.
+            'is_following' => (bool) ($this->viewer_is_following ?? false),
         ];
     }
 }

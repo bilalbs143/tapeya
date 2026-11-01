@@ -1,8 +1,9 @@
 import { PageDock, ScreenBar, SectionLabel } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
+import { SearchBar } from '@/shared/ui/SearchBar';
 import { EmptyState, ErrorState, SKELETON, UserRowSkeleton } from '@/shared/ui/states';
 
-import { DISCOVER_SECTION_LABEL } from '../lib/discoverPage';
+import { DISCOVER_SEARCH_SECTION_LABEL, DISCOVER_SECTION_LABEL } from '../lib/discoverPage';
 import { SuggestedUserRow } from './SuggestedUserRow';
 import type { useDiscoverPage } from './useDiscoverPage';
 
@@ -12,34 +13,54 @@ type DiscoverPageBodyProps = {
   flow: DiscoverPageFlow;
 };
 
-/** Suggested players list with loading / empty gates — edge-to-edge rows, no card chrome. */
-export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
-  const { users, isLoading, isError, refetch, goHome } = flow;
+function UserListSkeleton({ label }: { label: string }) {
   const rowCount = SKELETON.userRows;
+  return (
+    <div className="flex flex-col pb-6">
+      <div className="px-4 pt-3.5">
+        <SectionLabel as="h2">{label}</SectionLabel>
+      </div>
+      <ul className="flex flex-col" aria-busy="true" aria-label="Loading Players">
+        {Array.from({ length: rowCount }, (_, i) => (
+          <li key={i} className="border-border-subtle border-b px-4 py-3">
+            <UserRowSkeleton />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Suggested / search player list — SearchBar pinned like shop; results filter the list below. */
+export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
+  const { query, setQuery, searching, users, isLoading, isError, refetch, searchHeading, goHome } = flow;
+  const sectionLabel = searching ? DISCOVER_SEARCH_SECTION_LABEL : DISCOVER_SECTION_LABEL;
 
   return (
     <PageDock
-      header={<ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />}
-    >
-      {isLoading ? (
-        <div className="flex flex-col pb-6">
-          <div className="px-4 pt-3.5">
-            <SectionLabel as="h2">{DISCOVER_SECTION_LABEL}</SectionLabel>
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />
+          <div className="px-4 pt-3.5 pb-3">
+            <SearchBar
+              value={query}
+              onValueChange={setQuery}
+              placeholder="Search players and users"
+              label="Search Players"
+              size="md"
+              className="w-full"
+              count={searching && !isLoading && !isError ? searchHeading : undefined}
+            />
           </div>
-          <ul className="flex flex-col" aria-busy="true" aria-label="Loading Suggestions">
-            {Array.from({ length: rowCount }, (_, i) => (
-              <li key={i} className="border-border-subtle border-b px-4 py-3">
-                <UserRowSkeleton />
-              </li>
-            ))}
-          </ul>
         </div>
-      ) : null}
+      }
+    >
+      {isLoading ? <UserListSkeleton label={sectionLabel} /> : null}
 
       {isError ? (
         <div className="px-4 py-8">
           <ErrorState
-            title="Couldn't Load Suggestions"
+            title={searching ? "Couldn't Search Players" : "Couldn't Load Suggestions"}
             description="Check your connection and try again."
             onRetry={() => void refetch()}
           />
@@ -48,22 +69,26 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
 
       {!isLoading && !isError && users.length === 0 ? (
         <div className="px-4 py-8">
-          <EmptyState
-            title="No Suggestions Right Now"
-            description="Follow people from Explore posts — they will show up here next time."
-            action={
-              <Button size="sm" onClick={goHome}>
-                Back to Explore
-              </Button>
-            }
-          />
+          {searching ? (
+            <EmptyState title="No Players Found" description="Try another name or nickname — spelling can be picky." />
+          ) : (
+            <EmptyState
+              title="No Suggestions Right Now"
+              description="Follow people from Explore posts — they will show up here next time."
+              action={
+                <Button size="sm" onClick={goHome}>
+                  Back to Explore
+                </Button>
+              }
+            />
+          )}
         </div>
       ) : null}
 
       {!isLoading && !isError && users.length > 0 ? (
         <div className="flex flex-col pb-6">
           <div className="px-4 pt-3.5">
-            <SectionLabel as="h2">{DISCOVER_SECTION_LABEL}</SectionLabel>
+            <SectionLabel as="h2">{sectionLabel}</SectionLabel>
           </div>
           <ul className="flex flex-col">
             {users.map((user) => (

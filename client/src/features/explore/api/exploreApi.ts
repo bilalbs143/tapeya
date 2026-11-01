@@ -6,14 +6,20 @@ import { unwrapData, unwrapList } from '@/shared/api/unwrap';
 import {
   type FollowResult,
   followResultWireSchema,
+  searchUserWireSchema,
   type SuggestedUser,
   suggestedUserWireSchema,
   toFollowResult,
+  toSearchSuggestedUser,
   toSuggestedUser,
 } from '../model/schemas';
 
 function mapSuggestions(raw: unknown): SuggestedUser[] {
   return unwrapList(suggestedUserWireSchema)(raw).map(toSuggestedUser);
+}
+
+function mapSearchUsers(raw: unknown): SuggestedUser[] {
+  return unwrapList(searchUserWireSchema)(raw).map(toSearchSuggestedUser);
 }
 
 function mapFollow(raw: unknown): FollowResult {
@@ -75,12 +81,23 @@ export const exploreApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'User', id: 'SUGGESTIONS' }],
     }),
 
+    /** App-user directory for Discover search — followed first. */
+    searchUsers: builder.query<SuggestedUser[], string>({
+      query: (q) => ({
+        url: '/users/search',
+        params: { q },
+      }),
+      transformResponse: mapSearchUsers,
+      providesTags: [{ type: 'User', id: 'SEARCH' }],
+    }),
+
     followUser: builder.mutation<FollowResult, number>({
       query: (userId) => ({ url: `/users/${userId}/follow`, method: 'POST' }),
       transformResponse: mapFollow,
       invalidatesTags: (_r, _e, userId) => [
         { type: 'User', id: userId },
         { type: 'User', id: 'SUGGESTIONS' },
+        { type: 'User', id: 'SEARCH' },
         { type: 'User', id: 'ME' },
       ],
       async onQueryStarted(userId, { dispatch, queryFulfilled }) {
@@ -100,6 +117,7 @@ export const exploreApi = baseApi.injectEndpoints({
       invalidatesTags: (_r, _e, userId) => [
         { type: 'User', id: userId },
         { type: 'User', id: 'SUGGESTIONS' },
+        { type: 'User', id: 'SEARCH' },
         { type: 'User', id: 'ME' },
       ],
       async onQueryStarted(userId, { dispatch, queryFulfilled }) {
@@ -168,6 +186,7 @@ export const exploreApi = baseApi.injectEndpoints({
 
 export const {
   useGetSuggestedUsersQuery,
+  useSearchUsersQuery,
   useFollowUserMutation,
   useUnfollowUserMutation,
   useBlockUserMutation,
