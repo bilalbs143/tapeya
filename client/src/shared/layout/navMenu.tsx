@@ -16,6 +16,8 @@ type NavGroupListProps = {
 };
 
 export function NavGroupList({ pathname, groups, liveOn = false, onNavigate, compact = false }: NavGroupListProps) {
+  const navTargets = groups.flatMap((group) => group.items.map((item) => item.to));
+
   return groups.map((group, gi) => (
     <div key={group.label}>
       {gi > 0 ? <div className={cn('bg-border mx-[18px] h-px', compact ? 'mt-1.5' : 'mt-2')} /> : null}
@@ -29,7 +31,7 @@ export function NavGroupList({ pathname, groups, liveOn = false, onNavigate, com
       </p>
       <ul className={cn('flex flex-col', compact ? 'gap-0' : 'gap-0.5')}>
         {group.items.map((item) => {
-          const active = isActivePath(pathname, item.to);
+          const active = isActivePath(pathname, item.to, navTargets);
           return (
             <li key={`${group.label}-${item.label}`}>
               <Link

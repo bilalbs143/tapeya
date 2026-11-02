@@ -2,11 +2,10 @@ import { NumberStepper, type NumberStepperProps } from '@/shared/ui/NumberSteppe
 
 type QuantityStepperProps = Pick<NumberStepperProps, 'value' | 'min' | 'max' | 'onChange' | 'className' | 'disabled'>;
 
-/** Compact product-qty control — thin wrapper over shared NumberStepper. */
+/** Full-width product qty — same − / value / + field as overs / players. */
 export function QuantityStepper({ value = 1, min = 1, max = 10, onChange, className, disabled }: QuantityStepperProps) {
   return (
     <NumberStepper
-      variant="inline"
       value={value}
       min={min}
       max={max}

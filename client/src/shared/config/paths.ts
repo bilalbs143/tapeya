@@ -26,7 +26,7 @@ export const APP_PATHS = {
   liveStreaming: '/live/streaming',
   entertainment: '/entertainment',
   matches: '/matches',
-  startMatch: '/organizer/scoring/start-match',
+  startMatch: '/matches/start',
   quickMatch: '/quick-match',
   scorecard: '/scorecard',
   matchCard: '/match',

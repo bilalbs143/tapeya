@@ -116,7 +116,7 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
         ) : null}
 
         {!oos ? (
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-col gap-2">
             <span className="font-mono text-3xs font-bold tracking-[.12em] text-muted uppercase">Qty</span>
             <QuantityStepper value={qty} max={maxQty} onChange={setQty} />
           </div>

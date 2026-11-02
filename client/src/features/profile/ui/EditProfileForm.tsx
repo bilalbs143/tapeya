@@ -11,7 +11,6 @@ import { userHandle } from '@/entities/user';
 import { usePlayerProfileEnums } from '@/shared/api/enumsApi';
 import { getApiErrorMessage, parseApiError } from '@/shared/api/errors';
 import { DockScreen } from '@/shared/layout';
-import { cdnUrl } from '@/shared/lib/cdn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { Chip } from '@/shared/ui/Chip';
@@ -45,9 +44,10 @@ type EditProfileFormProps = {
 };
 
 const AVATAR_ACCEPT = 'image/jpeg,image/png,image/webp';
-/** Decorative cover — not editable in this form. */
-
-const PROFILE_COVER_URL = cdnUrl('app/images/standard/profile-header.jpg');
+/** Decorative cover — not editable in this form. Bundled 3:1 WebP (short profile strip). */
+const PROFILE_COVER_URL = '/images/profile-cover.webp';
+const PROFILE_COVER_W = 1920;
+const PROFILE_COVER_H = 640;
 
 export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfileFormProps) {
   const navigate = useNavigate();
@@ -220,12 +220,15 @@ export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfi
         aria-label="Edit Profile"
       >
         <div className="relative">
-          <div className="relative h-28 overflow-hidden" role="img" aria-label="Cover Photo">
+          <div className="aspect-[3/1] relative overflow-hidden" role="img" aria-label="Cover Photo">
             <img
               src={PROFILE_COVER_URL}
               alt=""
-              className="absolute inset-0 size-full object-cover"
-              style={{ objectPosition: 'center 32%' }}
+              width={PROFILE_COVER_W}
+              height={PROFILE_COVER_H}
+              className="absolute inset-0 size-full object-cover object-[center_70%]"
+              decoding="async"
+              fetchPriority="high"
             />
             <div
               className="from-surface absolute inset-0 bg-gradient-to-t via-transparent to-transparent"
@@ -256,32 +259,33 @@ export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfi
         </div>
 
         <div className="flex flex-col gap-6 px-4">
-          <section className="border-border-subtle bg-surface rounded-card border p-3.5" aria-label="Profile Strength">
-            <div className="mb-2 flex items-baseline justify-between gap-2">
-              <span className="font-mono text-muted text-4xs font-bold tracking-eyebrow uppercase">
-                Profile Strength
-              </span>
-              <span className="text-brand-text font-mono text-sm font-extrabold tabular-nums">{strength}%</span>
-            </div>
-            <div
-              className="bg-surface-raised h-1.5 overflow-hidden rounded-full"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={strength}
+          {gaps.length > 0 ? (
+            <section
+              className="border-border-subtle bg-surface rounded-card border p-3.5"
               aria-label="Profile Strength"
             >
-              <div className="bg-brand h-full rounded-full" style={{ width: `${strength}%` }} />
-            </div>
-            <p className="text-muted mt-2.5 text-2xs leading-relaxed">
-              <span className="text-positive font-semibold">
-                {done} of {PROFILE_STRENGTH_TOTAL} done.
-              </span>{' '}
-              {left === 0
-                ? 'Your profile is complete.'
-                : `${left} ${left === 1 ? 'step' : 'steps'} left — complete profiles get picked for teams 4× more often.`}
-            </p>
-            {gaps.length > 0 ? (
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <span className="font-mono text-muted text-4xs font-bold tracking-eyebrow uppercase">
+                  Profile Strength
+                </span>
+                <span className="text-brand-text font-mono text-sm font-extrabold tabular-nums">{strength}%</span>
+              </div>
+              <div
+                className="bg-surface-raised h-1.5 overflow-hidden rounded-full"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={strength}
+                aria-label="Profile Strength"
+              >
+                <div className="bg-brand h-full rounded-full" style={{ width: `${strength}%` }} />
+              </div>
+              <p className="text-muted mt-2.5 text-2xs leading-relaxed">
+                <span className="text-positive font-semibold">
+                  {done} of {PROFILE_STRENGTH_TOTAL} done.
+                </span>{' '}
+                {left} {left === 1 ? 'step' : 'steps'} left — complete profiles get picked for teams 4× more often.
+              </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {gaps.map((gap) => (
                   <Chip key={gap.id} size="sm" onClick={() => jumpTo(gap.id)}>
@@ -289,8 +293,8 @@ export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfi
                   </Chip>
                 ))}
               </div>
-            ) : null}
-          </section>
+            </section>
+          ) : null}
 
           <FormSection title="Identity">
             <div id="profile-name">

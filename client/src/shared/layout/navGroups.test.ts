@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { APP_PATHS } from '@/shared/config/paths';
 
-import { buildNavGroups } from './navGroups';
+import { buildNavGroups, isActivePath } from './navGroups';
 
 function shopLabels(opts?: Parameters<typeof buildNavGroups>[0]): string[] {
   const shop = buildNavGroups(opts).find((g) => g.label === 'Shop');
@@ -27,5 +27,27 @@ describe('buildNavGroups seller rows', () => {
 
   it('hides both seller rows after rejection', () => {
     expect(shopLabels({ hasStore: false, canApplyAsSeller: false })).toEqual(['My Orders']);
+  });
+});
+
+describe('isActivePath', () => {
+  const playTargets = [APP_PATHS.tournaments, APP_PATHS.tournamentCreate, APP_PATHS.matches, APP_PATHS.quickMatch];
+
+  it('lights only Create Tournament on /tournaments/create', () => {
+    expect(isActivePath('/tournaments/create', APP_PATHS.tournaments, playTargets)).toBe(false);
+    expect(isActivePath('/tournaments/create', APP_PATHS.tournamentCreate, playTargets)).toBe(true);
+  });
+
+  it('lights My Tournaments on the list and nested detail routes', () => {
+    expect(isActivePath('/tournaments', APP_PATHS.tournaments, playTargets)).toBe(true);
+    expect(isActivePath('/tournaments/42', APP_PATHS.tournaments, playTargets)).toBe(true);
+    expect(isActivePath('/tournaments/42', APP_PATHS.tournamentCreate, playTargets)).toBe(false);
+  });
+
+  it('prefers Seller Apply over Seller Hub', () => {
+    const shopTargets = [APP_PATHS.seller, APP_PATHS.sellerApply, APP_PATHS.shopOrders];
+    expect(isActivePath('/seller/apply', APP_PATHS.seller, shopTargets)).toBe(false);
+    expect(isActivePath('/seller/apply', APP_PATHS.sellerApply, shopTargets)).toBe(true);
+    expect(isActivePath('/seller/products', APP_PATHS.seller, shopTargets)).toBe(true);
   });
 });
