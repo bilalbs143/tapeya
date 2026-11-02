@@ -14,10 +14,7 @@ import { HeroSliderService } from 'src/app/services/hero-slider.service';
 import { MediaService } from 'src/app/services/media.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
-import {
-  HERO_DESKTOP_UPLOAD_HINT,
-  HERO_MOBILE_UPLOAD_HINT,
-} from 'src/app/shared/constants/thumbnail.constants';
+import { HERO_DESKTOP_UPLOAD_HINT, HERO_MOBILE_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
 export interface ManageHeroSliderDialogData {

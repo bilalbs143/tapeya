@@ -33,19 +33,15 @@ export const LIVE_STREAM_THUMBNAIL_UPLOAD_HINT = thumbnailUploadHint(
   MEDIA_ASPECT.liveStreamThumbnail
 );
 
-export const HERO_MOBILE_UPLOAD_HINT =
-  'Default for all screens. Use 2:1 aspect ratio (same image works on mobile and desktop).';
+export const HERO_MOBILE_UPLOAD_HINT = 'Default for all screens. Use 2:1 aspect ratio (same image works on mobile and desktop).';
 
 export const HERO_DESKTOP_UPLOAD_HINT = 'Optional override for large screens. Use 2:1 aspect ratio.';
 
-export const TOURNAMENT_DISPLAY_IMAGE_UPLOAD_HINT =
-  'Shown on the tournament listing card. Use 16:9 aspect ratio.';
+export const TOURNAMENT_DISPLAY_IMAGE_UPLOAD_HINT = 'Shown on the tournament listing card. Use 16:9 aspect ratio.';
 
-export const TOURNAMENT_COVER_IMAGE_UPLOAD_HINT =
-  'Full-width banner on the tournament detail page. Use 16:9 aspect ratio.';
+export const TOURNAMENT_COVER_IMAGE_UPLOAD_HINT = 'Full-width banner on the tournament detail page. Use 16:9 aspect ratio.';
 
-export const HIGHLIGHT_THUMBNAIL_UPLOAD_HINT =
-  'Cover image shown on the highlights list and detail page. Use 16:9 aspect ratio.';
+export const HIGHLIGHT_THUMBNAIL_UPLOAD_HINT = 'Cover image shown on the highlights list and detail page. Use 16:9 aspect ratio.';
 
 export const DRAMA_SERIAL_POSTER_UPLOAD_HINT = 'Series cover. Use 2:3 aspect ratio.';
 
