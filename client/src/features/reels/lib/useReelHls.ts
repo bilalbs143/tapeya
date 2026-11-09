@@ -3,7 +3,14 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 
-import { applyInlineVideoAttributes, setReelVideoMuted, stopReelVideo } from './inlineVideo';
+import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
+import {
+  bindReelHls,
+  claimReelPlayback,
+  haltReelVideo,
+  releaseReelPlayback,
+  resumeReelHlsLoading,
+} from './reelPlaybackGate';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
 /** Immediate next slide — larger buffer for hitch-free snap. */
@@ -27,86 +34,6 @@ export function isHlsUrl(url: string | null | undefined): boolean {
 
 function canPlayNativeHls(video: HTMLVideoElement): boolean {
   return Boolean(video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL'));
-}
-
-/** Silent prime into buffer then pause at 0; next slide primes deeper than warm. */
-export function primeNeighborPlayback(
-  video: HTMLVideoElement,
-  options: { aggressive?: boolean | undefined } = {}
-): () => void {
-  const aggressive = Boolean(options.aggressive);
-  let cancelled = false;
-  let timer = 0;
-  const targetSeconds = aggressive ? 2.75 : 1.0;
-  const maxMs = aggressive ? 3200 : 1600;
-
-  const finish = () => {
-    if (cancelled) return;
-    cancelled = true;
-    video.removeEventListener('progress', onProgress);
-    video.removeEventListener('loadeddata', onProgress);
-    if (timer) window.clearTimeout(timer);
-    try {
-      stopReelVideo(video);
-      if (Number.isFinite(video.currentTime) && video.currentTime > 0.05) {
-        video.currentTime = 0;
-      }
-    } catch {
-      // Ignore pause/seek races while detaching.
-    }
-  };
-
-  const onProgress = () => {
-    if (cancelled) return;
-    try {
-      if (!video.buffered.length) return;
-      const end = video.buffered.end(video.buffered.length - 1);
-      const need =
-        Number.isFinite(video.duration) && video.duration > 0 ? Math.min(targetSeconds, video.duration) : targetSeconds;
-      if (end >= need) finish();
-    } catch {
-      // Ignore buffer inspection errors.
-    }
-  };
-
-  // Mute + volume 0 while priming — Android often ignores muted alone on hls.js.
-  setReelVideoMuted(video, true);
-  try {
-    video.volume = 0;
-  } catch {
-    // Ignore.
-  }
-  const attempt = video.play();
-  if (attempt && typeof attempt.then === 'function') {
-    void attempt
-      .then(() => {
-        if (cancelled) return;
-        setReelVideoMuted(video, true);
-        try {
-          video.volume = 0;
-        } catch {
-          // Ignore.
-        }
-        video.addEventListener('progress', onProgress);
-        video.addEventListener('loadeddata', onProgress);
-        onProgress();
-        timer = window.setTimeout(finish, maxMs);
-      })
-      .catch(() => {
-        // Autoplay may still be blocked for neighbors; HTTP prefetch covers that path.
-      });
-  } else {
-    timer = window.setTimeout(finish, maxMs);
-  }
-
-  return () => {
-    if (cancelled) return;
-    cancelled = true;
-    video.removeEventListener('progress', onProgress);
-    video.removeEventListener('loadeddata', onProgress);
-    if (timer) window.clearTimeout(timer);
-    stopReelVideo(video);
-  };
 }
 
 export type ReelPlaybackSource = {
@@ -152,6 +79,11 @@ type UseReelHlsOptions = {
   role?: ReelHlsRole | undefined;
 };
 
+/**
+ * Attach source for a reel slide.
+ * Neighbors must NOT call video.play() — Android + hls.js mixes audio from every playing element.
+ * Warming is HTTP prefetch + hls.js attach/startLoad only.
+ */
 export function useReelHls(
   videoRef: RefObject<HTMLVideoElement | null>,
   playback: ReelPlaybackSource | null | undefined,
@@ -163,12 +95,10 @@ export function useReelHls(
   const prevRoleRef = useRef(role);
   const resumeRef = useRef<{ time: number; wasPlaying: boolean } | null>(null);
   const sourceKeyRef = useRef<string | null>(null);
-  const stopPrimeRef = useRef<(() => void) | null>(null);
   const [failed, setFailed] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
   const [readyToken, setReadyToken] = useState(0);
 
-  // Keep role readable from async attach/prime without writing refs during render.
   useEffect(() => {
     roleRef.current = role;
   }, [role]);
@@ -176,16 +106,11 @@ export function useReelHls(
   const { url: sourceUrl, mode } = resolveReelPlaybackSource(playback);
   const useHls = mode === 'hls';
 
-  const stopPrime = useCallback(() => {
-    stopPrimeRef.current?.();
-    stopPrimeRef.current = null;
-  }, []);
-
   const destroy = useCallback(() => {
-    stopPrime();
+    const video = videoRef.current;
+    if (video) bindReelHls(video, null);
     hlsRef.current?.destroy();
     hlsRef.current = null;
-    const video = videoRef.current;
     if (video) {
       video.removeAttribute('src');
       try {
@@ -194,7 +119,7 @@ export function useReelHls(
         // Ignore load() on detached nodes.
       }
     }
-  }, [stopPrime, videoRef]);
+  }, [videoRef]);
 
   const retry = useCallback(() => {
     setFailed(false);
@@ -223,11 +148,12 @@ export function useReelHls(
           // Ignore seek failures on short clips.
         }
       }
-      // Re-check role — a fast swipe may have demoted active before onReady.
       if (resume.wasPlaying && roleRef.current === 'active') {
+        claimReelPlayback(video);
+        resumeReelHlsLoading(video);
         void video.play().catch(() => undefined);
       } else if (roleRef.current !== 'active') {
-        stopReelVideo(video);
+        haltReelVideo(video);
       }
     };
 
@@ -237,16 +163,6 @@ export function useReelHls(
       video.addEventListener('loadedmetadata', seek, { once: true });
     }
   }, []);
-
-  const maybePrimeNeighbor = useCallback(
-    (video: HTMLVideoElement) => {
-      const currentRole = roleRef.current;
-      if (currentRole === 'active') return;
-      stopPrime();
-      stopPrimeRef.current = primeNeighborPlayback(video, { aggressive: currentRole === 'next' });
-    },
-    [stopPrime]
-  );
 
   useEffect(() => {
     if (!enabled || !sourceUrl || !mode) {
@@ -261,8 +177,6 @@ export function useReelHls(
       const video = videoRef.current;
       const upgradingToHls = previousKey.startsWith('progressive:') && mode === 'hls';
       if (upgradingToHls && video) {
-        // Only resume audible play for the active slide. Neighbors mid silent-prime
-        // are not paused; treating that as wasPlaying would restart off-screen audio.
         resumeRef.current = {
           time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
           wasPlaying: roleRef.current === 'active' && !video.paused,
@@ -291,7 +205,15 @@ export function useReelHls(
         readyHandled = true;
         applyResume(video);
         bumpReady();
-        maybePrimeNeighbor(video);
+        // Neighbors stay paused — never silent-play (Android dual-audio).
+        if (roleRef.current !== 'active') {
+          setReelVideoMuted(video, true);
+          try {
+            video.pause();
+          } catch {
+            // Ignore.
+          }
+        }
       };
 
       if (mode === 'progressive') {
@@ -327,6 +249,7 @@ export function useReelHls(
         ...(currentRole !== 'active' ? { startLevel: 0 } : {}),
       });
       hlsRef.current = hls;
+      bindReelHls(video, hls);
       hls.loadSource(sourceUrl);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -334,7 +257,6 @@ export function useReelHls(
       });
 
       if (currentRole === 'active') {
-        // Wait for buffered media — MANIFEST_PARSED alone can fire play() before a fragment lands.
         const onFragBuffered = () => onReady();
         hls.on(Hls.Events.FRAG_BUFFERED, onFragBuffered);
         video.addEventListener('canplay', onReady, { once: true });
@@ -345,7 +267,6 @@ export function useReelHls(
           video.removeEventListener('loadeddata', onReady);
         };
       } else {
-        // Neighbors: light ready so silent prime can start ASAP.
         hls.on(Hls.Events.MANIFEST_PARSED, onReady);
         video.addEventListener('loadeddata', onReady, { once: true });
         removeReady = () => {
@@ -364,23 +285,28 @@ export function useReelHls(
       removeReady();
       destroy();
     };
-  }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume, maybePrimeNeighbor]);
+  }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume]);
 
-  // Promote next/warm → active without destroy/recreate (the snap we must not stall).
+  // Promote next/warm → active without destroy/recreate; demote hard-kills MSE audio.
   useEffect(() => {
-    const prevRole = prevRoleRef.current;
+    const previous = prevRoleRef.current;
     prevRoleRef.current = role;
     const hls = hlsRef.current;
+    const video = videoRef.current;
 
     if (role === 'active') {
-      stopPrime();
       if (!hls) return;
       hls.config.maxBufferLength = HLS_ACTIVE_BUFFER.maxBufferLength;
       hls.config.maxMaxBufferLength = HLS_ACTIVE_BUFFER.maxMaxBufferLength;
-      try {
-        hls.currentLevel = -1;
-      } catch {
-        // Native / detached instances may not expose currentLevel.
+      // May have been detachMedia()'d when a sibling claimed playback.
+      if (video) resumeReelHlsLoading(video);
+      else {
+        try {
+          hls.currentLevel = -1;
+          hls.startLoad(-1);
+        } catch {
+          // Native / detached instances may not expose these.
+        }
       }
       return;
     }
@@ -391,11 +317,11 @@ export function useReelHls(
       hls.config.maxMaxBufferLength = buffer.maxMaxBufferLength;
     }
 
-    // When a farther neighbor becomes the immediate next, deepen the silent prime.
-    if (role === 'next' && prevRole !== 'next' && prevRole !== 'active' && videoRef.current) {
-      maybePrimeNeighbor(videoRef.current);
-    }
-  }, [role, stopPrime, maybePrimeNeighbor, videoRef]);
+    if (!video) return;
+    // Leaving active: detach MSE. Warm neighbors that never played: soft pause only.
+    if (previous === 'active') releaseReelPlayback(video);
+    else haltReelVideo(video);
+  }, [role, videoRef]);
 
   return { sourceUrl, useHls, mode, failed, retry, readyToken };
 }
