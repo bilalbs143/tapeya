@@ -71,11 +71,16 @@ export function primeNeighborPlayback(
 
   video.muted = true;
   video.defaultMuted = true;
+  video.setAttribute('muted', '');
   const attempt = video.play();
   if (attempt && typeof attempt.then === 'function') {
     void attempt
       .then(() => {
         if (cancelled) return;
+        // Re-assert mute — a sibling unmute must never unmute a priming neighbor.
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute('muted', '');
         video.addEventListener('progress', onProgress);
         video.addEventListener('loadeddata', onProgress);
         onProgress();
@@ -217,9 +222,18 @@ export function useReelHls(
         }
       }
       // Re-check role at attach time — a fast swipe may have demoted active→next
-      // between capturing wasPlaying and HLS onReady.
+      // between capturing wasPlaying and HLS onReady. Never resume audio off-active.
       if (resume.wasPlaying && roleRef.current === 'active') {
         void video.play().catch(() => undefined);
+      } else if (roleRef.current !== 'active') {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute('muted', '');
+        try {
+          video.pause();
+        } catch {
+          // Ignore.
+        }
       }
     };
 

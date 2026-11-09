@@ -38,6 +38,14 @@ function formatClock(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+/** iOS/WebView: property + attribute must agree or a demoted reel can keep leaking audio. */
+function forceMute(video: HTMLVideoElement, muted: boolean) {
+  video.muted = muted;
+  video.defaultMuted = muted;
+  if (muted) video.setAttribute('muted', '');
+  else video.removeAttribute('muted');
+}
+
 /** One full-bleed reel frame — poster/video + scrubber + caption + action rail. */
 export function ReelSlide({
   reel,
@@ -91,54 +99,57 @@ export function ReelSlide({
     const el = videoRef.current;
     if (!el || !canPlay) return undefined;
 
+    let cancelled = false;
+    // Close over this effect's active — stale play() promises must bail after swipe.
+    const effectIsActive = active;
+
     const tryPlay = () => {
-      if (!active || failed) return;
+      if (cancelled || failed || !effectIsActive) return;
       // Unmuted first (or after session unlock); mute only when autoplay blocks sound.
-      el.muted = preferMuted;
-      el.defaultMuted = preferMuted;
-      if (!preferMuted) el.removeAttribute('muted');
+      forceMute(el, preferMuted);
       const attempt = el.play();
       if (!attempt || typeof attempt.then !== 'function') return;
       void attempt
         .then(() => {
+          // Stale generation: demote path owns mute/pause — just bail.
+          if (cancelled || !effectIsActive) return;
           if (!el.muted) unlockReelsAudio();
         })
         .catch(() => {
+          if (cancelled || !effectIsActive) return;
           if (el.muted) return;
-          el.muted = true;
-          el.defaultMuted = true;
+          forceMute(el, true);
           setMutedByPolicy(true);
           void el.play().catch(() => undefined);
         });
     };
 
-    if (active) {
+    if (effectIsActive) {
       tryPlay();
-    } else if (wasActiveRef.current) {
-      // Leaving active — stop audible playback.
-      // Do NOT pause on every readyToken for warm/next; that cancels silent priming.
-      el.pause();
-      setProgress(0);
+    } else {
+      // Always mute off-active. Pause only when leaving active so readyToken
+      // updates do not cancel silent neighbor priming.
+      forceMute(el, true);
+      if (wasActiveRef.current) {
+        el.pause();
+        setProgress(0);
+      }
     }
-    wasActiveRef.current = active;
-
-    // Neighbors must stay muted for silent prime.
-    if (!active) {
-      el.muted = true;
-      el.defaultMuted = true;
-    }
+    wasActiveRef.current = effectIsActive;
 
     const onVisibility = () => {
       if (document.hidden) {
-        if (active) el.pause();
+        if (effectIsActive) el.pause();
         return;
       }
       tryPlay();
     };
     document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [active, canPlay, readyToken, reel.id, preferMuted, failed]);
-
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !canPlay || !active) return undefined;
@@ -168,12 +179,9 @@ export function ReelSlide({
     unlockReelsAudio();
     setMutedByPolicy(false);
     if (!el) return;
-    el.muted = false;
-    el.defaultMuted = false;
-    el.removeAttribute('muted');
+    forceMute(el, false);
     void el.play().catch(() => {
-      el.muted = true;
-      el.defaultMuted = true;
+      forceMute(el, true);
       relockReelsAudio();
       setMutedByPolicy(true);
     });
