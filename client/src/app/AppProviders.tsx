@@ -2,7 +2,6 @@ import { type ReactNode, Suspense, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 
-import { TermsAcceptanceGate } from '@/features/auth';
 import { ReelUploadProgressDialog } from '@/features/reels';
 
 import { enumsApi } from '@/shared/api/enumsApi';
@@ -70,7 +69,6 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <RealtimeEffects />
                   <ProgrammaticDialogPrompts />
                   <DialogHost />
-                  <TermsAcceptanceGate />
                   <ReelUploadProgressDialog />
                   <ToastHost />
                 </EnumsPrefetch>

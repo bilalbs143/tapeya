@@ -165,22 +165,6 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
-
-    /** Guideline 1.2 — existing users who registered before terms were required. */
-    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- RTK Query no-arg mutation
-    acceptTerms: builder.mutation<ReturnType<typeof toUserSummary>, void>({
-      query: () => ({ url: '/me/accept-terms', method: 'POST' }),
-      transformResponse: (raw) => toUserSummary(unwrapData(userSummaryWireSchema)(raw)),
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(authApi.util.updateQueryData('me', undefined, () => data));
-        } catch {
-          // Mutation error surfaces via unwrap(); do not rethrow.
-        }
-      },
-      invalidatesTags: [{ type: 'User', id: 'ME' }],
-    }),
   }),
 });
 
@@ -193,5 +177,4 @@ export const {
   useUpdateProfileMutation,
   useDeleteAccountMutation,
   useLogoutMutation,
-  useAcceptTermsMutation,
 } = authApi;

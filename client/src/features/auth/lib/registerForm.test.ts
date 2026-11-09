@@ -3,24 +3,23 @@ import { describe, expect, it } from 'vitest';
 import { omitRegisterError, registerShellDescription, validateRegisterForm } from './registerForm';
 
 describe('validateRegisterForm', () => {
-  it('requires phone, name, nickname, and terms', () => {
-    expect(validateRegisterForm('', '', '', false)).toEqual({
+  it('requires phone, name, and nickname', () => {
+    expect(validateRegisterForm('', '', '')).toEqual({
       phone: 'Enter the number without the country code, digits only.',
       name: 'Required.',
       nickname: 'Required — teammates see this on the scorecard.',
-      acceptTerms: 'You must agree to the Terms of Use to create an account.',
     });
   });
 
   it('rejects non-letter names and nicknames', () => {
-    expect(validateRegisterForm('3001234567', 'Ali123', 'Nick!', true)).toEqual({
+    expect(validateRegisterForm('3001234567', 'Ali123', 'Nick!')).toEqual({
       name: 'Letters and spaces only.',
       nickname: 'Letters and spaces only.',
     });
   });
 
   it('passes a complete valid form', () => {
-    expect(validateRegisterForm('3001234567', 'Ali Khan', 'Ali', true)).toEqual({});
+    expect(validateRegisterForm('3001234567', 'Ali Khan', 'Ali')).toEqual({});
   });
 });
 

@@ -52,8 +52,7 @@ class UserAuthController extends Controller
                 'password' => null,
                 'type' => UserTypeEnum::USER,
                 'status' => UserStatusEnum::VERIFICATION_PENDING,
-                // Temporary: stamp on every register so store builds without accept_terms still work.
-                // Re-gate with RegisterRequest `accepted` + checkbox once those builds are live.
+                // Default when accept_terms is absent (or present) — client checkbox is UX-only.
                 'terms_accepted_at' => now(),
             ]);
         });

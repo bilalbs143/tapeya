@@ -30,8 +30,6 @@ export const registerInputSchema = z.object({
   name: z.string().min(1).max(255),
   nickname: z.string().min(1).max(50),
   phone: phoneSchema,
-  /** Laravel `accept_terms` — must be true (Guideline 1.2). */
-  accept_terms: z.literal(true),
 });
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 

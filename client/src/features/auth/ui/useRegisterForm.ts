@@ -20,7 +20,7 @@ import {
 } from '../lib/registerForm';
 import { authRoutes } from '../routes';
 
-/** Dial / name / nickname / terms state and register → OTP navigation. */
+/** Dial / name / nickname state and register → OTP navigation. */
 export function useRegisterForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,7 +33,6 @@ export function useRegisterForm() {
   const [national, setNational] = useState(state?.national ?? '');
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<RegisterFieldErrors>({});
   const [taken, setTaken] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -46,7 +45,7 @@ export function useRegisterForm() {
     e.preventDefault();
     setTaken(false);
     setSubmitted(true);
-    const next = validateRegisterForm(national, name, nickname, acceptTerms);
+    const next = validateRegisterForm(national, name, nickname);
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -54,11 +53,11 @@ export function useRegisterForm() {
     setBusy(true);
     try {
       // Register already sends OTP — do not call request-otp again.
+      // terms_accepted_at is stamped by the API when accept_terms is omitted.
       const result = await register({
         phone,
         name: name.trim(),
         nickname: nickname.trim(),
-        accept_terms: true,
       }).unwrap();
       startCooldown(phone);
       markJustRegistered(phone);
@@ -97,8 +96,6 @@ export function useRegisterForm() {
     setName,
     nickname,
     setNickname,
-    acceptTerms,
-    setAcceptTerms,
     errors,
     taken,
     busy,
@@ -109,7 +106,6 @@ export function useRegisterForm() {
     },
     clearNameError: () => setErrors((prev) => omitRegisterError(prev, 'name')),
     clearNicknameError: () => setErrors((prev) => omitRegisterError(prev, 'nickname')),
-    clearAcceptTermsError: () => setErrors((prev) => omitRegisterError(prev, 'acceptTerms')),
     submit,
   };
 }

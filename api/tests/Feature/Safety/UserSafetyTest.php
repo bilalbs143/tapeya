@@ -107,7 +107,7 @@ class UserSafetyTest extends TestCase
 
     public function test_register_stamps_terms_accepted_at_without_accept_terms_flag(): void
     {
-        // Temporary until store apps with the Terms checkbox are deployed.
+        // accept_terms may be omitted — register still stamps terms_accepted_at.
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Test User',
             'nickname' => 'Tester',
