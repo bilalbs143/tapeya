@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 
-import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
+import { applyInlineVideoAttributes, setReelVideoMuted, stopReelVideo } from './inlineVideo';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
 /** Immediate next slide — larger buffer for hitch-free snap. */
@@ -47,7 +47,7 @@ export function primeNeighborPlayback(
     video.removeEventListener('loadeddata', onProgress);
     if (timer) window.clearTimeout(timer);
     try {
-      video.pause();
+      stopReelVideo(video);
       if (Number.isFinite(video.currentTime) && video.currentTime > 0.05) {
         video.currentTime = 0;
       }
@@ -69,13 +69,24 @@ export function primeNeighborPlayback(
     }
   };
 
+  // Mute + volume 0 while priming — Android often ignores muted alone on hls.js.
   setReelVideoMuted(video, true);
+  try {
+    video.volume = 0;
+  } catch {
+    // Ignore.
+  }
   const attempt = video.play();
   if (attempt && typeof attempt.then === 'function') {
     void attempt
       .then(() => {
         if (cancelled) return;
         setReelVideoMuted(video, true);
+        try {
+          video.volume = 0;
+        } catch {
+          // Ignore.
+        }
         video.addEventListener('progress', onProgress);
         video.addEventListener('loadeddata', onProgress);
         onProgress();
@@ -94,11 +105,7 @@ export function primeNeighborPlayback(
     video.removeEventListener('progress', onProgress);
     video.removeEventListener('loadeddata', onProgress);
     if (timer) window.clearTimeout(timer);
-    try {
-      video.pause();
-    } catch {
-      // Ignore.
-    }
+    stopReelVideo(video);
   };
 }
 
@@ -220,12 +227,7 @@ export function useReelHls(
       if (resume.wasPlaying && roleRef.current === 'active') {
         void video.play().catch(() => undefined);
       } else if (roleRef.current !== 'active') {
-        setReelVideoMuted(video, true);
-        try {
-          video.pause();
-        } catch {
-          // Ignore.
-        }
+        stopReelVideo(video);
       }
     };
 

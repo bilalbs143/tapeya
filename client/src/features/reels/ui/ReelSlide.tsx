@@ -4,7 +4,7 @@ import { cn } from '@/shared/lib/cn';
 import { SpeakerIcon } from '@/shared/ui/icons';
 import { Scrubber } from '@/shared/ui/Scrubber';
 
-import { setReelVideoMuted } from '../lib/inlineVideo';
+import { armReelVideoAudio, setReelVideoMuted, stopReelVideo } from '../lib/inlineVideo';
 import { isReelsAudioUnlocked, relockReelsAudio, unlockReelsAudio } from '../lib/reelsAudioSession';
 import { useReelHls } from '../lib/useReelHls';
 import type { Reel } from '../model/schemas';
@@ -95,6 +95,7 @@ export function ReelSlide({
 
     const tryPlay = () => {
       if (cancelled || !active || failed) return;
+      armReelVideoAudio(el);
       setReelVideoMuted(el, preferMuted);
       const attempt = el.play();
       if (!attempt || typeof attempt.then !== 'function') return;
@@ -115,8 +116,8 @@ export function ReelSlide({
     if (active) {
       tryPlay();
     } else if (wasActiveRef.current) {
-      setReelVideoMuted(el, true);
-      el.pause();
+      // Left active — Android needs volume 0, not just mute+pause.
+      stopReelVideo(el);
       setProgress(0);
     } else {
       setReelVideoMuted(el, true);
@@ -133,7 +134,7 @@ export function ReelSlide({
     };
     const onVisibility = () => {
       if (document.hidden) {
-        if (active) el.pause();
+        if (active) stopReelVideo(el);
         return;
       }
       tryPlay();
@@ -150,11 +151,8 @@ export function ReelSlide({
       document.removeEventListener('visibilitychange', onVisibility);
       el.removeEventListener('playing', onPlaying);
       el.removeEventListener('timeupdate', onTimeUpdate);
-      // Swipe: stop this reel before the next one starts (prevents dual audio).
-      if (active) {
-        setReelVideoMuted(el, true);
-        el.pause();
-      }
+      // Swipe: stop before the next reel starts (Android dual-audio fix).
+      if (active) stopReelVideo(el);
     };
   }, [active, canPlay, readyToken, reel.id, preferMuted, failed]);
 
@@ -163,9 +161,10 @@ export function ReelSlide({
     unlockReelsAudio();
     setMutedByPolicy(false);
     if (!el) return;
+    armReelVideoAudio(el);
     setReelVideoMuted(el, false);
     void el.play().catch(() => {
-      setReelVideoMuted(el, true);
+      stopReelVideo(el);
       relockReelsAudio();
       setMutedByPolicy(true);
     });

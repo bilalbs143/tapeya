@@ -19,3 +19,31 @@ export function setReelVideoMuted(video: HTMLVideoElement, muted: boolean): void
   if (muted) video.setAttribute('muted', '');
   else video.removeAttribute('muted');
 }
+
+/**
+ * Stop a demoted reel hard. Android Chromium/WebView often keeps decoding audio after
+ * mute+pause alone — volume 0 closes that path. Call {@link armReelVideoAudio} before
+ * audible play on the new active slide.
+ */
+export function stopReelVideo(video: HTMLVideoElement): void {
+  setReelVideoMuted(video, true);
+  try {
+    video.volume = 0;
+  } catch {
+    // Ignore.
+  }
+  try {
+    video.pause();
+  } catch {
+    // Ignore.
+  }
+}
+
+/** Restore audible level after {@link stopReelVideo} (safe on iOS too). */
+export function armReelVideoAudio(video: HTMLVideoElement): void {
+  try {
+    video.volume = 1;
+  } catch {
+    // Ignore.
+  }
+}
