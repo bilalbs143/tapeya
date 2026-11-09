@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 
-import { applyInlineVideoAttributes } from './inlineVideo';
+import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
 /** Immediate next slide — larger buffer for hitch-free snap. */
@@ -69,18 +69,13 @@ export function primeNeighborPlayback(
     }
   };
 
-  video.muted = true;
-  video.defaultMuted = true;
-  video.setAttribute('muted', '');
+  setReelVideoMuted(video, true);
   const attempt = video.play();
   if (attempt && typeof attempt.then === 'function') {
     void attempt
       .then(() => {
         if (cancelled) return;
-        // Re-assert mute — a sibling unmute must never unmute a priming neighbor.
-        video.muted = true;
-        video.defaultMuted = true;
-        video.setAttribute('muted', '');
+        setReelVideoMuted(video, true);
         video.addEventListener('progress', onProgress);
         video.addEventListener('loadeddata', onProgress);
         onProgress();
@@ -221,14 +216,11 @@ export function useReelHls(
           // Ignore seek failures on short clips.
         }
       }
-      // Re-check role at attach time — a fast swipe may have demoted active→next
-      // between capturing wasPlaying and HLS onReady. Never resume audio off-active.
+      // Re-check role — a fast swipe may have demoted active before onReady.
       if (resume.wasPlaying && roleRef.current === 'active') {
         void video.play().catch(() => undefined);
       } else if (roleRef.current !== 'active') {
-        video.muted = true;
-        video.defaultMuted = true;
-        video.setAttribute('muted', '');
+        setReelVideoMuted(video, true);
         try {
           video.pause();
         } catch {
