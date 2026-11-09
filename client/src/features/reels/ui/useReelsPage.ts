@@ -42,8 +42,6 @@ export function useReelsPage() {
   const [tab, setTab] = useState<ReelTab>('explore');
   const [cursor, setCursor] = useState<string | undefined>();
   const [active, setActive] = useState(0);
-  const [muted, setMuted] = useState(true);
-  const [soundTip, setSoundTip] = useState(true);
   const [commentsForId, setCommentsForId] = useState<number | null>(null);
   const [reportForId, setReportForId] = useState<number | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -107,7 +105,7 @@ export function useReelsPage() {
     if (!isFetching) loadMoreLock.current = false;
   }, [isFetching]);
 
-  /** Prefetch posters + first bytes for upcoming slides. */
+  /** Prefetch posters + first bytes — active alone first, then upcoming. */
   useReelPrefetch(ordered, active);
 
   // Load next page near scroll end (~2 viewports) so prefetch/player window stay fed.
@@ -268,10 +266,6 @@ export function useReelsPage() {
     ordered,
     current,
     active,
-    muted,
-    setMuted,
-    soundTip,
-    setSoundTip,
     commentsForId,
     setCommentsForId,
     reportForId,

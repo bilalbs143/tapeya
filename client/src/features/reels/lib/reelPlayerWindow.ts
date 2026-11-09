@@ -1,4 +1,4 @@
-/** Player window — 1 behind, 4 ahead (forward-biased for snap). */
+/** Player window — 1 behind, 3 ahead (forward-biased for snap). */
 
 /** Slides before the active index that keep a live player. */
 export function getReelPlayerBehind(): number {
@@ -7,7 +7,7 @@ export function getReelPlayerBehind(): number {
 
 /** Slides after the active index that keep a live player. */
 export function getReelPlayerAhead(): number {
-  return 4;
+  return 3;
 }
 
 /** Max of ahead/behind — tests and symmetric call sites. */

@@ -169,7 +169,22 @@ export async function runPrefetchPool<T>(
   );
 }
 
-/** Warm poster + first media bytes for upcoming slides after `activeIndex`. Queue order preserves +1 priority so the next snap stays hot. */
+/**
+ * Prefetch order: active first (cold-start TTFF), then +1…depth so the next snap stays hot.
+ * Depth 0 (Save-Data / 2G) still returns the active reel alone when present.
+ */
+export function buildReelPrefetchQueue(reels: PrefetchReel[], activeIndex: number, depth: number): PrefetchReel[] {
+  const queue: PrefetchReel[] = [];
+  const active = reels[activeIndex];
+  if (active) queue.push(active);
+  for (let offset = 1; offset <= depth; offset += 1) {
+    const reel = reels[activeIndex + offset];
+    if (reel) queue.push(reel);
+  }
+  return queue;
+}
+
+/** Warm the active reel first (solo), then pool upcoming slides so cold-start TTFF wins. */
 export function useReelPrefetch(reels: PrefetchReel[], activeIndex: number): void {
   const inflightRef = useRef<AbortController | null>(null);
 
@@ -177,29 +192,29 @@ export function useReelPrefetch(reels: PrefetchReel[], activeIndex: number): voi
     if (!Array.isArray(reels) || reels.length === 0) return undefined;
 
     const depth = getReelPrefetchDepth();
-    if (depth < 1) return undefined;
+    const queue = buildReelPrefetchQueue(reels, activeIndex, depth);
+    if (queue.length === 0) return undefined;
 
     inflightRef.current?.abort();
     const controller = new AbortController();
     inflightRef.current = controller;
 
-    const queue: PrefetchReel[] = [];
-    for (let offset = 1; offset <= depth; offset += 1) {
-      const reel = reels[activeIndex + offset];
-      if (reel) queue.push(reel);
-    }
-    if (queue.length === 0) return undefined;
-
     let cancelled = false;
-    void runPrefetchPool(
-      queue,
-      async (reel) => {
+    void (async () => {
+      const [activeReel, ...upcoming] = queue;
+      const warmOne = async (reel: PrefetchReel) => {
         if (cancelled || controller.signal.aborted) return;
-        await warmReel(reel, controller.signal);
-      },
-      PREFETCH_CONCURRENCY,
-      controller.signal
-    );
+        try {
+          await warmReel(reel, controller.signal);
+        } catch {
+          // Prefetch is best-effort (CORS / abort).
+        }
+      };
+
+      if (activeReel) await warmOne(activeReel);
+      if (cancelled || controller.signal.aborted || upcoming.length === 0) return;
+      await runPrefetchPool(upcoming, warmOne, PREFETCH_CONCURRENCY, controller.signal);
+    })();
 
     return () => {
       cancelled = true;
