@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import { useGetRankingsQuery } from '../api/rankingApi';
-import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '../lib/constants';
+import { RANKING_TOURNAMENT_TYPE } from '../lib/constants';
 import { rankingQueryForStatType, rankingStatTitle, resolveRankingStatsParam } from '../lib/rankingStats';
 import { buildStatsTotalRows, statsTotalColumns } from '../model/schemas';
 import { rankingRoutes } from '../routes';
@@ -15,7 +15,6 @@ export function useRankingStats(rawType: string | undefined) {
   const { data, isLoading, isError, refetch } = useGetRankingsQuery(
     {
       tournamentType: RANKING_TOURNAMENT_TYPE,
-      cricketFormat: RANKING_CRICKET_FORMAT,
       category: query.category,
       sort: query.sort,
     },

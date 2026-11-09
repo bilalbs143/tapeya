@@ -14,10 +14,19 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-export function isActivePath(pathname: string, to: string): boolean {
+function pathMatches(pathname: string, to: string): boolean {
   if (!pathname || !to) return false;
   if (to === '/') return pathname === '/';
   return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+/**
+ * Whether `to` should show as the active drawer/SideNav row.
+ * Pass every nav `to` so a longer sibling wins (e.g. `/tournaments/create` over `/tournaments`).
+ */
+export function isActivePath(pathname: string, to: string, navTargets: readonly string[] = []): boolean {
+  if (!pathMatches(pathname, to)) return false;
+  return !navTargets.some((other) => other !== to && other.length > to.length && pathMatches(pathname, other));
 }
 
 /** Side menu groups for phone drawer and desktop SideNav. */

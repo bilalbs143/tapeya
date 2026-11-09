@@ -6,7 +6,7 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { PageDock } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, PostSkeleton, ReelGridSkeleton, SKELETON } from '@/shared/ui/states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { YOU_PROFILE_TABS } from '../lib/youPage';
@@ -22,6 +22,8 @@ type YouPageBodyProps = {
 
 /** Own header + Reels · Posts · Saved shelves. */
 export function YouPageBody({ flow }: YouPageBodyProps) {
+  const reelCount = SKELETON.reelGrid;
+  const postCount = SKELETON.posts;
   const {
     me,
     tab,
@@ -78,11 +80,7 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
       >
         <TabsContent value="reels" className="mt-0 p-4">
           {reelsLoading ? (
-            <div className="grid grid-cols-3 gap-1.5">
-              <Skeleton className="aspect-reel-poster rounded-icon" />
-              <Skeleton className="aspect-reel-poster rounded-icon" />
-              <Skeleton className="aspect-reel-poster rounded-icon" />
-            </div>
+            <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
           ) : reelsError ? (
             <ErrorState title="Couldn't Load Reels" onRetry={() => void refetchReels()} />
           ) : reels.length ? (
@@ -98,9 +96,10 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
 
         <TabsContent value="posts" className="mt-0">
           {postsLoading ? (
-            <div className="flex flex-col gap-2 p-4">
-              <Skeleton className="h-24 w-full rounded-card" />
-              <Skeleton className="h-24 w-full rounded-card" />
+            <div className="flex flex-col" aria-busy="true" aria-label="Loading Posts">
+              {Array.from({ length: postCount }, (_, i) => (
+                <PostSkeleton key={i} className="rounded-none border-0 border-b shadow-none" />
+              ))}
             </div>
           ) : postsError ? (
             <div className="px-4 py-8">
@@ -133,8 +132,10 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
 
         <TabsContent value="saved" className="mt-0">
           {savedLoading ? (
-            <div className="flex flex-col gap-2 p-4">
-              <Skeleton className="h-24 w-full rounded-card" />
+            <div className="flex flex-col" aria-busy="true" aria-label="Loading Saved">
+              {Array.from({ length: postCount }, (_, i) => (
+                <PostSkeleton key={i} className="rounded-none border-0 border-b shadow-none" />
+              ))}
             </div>
           ) : savedError ? (
             <div className="px-4 py-8">

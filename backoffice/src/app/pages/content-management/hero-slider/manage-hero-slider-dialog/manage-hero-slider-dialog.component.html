@@ -12,7 +12,7 @@
             label="Mobile Image (Default)"
             accept="image/jpeg,image/png,image/webp"
             acceptLabel="JPG, PNG, WebP"
-            hint="Default for all screens. 2:1 ratio — 1600×800 px recommended (same image works on mobile and desktop)."
+            [hint]="mobileImageHint"
             [required]="!isEdit"
             [maxSizeMb]="5"
           ></app-file-upload>
@@ -27,7 +27,7 @@
             label="Desktop Image"
             accept="image/jpeg,image/png,image/webp"
             acceptLabel="JPG, PNG, WebP"
-            hint="Optional override for large screens. Same 2:1 ratio — 1920×960 px recommended if you upload a separate file."
+            [hint]="desktopImageHint"
             [maxSizeMb]="5"
           ></app-file-upload>
         </div>

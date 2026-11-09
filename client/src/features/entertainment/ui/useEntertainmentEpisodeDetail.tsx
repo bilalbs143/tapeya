@@ -92,12 +92,6 @@ export function useEntertainmentEpisodeDetail({ episode, routeSerialId }: UseEnt
   const shareSerialId = episode.serial?.id ?? routeSerialId;
   const comments = commentsPage?.items ?? [];
   const commentsTotal = commentsPage?.total ?? episode.commentsCount;
-  const meta = [
-    episode.episodeNumber > 0 ? `EP ${episode.episodeNumber}` : null,
-    episode.viewsCount > 0 ? `${compactCount(episode.viewsCount)} views` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 
   async function handleLike() {
     if (reacting) return;
@@ -261,7 +255,6 @@ export function useEntertainmentEpisodeDetail({ episode, routeSerialId }: UseEnt
     backTo,
     comments,
     commentsTotal,
-    meta,
     draft,
     setDraft,
     replyTo,

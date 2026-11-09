@@ -1,37 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useCricketFormatOptions } from '@/shared/api/enumsApi';
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { toast } from '@/shared/ui/toast';
 
 import { useCreateQuickMatchMutation } from '../api/matchesApi';
 import {
-  QUICK_MATCH_DEFAULT_BALL,
   QUICK_MATCH_DEFAULT_OVERS,
   QUICK_MATCH_DEFAULT_PLAYERS,
   type QuickMatchAddMode,
   quickMatchSetupStatus,
   type QuickMatchSide,
 } from '../lib/quickMatchForm';
-import {
-  type BallTypeId,
-  buildQuickMatchPayload,
-  quickMatchGate,
-  type QuickMatchPlayer,
-} from '../lib/quickMatchPayload';
+import { buildQuickMatchPayload, quickMatchGate, type QuickMatchPlayer } from '../lib/quickMatchPayload';
 import { matchRoutes } from '../routes';
 
 /** Free overs/players steppers; toss only when both sides are a full XI. */
 export function useQuickMatchForm() {
   const navigate = useNavigate();
   const [createMatch, { isLoading }] = useCreateQuickMatchMutation();
-  const {
-    options: ballTypes,
-    isLoading: enumsLoading,
-    isError: enumsError,
-    refetch: refetchEnums,
-  } = useCricketFormatOptions();
   const [homeName, setHomeName] = useState('');
   const [awayName, setAwayName] = useState('');
   const [homePlayers, setHomePlayers] = useState<QuickMatchPlayer[]>([]);
@@ -39,11 +26,8 @@ export function useQuickMatchForm() {
   const [adding, setAdding] = useState<{ side: QuickMatchSide; mode: QuickMatchAddMode } | null>(null);
   const [overs, setOvers] = useState(QUICK_MATCH_DEFAULT_OVERS);
   const [players, setPlayers] = useState(QUICK_MATCH_DEFAULT_PLAYERS);
-  const [ball, setBall] = useState<BallTypeId>(QUICK_MATCH_DEFAULT_BALL);
 
-  const resolvedBall = ballTypes.some((o) => o.value === ball) ? ball : (ballTypes[0]?.value ?? ball);
   const gate = quickMatchGate({
-    cricketFormat: resolvedBall,
     overs,
     playersPerSide: players,
     homeName,
@@ -52,7 +36,6 @@ export function useQuickMatchForm() {
     awayPlayers,
   });
   const takenIds = [...homePlayers, ...awayPlayers].flatMap((player) => (player.userId != null ? [player.userId] : []));
-  const ballLabel = ballTypes.find((item) => item.value === resolvedBall)?.label ?? 'Ball';
   const status = quickMatchSetupStatus(gate, homeName, awayName, homePlayers.length, awayPlayers.length, players);
 
   function setSideSize(next: number) {
@@ -78,7 +61,6 @@ export function useQuickMatchForm() {
     setAwayPlayers([]);
     setOvers(QUICK_MATCH_DEFAULT_OVERS);
     setPlayers(QUICK_MATCH_DEFAULT_PLAYERS);
-    setBall(QUICK_MATCH_DEFAULT_BALL);
     setAdding(null);
   }
 
@@ -88,7 +70,6 @@ export function useQuickMatchForm() {
     try {
       const result = await createMatch(
         buildQuickMatchPayload({
-          cricketFormat: resolvedBall,
           overs,
           playersPerSide: players,
           homeName,
@@ -116,10 +97,6 @@ export function useQuickMatchForm() {
   return {
     navigate,
     isLoading,
-    ballTypes,
-    enumsLoading,
-    enumsError,
-    refetchEnums,
     homeName,
     setHomeName,
     awayName,
@@ -134,11 +111,8 @@ export function useQuickMatchForm() {
     setOvers,
     players,
     setSideSize,
-    resolvedBall,
-    setBall,
     gate,
     takenIds,
-    ballLabel,
     status,
     addPlayer,
     reset,

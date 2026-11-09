@@ -33,8 +33,8 @@ function OrderCard({ order }: { order: ShopOrder }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="bg-surface-raised h-11 w-11 shrink-0 overflow-hidden rounded-panel">
-          {first?.imageUrl ? <img src={first.imageUrl} alt="" className="h-full w-full object-cover" /> : null}
+        <span className="bg-surface-raised aspect-shop-product w-11 shrink-0 overflow-hidden rounded-panel">
+          {first?.imageUrl ? <img src={first.imageUrl} alt="" className="h-full w-full object-contain" /> : null}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-2xs leading-normal font-semibold text-body">{title}</span>

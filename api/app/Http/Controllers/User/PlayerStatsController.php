@@ -21,10 +21,9 @@ class PlayerStatsController extends Controller
     use BaseControllerTrait;
 
     /**
-     * Accumulative stats for a player (profile), optionally by tournament_type and cricket_format.
+     * Accumulative stats for a player (profile), optionally by tournament_type.
      *
      * Query: tournament_type = open_tournament | private_tournament | quick | all (default: all)
-     *        cricket_format = hard_ball | tape_ball | tennis_ball | hard_tennis | all (default: all)
      *
      * `all` = tournament career only (excludes quick). Use tournament_type=quick for casual career.
      */
@@ -33,7 +32,6 @@ class PlayerStatsController extends Controller
         try {
             $bucket = StatBucketFilters::fromProfileQuery(
                 request()->query('tournament_type', 'all'),
-                request()->query('cricket_format', 'all'),
             );
         } catch (InvalidArgumentException $e) {
             return $this->failure($e->getMessage());
@@ -44,10 +42,9 @@ class PlayerStatsController extends Controller
         $data = [
             'player_id' => $user->id,
             'tournament_type' => $bucket['tournamentTypeQuery'],
-            'cricket_format' => $bucket['cricketFormatQuery'],
-            'batting' => $service->battingForPlayer($user->id, $bucket['statsBucket'], $bucket['cricketFormat']),
-            'bowling' => $service->bowlingForPlayer($user->id, $bucket['statsBucket'], $bucket['cricketFormat']),
-            'fielding' => $service->fieldingForPlayer($user->id, $bucket['statsBucket'], $bucket['cricketFormat']),
+            'batting' => $service->battingForPlayer($user->id, $bucket['statsBucket']),
+            'bowling' => $service->bowlingForPlayer($user->id, $bucket['statsBucket']),
+            'fielding' => $service->fieldingForPlayer($user->id, $bucket['statsBucket']),
         ];
 
         return $this->success($data);
@@ -56,16 +53,15 @@ class PlayerStatsController extends Controller
     /**
      * Where this player sits on a leaderboard (same rules as GET /rankings).
      *
-     * Query: tournament_type, cricket_format, category, sort, min_innings (qualification threshold)
+     * Query: tournament_type, category, sort, min_innings (qualification threshold)
      */
     public function rankingPosition(User $user): JsonResponse
     {
         $tournamentType = request()->query('tournament_type', 'open_tournament');
-        $cricketFormat = request()->query('cricket_format', 'all');
         $minQualifyingCount = (int) request()->query('min_innings', 0);
 
         try {
-            $bucket = StatBucketFilters::fromRankingsQuery($tournamentType, $cricketFormat);
+            StatBucketFilters::fromRankingsQuery($tournamentType);
             $categoryEnum = StatBucketFilters::parseCategoryOptional(
                 request()->query('category'),
                 StatCategoryEnum::defaultForPlayingRole($user->playing_role),
@@ -82,13 +78,11 @@ class PlayerStatsController extends Controller
             $categoryEnum->value,
             $sort,
             $minQualifyingCount,
-            $cricketFormat
         );
 
         return $this->success([
             'rank' => $rank,
             'tournament_type' => $tournamentType,
-            'cricket_format' => $cricketFormat,
             'category' => $categoryEnum->value,
             'sort' => $sort,
         ]);

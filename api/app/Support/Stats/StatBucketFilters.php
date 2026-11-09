@@ -2,7 +2,6 @@
 
 namespace App\Support\Stats;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Stats\StatCategoryEnum;
 use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
@@ -15,18 +14,14 @@ final class StatBucketFilters
      *
      * @return array{
      *     statsBucket: StatsBucketEnum|null,
-     *     cricketFormat: CricketFormatEnum|null,
-     *     tournamentTypeQuery: string,
-     *     cricketFormatQuery: string
+     *     tournamentTypeQuery: string
      * }
      */
-    public static function fromProfileQuery(string $tournamentType = 'all', string $cricketFormat = 'all'): array
+    public static function fromProfileQuery(string $tournamentType = 'all'): array
     {
         return [
             'statsBucket' => self::parseStatsBucket($tournamentType, allowAll: true),
-            'cricketFormat' => self::parseCricketFormat($cricketFormat, allowAll: true),
             'tournamentTypeQuery' => $tournamentType,
-            'cricketFormatQuery' => $cricketFormat,
         ];
     }
 
@@ -35,12 +30,10 @@ final class StatBucketFilters
      *
      * @return array{
      *     tournamentType: TournamentTypeEnum,
-     *     cricketFormat: CricketFormatEnum|null,
-     *     tournamentTypeQuery: string,
-     *     cricketFormatQuery: string
+     *     tournamentTypeQuery: string
      * }
      */
-    public static function fromRankingsQuery(string $tournamentType, string $cricketFormat = 'all'): array
+    public static function fromRankingsQuery(string $tournamentType): array
     {
         if ($tournamentType === 'all' || $tournamentType === StatsBucketEnum::QUICK->value) {
             throw new InvalidArgumentException('tournament_type must be one of: open_tournament, private_tournament.');
@@ -53,9 +46,7 @@ final class StatBucketFilters
 
         return [
             'tournamentType' => $type,
-            'cricketFormat' => self::parseCricketFormat($cricketFormat, allowAll: true),
             'tournamentTypeQuery' => $tournamentType,
-            'cricketFormatQuery' => $cricketFormat,
         ];
     }
 
@@ -112,23 +103,5 @@ final class StatBucketFilters
         }
 
         return self::parseCategory($value);
-    }
-
-    private static function parseCricketFormat(string $value, bool $allowAll): ?CricketFormatEnum
-    {
-        if ($value === 'all') {
-            if (! $allowAll) {
-                throw new InvalidArgumentException('Invalid cricket_format. Use a cricket format value or all.');
-            }
-
-            return null;
-        }
-
-        $enum = CricketFormatEnum::tryFrom($value);
-        if ($enum === null) {
-            throw new InvalidArgumentException('Invalid cricket_format. Use: hard_ball, tape_ball, tennis_ball, hard_tennis, all.');
-        }
-
-        return $enum;
     }
 }

@@ -2,7 +2,7 @@
 export const MEDIA_ASPECT = {
   highlight: 16 / 9,
   tournamentCover: 16 / 9,
-  shopProduct: 1,
+  shopProduct: 3 / 4,
   reelPoster: 9 / 16,
   showPoster: 2 / 3,
   postImage: 4 / 3,

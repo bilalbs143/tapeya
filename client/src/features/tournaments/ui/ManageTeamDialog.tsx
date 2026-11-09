@@ -123,7 +123,7 @@ export function ManageTeamDialog({
     : Boolean(form.name.trim() && form.code.trim() && form.city.trim() && form.country.trim()) &&
       (!hasGroups || groupIndex != null);
 
-  const saveLabel = picked ? 'Add This Team to Tournament' : 'Create & Add to Tournament';
+  const saveLabel = picked ? 'Add Team' : 'Create & Add';
   const busyLabel = picked ? 'Adding…' : 'Creating…';
 
   function resetLocal(nextGroup?: number | undefined) {
@@ -430,11 +430,11 @@ export function ManageTeamDialog({
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="secondary" size="md" disabled={busy}>
+          <Button variant="secondary" size="md" className="shrink-0 px-4 font-bold" disabled={busy}>
             Cancel
           </Button>
         </DialogClose>
-        <Button type="submit" form="manage-team-form" size="md" disabled={!valid || busy}>
+        <Button type="submit" form="manage-team-form" size="md" className="font-bold" disabled={!valid || busy}>
           {busy ? busyLabel : saveLabel}
         </Button>
       </DialogFooter>

@@ -37,7 +37,7 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'nickname' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', Rule::unique('users', 'phone')],
-            // Optional until store builds with the Terms checkbox ship. Controller always stamps terms_accepted_at.
+            // Optional — clients may omit it; register always stamps terms_accepted_at.
             'accept_terms' => ['sometimes', 'boolean'],
         ];
     }

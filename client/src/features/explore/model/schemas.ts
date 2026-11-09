@@ -47,6 +47,37 @@ export function toSuggestedUser(wire: SuggestedUserWire): SuggestedUser {
   };
 }
 
+/** `GET /users/search` — mention/follow directory (nickname-bearing app users). */
+export const searchUserWireSchema = z.object({
+  id: z.number(),
+  name: z.string().nullable(),
+  nickname: z.string().nullable(),
+  avatar_url: z.string().nullable(),
+  is_official: z.boolean().optional(),
+  is_following: z.boolean().optional(),
+});
+
+export type SearchUserWire = z.infer<typeof searchUserWireSchema>;
+
+export function toSearchSuggestedUser(wire: SearchUserWire): SuggestedUser {
+  const nickname = wire.nickname?.trim() || null;
+  const name = wire.name?.trim() || nickname || 'Player';
+  const handle = nickname || `user${wire.id}`;
+  const isOfficial = Boolean(wire.is_official);
+  return {
+    id: wire.id,
+    name,
+    handle,
+    nickname,
+    avatarUrl: wire.avatar_url,
+    isOfficial,
+    followersCount: 0,
+    role: null,
+    following: Boolean(wire.is_following),
+    subtitle: isOfficial ? 'Official account' : nickname ? `@${nickname}` : 'Player',
+  };
+}
+
 export const followResultWireSchema = z.object({
   followers_count: z.number(),
   following_count: z.number(),

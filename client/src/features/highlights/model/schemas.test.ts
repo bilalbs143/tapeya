@@ -60,6 +60,14 @@ describe('sort / filter / related', () => {
   it('filters by title and related', () => {
     expect(filterByTitle(items, 'hat').map((h) => h.id)).toEqual([1]);
     expect(relatedHighlights(items, 2, 2).map((h) => h.id)).toEqual([1, 3]);
+    expect(relatedHighlights(items, 2).map((h) => h.id)).toEqual([1, 3]);
+  });
+
+  it('caps related at ten by default', () => {
+    const many = Array.from({ length: 14 }, (_, i) =>
+      toDomain({ id: i + 1, title: `Clip ${i + 1}`, views_count: i, created_at: '2026-01-01T00:00:00Z' })
+    );
+    expect(relatedHighlights(many, 1)).toHaveLength(10);
   });
 
   it('compacts counts', () => {

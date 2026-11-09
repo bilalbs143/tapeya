@@ -35,7 +35,6 @@ export type RankingRowWire = z.infer<typeof rankingRowWireSchema>;
 
 export const rankingsPayloadWireSchema = z.object({
   tournament_type: z.string().optional(),
-  cricket_format: z.string().optional(),
   category: z.string().optional(),
   sort: z.string().optional(),
   rankings: z.array(rankingRowWireSchema),
@@ -58,7 +57,6 @@ export type RankingRow = {
 
 export type RankingsPayload = {
   tournamentType: string | null;
-  cricketFormat: string | null;
   category: string | null;
   sort: string | null;
   rankings: RankingRow[];
@@ -84,7 +82,6 @@ export function toRankingRow(wire: RankingRowWire, index: number): RankingRow {
 export function toRankingsPayload(wire: RankingsPayloadWire): RankingsPayload {
   return {
     tournamentType: wire.tournament_type ?? null,
-    cricketFormat: wire.cricket_format ?? null,
     category: wire.category ?? null,
     sort: wire.sort ?? null,
     rankings: wire.rankings.map(toRankingRow),

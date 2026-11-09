@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 
+import { KeyboardInsetPad } from '@/shared/layout/KeyboardInsetPad';
 import { cn } from '@/shared/lib/cn';
 import { CloseIcon } from '@/shared/ui/icons';
 
@@ -22,7 +23,10 @@ function Overlay({ className }: { className?: string }) {
 type BaseDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  contentClassName?: string;
+  /** Body layout only (`flex` / `max-h` / `p-0`). Never put position/safe-area here. */
+  contentClassName?: string | undefined;
+  /** Rare position overrides (e.g. full-height Declare Squad). Prefer `contentClassName`. */
+  shellClassName?: string | undefined;
   showClose?: boolean;
   /** Sheet handle — default on when dismissible; hidden at `tab+`. */
   showHandle?: boolean | undefined;
@@ -38,6 +42,7 @@ export function BaseDialog({
   open,
   onOpenChange,
   contentClassName,
+  shellClassName,
   showClose = true,
   showHandle,
   dismissible = true,
@@ -60,16 +65,15 @@ export function BaseDialog({
         <Overlay />
         <DialogPrimitive.Content
           className={cn(
-            'bg-surface border-border fixed z-50 border text-ink focus:outline-none',
-            // Sheet: lift with `--keyboard-inset`. Bottom pad uses `--dock-above-keyboard`
-            // (same token as StickyActionBar `edge`) — one safe-area layer, not footer+sheet.
-            // At `tab+`: centred card, no sheet pad.
-            'inset-x-0 bottom-[var(--keyboard-inset,0px)] rounded-t-sheet pb-[var(--dock-above-keyboard)]',
+            // Phone sheets: no bottom border. Solid surface + KeyboardInsetPad fill the keyboard zone.
+            'bg-surface border-border fixed z-50 flex flex-col border-x border-t text-ink focus:outline-none tab:border',
+            // Stay pinned to bottom — never `bottom: inset` (that leaves veil in the corners).
+            'inset-x-0 bottom-0 rounded-t-sheet',
             'data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
             'tab:top-1/2 tab:left-1/2 tab:bottom-auto tab:w-full tab:max-w-dialog tab:-translate-x-1/2 tab:-translate-y-1/2',
-            'tab:rounded-card tab:pb-0 tab:shadow-pop',
+            'tab:rounded-card tab:shadow-pop',
             'tab:data-[state=open]:animate-dialog-in tab:data-[state=closed]:animate-dialog-out',
-            contentClassName
+            shellClassName
           )}
           onOpenAutoFocus={onOpenAutoFocus}
           onPointerDownOutside={(event) => {
@@ -85,15 +89,16 @@ export function BaseDialog({
           {handleVisible ? (
             <span aria-hidden className="bg-surface-raised mx-auto mt-3 block h-1 w-9 rounded-full tab:hidden" />
           ) : null}
-          {children}
+          <div className={cn('min-h-0', contentClassName)}>{children}</div>
           {showX ? (
             <DialogPrimitive.Close
               aria-label="Close"
-              className="text-muted hover:text-ink focus-visible:outline-brand absolute top-4 right-4 grid h-7 w-7 place-items-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-muted hover:text-ink focus-visible:outline-brand absolute top-4 right-4 z-10 grid h-7 w-7 place-items-center rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               <CloseIcon size="sm" strokeWidth={2.2} className="h-4 w-4" />
             </DialogPrimitive.Close>
           ) : null}
+          <KeyboardInsetPad />
         </DialogPrimitive.Content>
       </DialogPortal>
     </DialogPrimitive.Root>
@@ -120,9 +125,11 @@ export function DialogFooter({ className, ...props }: React.ComponentProps<'div'
   return (
     <div
       className={cn(
-        // Match StickyActionBar: px-4 pt-3; bottom pad lives on BaseDialog sheet chrome
-        // (`--dock-above-keyboard`) so we do not double safe-area under the CTA.
-        'border-border-subtle flex items-center gap-2 border-t px-4 pt-3 pb-0 [&>*]:flex-1 tab:[&>*]:flex-none tab:justify-end',
+        // Same dock chrome as watch CommentComposer (`COMMENT_COMPOSE_DOCK_WATCH`):
+        // opaque surface + ≥10px / home-indicator; keyboard lift is KeyboardInsetPad on the sheet.
+        'border-border-subtle bg-surface isolate flex items-center gap-2 border-t px-4 pt-3',
+        'pb-[max(10px,var(--safe-above-keyboard))]',
+        '[&>*:last-child]:flex-1 tab:justify-end tab:[&>*:last-child]:flex-none',
         className
       )}
       {...props}

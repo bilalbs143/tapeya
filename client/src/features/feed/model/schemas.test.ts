@@ -95,4 +95,17 @@ describe('formatters', () => {
     expect(formatRelativeAge(null)).toBe('');
     expect(formatRelativeAge('not-a-date')).toBe('');
   });
+
+  it('formats friendly relative ages', () => {
+    const now = Date.parse('2026-11-01T12:00:00.000Z');
+    expect(formatRelativeAge('2026-11-01T11:59:30.000Z', now)).toBe('Just now');
+    expect(formatRelativeAge('2026-11-01T11:59:00.000Z', now)).toBe('1 minute ago');
+    expect(formatRelativeAge('2026-11-01T11:45:00.000Z', now)).toBe('15 minutes ago');
+    expect(formatRelativeAge('2026-11-01T11:00:00.000Z', now)).toBe('1 hour ago');
+    expect(formatRelativeAge('2026-11-01T10:00:00.000Z', now)).toBe('2 hours ago');
+    expect(formatRelativeAge('2026-10-31T12:00:00.000Z', now)).toBe('Yesterday');
+    expect(formatRelativeAge('2026-10-29T12:00:00.000Z', now)).toBe('3 days ago');
+    expect(formatRelativeAge('2026-10-18T12:00:00.000Z', now)).toBe('2 weeks ago');
+    expect(formatRelativeAge('2025-03-15T12:00:00.000Z', now)).toMatch(/Mar 15/);
+  });
 });

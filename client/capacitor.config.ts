@@ -15,9 +15,11 @@ const config: CapacitorConfig = {
     // Do not set launchShowDuration to 0 — Cap iOS then skips showOnLaunch.
     SplashScreen: {
       launchAutoHide: false,
-      backgroundColor: '#000000ff',
+      // No backgroundColor — Cap would paint one fixed hex and wipe system dark/light.
+      // Native splash assets already own page bg + mark (iOS colorset / Android values-night).
+      androidSplashResourceName: 'splash',
     },
-    // WebView stays full height; JS lifts via `--keyboard-inset`.
+    // WebView box stays fixed; AppShell is `fixed inset-0` + shared `KeyboardInsetPad`.
     // Android also needs MainActivity `adjustNothing` + SystemBars `insetsHandling: disable`
     // (Cap 8 otherwise IME-pads the decor view while JS pads → white gap). Never resizeOnFullScreen.
     Keyboard: {

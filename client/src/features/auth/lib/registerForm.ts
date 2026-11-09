@@ -11,22 +11,15 @@ export type RegisterFieldErrors = {
   phone?: string;
   name?: string;
   nickname?: string;
-  acceptTerms?: string;
 };
 
-export function validateRegisterForm(
-  national: string,
-  name: string,
-  nickname: string,
-  acceptTerms: boolean
-): RegisterFieldErrors {
+export function validateRegisterForm(national: string, name: string, nickname: string): RegisterFieldErrors {
   const next: RegisterFieldErrors = {};
   if (!isValidNational(national)) next.phone = 'Enter the number without the country code, digits only.';
   if (!name.trim()) next.name = 'Required.';
   else if (!isValidName(name)) next.name = 'Letters and spaces only.';
   if (!nickname.trim()) next.nickname = 'Required — teammates see this on the scorecard.';
   else if (!isValidName(nickname)) next.nickname = 'Letters and spaces only.';
-  if (!acceptTerms) next.acceptTerms = 'You must agree to the Terms of Use to create an account.';
   return next;
 }
 

@@ -1,5 +1,3 @@
-import { getKeyboardInset } from '@/shared/native/keyboardInsetStore';
-
 import { PAGE_SCROLL_ATTR } from './PageDock';
 import { SHELL_SCROLLPORT_ATTR } from './shellScroll';
 
@@ -23,9 +21,9 @@ function nearestScrollport(from: Element): HTMLElement | null {
 
 /**
  * Scroll the nearest page/shell scroller so the focused field stays in view.
- * PageDock already pads for keyboard — skip footer / fill-stage composers so the shell
- * does not pan the player/header away (episode watch, post detail, live chat).
- * No-op inside dialogs/sheets.
+ * AppShell owns the keyboard spacer — scrollports already sit above the inset,
+ * so we only reserve a small breathing gap (not the keyboard height again).
+ * Skip PageDock footer / fill-stage fields. No-op inside dialogs/sheets.
  */
 export function ensureShellFocusedFieldVisible(): void {
   if (typeof document === 'undefined') return;
@@ -33,19 +31,14 @@ export function ensureShellFocusedFieldVisible(): void {
   const active = document.activeElement;
   if (!isEditable(active)) return;
   if (active.closest('[role="dialog"]')) return;
-  // Dock chrome / fill-stage fields: PageDock `paddingBottom` owns visibility.
   if (active.closest('[data-page-dock]') && !active.closest(`[${PAGE_SCROLL_ATTR}]`)) return;
 
   const scrollport = nearestScrollport(active);
   if (!scrollport) return;
 
-  const isPageScroll = scrollport.hasAttribute(PAGE_SCROLL_ATTR);
-  const keyboardInset = isPageScroll ? 0 : getKeyboardInset();
-  const obstacle = keyboardInset + GAP_PX;
-
   const portRect = scrollport.getBoundingClientRect();
   const fieldRect = active.getBoundingClientRect();
-  const visibleBottom = portRect.bottom - obstacle;
+  const visibleBottom = portRect.bottom - GAP_PX;
   const visibleTop = portRect.top + GAP_PX;
 
   let delta = 0;

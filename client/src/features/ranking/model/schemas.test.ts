@@ -10,7 +10,6 @@ import {
 
 const wire: RankingsPayloadWire = {
   tournament_type: 'open_tournament',
-  cricket_format: 'all',
   category: 'batting',
   sort: 'runs',
   rankings: [

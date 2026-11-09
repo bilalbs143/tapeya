@@ -16,7 +16,6 @@ const sample = enumsWireSchema.parse({
     { value: 'batsman', label: 'Batsman' },
     { value: 'bowler', label: 'Bowler' },
   ],
-  cricket_format: [{ value: 'tape_ball', label: 'Tape Ball' }],
   stats_bucket: [{ value: 'quick', label: 'Quick' }],
   dismissal_type: [
     {
@@ -49,7 +48,7 @@ const sample = enumsWireSchema.parse({
 describe('enums helpers', () => {
   it('reads option lists and labels', () => {
     expect(enumOptions(sample, 'playing_role')).toHaveLength(2);
-    expect(enumLabel(sample, 'cricket_format', 'tape_ball')).toBe('Tape Ball');
+    expect(enumLabel(sample, 'playing_role', 'batsman')).toBe('Batsman');
     expect(enumLabel(sample, 'playing_role', null)).toBe('—');
   });
 

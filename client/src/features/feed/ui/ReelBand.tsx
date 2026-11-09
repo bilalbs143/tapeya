@@ -4,7 +4,7 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { SectionLabel } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { HScroll } from '@/shared/ui/HScroll';
-import { Skeleton } from '@/shared/ui/states';
+import { SKELETON, Skeleton } from '@/shared/ui/states';
 
 import type { ReelBandItem } from '../model/schemas';
 import { feedRoutes } from '../routes';
@@ -97,8 +97,9 @@ export function ReelBand({
   );
 }
 
-export function ReelBandSkeleton({ compact = false, count = 4, className }: ReelBandSkeletonProps) {
+export function ReelBandSkeleton({ compact = false, count, className }: ReelBandSkeletonProps) {
   const tile = compact ? 'h-[104px] w-[78px] rounded-icon' : 'h-[198px] w-[118px] rounded-card';
+  const tiles = count ?? (compact ? SKELETON.reelBandCompact : SKELETON.reelBand);
 
   return (
     <div className={cn('border-border-subtle border-b py-3.5', className)} aria-hidden aria-busy="true">
@@ -108,7 +109,7 @@ export function ReelBandSkeleton({ compact = false, count = 4, className }: Reel
         <Skeleton className="h-2.5 w-16" />
       </div>
       <HScroll as="ul" bleed={false} className="gap-2 overflow-hidden">
-        {Array.from({ length: count }, (_, i) => (
+        {Array.from({ length: tiles }, (_, i) => (
           <li key={i} className="shrink-0">
             <Skeleton className={tile} />
           </li>

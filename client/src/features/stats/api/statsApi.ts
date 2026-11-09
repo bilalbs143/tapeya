@@ -22,15 +22,14 @@ function mapTeams(raw: unknown): PlayerTeam[] {
 export type GetPlayerStatsArg = {
   userId: number;
   tournamentType?: StatsBucket | undefined;
-  cricketFormat?: string | undefined;
 };
 
 export const statsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPlayerStats: builder.query<PlayerStats, GetPlayerStatsArg>({
-      query: ({ userId, tournamentType = 'all', cricketFormat = 'all' }) => ({
+      query: ({ userId, tournamentType = 'all' }) => ({
         url: `/users/${userId}/stats`,
-        params: { tournament_type: tournamentType, cricket_format: cricketFormat },
+        params: { tournament_type: tournamentType },
       }),
       transformResponse: mapStats,
       providesTags: (_r, _e, { userId }) => [{ type: 'User', id: `stats-${userId}` }],

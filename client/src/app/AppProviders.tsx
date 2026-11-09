@@ -2,7 +2,6 @@ import { type ReactNode, Suspense, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 
-import { TermsAcceptanceGate } from '@/features/auth';
 import { ReelUploadProgressDialog } from '@/features/reels';
 
 import { enumsApi } from '@/shared/api/enumsApi';
@@ -16,6 +15,7 @@ import { useAppDispatch } from '@/shared/store/hooks';
 import { store } from '@/shared/store/store';
 import { ToastHost } from '@/shared/ui/toast';
 
+import { AppBootLoader } from './AppBootLoader';
 import { ErrorBoundary } from './ErrorBoundary';
 import { NativeEffects } from './NativeEffects';
 import { ProgrammaticDialogPrompts } from './ProgrammaticDialogPrompts';
@@ -65,12 +65,11 @@ export function AppProviders({ children }: AppProvidersProps) {
             <KeyboardInsetProvider>
               <AuthHydration>
                 <BootPrefetch>
-                  <Suspense fallback={<div className="text-muted p-8 text-sm">Loading…</div>}>{children}</Suspense>
+                  <Suspense fallback={<AppBootLoader />}>{children}</Suspense>
                   <NativeEffects />
                   <RealtimeEffects />
                   <ProgrammaticDialogPrompts />
                   <DialogHost />
-                  <TermsAcceptanceGate />
                   <ReelUploadProgressDialog />
                   <ToastHost />
                 </BootPrefetch>

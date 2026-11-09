@@ -21,8 +21,6 @@ class QuickMatchResource extends JsonResource
             'kind' => $match->kind?->value,
             'status' => $match->status?->value,
             'status_label' => $match->status?->label(),
-            'cricket_format' => $match->cricket_format?->value,
-            'cricket_format_label' => $match->cricket_format?->label(),
             'overs' => $match->overs,
             'players_per_side' => $match->players_per_side,
             'venue_name' => $match->venue_name,

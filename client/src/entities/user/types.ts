@@ -25,7 +25,7 @@ export const userSummaryWireSchema = z.object({
   is_official: z.boolean().optional(),
   can_broadcast: z.boolean().optional(),
   broadcast_terms_accepted_at: z.string().nullable().optional(),
-  /** Guideline 1.2 — set on register / POST /me/accept-terms. */
+  /** Set on register (API default). Legacy users may still have null. */
   terms_accepted_at: z.string().nullable().optional(),
   /** Present on /me when the user has a shop_vendors row (UserResource::self). */
   vendor: z

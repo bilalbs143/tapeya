@@ -22,6 +22,7 @@ import {
   LOCKED_INTEREST_FORM_FIELDS,
   type InterestFormFieldKey,
 } from 'src/app/shared/constants/interest-form-field.constants';
+import { CAMPAIGN_LOGO_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ManageCampaignDialogData {
   mode: 'create' | 'edit';
@@ -72,6 +73,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly logoAspect = CAMPAIGN_LOGO_ASPECT;
   public tournamentOptions: TournamentPickerRow[] = [];
   public tournamentSearch$ = new Subject<string>();
   public slugDirty = false;

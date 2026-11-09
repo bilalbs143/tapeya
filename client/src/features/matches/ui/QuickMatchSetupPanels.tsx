@@ -1,34 +1,14 @@
 import { useState } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { Chip, type ChipProps } from '@/shared/ui/Chip';
 import { CloseIcon, PencilIcon, PlusIcon, ProgressRingIcon, SearchIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
 
 import { quickMatchInitials } from '../lib/quickMatchForm';
 import type { QuickMatchPlayer } from '../lib/quickMatchPayload';
 
-export function QuickMatchChoiceChip({ selected, className, children, ...props }: ChipProps) {
-  return (
-    <Chip
-      role="radio"
-      aria-checked={selected ?? false}
-      selected={selected}
-      className={cn(
-        'min-h-10 rounded-field px-4',
-        selected ? 'border-brand bg-brand text-white' : 'border-border-subtle bg-surface text-ink',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Chip>
-  );
-}
-
 export function QuickMatchVersusCard({
   overs,
-  ballLabel,
   players,
   homeName,
   awayName,
@@ -36,7 +16,6 @@ export function QuickMatchVersusCard({
   awayCount,
 }: {
   overs: number;
-  ballLabel: string;
   players: number;
   homeName: string;
   awayName: string;
@@ -54,7 +33,7 @@ export function QuickMatchVersusCard({
         </span>
       </div>
       <p className="border-border-subtle bg-surface-raised font-mono text-muted border-t px-3 py-2.5 text-center text-4xs font-semibold tracking-eyebrow uppercase">
-        {overs} overs · {ballLabel} · {players} a side
+        {overs} overs · {players} a side
       </p>
     </section>
   );

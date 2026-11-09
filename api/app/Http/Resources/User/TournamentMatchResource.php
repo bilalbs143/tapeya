@@ -17,8 +17,6 @@ class TournamentMatchResource extends JsonResource
         return [
             'id' => $match->id,
             'kind' => $match->kind?->value,
-            'cricket_format' => $match->cricket_format?->value,
-            'cricket_format_label' => $match->cricket_format?->label(),
             'created_by' => $match->created_by !== null ? (int) $match->created_by : null,
             'tournament_id' => $match->tournament_id,
             'group_index' => $match->group_index,

@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 
 import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { ProductCardSkeleton } from '../ui/ProductCard';
 import { ShopVendorBody } from '../ui/ShopVendorBody';
@@ -13,6 +13,7 @@ export default function ShopVendorPage() {
   const vendorSlug = slug?.trim() ?? '';
   const flow = useShopVendor(vendorSlug);
   const { vendor, vendorLoading, vendorError, goHome, onMissingStoreAction } = flow;
+  const productCount = SKELETON.productGrid;
   const ready = Boolean(vendorSlug) && !vendorLoading && !vendorError && vendor != null;
 
   return (
@@ -25,8 +26,8 @@ export default function ShopVendorPage() {
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-24 w-full rounded-card" />
           <Skeleton className="h-11 w-full rounded-panel" />
-          <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => (
+          <div className="grid grid-cols-2 gap-3 tab:grid-cols-3" aria-busy="true" aria-label="Loading Products">
+            {Array.from({ length: productCount }, (_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>

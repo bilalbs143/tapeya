@@ -26,7 +26,7 @@ export const APP_PATHS = {
   liveStreaming: '/live/streaming',
   entertainment: '/entertainment',
   matches: '/matches',
-  startMatch: '/organizer/scoring/start-match',
+  startMatch: '/matches/start',
   quickMatch: '/quick-match',
   scorecard: '/scorecard',
   matchCard: '/match',
@@ -93,6 +93,19 @@ export function isEntertainmentEpisodePath(pathname: string): boolean {
 /** Fixed post + scrollable comments. */
 export function isPostDetailPath(pathname: string): boolean {
   return /^\/feed\/\d+$/.test(pathname);
+}
+
+/**
+ * Detail shells with ScreenBar + compose/chat dock — hide BottomNav (same as watch).
+ * Live watch / go-live on-air, highlight detail, entertainment episode, post detail.
+ */
+export function isMediaPlayerBottomNavHiddenPath(pathname: string): boolean {
+  return (
+    isLiveImmersivePath(pathname) ||
+    isHighlightDetailPath(pathname) ||
+    isEntertainmentEpisodePath(pathname) ||
+    isPostDetailPath(pathname)
+  );
 }
 
 /** Legacy fixed-frame path registry. Media detail (Post/Watch/Highlight/Episode) now uses

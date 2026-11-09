@@ -18,8 +18,6 @@ export const quickMatchWireSchema = z.object({
   kind: z.string().nullable().optional(),
   status: matchApiStatusSchema,
   status_label: z.string().nullable().optional(),
-  cricket_format: z.string().nullable().optional(),
-  cricket_format_label: z.string().nullable().optional(),
   overs: z.number().nullable().optional(),
   players_per_side: z.number().nullable().optional(),
   venue_name: z.string().nullable().optional(),
@@ -70,8 +68,6 @@ export type Match = {
   /** `null` when the match should not appear in any list section (e.g. cancelled). */
   section: MatchSection | null;
   statusLabel: string | null;
-  format: string | null;
-  formatLabel: string | null;
   overs: number | null;
   venueName: string | null;
   matchDate: string | null;
@@ -140,8 +136,6 @@ export function toDomain(wire: QuickMatchWire): Match {
     uiStatus: toUiStatus(wire.status, tossWinnerTeamId),
     section: matchSection(wire.status, tossWinnerTeamId),
     statusLabel: wire.status_label ?? null,
-    format: wire.cricket_format ?? null,
-    formatLabel: wire.cricket_format_label ?? null,
     overs: wire.overs ?? null,
     venueName: wire.venue_name ?? null,
     matchDate: wire.match_date ?? null,

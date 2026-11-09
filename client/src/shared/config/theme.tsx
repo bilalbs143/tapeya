@@ -1,5 +1,7 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { syncNativeTheme } from '@/shared/native/appearance';
+
 import { THEME_STORAGE_KEY } from './themeBoot.js';
 
 /** `data-theme` on `<html>` — boot snippet in `themeBoot.js` via Vite (same storage key). */
@@ -56,6 +58,10 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
   useEffect(() => {
     apply(resolved);
   }, [resolved]);
+
+  useEffect(() => {
+    void syncNativeTheme(theme);
+  }, [theme]);
 
   const setTheme = useCallback((next: ThemePreference) => {
     setThemeState(next);

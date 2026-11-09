@@ -29,8 +29,6 @@ export interface QuickMatchRow {
   kind: string;
   status: string;
   status_label: string;
-  cricket_format: string | null;
-  cricket_format_label: string | null;
   overs: number | null;
   players_per_side: number | null;
   venue_name: string | null;
@@ -64,7 +62,6 @@ export interface QuickMatchListParams {
   status?: string;
   q?: string;
   created_by?: number | string;
-  cricket_format?: string;
   from_date?: string;
   to_date?: string;
 }

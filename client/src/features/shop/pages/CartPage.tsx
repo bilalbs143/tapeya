@@ -23,7 +23,7 @@ export default function CartPage() {
       {isLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-4" aria-busy="true" aria-label="Loading Cart">
           <Skeleton className="h-3 w-28" />
-          {[0, 1].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className="border-border-subtle flex gap-3 rounded-card border p-3">
               <Skeleton className="h-16 w-16 shrink-0 rounded-panel" />
               <div className="flex min-w-0 flex-1 flex-col gap-2">

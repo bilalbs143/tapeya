@@ -2,7 +2,6 @@
 
 namespace Tests\Support\QuickMatch;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Models\Team;
@@ -33,7 +32,6 @@ trait CreatesQuickMatch
             'kind' => MatchKindEnum::QUICK,
             'tournament_id' => null,
             'created_by' => $owner->id,
-            'cricket_format' => CricketFormatEnum::TAPE_BALL,
             'home_team_id' => $home->id,
             'away_team_id' => $away->id,
             'match_date' => now()->toDateString(),

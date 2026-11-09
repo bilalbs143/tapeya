@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 
 import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { ProductCardSkeleton } from '../ui/ProductCard';
 import { ShopBrandBody, ShopBrandHeaderBelow } from '../ui/ShopBrandBody';
@@ -13,6 +13,7 @@ export default function ShopBrandPage() {
   const brandSlug = slug?.trim() ?? '';
   const flow = useShopBrand(brandSlug);
   const { brand, brandsLoading, brandsError, refetchBrands, goHome } = flow;
+  const productCount = SKELETON.productGrid;
   const ready = Boolean(brandSlug) && !brandsLoading && !brandsError && brand != null;
 
   const title = ready ? brand.name : !brandSlug || (!brandsLoading && !brand) ? 'Shop' : 'Brand';
@@ -33,8 +34,8 @@ export default function ShopBrandPage() {
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-11 w-full rounded-panel" />
           <Skeleton className="h-8 w-full rounded-chip" />
-          <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => (
+          <div className="grid grid-cols-2 gap-3 tab:grid-cols-3" aria-busy="true" aria-label="Loading Products">
+            {Array.from({ length: productCount }, (_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>

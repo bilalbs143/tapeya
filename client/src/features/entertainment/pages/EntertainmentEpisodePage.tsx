@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
+import { CommentRowSkeleton, EmptyState, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { useGetDramaEpisodeQuery } from '../api/entertainmentApi';
 import { entertainmentPaths } from '../lib/entertainmentPaths';
@@ -26,6 +26,7 @@ export default function EntertainmentEpisodePage() {
   });
 
   const episodeBack = () => navigate(Number.isFinite(sid) ? entertainmentPaths.detail(sid) : entertainmentPaths.list());
+  const commentCount = SKELETON.comments;
 
   if (valid && !isLoading && !isError && episode) {
     return <EntertainmentEpisodeDetail key={episode.id} episode={episode} routeSerialId={sid} />;
@@ -52,6 +53,12 @@ export default function EntertainmentEpisodePage() {
             <Skeleton className="h-6 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-11 w-full" />
+          </div>
+          <div className="flex flex-col gap-1 px-4 pt-4 pb-6" aria-busy="true" aria-label="Loading Comments">
+            <Skeleton className="mb-2 h-2.5 w-20" />
+            {Array.from({ length: commentCount }, (_, i) => (
+              <CommentRowSkeleton key={i} />
+            ))}
           </div>
         </>
       ) : (

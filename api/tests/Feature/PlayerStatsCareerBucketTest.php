@@ -16,7 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Scoring\BuildsScoringMatch;
 use Tests\TestCase;
 
-class PlayerStatsByCricketFormatTest extends TestCase
+class PlayerStatsCareerBucketTest extends TestCase
 {
     use BuildsScoringMatch;
     use RefreshDatabase;
@@ -32,32 +32,35 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
     public function test_career_rows_aggregate_by_tournament_type(): void
     {
-        $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
+        $openMatch = $this->createMatchForBucket('open_tournament');
+        $privateMatch = $this->createMatchForBucket('private_tournament');
 
-        $this->scoreRunsForStriker($tapeMatch, $this->player(0)->id, 30);
-        $this->scoreRunsForStriker($hardMatch, $this->player(0)->id, 50);
+        $this->scoreRunsForStriker($openMatch, $this->player(0)->id, 30);
+        $this->scoreRunsForStriker($privateMatch, $this->player(0)->id, 50);
 
-        $row = PlayerBattingStats::where('player_id', $this->player(0)->id)
+        $openRow = PlayerBattingStats::where('player_id', $this->player(0)->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'all')
+            ->first();
+        $privateRow = PlayerBattingStats::where('player_id', $this->player(0)->id)
+            ->where('tournament_type', 'private_tournament')
             ->first();
 
-        $this->assertNotNull($row);
-        $this->assertSame(80, $row->runs);
+        $this->assertNotNull($openRow);
+        $this->assertNotNull($privateRow);
+        $this->assertSame(30, $openRow->runs);
+        $this->assertSame(50, $privateRow->runs);
     }
 
     public function test_same_bucket_aggregates_across_tournaments(): void
     {
-        $matchA = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $matchB = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $matchA = $this->createMatchForBucket('open_tournament');
+        $matchB = $this->createMatchForBucket('open_tournament');
 
         $this->scoreRunsForStriker($matchA, $this->player(0)->id, 20);
         $this->scoreRunsForStriker($matchB, $this->player(0)->id, 15);
 
         $row = PlayerBattingStats::where('player_id', $this->player(0)->id)
             ->where('tournament_type', 'open_tournament')
-            ->where('cricket_format', 'all')
             ->first();
 
         $this->assertNotNull($row);
@@ -67,10 +70,10 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
     public function test_profile_stats_api_open_tournament_bucket(): void
     {
-        $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
-        $this->scoreRunsForStriker($tapeMatch, $this->player(0)->id, 12);
-        $this->scoreRunsForStriker($hardMatch, $this->player(0)->id, 88);
+        $matchA = $this->createMatchForBucket('open_tournament');
+        $matchB = $this->createMatchForBucket('open_tournament');
+        $this->scoreRunsForStriker($matchA, $this->player(0)->id, 12);
+        $this->scoreRunsForStriker($matchB, $this->player(0)->id, 88);
 
         $response = $this->getJson('/api/v1/users/'.$this->player(0)->id.'/stats?'.http_build_query([
             'tournament_type' => 'open_tournament',
@@ -78,14 +81,13 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('data.tournament_type', 'open_tournament');
-        $response->assertJsonPath('data.cricket_format', 'all');
         $response->assertJsonPath('data.batting.runs', 100);
     }
 
-    public function test_profile_rollup_across_types_for_single_format(): void
+    public function test_profile_rollup_across_tournament_types(): void
     {
-        $openMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $leagueMatch = $this->createMatchForBucket('private_tournament', 'tape_ball');
+        $openMatch = $this->createMatchForBucket('open_tournament');
+        $leagueMatch = $this->createMatchForBucket('private_tournament');
         $this->scoreRunsForStriker($openMatch, $this->player(0)->id, 10);
         $this->scoreRunsForStriker($leagueMatch, $this->player(0)->id, 25);
 
@@ -97,13 +99,13 @@ class PlayerStatsByCricketFormatTest extends TestCase
         $response->assertJsonPath('data.batting.runs', 35);
     }
 
-    public function test_rankings_include_all_formats_for_tournament_type(): void
+    public function test_rankings_include_players_for_tournament_type(): void
     {
-        $tapeMatch = $this->createMatchForBucket('open_tournament', 'tape_ball');
-        $hardMatch = $this->createMatchForBucket('open_tournament', 'hard_ball');
+        $matchA = $this->createMatchForBucket('open_tournament');
+        $matchB = $this->createMatchForBucket('open_tournament');
 
-        $this->scoreRunsForStriker($tapeMatch, $this->player(0)->id, 100);
-        $this->scoreRunsForStriker($hardMatch, $this->player(1)->id, 200);
+        $this->scoreRunsForStriker($matchA, $this->player(0)->id, 100);
+        $this->scoreRunsForStriker($matchB, $this->player(1)->id, 200);
 
         $response = $this->getJson('/api/v1/rankings?'.http_build_query([
             'tournament_type' => 'open_tournament',
@@ -112,7 +114,6 @@ class PlayerStatsByCricketFormatTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertJsonPath('data.cricket_format', 'all');
         $playerIds = collect($response->json('data.rankings'))->pluck('player_id')->all();
         $this->assertEqualsCanonicalizing([$this->player(0)->id, $this->player(1)->id], $playerIds);
     }
@@ -133,22 +134,21 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
     public function test_player_stats_service_reads_materialized_bucket(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $this->scoreRunsForStriker($match, $this->player(0)->id, 42);
 
         $service = app(PlayerStatsService::class);
         $stats = $service->battingForPlayer(
             $this->player(0)->id,
             'open_tournament',
-            'all'
         );
 
         $this->assertSame(42, $stats['runs']);
     }
 
-    public function test_all_all_bowling_rollup_uses_cricket_overs_notation(): void
+    public function test_career_bowling_rollup_uses_cricket_overs_notation(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->player(6)->id;
 
@@ -178,16 +178,16 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        $stats = $service->bowlingForPlayer($bowlerId, 'all', 'all');
+        $stats = $service->bowlingForPlayer($bowlerId, 'all');
 
         $this->assertSame(0.5, $stats['overs']);
         $this->assertSame(1.2, $stats['economy']);
         $this->assertSame(1, $stats['wides']);
     }
 
-    public function test_profile_all_all_bowling_api_uses_cricket_overs(): void
+    public function test_profile_all_tournament_types_bowling_api_uses_cricket_overs(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->player(6)->id;
 
@@ -223,7 +223,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
      */
     public function test_batting_rankings_sort_by_average_descending(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->player(6)->id;
 
@@ -274,7 +274,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
      */
     public function test_best_bowling_match_excludes_run_out_wickets(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->player(6)->id;
 
@@ -297,8 +297,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        // Use compute path (cricket_format=all has no materialized row).
-        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament', 'all');
+        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament');
 
         // BBM should be 1/0 (one bowler wicket, zero runs), not 2/0.
         $this->assertSame('1/0', $stats['best_bowling_match']);
@@ -312,7 +311,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
      */
     public function test_ten_wickets_excludes_non_bowler_dismissals(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings1 = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $innings2 = Innings::where('match_id', $match->id)->where('innings_number', 2)->firstOrFail();
         $bowlerId = $this->player(6)->id;
@@ -335,7 +334,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament', 'all');
+        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament');
 
         $this->assertSame(0, $stats['ten_wickets']);
         $this->assertSame(0, $stats['wickets']);
@@ -346,7 +345,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
      */
     public function test_penalty_only_awards_do_not_inflate_bowler_runs_conceded(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
         $bowlerId = $this->player(6)->id;
 
@@ -371,7 +370,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament', 'all');
+        $stats = $service->bowlingForPlayer($bowlerId, 'open_tournament');
 
         $this->assertSame(4, $stats['runs_conceded']);
         $this->assertSame(24.0, $stats['economy']);
@@ -379,7 +378,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
 
     public function test_rankings_cache_is_invalidated_after_match_stats_refresh(): void
     {
-        $match = $this->createMatchForBucket('open_tournament', 'tape_ball');
+        $match = $this->createMatchForBucket('open_tournament');
         $innings = Innings::where('match_id', $match->id)->where('innings_number', 1)->firstOrFail();
 
         $this->recordBall($innings, [
@@ -391,7 +390,7 @@ class PlayerStatsByCricketFormatTest extends TestCase
         RefreshMatchStatsJob::dispatchSync($match->id);
 
         $service = app(PlayerStatsService::class);
-        $first = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'all'));
+        $first = collect($service->rankings('open_tournament', 'batting', 'runs', 0));
         $this->assertSame(50, $first->firstWhere('player_id', $this->player(0)->id)['stats']['runs']);
 
         $this->recordBall($innings, [
@@ -402,11 +401,11 @@ class PlayerStatsByCricketFormatTest extends TestCase
         ]);
         RefreshMatchStatsJob::dispatchSync($match->id);
 
-        $second = collect($service->rankings('open_tournament', 'batting', 'runs', 0, 'all'));
+        $second = collect($service->rankings('open_tournament', 'batting', 'runs', 0));
         $this->assertSame(60, $second->firstWhere('player_id', $this->player(0)->id)['stats']['runs']);
     }
 
-    private function createMatchForBucket(string $tournamentType, string $cricketFormat): TournamentMatch
+    private function createMatchForBucket(string $tournamentType): TournamentMatch
     {
         $tournament = Tournament::create([
             'organizer_id' => $this->organizer->id,
@@ -440,7 +439,6 @@ class PlayerStatsByCricketFormatTest extends TestCase
             'match_date' => now()->toDateString(),
             'match_time' => '10:00:00',
             'venue_name' => 'Test Ground',
-            'cricket_format' => $cricketFormat,
             'players_per_side' => 3,
             'overs' => 2,
             'status' => MatchStatusEnum::IN_PROGRESS->value,

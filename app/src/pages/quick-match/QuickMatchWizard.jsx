@@ -46,11 +46,6 @@ export default function QuickMatchWizard() {
   const { data: enums = {} } = useGetEnumsQuery();
   const oversOptions = useMemo(() => getMatchOversOptions(enums.match_overs), [enums.match_overs]);
   const playersPerSideOptions = useMemo(() => getPlayersPerSideOptions(enums.players_per_side), [enums.players_per_side]);
-  const formatOptions = useMemo(() => {
-    const list = enums.cricket_format;
-    if (!Array.isArray(list)) return [];
-    return list.map((o) => ({ value: o.value, label: o.label ?? o.value }));
-  }, [enums.cricket_format]);
 
   const [createQuickMatch, { isLoading: isCreating }] = useCreateQuickMatchMutation();
   const [fetchSquad] = useLazyGetTeamSquadQuery();
@@ -76,7 +71,6 @@ export default function QuickMatchWizard() {
 
   const overs = watch('overs');
   const playersPerSide = watch('players_per_side');
-  const cricketFormat = watch('cricket_format');
   const home = watch('home');
   const away = watch('away');
 
@@ -291,17 +285,8 @@ export default function QuickMatchWizard() {
       <Container>
         <FormStack className="pb-8">
           <QuickMatchSettingsFields
-            cricketFormat={cricketFormat}
             overs={overs}
             playersPerSide={playersPerSide}
-            formatOptions={formatOptions}
-            onOpenBallType={() =>
-              openDialog('startMatchBallType', {
-                initialValue: cricketFormat,
-                options: formatOptions,
-                onSelect: (v) => setValue('cricket_format', v, { shouldValidate: true }),
-              })
-            }
             onOpenOvers={() =>
               openDialog('startMatchOvers', {
                 initialOvers: overs,

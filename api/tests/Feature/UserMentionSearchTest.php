@@ -56,6 +56,10 @@ class UserMentionSearchTest extends TestCase
         $this->assertNotContains($noNick->id, $ids);
         $this->assertNotContains($admin->id, $ids);
         $this->assertSame('followed_user', $response->json('data.0.nickname'));
+        $this->assertTrue($response->json('data.0.is_following'));
+        $otherRow = collect($response->json('data'))->firstWhere('id', $other->id);
+        $this->assertNotNull($otherRow);
+        $this->assertFalse($otherRow['is_following']);
     }
 
     public function test_query_matches_name_and_nickname_not_email(): void

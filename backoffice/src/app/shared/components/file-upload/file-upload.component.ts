@@ -112,7 +112,7 @@ export class FileUploadComponent implements ControlValueAccessor, OnChanges {
   /** Shows an asterisk and affects validation hint text. Does NOT add Validators.required. */
   @Input({ transform: booleanAttribute }) public required = false;
 
-  /** Recommended dimension string shown in the hint. E.g. "360×185 px". */
+  /** Recommended aspect string shown in the hint. E.g. "16:9 aspect ratio". */
   @Input() public recommendedSize = '';
 
   // ── Outputs ────────────────────────────────────────────────────────────────

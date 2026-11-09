@@ -48,7 +48,6 @@ export class CricketDashboardComponent implements OnInit {
 
   // ── Format breakdowns ─────────────────────────────────────────────────────
   public readonly tournamentsByType = computed(() => this.stats()?.tournaments_by_type ?? []);
-  public readonly matchesByFormat = computed(() => this.stats()?.matches_by_format ?? []);
 
   // ── Top teams ─────────────────────────────────────────────────────────────
   public readonly topTeamsByWins = computed(() => this.stats()?.top_teams_by_wins ?? []);
@@ -96,15 +95,6 @@ export class CricketDashboardComponent implements OnInit {
   ]);
 
   public readonly formatBarCategories = computed(() => this.tournamentsByType().map((f) => f.label));
-
-  public readonly matchFormatSeries = computed(() => [
-    {
-      name: 'Matches',
-      data: this.matchesByFormat().map((f) => f.count),
-    },
-  ]);
-
-  public readonly matchFormatCategories = computed(() => this.matchesByFormat().map((f) => f.label));
 
   public readonly activitySeries = computed(() => [
     {
@@ -238,7 +228,6 @@ export class CricketDashboardComponent implements OnInit {
   };
 
   public readonly formatBarColors = ['var(--mat-sys-primary)'];
-  public readonly matchFormatColors = ['var(--mat-sys-secondary)'];
 
   public readonly activityAreaChart = {
     type: 'area' as const,
@@ -354,10 +343,6 @@ export class CricketDashboardComponent implements OnInit {
 
   public hasFormatData(): boolean {
     return this.tournamentsByType().length > 0;
-  }
-
-  public hasMatchFormatData(): boolean {
-    return this.matchesByFormat().length > 0;
   }
 
   public hasActivityData(): boolean {

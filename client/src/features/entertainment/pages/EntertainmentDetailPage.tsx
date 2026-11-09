@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
-import { EmptyState, EpisodeRowSkeleton, ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, EpisodeRowSkeleton, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
 import { parseEntertainmentSerialId } from '../lib/entertainmentDetail';
 import { EntertainmentDetailBody } from '../ui/EntertainmentDetailBody';
@@ -14,6 +14,7 @@ export default function EntertainmentDetailPage() {
   const serialId = parseEntertainmentSerialId(id);
   const flow = useEntertainmentDetail(serialId);
   const { serial, isLoading, isError, refetch, goList } = flow;
+  const episodeCount = SKELETON.episodeRows;
 
   if (serialId == null) {
     return (
@@ -36,9 +37,11 @@ export default function EntertainmentDetailPage() {
           </div>
           <section className="flex flex-col gap-2.5">
             <Skeleton className="h-2.5 w-16" />
-            {[0, 1, 2, 3, 4].map((i) => (
-              <EpisodeRowSkeleton key={i} />
-            ))}
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: episodeCount }, (_, i) => (
+                <EpisodeRowSkeleton key={i} />
+              ))}
+            </div>
           </section>
         </div>
       </PageDock>

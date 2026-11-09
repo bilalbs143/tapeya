@@ -6,9 +6,7 @@ import { guestAuthPath, guestAuthPathSync, useMeQuery } from '@/features/auth';
 import { selectAuthHydrated, selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
-function SessionLoading() {
-  return <div className="text-muted p-8 text-sm">Loading Session…</div>;
-}
+import { AppBootLoader } from './AppBootLoader';
 
 /**
  * Product routes only. Guests never see the app shell.
@@ -36,14 +34,14 @@ export function RequireAuth() {
     skip: !hydrated || !isAuthenticated,
   });
 
-  if (!hydrated) return <SessionLoading />;
+  if (!hydrated) return <AppBootLoader label="Loading Session" />;
 
   if (!isAuthenticated) {
     return <Navigate to={guestTo} replace state={{ returnTo }} />;
   }
 
   // Token present but `/me` not ready — keep blank (401 clears session in baseApi).
-  if (meLoading && !me) return <SessionLoading />;
+  if (meLoading && !me) return <AppBootLoader label="Loading Session" />;
 
   return <Outlet />;
 }

@@ -59,10 +59,10 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
     };
   }, []);
 
+  // Document pages only — docked/fill frames already `overflow-hidden` and skip shell pan
+  // for footer composers in `ensureShellFocusedFieldVisible`.
   useEffect(() => {
-    if (keyboardInset <= 0) return;
-    // Lock shell while the keyboard is open — PageDock pads; do not pan chrome away.
-    scrollShellToTop('instant' as ScrollBehavior);
+    if (fill || keyboardInset <= 0) return;
     let raf = 0;
     let timer = 0;
     raf = requestAnimationFrame(() => {
@@ -73,13 +73,10 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [keyboardInset]);
+  }, [keyboardInset, fill]);
 
   return (
-    <div
-      data-shell-scrollport
-      className={cn(className, keyboardInset > 0 && fill && 'overflow-hidden overscroll-none')}
-    >
+    <div data-shell-scrollport className={cn(className)}>
       {/* Flex stays on the inner wrapper — sticky ScreenBar breaks if the overflow
           scroller itself is `display: flex`. `fill` caps height for PageDock scroll. */}
       <div className={cn('flex w-full flex-col', fill ? 'h-full min-h-0' : 'min-h-full')}>{children}</div>

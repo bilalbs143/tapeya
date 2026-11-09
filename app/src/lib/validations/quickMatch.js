@@ -36,7 +36,6 @@ const sideSchema = z
  */
 export const quickMatchSchema = z
   .object({
-    cricket_format: z.string().min(1, 'Select ball type'),
     overs: z
       .union([z.string(), z.number()])
       .transform((v) => Number(v))
@@ -100,7 +99,6 @@ export function buildQuickMatchPayload(data, toss = null) {
   };
 
   const payload = {
-    cricket_format: data.cricket_format,
     overs: Number(data.overs),
     players_per_side: Number(data.players_per_side),
     home: mapSide(data.home),
@@ -116,7 +114,6 @@ export function buildQuickMatchPayload(data, toss = null) {
 export function firstQuickMatchFormError(errors) {
   if (!errors || typeof errors !== 'object') return null;
   const prefer = [
-    errors.cricket_format,
     errors.overs,
     errors.players_per_side,
     errors.home?.name,

@@ -5,7 +5,6 @@ import { useDialog } from '@/context/DialogContext';
 import AddBreakDialog from './AddBreakDialog';
 import AdditionalRunsDialog from './AdditionalRunsDialog';
 import AppUpdateDialog from './AppUpdateDialog';
-import BallTypeDialog from './BallTypeDialog';
 import BaseDialog from './BaseDialog';
 import BroadcastGraphicsDialog from './BroadcastGraphicsDialog';
 import CaughtOutDialog from './CaughtOutDialog';
@@ -71,7 +70,6 @@ const DIALOG_COMPONENTS = {
   // Start Match dialogs
   startMatchOvers: OversDialog,
   startMatchPlayersPerSide: PlayersPerSideDialog,
-  startMatchBallType: BallTypeDialog,
   startMatchTeamSelect: TeamSelectDialog,
   startMatchToss: TossDialog,
   quickMatchWizardAddPlayer: QuickMatchWizardAddPlayerDialog,

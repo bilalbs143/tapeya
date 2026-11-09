@@ -7,15 +7,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = AppBridgeViewController()
-        window?.makeKeyAndVisible()
+        let win = UIWindow(windowScene: windowScene)
+        ThemeAppearance.applyStored(to: win)
+        win.rootViewController = AppBridgeViewController()
+        win.makeKeyAndVisible()
+        window = win
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // Scene-based lifecycle (iOS 13+) — belt-and-suspenders with AppDelegate.
         TapeyaBroadcastPlugin.handleAppDidEnterBackground()
     }
 

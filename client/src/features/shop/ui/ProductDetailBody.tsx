@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '@/shared/ui/Button';
 import { HScroll } from '@/shared/ui/HScroll';
+import { MediaFrame } from '@/shared/ui/media';
 import { SafeHtml } from '@/shared/ui/SafeHtml';
 import { StickyActionBar } from '@/shared/ui/StickyActionBar';
 
@@ -36,12 +37,17 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
 
   return (
     <div className="flex flex-col pb-4">
-      <div className="bg-surface-raised relative h-64 overflow-hidden">
-        {product.imageUrls[shot] ? (
-          <img src={product.imageUrls[shot]} alt={product.name} className="h-full w-full object-cover" />
-        ) : null}
+      <MediaFrame
+        kind="shopProduct"
+        src={product.imageUrls[shot]}
+        alt={product.name}
+        fit="contain"
+        rounded="none"
+        priority
+        className="bg-surface-raised w-full"
+      >
         {product.isFeatured || product.discountPercent ? (
-          <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+          <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-1.5">
             {product.isFeatured ? (
               <span className="bg-brand font-mono rounded-chip px-2 py-1 text-4xs leading-normal font-bold tracking-[.1em] text-white uppercase">
                 Featured
@@ -54,10 +60,10 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
             ) : null}
           </div>
         ) : null}
-      </div>
+      </MediaFrame>
 
       {product.imageUrls.length > 1 ? (
-        <HScroll bleed={false} className="gap-2 pt-2.5">
+        <HScroll bleed={false} className="gap-2 px-4 pt-2.5">
           {product.imageUrls.map((src, i) => (
             <button
               key={src}
@@ -65,11 +71,11 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
               onClick={() => setShot(i)}
               aria-label={`Image ${i + 1}`}
               aria-current={i === shot}
-              className={`h-14 w-14 shrink-0 overflow-hidden rounded-panel border-2 ${
+              className={`bg-surface-raised aspect-shop-product w-14 shrink-0 overflow-hidden rounded-panel border-2 ${
                 i === shot ? 'border-brand' : 'border-transparent opacity-60'
               }`}
             >
-              <img src={src} alt="" className="h-full w-full object-cover" />
+              <img src={src} alt="" className="h-full w-full object-contain" />
             </button>
           ))}
         </HScroll>
@@ -110,7 +116,7 @@ export function ProductDetailBody({ flow }: ProductDetailBodyProps) {
         ) : null}
 
         {!oos ? (
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-col gap-2">
             <span className="font-mono text-3xs font-bold tracking-[.12em] text-muted uppercase">Qty</span>
             <QuantityStepper value={qty} max={maxQty} onChange={setQty} />
           </div>

@@ -62,7 +62,6 @@ final class QuickMatchService
                 'kind' => MatchKindEnum::QUICK,
                 'tournament_id' => null,
                 'created_by' => $creator->id,
-                'cricket_format' => $data['cricket_format'],
                 'home_team_id' => $home->id,
                 'away_team_id' => $away->id,
                 'match_date' => now()->toDateString(),
@@ -91,7 +90,7 @@ final class QuickMatchService
     {
         return DB::transaction(function () use ($match, $actor, $data) {
             $updates = [];
-            foreach (['overs', 'cricket_format', 'players_per_side'] as $field) {
+            foreach (['overs', 'players_per_side'] as $field) {
                 if (array_key_exists($field, $data)) {
                     $updates[$field] = $data[$field];
                 }

@@ -51,9 +51,9 @@ function OrderCard({ order }: { order: VendorOrder }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="bg-surface-raised h-11 w-11 shrink-0 overflow-hidden rounded-panel">
+        <span className="bg-surface-raised aspect-shop-product w-11 shrink-0 overflow-hidden rounded-panel">
           {first?.imageUrl ? (
-            <img src={first.imageUrl} alt="" className="h-full w-full object-cover" />
+            <img src={first.imageUrl} alt="" className="h-full w-full object-contain" />
           ) : (
             <span className="text-dim grid h-full w-full place-items-center font-mono text-4xs font-bold">
               {initials}
@@ -106,7 +106,7 @@ export function SellerOrdersBody({ flow }: SellerOrdersBodyProps) {
         {isLoading ? (
           <section className="flex flex-col gap-2.5" aria-busy="true" aria-label="Loading Orders">
             <Skeleton className="h-2.5 w-16" />
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <OrderCardSkeleton key={i} />
             ))}
           </section>

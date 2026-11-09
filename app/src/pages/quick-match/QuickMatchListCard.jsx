@@ -66,10 +66,9 @@ export function QuickMatchListCard({ match, onShare }) {
   const status = match.status;
   const showShare = canShareScorecard(status);
   const when = formatDateTime(match.created_at);
-  const formatLabel = match.cricket_format_label ?? match.cricket_format;
   const oversLabel = match.overs != null ? `${match.overs} ov` : null;
 
-  const metaParts = [when || null, formatLabel || null, oversLabel].filter(Boolean);
+  const metaParts = [when || null, oversLabel].filter(Boolean);
 
   return (
     <Link

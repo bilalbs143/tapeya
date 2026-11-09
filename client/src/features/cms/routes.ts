@@ -1,12 +1,12 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
-import { TERMS_GATE_EXEMPT_PATHS } from '@/shared/routing/termsGateExempt';
+import { APP_PATHS } from '@/shared/config/paths';
 
 const StaticPage = lazy(() => import('./pages/StaticPage'));
 
-/** CMS/legal routes — exempt from blocking terms gate. */
-export const cmsRouteObjects: RouteObject[] = TERMS_GATE_EXEMPT_PATHS.map((path) => ({
-  path,
-  Component: StaticPage,
-}));
+/** CMS/legal static pages (`/pages/:slug`, `/legal/:key`). */
+export const cmsRouteObjects: RouteObject[] = [
+  { path: `${APP_PATHS.pages}/:slug`, Component: StaticPage },
+  { path: `${APP_PATHS.legal}/:key`, Component: StaticPage },
+];

@@ -10,7 +10,7 @@ class PlayerFieldingStats extends Model
     protected $table = 'player_fielding_stats';
 
     protected $fillable = [
-        'player_id', 'tournament_type', 'cricket_format', 'matches', 'catches', 'run_outs', 'stumpings',
+        'player_id', 'tournament_type', 'matches', 'catches', 'run_outs', 'stumpings',
     ];
 
     protected function casts(): array

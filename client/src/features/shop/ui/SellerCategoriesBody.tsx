@@ -58,7 +58,7 @@ export function SellerCategoriesBody({ flow }: SellerCategoriesBodyProps) {
             aria-busy="true"
             aria-label="Loading Categories"
           >
-            {Array.from({ length: 4 }, (_, i) => (
+            {Array.from({ length: 6 }, (_, i) => (
               <li key={i}>
                 <ListRowSkeleton thumbClassName="h-12 w-12 rounded-panel" trailing={false} />
               </li>

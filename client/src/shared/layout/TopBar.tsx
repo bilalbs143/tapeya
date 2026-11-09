@@ -14,10 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/DropdownMenu';
-import { BellIcon, CartIcon, ChevronDownIcon, MenuIcon, PlusIcon } from '@/shared/ui/icons';
+import { BellIcon, CartIcon, ChevronDownIcon, MenuIcon, PlusIcon, SearchIcon } from '@/shared/ui/icons';
 import { LiveBadge } from '@/shared/ui/LiveBadge';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
+import { BrandMark } from './BrandMark';
 import { handleNavRootReselect, scrollShellToTop } from './shellScroll';
 import { useShell } from './useShell';
 
@@ -40,7 +41,6 @@ type TopBarUser = {
 };
 
 type TopBarProps = {
-  title?: string;
   liveCount?: number;
   unread?: boolean;
   action?: ReactNode;
@@ -83,7 +83,7 @@ function useUnreadDot(explicit?: boolean | undefined): boolean {
 }
 
 /** Phone shell top bar (`tab:hidden`). */
-export function TopBar({ title = 'Tapeya', liveCount = 0, unread, action, className }: TopBarProps) {
+export function TopBar({ liveCount = 0, unread, action, className }: TopBarProps) {
   const { openDrawer } = useShell();
   const { pathname } = useLocation();
   const showUnread = useUnreadDot(unread);
@@ -101,14 +101,11 @@ export function TopBar({ title = 'Tapeya', liveCount = 0, unread, action, classN
       <TopNavScrollHit />
       <Link
         to={APP_PATHS.home}
-        className="relative z-10 flex min-w-0 items-center gap-2"
+        className="relative z-10 flex min-w-0 items-center"
         aria-label="Tapeya Home"
         onClick={(event) => handleNavRootReselect(event, pathname, APP_PATHS.home)}
       >
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-icon bg-[linear-gradient(150deg,var(--color-brand-hover),var(--color-brand-deep))] text-2xs font-extrabold text-white">
-          T
-        </span>
-        <span className="truncate text-title-sm font-extrabold tracking-tight text-ink">{title}</span>
+        <BrandMark className="h-9" />
       </Link>
 
       <div className="relative z-10 flex shrink-0 items-center gap-1.5">
@@ -116,6 +113,14 @@ export function TopBar({ title = 'Tapeya', liveCount = 0, unread, action, classN
         {action}
 
         <ThemeToggle className="bg-surface-raised text-body hover:text-ink h-8 w-8 rounded-full" />
+
+        <Link
+          to={APP_PATHS.discover}
+          aria-label="Search Player"
+          className="bg-surface-raised text-body focus-visible:outline-brand relative grid h-8 w-8 shrink-0 place-items-center rounded-full focus-visible:outline-2"
+        >
+          <SearchIcon size="xs" strokeWidth={1.9} className="h-3.5 w-3.5" />
+        </Link>
 
         <Link
           to={APP_PATHS.notifications}
@@ -158,14 +163,11 @@ export function DesktopTopBar({
       <TopNavScrollHit />
       <Link
         to={APP_PATHS.home}
-        className="relative z-10 flex w-[290px] shrink-0 items-center gap-2.5"
+        className="relative z-10 flex w-[290px] shrink-0 items-center"
         aria-label="Tapeya Home"
         onClick={(event) => handleNavRootReselect(event, pathname, APP_PATHS.home)}
       >
-        <span className="grid h-8 w-8 place-items-center rounded-icon bg-[linear-gradient(150deg,var(--color-brand-hover),var(--color-brand-deep))] text-body-sm font-extrabold text-white">
-          T
-        </span>
-        <span className="text-title-sm leading-normal font-extrabold tracking-tight text-white">Tapeya</span>
+        <BrandMark variant="dark" className="h-9" />
       </Link>
 
       <div className="relative z-10 flex-1" />
@@ -177,6 +179,14 @@ export function DesktopTopBar({
         >
           <PlusIcon size="xs" strokeWidth={2.2} className="h-3.5 w-3.5" />
           Score a Match
+        </Link>
+
+        <Link
+          to={APP_PATHS.discover}
+          aria-label="Search Player"
+          className="relative grid h-9 w-9 place-items-center rounded-field bg-white/12 text-white hover:bg-white/18"
+        >
+          <SearchIcon size="sm" strokeWidth={1.9} className="h-4 w-4" />
         </Link>
 
         <Link

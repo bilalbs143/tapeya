@@ -2,7 +2,7 @@ import { exploreRoutes, SuggestedPeopleBand } from '@/features/explore';
 
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { EmptyState, ErrorState, PostSkeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, PostSkeleton, SKELETON } from '@/shared/ui/states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/Tabs';
 
 import { FEED_COMPOSER_TABS, FEED_EXPLORE_INSERT, FEED_TABS } from '../lib/feedPage';
@@ -83,18 +83,17 @@ function TabEmpty({
 
 /** Home chrome, tab strip, and post column for FeedPage. */
 export function FeedPageBody({ flow }: FeedPageBodyProps) {
+  const postSkeletonCount = SKELETON.posts;
   const {
     navigate,
     tab,
     selectTab,
-    cursor,
     userId,
     me,
     home,
     posts,
     data,
     isError,
-    isFetching,
     refetch,
     reels,
     reelsLoading,
@@ -102,6 +101,7 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
     exhausted,
     showInitialLoading,
     refreshing,
+    loadingMore,
     canLoadMore,
     loadMoreRef,
     reposting,
@@ -191,8 +191,9 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
 
           {showInitialLoading ? (
             <div className="flex flex-col" aria-busy="true" aria-label="Loading Feed">
-              <PostSkeleton className="rounded-none border-0 border-b shadow-none" />
-              <PostSkeleton className="rounded-none border-0 border-b shadow-none" />
+              {Array.from({ length: postSkeletonCount }, (_, i) => (
+                <PostSkeleton key={i} className="rounded-none border-0 border-b shadow-none" />
+              ))}
             </div>
           ) : null}
 
@@ -261,9 +262,9 @@ export function FeedPageBody({ flow }: FeedPageBodyProps) {
           ) : null}
 
           {/* One sentinel on the active tab only — shared ref cannot attach to every TabsContent. */}
-          {t.value === tab && canLoadMore ? (
-            <div ref={loadMoreRef} className="flex h-10 items-center justify-center" aria-hidden={!isFetching}>
-              {isFetching && cursor ? (
+          {t.value === tab && (canLoadMore || loadingMore) ? (
+            <div ref={loadMoreRef} className="flex h-10 items-center justify-center" aria-hidden={!loadingMore}>
+              {loadingMore ? (
                 <span role="status" className="text-dim font-mono text-4xs font-semibold tracking-[.06em] uppercase">
                   Loading More…
                 </span>

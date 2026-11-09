@@ -1,16 +1,28 @@
 import { useEffect, useRef } from 'react';
 
+import { getShellScrollRoot } from '@/shared/layout/shellScroll';
+
 type Options = {
-  /** When false, the sentinel is inert (e.g. no next page / already fetching). */
   enabled: boolean;
   onIntersect: () => void;
-  /** Prefetch margin — matches app FeedRegion (`240px 0px`). */
   rootMargin?: string | undefined;
+  /** Explicit IO root. Ignored when `shellRoot` is true. */
   root?: Element | null | undefined;
+  /** Resolve AppShell scrollport when observing (home feed). */
+  shellRoot?: boolean | undefined;
+  /** Remount observer when this changes (e.g. after a fetch settles). */
+  recheckKey?: string | number | undefined;
 };
 
-/** Cursor pagination sentinel — stable observer, latest `onIntersect` via ref. */
-export function useCursorSentinel({ enabled, onIntersect, rootMargin = '240px 0px', root = null }: Options) {
+/** Cursor pagination sentinel — latest `onIntersect` via ref. */
+export function useCursorSentinel({
+  enabled,
+  onIntersect,
+  rootMargin = '240px 0px',
+  root = null,
+  shellRoot = false,
+  recheckKey,
+}: Options) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const onIntersectRef = useRef(onIntersect);
 
@@ -22,15 +34,17 @@ export function useCursorSentinel({ enabled, onIntersect, rootMargin = '240px 0p
     const el = sentinelRef.current;
     if (!enabled || !el || typeof IntersectionObserver === 'undefined') return undefined;
 
+    const observeRoot = shellRoot ? getShellScrollRoot() : root;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) onIntersectRef.current();
       },
-      { root, rootMargin }
+      { root: observeRoot, rootMargin }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [enabled, root, rootMargin]);
+  }, [enabled, root, shellRoot, rootMargin, recheckKey]);
 
   return sentinelRef;
 }

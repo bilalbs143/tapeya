@@ -26,6 +26,7 @@ import {
   type FileUploadValue,
 } from 'src/app/shared/components/file-upload/file-upload.component';
 import { NGX_EDITOR_TOOLBAR } from 'src/app/shared/constants/editor.constants';
+import { SHOP_PRODUCT_IMAGES_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
 export interface ManageProductDialogData {
@@ -64,6 +65,7 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
 
   public form!: FormGroup;
   public isSubmitting = false;
+  public readonly productImagesAspect = SHOP_PRODUCT_IMAGES_ASPECT;
   public brands: Brand[] = [];
   public categories: Category[] = [];
   public vendors: Vendor[] = [];

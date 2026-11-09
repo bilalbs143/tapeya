@@ -16,10 +16,9 @@ class RankingController extends Controller
     use BaseControllerTrait;
 
     /**
-     * Leaderboard / rankings scoped by tournament_type and cricket_format.
+     * Leaderboard / rankings scoped by tournament_type.
      *
      * Query: tournament_type = open_tournament | private_tournament (required; no 'all')
-     *        cricket_format = hard_ball | tape_ball | tennis_ball | hard_tennis | all (default: all)
      *        category = batting | bowling | fielding
      *        sort = runs | average | strike_rate | fours | sixes | wickets | economy | catches | run_outs | stumpings
      *        min_innings = optional qualification threshold (innings for batting, matches for bowling/fielding)
@@ -27,11 +26,10 @@ class RankingController extends Controller
     public function index(): JsonResponse
     {
         $tournamentType = request()->query('tournament_type', 'open_tournament');
-        $cricketFormat = request()->query('cricket_format', 'all');
         $minQualifyingCount = (int) request()->query('min_innings', 0);
 
         try {
-            $bucket = StatBucketFilters::fromRankingsQuery($tournamentType, $cricketFormat);
+            $bucket = StatBucketFilters::fromRankingsQuery($tournamentType);
             $categoryEnum = StatBucketFilters::parseCategoryOptional(
                 request()->query('category'),
                 StatCategoryEnum::BATTING,
@@ -43,7 +41,7 @@ class RankingController extends Controller
         $sort = request()->query('sort') ?: $categoryEnum->defaultSort();
 
         $service = app(PlayerStatsService::class);
-        $rankings = $service->rankings($tournamentType, $categoryEnum->value, $sort, $minQualifyingCount, $cricketFormat);
+        $rankings = $service->rankings($tournamentType, $categoryEnum->value, $sort, $minQualifyingCount);
 
         $userIds = array_column($rankings, 'player_id');
         $users = User::whereIn('id', $userIds)->get()->keyBy('id');
@@ -62,7 +60,6 @@ class RankingController extends Controller
 
         return $this->success([
             'tournament_type' => $bucket['tournamentTypeQuery'],
-            'cricket_format' => $bucket['cricketFormatQuery'],
             'category' => $categoryEnum->value,
             'sort' => $sort,
             'rankings' => $list,

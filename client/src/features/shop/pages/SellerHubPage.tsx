@@ -40,7 +40,7 @@ export default function SellerHubPage() {
             ))}
           </div>
           <div className="border-border-subtle divide-border-subtle flex flex-col divide-y overflow-hidden rounded-card border">
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3.5">
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <Skeleton className="h-3 w-24" />

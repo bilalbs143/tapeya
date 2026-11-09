@@ -1,9 +1,9 @@
 import { PageDock, ScreenBar, SectionLabel } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
-import { EmptyState, ErrorState, UserRowSkeleton } from '@/shared/ui/states';
+import { SearchBar } from '@/shared/ui/SearchBar';
+import { EmptyState, ErrorState, SKELETON, UserRowSkeleton } from '@/shared/ui/states';
 
-import { DISCOVER_SECTION_LABEL } from '../lib/discoverPage';
+import { DISCOVER_SEARCH_SECTION_LABEL, DISCOVER_SECTION_LABEL } from '../lib/discoverPage';
 import { SuggestedUserRow } from './SuggestedUserRow';
 import type { useDiscoverPage } from './useDiscoverPage';
 
@@ -13,59 +13,90 @@ type DiscoverPageBodyProps = {
   flow: DiscoverPageFlow;
 };
 
-/** Suggested players list with loading / empty gates. */
+function UserListSkeleton({ label }: { label: string }) {
+  const rowCount = SKELETON.userRows;
+  return (
+    <div className="flex flex-col pb-6">
+      <div className="px-4 pt-3.5">
+        <SectionLabel as="h2">{label}</SectionLabel>
+      </div>
+      <ul className="flex flex-col" aria-busy="true" aria-label="Loading Players">
+        {Array.from({ length: rowCount }, (_, i) => (
+          <li key={i} className="border-border-subtle border-b px-4 py-3">
+            <UserRowSkeleton />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Suggested / search player list — SearchBar pinned like shop; results filter the list below. */
 export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
-  const { users, isLoading, isError, refetch, goHome } = flow;
+  const { query, setQuery, searching, users, isLoading, isError, refetch, searchHeading, goHome } = flow;
+  const sectionLabel = searching ? DISCOVER_SEARCH_SECTION_LABEL : DISCOVER_SECTION_LABEL;
 
   return (
     <PageDock
-      header={<ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />}
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title="Suggested for You" subtitle="People Who Post the Cricket You Follow" onBack={goHome} />
+          <div className="px-4 pt-3.5 pb-3">
+            <SearchBar
+              value={query}
+              onValueChange={setQuery}
+              placeholder="Search Player"
+              label="Search Player"
+              size="md"
+              className="w-full"
+              count={searching && !isLoading && !isError ? searchHeading : undefined}
+            />
+          </div>
+        </div>
+      }
     >
-      <div className="flex flex-col gap-3 px-4 py-3.5">
-        {isLoading ? (
-          <Card className="p-3.5">
-            <SectionLabel as="h2">{DISCOVER_SECTION_LABEL}</SectionLabel>
-            <ul className="flex flex-col gap-2.5" aria-busy="true" aria-label="Loading Suggestions">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <li key={i}>
-                  <UserRowSkeleton />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ) : null}
+      {isLoading ? <UserListSkeleton label={sectionLabel} /> : null}
 
-        {isError ? (
+      {isError ? (
+        <div className="px-4 py-8">
           <ErrorState
-            title="Couldn't Load Suggestions"
+            title={searching ? "Couldn't Search Players" : "Couldn't Load Suggestions"}
             description="Check your connection and try again."
             onRetry={() => void refetch()}
           />
-        ) : null}
+        </div>
+      ) : null}
 
-        {!isLoading && !isError && users.length === 0 ? (
-          <EmptyState
-            title="No Suggestions Right Now"
-            description="Follow people from Explore posts — they will show up here next time."
-            action={
-              <Button size="sm" onClick={goHome}>
-                Back to Explore
-              </Button>
-            }
-          />
-        ) : null}
+      {!isLoading && !isError && users.length === 0 ? (
+        <div className="px-4 py-8">
+          {searching ? (
+            <EmptyState title="No Players Found" description="Try another name or nickname — spelling can be picky." />
+          ) : (
+            <EmptyState
+              title="No Suggestions Right Now"
+              description="Follow people from Explore posts — they will show up here next time."
+              action={
+                <Button size="sm" onClick={goHome}>
+                  Back to Explore
+                </Button>
+              }
+            />
+          )}
+        </div>
+      ) : null}
 
-        {!isLoading && !isError && users.length > 0 ? (
-          <Card className="p-3.5">
-            <SectionLabel as="h2">{DISCOVER_SECTION_LABEL}</SectionLabel>
-            <ul className="flex flex-col gap-2.5">
-              {users.map((user) => (
-                <SuggestedUserRow key={user.id} user={user} />
-              ))}
-            </ul>
-          </Card>
-        ) : null}
-      </div>
+      {!isLoading && !isError && users.length > 0 ? (
+        <div className="flex flex-col pb-6">
+          <div className="px-4 pt-3.5">
+            <SectionLabel as="h2">{sectionLabel}</SectionLabel>
+          </div>
+          <ul className="flex flex-col">
+            {users.map((user) => (
+              <SuggestedUserRow key={user.id} user={user} className="border-border-subtle border-b px-4 py-3" />
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </PageDock>
   );
 }

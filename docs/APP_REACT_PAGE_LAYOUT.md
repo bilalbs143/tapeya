@@ -39,9 +39,9 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 
 - `/create` and children
 - Operator scoring: `/matches/:id/(score|toss|settings|graphics)`
-- Live immersive: `/live/broadcast/:id`, `/live/go-live/:id`
+- Media players: `/live/broadcast/:id`, `/live/go-live/:id`, `/highlights/:id`, `/entertainment/:serialId/e/:episodeId`
 
-Hub `/live` and form `/live/go-live` **keep** BottomNav.
+Hub `/live`, form `/live/go-live`, `/highlights` list, and entertainment show pages **keep** BottomNav.
 
 ### Page scroll contracts (normal shell)
 
@@ -103,7 +103,7 @@ Use **only** these roles. If you need a new step, update this table first.
 ├─ StickyActionBar (PageDock footer — pinned) ───┤
 │  px-4 pt-3 pb-3  ·  no safe-area (normal)      │
 └────────────────────────────────────────────────┘
-         ↑ above BottomNav; keyboard pad on PageDock
+         ↑ above BottomNav; KeyboardInsetPad fills `--keyboard-inset`
 ```
 
 ---
@@ -248,13 +248,13 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 </DockScreen>
 ```
 
-**Thread + composer variant (Post detail):** comments body `px-4`; bottom composer uses the **same** footer contract as StickyActionBar when BottomNav is visible (no extra safe-area). Prefer aligning `CommentComposer` with StickyActionBar over inventing a third footer.
+**Thread + composer variant (Post detail):** comments body `px-4`. `/feed/:id` hides BottomNav (`isMediaPlayerBottomNavHiddenPath`) — pass `CommentComposer edge` so the dock uses `--safe-above-keyboard` (same as watch `ChatDock` / episode / reel sheet). Do not invent a third footer padding.
 
 ---
 
 ### Type F — Hero detail (no ScreenBar)
 
-**When:** Public tournament cover, marketing-style detail with full-bleed hero.
+**When:** Marketing-style detail that truly needs full-bleed hero chrome (rare). Prefer **Type E** + ScreenBar when back/share fit the standard bar (public tournament uses Type E).
 
 ```tsx
 <PageDock header={<HeroWithFloatingBack … />}>
@@ -327,9 +327,9 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 
 ## 5. StickyActionBar contract
 
-Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift is owned by `PageDock` (`paddingBottom` from `--keyboard-inset`), not the bar.
+Name is historical — on docked pages it is a **pinned footer**, not CSS `position: sticky`. Keyboard lift + opaque L/R fill is **`KeyboardInsetPad`** (last child of AppShell / dialog sheets). `PageDock` / this bar do not pad the inset. Landscape media sets `padKeyboard={false}` on `PageDock` to suppress the shell pad.
 
-**Native keyboard:** WebView full height; JS pads via `--keyboard-inset`. iOS: `Keyboard.resize: 'none'`. Android: `adjustNothing` + `SystemBars.insetsHandling: 'disable'` (avoids Cap 8 double IME pad / white gap). No `resizeOnFullScreen`.
+**Native keyboard:** `Keyboard.resize: 'none'` keeps the WebView box fixed; AppShell is `fixed inset-0` + `KeyboardInsetPad`. Same pad component in `BaseDialog`. `Keyboard.setScroll` disabled. Android: `adjustNothing` + `SystemBars.insetsHandling: 'disable'`. No `resizeOnFullScreen`.
 
 | Do | Don’t |
 |---|---|
@@ -420,7 +420,7 @@ Track and burn down — do not copy these patterns into new screens:
 1. ~~Hand-rolled hub headers (Matches / Tournaments)~~ → `ScreenBar` (create tiles in body)
 2. ~~Create Tournament double chrome~~ → ScreenBar subtitle + progress `below`; wizard body only
 3. ~~Create Post ScreenBar `action` commit~~ → `StickyActionBar`
-4. ~~`CommentComposer` safe-area vs StickyActionBar~~ → sticky matches StickyActionBar when BottomNav visible
+4. ~~`CommentComposer` safe-area vs StickyActionBar~~ → `edge` when BottomNav hidden; default matches StickyActionBar when nav visible
 5. ~~`ListRow` `px-[15px]`~~ → `px-4 py-3`
 6. Skill `reference.md` claiming SideNav at `sm:` → code uses `tab:` (this doc wins)
 7. Immersive scoring / live watch still use feature-local `px-3.5` docks — keep consistent **within** Type I; do not copy onto normal shell pages

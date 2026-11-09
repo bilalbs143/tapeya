@@ -7,6 +7,7 @@ import { shopPaths } from '@/features/shop';
 import { APP_PATHS } from '@/shared/config/paths';
 import { SectionLabel } from '@/shared/layout';
 import { HScroll } from '@/shared/ui/HScroll';
+import { MediaFrame } from '@/shared/ui/media';
 
 export function ProductsRail({
   products = [],
@@ -35,14 +36,13 @@ export function ProductsRail({
             to={shopPaths.product({ slug: p.slug, vendorSlug: p.vendorSlug })}
             className="border-border-subtle w-36 shrink-0 overflow-hidden rounded-card border"
           >
-            <span className="bg-page relative block aspect-square overflow-hidden">
-              {p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" /> : null}
+            <MediaFrame kind="shopProduct" src={p.image} alt="" fit="contain" rounded="none" className="bg-page">
               {p.badge ? (
-                <span className="bg-danger absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-4xs font-bold text-white">
+                <span className="bg-danger absolute top-1.5 left-1.5 z-10 rounded-full px-1.5 py-0.5 text-4xs font-bold text-white">
                   {p.badge}
                 </span>
               ) : null}
-            </span>
+            </MediaFrame>
             <p className="mt-1.5 truncate px-2 text-2xs font-bold text-ink">{p.name}</p>
             <p className="text-dim font-mono px-2 pb-2 text-4xs">{p.price}</p>
           </Link>

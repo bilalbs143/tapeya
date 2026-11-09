@@ -1,5 +1,4 @@
 export {
-  useAcceptTermsMutation,
   useDeleteAccountMutation,
   useLazyMeWithTokenQuery,
   useLogoutMutation,
@@ -21,4 +20,3 @@ export type {
 } from './model/schemas';
 export { authRouteObjects, authRoutes } from './routes';
 export { PhoneField } from './ui/PhoneField';
-export { TermsAcceptanceGate } from './ui/TermsAcceptanceGate';

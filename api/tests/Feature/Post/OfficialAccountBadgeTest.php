@@ -114,10 +114,14 @@ class OfficialAccountBadgeTest extends TestCase
     public function test_admin_can_toggle_is_official_on_user_update(): void
     {
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
-        $user = User::factory()->create(['is_official' => false]);
+        // App players are updated via /admin/players — /admin/users is for operators (requires roles).
+        $user = User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'is_official' => false,
+        ]);
 
         $this->actingAs($admin, 'api')
-            ->putJson("/api/v1/admin/users/{$user->id}", [
+            ->putJson("/api/v1/admin/players/{$user->id}", [
                 'name' => $user->name,
                 'is_official' => true,
             ])
@@ -127,7 +131,7 @@ class OfficialAccountBadgeTest extends TestCase
         $this->assertTrue($user->fresh()->is_official);
 
         $this->actingAs($admin, 'api')
-            ->putJson("/api/v1/admin/users/{$user->id}", [
+            ->putJson("/api/v1/admin/players/{$user->id}", [
                 'name' => $user->name,
                 'is_official' => false,
             ])

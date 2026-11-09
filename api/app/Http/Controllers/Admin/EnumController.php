@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
 use App\Enums\Content\HeroSliderCtaTypeEnum;
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
@@ -47,7 +46,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v21', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v22', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -76,7 +75,6 @@ class EnumController extends Controller
             'stats_bucket' => $this->toOptions(StatsBucketEnum::cases()),
             'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
-            'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_status' => $this->toOptions(MatchStatusEnum::cases()),
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),

@@ -3,7 +3,7 @@ import Capacitor
 
 /**
  * Capacitor no longer auto-discovers local App-target plugins.
- * Register TapeyaBroadcast here so JS `registerPlugin('TapeyaBroadcast')` works.
+ * Register local plugins here so JS `registerPlugin(...)` works.
  *
  * WebView transparency for camera underlay is toggled by the plugin while previewing —
  * do not set it globally here.
@@ -15,6 +15,7 @@ class AppBridgeViewController: CAPBridgeViewController {
     }
 
     override open func capacitorDidLoad() {
+        bridge?.registerPluginInstance(TapeyaAppearancePlugin())
         bridge?.registerPluginInstance(TapeyaBroadcastPlugin())
     }
 }

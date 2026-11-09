@@ -49,7 +49,6 @@ function statsFor(userId: number): PlayerStatsWire {
   return {
     player_id: userId,
     tournament_type: 'all',
-    cricket_format: 'all',
     batting,
     bowling,
     fielding,

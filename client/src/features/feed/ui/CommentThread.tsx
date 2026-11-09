@@ -68,9 +68,7 @@ function CommentRow({
     comment.author.id != null
       ? userProfilePath({ id: comment.author.id, nickname: comment.author.nickname })
       : undefined;
-  const age = String(comment.age ?? '')
-    .replace(/\s*AGO\s*$/i, '')
-    .trim();
+  const age = comment.age?.trim() ?? '';
 
   const [open, setOpen] = useState(false);
   const [replies, setReplies] = useState<Comment[]>([]);
@@ -154,7 +152,7 @@ function CommentRow({
           avatarSize="sm"
           className={cn(nested && 'gap-2')}
           nameClassName={cn('leading-none', nested ? 'text-3xs' : 'text-2xs')}
-          beside={age ? <span className="font-mono text-dim text-4xs leading-none font-medium">{age}</span> : null}
+          beside={age ? <span className="text-dim text-4xs leading-none font-medium">{age}</span> : null}
         >
           {body}
           {actions}

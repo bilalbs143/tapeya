@@ -97,21 +97,6 @@ class CricketDashboardController extends Controller
             ->values()
             ->all();
 
-        // ── Matches by Cricket Format (quick matches + match-level format) ─
-        $matchesByFormat = DB::table('matches')
-            ->whereNotNull('cricket_format')
-            ->selectRaw('cricket_format, COUNT(*) as cnt')
-            ->groupBy('cricket_format')
-            ->orderByDesc('cnt')
-            ->get()
-            ->map(fn ($r) => [
-                'format' => $r->cricket_format,
-                'label' => $this->formatLabel($r->cricket_format),
-                'count' => (int) $r->cnt,
-            ])
-            ->values()
-            ->all();
-
         // ── Top Teams by Wins ─────────────────────────────────────────────────
         $topTeams = DB::table('matches')
             ->join('teams', 'matches.winning_team_id', '=', 'teams.id')
@@ -300,7 +285,6 @@ class CricketDashboardController extends Controller
 
             // Type breakdown
             'tournaments_by_type' => $tournamentsByType,
-            'matches_by_format' => $matchesByFormat,
 
             // Top teams
             'top_teams_by_wins' => $topTeams,
@@ -340,20 +324,5 @@ class CricketDashboardController extends Controller
         }
 
         return ucwords(str_replace('_', ' ', (string) $value));
-    }
-
-    private function formatLabel(mixed $value): string
-    {
-        if ($value === null) {
-            return 'Unknown';
-        }
-        $map = [
-            'hard_ball' => 'Hard Ball',
-            'tape_ball' => 'Tape Ball',
-            'tennis_ball' => 'Tennis Ball',
-            'hard_tennis' => 'Hard Tennis',
-        ];
-
-        return $map[$value instanceof \BackedEnum ? $value->value : (string) $value] ?? ucwords(str_replace('_', ' ', (string) $value));
     }
 }

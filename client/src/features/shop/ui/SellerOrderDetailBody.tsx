@@ -237,8 +237,8 @@ export function SellerOrderDetailBody() {
           <ul className="divide-border-subtle flex flex-col divide-y">
             {order.items.map((it) => (
               <li key={it.id} className="flex gap-3 p-3.5">
-                <span className="bg-surface-raised h-14 w-14 shrink-0 overflow-hidden rounded-panel">
-                  {it.imageUrl ? <img src={it.imageUrl} alt="" className="h-full w-full object-cover" /> : null}
+                <span className="bg-surface-raised aspect-shop-product w-14 shrink-0 overflow-hidden rounded-panel">
+                  {it.imageUrl ? <img src={it.imageUrl} alt="" className="h-full w-full object-contain" /> : null}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="line-clamp-2 text-xs leading-snug font-bold text-ink">{it.name}</span>

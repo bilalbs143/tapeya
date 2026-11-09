@@ -34,6 +34,25 @@ export const exploreHandlers = [
     return HttpResponse.json({ data: fixtures, type: 'SUCCESS' });
   }),
 
+  http.get(`${env.VITE_API_URL}/users/search`, ({ request }) => {
+    const q = new URL(request.url).searchParams.get('q')?.trim().toLowerCase() ?? '';
+    const hits = fixtures.filter((u) => {
+      if (!q) return true;
+      return (u.name ?? '').toLowerCase().includes(q) || (u.nickname ?? '').toLowerCase().includes(q);
+    });
+    return HttpResponse.json({
+      data: hits.map((u) => ({
+        id: u.id,
+        name: u.name,
+        nickname: u.nickname,
+        avatar_url: u.avatar_url,
+        is_official: u.is_official,
+        is_following: Boolean(u.is_following),
+      })),
+      type: 'SUCCESS',
+    });
+  }),
+
   http.post(`${env.VITE_API_URL}/users/:id/follow`, () => {
     return HttpResponse.json({
       data: { followers_count: 1201, following_count: 10, am_following: true },

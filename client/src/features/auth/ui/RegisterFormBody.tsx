@@ -1,9 +1,7 @@
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { APP_PATHS } from '@/shared/config/paths';
 import { Button } from '@/shared/ui/Button';
-import { Checkbox } from '@/shared/ui/Checkbox';
 import { Form } from '@/shared/ui/Form';
 import { Input } from '@/shared/ui/Input';
 
@@ -31,8 +29,6 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
     setName,
     nickname,
     setNickname,
-    acceptTerms,
-    setAcceptTerms,
     errors,
     taken,
     busy,
@@ -40,7 +36,6 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
     clearPhoneError,
     clearNameError,
     clearNicknameError,
-    clearAcceptTermsError,
     submit,
   } = flow;
 
@@ -111,36 +106,6 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
           hint={errors.nickname ? undefined : 'What teammates call you on the scorecard.'}
           className="h-12 rounded-panel text-sm leading-normal"
         />
-
-        <div>
-          <label className="flex cursor-pointer items-start gap-3">
-            <Checkbox
-              checked={acceptTerms}
-              onCheckedChange={(v) => {
-                setAcceptTerms(v === true);
-                clearAcceptTermsError();
-              }}
-              className="mt-0.5"
-              aria-label="Agree to Terms of Use"
-            />
-            <span className="text-dim text-3xs leading-[1.65]">
-              I agree to the{' '}
-              <Link to={APP_PATHS.legalTerms} className="text-brand-text font-semibold underline underline-offset-2">
-                Terms of Use
-              </Link>{' '}
-              (zero tolerance for objectionable content and abusive users) and{' '}
-              <Link to={APP_PATHS.legalPrivacy} className="text-brand-text font-semibold underline underline-offset-2">
-                Privacy Policy
-              </Link>
-              .
-            </span>
-          </label>
-          {errors.acceptTerms ? (
-            <p className="text-danger-text mt-1.5 text-3xs" role="alert">
-              {errors.acceptTerms}
-            </p>
-          ) : null}
-        </div>
       </Form>
     </AuthShell>
   );

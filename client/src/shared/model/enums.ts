@@ -43,7 +43,6 @@ export const enumsWireSchema = z
     tournament_type: optionList.optional(),
     stats_bucket: optionList.optional(),
     group_mode: optionList.optional(),
-    cricket_format: optionList.optional(),
     stat_category: optionList.optional(),
     shot_position: optionList.optional(),
     toss_choice: optionList.optional(),

@@ -13,7 +13,6 @@ import {
 const wire: PlayerStatsWire = {
   player_id: 11,
   tournament_type: 'all',
-  cricket_format: 'all',
   batting: {
     matches: 10,
     innings: 9,

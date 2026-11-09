@@ -12,11 +12,7 @@ export function TossPendingCard({ match, onSaveToss }: TossPendingCardProps) {
   const home = match.home?.short ?? 'HOME';
   const away = match.away?.short ?? 'AWAY';
   const when = timeOf(match.matchTime) || (match.matchDate ? match.matchDate : null) || 'Toss Not Saved';
-  const meta = [
-    when,
-    match.overs != null ? `${match.overs} overs` : match.formatLabel,
-    match.tournamentShort ?? 'Quick Match',
-  ]
+  const meta = [when, match.overs != null ? `${match.overs} overs` : null, match.tournamentShort ?? 'Quick Match']
     .filter(Boolean)
     .join(' · ');
 

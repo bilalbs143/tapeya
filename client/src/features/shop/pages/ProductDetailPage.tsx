@@ -38,7 +38,7 @@ export default function ProductDetailPage() {
         </div>
       ) : isLoading ? (
         <>
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="aspect-shop-product w-full rounded-none" />
           <div className="flex flex-col gap-3 px-4 pt-4">
             <Skeleton className="h-6 w-3/4" />
             <Skeleton className="h-5 w-1/3" />

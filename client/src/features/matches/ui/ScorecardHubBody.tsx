@@ -77,7 +77,7 @@ export function ScorecardHubBody({ flow }: ScorecardHubBodyProps) {
                 <Skeleton key={label} className="h-7 w-14 shrink-0 rounded-full" />
               ))}
             </div>
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="border-border-subtle flex flex-col gap-2.5 rounded-card border px-3.5 py-3">
                 <div className="flex items-center justify-between gap-2">
                   <Skeleton className="h-2.5 w-12" />

@@ -54,7 +54,7 @@ export function UpcomingTournamentsBody({ flow }: UpcomingTournamentsBodyProps) 
       <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-6">
         {isLoading ? (
           <div className="flex flex-col gap-3">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-40 w-full rounded-card" />
             ))}
           </div>

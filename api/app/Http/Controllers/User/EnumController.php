@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\ExtraTypeEnum;
 use App\Enums\Event\InningsEndReasonEnum;
@@ -43,7 +42,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('user:enums:v14', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('user:enums:v15', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -55,7 +54,6 @@ class EnumController extends Controller
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
             'stats_bucket' => $this->toOptions(StatsBucketEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
-            'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'stat_category' => $this->toOptions(StatCategoryEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'toss_choice' => $this->toOptions(TossChoiceEnum::cases()),
