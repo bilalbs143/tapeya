@@ -6,6 +6,7 @@ import { TermsAcceptanceGate } from '@/features/auth';
 import { ReelUploadProgressDialog } from '@/features/reels';
 
 import { enumsApi } from '@/shared/api/enumsApi';
+import { systemSettingsApi } from '@/shared/api/systemSettingsApi';
 import { ThemeProvider } from '@/shared/config/theme';
 import { DialogHost } from '@/shared/dialogs';
 import { KeyboardInsetProvider } from '@/shared/native/KeyboardInsetProvider';
@@ -41,13 +42,13 @@ function AuthHydration({ children }: { children: ReactNode }) {
   return children;
 }
 
-/** Warm public `GET /enums` so profile / quick-match chips have labels immediately. */
-
-function EnumsPrefetch({ children }: { children: ReactNode }) {
+/** Warm public boot data so chips / CDN / OTP limits are ready early. */
+function BootPrefetch({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     void dispatch(enumsApi.util.prefetch('getEnums', undefined, { force: false }));
+    void dispatch(systemSettingsApi.util.prefetch('getPublicSystemSettings', undefined, { force: false }));
   }, [dispatch]);
 
   return children;
@@ -63,7 +64,7 @@ export function AppProviders({ children }: AppProvidersProps) {
           <BrowserRouter>
             <KeyboardInsetProvider>
               <AuthHydration>
-                <EnumsPrefetch>
+                <BootPrefetch>
                   <Suspense fallback={<div className="text-muted p-8 text-sm">Loading…</div>}>{children}</Suspense>
                   <NativeEffects />
                   <RealtimeEffects />
@@ -72,7 +73,7 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <TermsAcceptanceGate />
                   <ReelUploadProgressDialog />
                   <ToastHost />
-                </EnumsPrefetch>
+                </BootPrefetch>
               </AuthHydration>
             </KeyboardInsetProvider>
           </BrowserRouter>

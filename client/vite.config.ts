@@ -47,7 +47,6 @@ export default defineConfig({
       // defaults `.env.example` documents, so `npm test` works with zero setup.
       VITE_API_URL: 'http://localhost:8000/api/v1',
       VITE_APP_URL: 'http://localhost:5180',
-      VITE_CDN_BASE: 'https://cdn.tapeya.com',
     },
   },
 });

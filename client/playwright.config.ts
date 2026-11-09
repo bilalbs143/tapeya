@@ -21,7 +21,6 @@ export default defineConfig({
       ...process.env,
       VITE_API_URL: process.env.VITE_API_URL ?? 'http://localhost:8000/api/v1',
       VITE_APP_URL: APP_URL,
-      VITE_CDN_BASE: process.env.VITE_CDN_BASE ?? 'https://cdn.tapeya.com',
     },
   },
 });

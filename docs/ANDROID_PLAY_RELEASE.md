@@ -28,12 +28,12 @@ These are gitignored. Copy them by hand; never commit them.
 
 | File | Purpose |
 | ---- | ------- |
-| `app/android/keystores/upload-keystore.jks` | Play upload key |
-| `app/android/keystore.properties` | Store password, key password, alias |
+| `app/android/keystores/upload-keystore.jks` **and** `client/android/keystores/upload-keystore.jks` | Play upload key (same file in both trees) |
+| `app/android/keystore.properties` **and** `client/android/keystore.properties` | Store password, key password, alias |
 
-Template (no secrets): [`app/android/keystore.properties.example`](../app/android/keystore.properties.example).
+Template (no secrets): [`app/android/keystore.properties.example`](../app/android/keystore.properties.example) / [`client/android/keystore.properties.example`](../client/android/keystore.properties.example).
 
-`keystore.properties` must stay relative to `app/android/`:
+`keystore.properties` must stay relative to that package’s `android/` folder (same contents in both):
 
 ```
 storeFile=keystores/upload-keystore.jks
@@ -42,7 +42,7 @@ keyPassword=…
 keyAlias=upload
 ```
 
-`google-services.json` is in the repo (`app/android/app/google-services.json`). It comes with `git clone`.
+`google-services.json` is in the repo (`app/android/app/google-services.json` and `client/android/app/google-services.json`). It comes with `git clone`.
 
 ## What not to copy
 
@@ -78,9 +78,11 @@ Losing this key blocks Play uploads until you request an **upload-key reset** in
 
 ```bash
 git clone <repo>
-# then copy:
+# then copy the same upload key into BOTH trees (or symlink client → app):
 #   app/android/keystores/upload-keystore.jks
 #   app/android/keystore.properties
+#   client/android/keystores/upload-keystore.jks
+#   client/android/keystore.properties
 ```
 
 Paths must match `keystore.properties` (`storeFile=keystores/upload-keystore.jks`).
@@ -91,13 +93,14 @@ Paths must match `keystore.properties` (`storeFile=keystores/upload-keystore.jks
 keytool -list -v \
   -keystore app/android/keystores/upload-keystore.jks \
   -alias upload
+# same check against client/android/keystores/upload-keystore.jks
 ```
 
 SHA1 must be `89:0C:3A:F0:89:01:67:AC:9E:37:B8:8D:21:92:EE:34:0B:C6:3D:AE`. If it is not, stop — you copied the wrong file.
 
 ### 5. Build a signed release AAB
 
-**Preferred — one command, no Android Studio.** From `app/`:
+**Preferred — one command, no Android Studio.** From `client/` (rewrite) or `app/` (legacy):
 
 ```bash
 npm install
@@ -110,6 +113,8 @@ That builds web assets, syncs Capacitor, and runs `:app:bundleRelease` — signi
 Output:
 
 ```
+client/android/app/build/outputs/bundle/release/app-release.aab
+# or legacy:
 app/android/app/build/outputs/bundle/release/app-release.aab
 ```
 
@@ -117,7 +122,7 @@ If `keystore.properties` is missing the build now fails with an explicit error i
 
 #### Alternative: open Android Studio
 
-`npm run cap:android` builds and syncs, then opens Studio. **Do not use Generate Signed Bundle unless the wizard points at `upload-keystore.jks` / alias `upload`.** That wizard ignores `keystore.properties` and is how a wrong key gets used. Close it and run Gradle from `app/android/` instead:
+`npm run cap:android` builds and syncs, then opens Studio. **Do not use Generate Signed Bundle unless the wizard points at `upload-keystore.jks` / alias `upload`.** That wizard ignores `keystore.properties` and is how a wrong key gets used. Close it and run Gradle from `client/android/` (or `app/android/`) instead:
 
 ```bash
 ./gradlew :app:bundleRelease

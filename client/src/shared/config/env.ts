@@ -9,7 +9,7 @@ function emptyToUndefined(value: unknown): unknown {
 const envSchema = z.object({
   VITE_API_URL: z.string().url(),
   VITE_APP_URL: z.string().url(),
-  VITE_CDN_BASE: z.string().url(),
+  // CDN origin comes from system settings (`cdn_public_base_url`) + default in shared/lib/cdn.
   VITE_SENTRY_DSN: z.preprocess(emptyToUndefined, z.string().url().optional()),
   VITE_REVERB_APP_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   VITE_REVERB_HOST: z.preprocess(emptyToUndefined, z.string().optional()),

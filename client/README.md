@@ -125,11 +125,15 @@ npm run cap:open:ios               # open App.xcworkspace (prefer over `cap open
 npm run ios:pods                   # CocoaPods only
 npm run cap:android                # prod web build → sync → open Android Studio
 npm run cap:android:staging
-npm run cap:android:bundle         # release AAB (needs android/ signing setup)
+npm run cap:android:apk            # signed release APK (device sideload / testing)
+npm run cap:android:apk:staging
+npm run cap:android:bundle         # release AAB (Play upload; needs android/ signing)
 npm run cap:android:bundle:staging
 npm run verify:android:bundle      # print AAB cert Owner / SHA1
 npm run cap:sync                   # both platforms + ios pods
 ```
+
+APK/AAB release builds need `android/keystore.properties` + `android/keystores/upload-keystore.jks` (same as legacy `app/`). Output APK: `android/app/build/outputs/apk/release/app-release.apk`. Install with `adb install -r` that path.
 
 `build:production` / `build:staging` are web-only (no Cap sync).
 Requires **CocoaPods** (`pod` ≥ 1.16) on the Mac for iOS.

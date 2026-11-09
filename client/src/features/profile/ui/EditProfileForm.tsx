@@ -45,12 +45,12 @@ type EditProfileFormProps = {
 };
 
 const AVATAR_ACCEPT = 'image/jpeg,image/png,image/webp';
-/** Decorative cover — not editable in this form. */
-
-const PROFILE_COVER_URL = cdnUrl('app/images/standard/profile-header.jpg');
+/** Decorative cover path on the media CDN — not editable in this form. */
+const PROFILE_COVER_PATH = 'app/images/standard/profile-header.jpg';
 
 export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfileFormProps) {
   const navigate = useNavigate();
+  const profileCoverUrl = cdnUrl(PROFILE_COVER_PATH);
   const photoInput = useRef<HTMLInputElement>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl);
@@ -222,7 +222,7 @@ export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfi
         <div className="relative">
           <div className="relative h-28 overflow-hidden" role="img" aria-label="Cover Photo">
             <img
-              src={PROFILE_COVER_URL}
+              src={profileCoverUrl}
               alt=""
               className="absolute inset-0 size-full object-cover"
               style={{ objectPosition: 'center 32%' }}
