@@ -11,3 +11,11 @@ export function applyInlineVideoAttributes(video: HTMLVideoElement | null | unde
   }
   video.setAttribute('disablepictureinpicture', '');
 }
+
+/** Property + attribute must agree or WebViews can keep leaking audio after swipe. */
+export function setReelVideoMuted(video: HTMLVideoElement, muted: boolean): void {
+  video.muted = muted;
+  video.defaultMuted = muted;
+  if (muted) video.setAttribute('muted', '');
+  else video.removeAttribute('muted');
+}
