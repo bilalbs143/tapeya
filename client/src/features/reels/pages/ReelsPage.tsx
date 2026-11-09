@@ -17,10 +17,6 @@ export default function ReelsPage() {
     ordered,
     current,
     active,
-    muted,
-    setMuted,
-    soundTip,
-    setSoundTip,
     commentsForId,
     setCommentsForId,
     reportForId,
@@ -42,7 +38,6 @@ export default function ReelsPage() {
       ordered={ordered}
       current={current}
       active={active}
-      muted={muted}
       isLoading={isLoading}
       isError={isError}
       onRetry={() => void refetch()}
@@ -94,18 +89,6 @@ export default function ReelsPage() {
           {body}
           {/* Tabs stay mounted on empty/loading so Following / Saved remain switchable. */}
           {ordered.length ? <ReelsPageChrome desk={false} feedTab={feedTab} onSelectTab={selectTab} /> : null}
-          {ordered.length && muted && soundTip && active === 0 ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMuted(false);
-                setSoundTip(false);
-              }}
-              className="absolute top-[max(88px,calc(env(safe-area-inset-top)+78px))] left-4 z-10 flex min-h-[30px] items-center gap-1.5 rounded-full border border-white/20 bg-black/55 px-3 text-3xs font-bold text-white"
-            >
-              Tap for Sound
-            </button>
-          ) : null}
         </>
       )}
 

@@ -9,15 +9,15 @@ import {
 } from './reelPlayerWindow';
 
 describe('isInPlayerWindow', () => {
-  it('keeps one behind and four ahead of the active slide', () => {
+  it('keeps one behind and three ahead of the active slide', () => {
     expect(getReelPlayerBehind()).toBe(1);
-    expect(getReelPlayerAhead()).toBe(4);
-    expect(getReelPlayerWindowRadius()).toBe(4);
-    expect([0, 1, 2, 3, 4, 5, 6, 7, 8].filter((i) => isInPlayerWindow(i, 3))).toEqual([2, 3, 4, 5, 6, 7]);
+    expect(getReelPlayerAhead()).toBe(3);
+    expect(getReelPlayerWindowRadius()).toBe(3);
+    expect([0, 1, 2, 3, 4, 5, 6, 7, 8].filter((i) => isInPlayerWindow(i, 3))).toEqual([2, 3, 4, 5, 6]);
   });
 
   it('clamps at list edges', () => {
-    expect([0, 1, 2, 3, 4, 5].filter((i) => isInPlayerWindow(i, 0))).toEqual([0, 1, 2, 3, 4]);
+    expect([0, 1, 2, 3, 4, 5].filter((i) => isInPlayerWindow(i, 0))).toEqual([0, 1, 2, 3]);
     expect([4, 5, 6, 7].filter((i) => isInPlayerWindow(i, 7))).toEqual([6, 7]);
   });
 });

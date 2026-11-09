@@ -21,7 +21,6 @@ type ReelsPageBodyProps = {
   ordered: Reel[];
   current: Reel | undefined;
   active: number;
-  muted: boolean;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -38,7 +37,6 @@ export function ReelsPageBody({
   ordered,
   current,
   active,
-  muted,
   isLoading,
   isError,
   onRetry,
@@ -88,15 +86,7 @@ export function ReelsPageBody({
     const nextReel = ordered[active + 1];
     return (
       <div className="relative h-full w-full">
-        <ReelSlide
-          reel={current}
-          active
-          inPlayerWindow
-          muted={muted}
-          isOwn={isOwn(current)}
-          desk
-          {...slideHandlers(current)}
-        />
+        <ReelSlide reel={current} active inPlayerWindow isOwn={isOwn(current)} desk {...slideHandlers(current)} />
         {/* Off-screen next player so desk/keyboard skip is already primed. */}
         {nextReel ? (
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-0" aria-hidden>
@@ -105,7 +95,6 @@ export function ReelsPageBody({
               active={false}
               inPlayerWindow
               isNext
-              muted
               chromeHidden
               isOwn={isOwn(nextReel)}
               desk
@@ -127,7 +116,6 @@ export function ReelsPageBody({
             active={index === active}
             isNext={isNextPlayerSlide(index, active)}
             inPlayerWindow={isInPlayerWindow(index, active)}
-            muted={muted}
             isOwn={isOwn(reel)}
             {...slideHandlers(reel)}
           />

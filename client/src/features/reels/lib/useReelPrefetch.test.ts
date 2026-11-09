@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  buildReelPrefetchQueue,
   firstM3u8Uri,
   getReelPrefetchDepth,
   isHlsPrefetchUrl,
@@ -182,5 +183,27 @@ describe('runPrefetchPool', () => {
     expect(seen).toContain('start:b');
     expect(seen).toContain('end:c');
     expect(seen.filter((entry) => entry.startsWith('start:'))).toEqual(['start:a', 'start:b', 'start:c']);
+  });
+});
+
+describe('buildReelPrefetchQueue', () => {
+  const mk = (id: number) => ({
+    posterUrl: `https://cdn.test/${id}.jpg`,
+    videoUrl: null as string | null,
+    playback: { type: 'hls' as const, url: null, hlsUrl: `https://cdn.test/${id}.m3u8` },
+  });
+
+  it('puts the active reel first, then upcoming by offset', () => {
+    const reels = [mk(0), mk(1), mk(2), mk(3)];
+    expect(buildReelPrefetchQueue(reels, 0, 2).map((r) => r.playback.hlsUrl)).toEqual([
+      'https://cdn.test/0.m3u8',
+      'https://cdn.test/1.m3u8',
+      'https://cdn.test/2.m3u8',
+    ]);
+  });
+
+  it('still returns the active reel when depth is 0', () => {
+    const reels = [mk(0), mk(1)];
+    expect(buildReelPrefetchQueue(reels, 0, 0).map((r) => r.playback.hlsUrl)).toEqual(['https://cdn.test/0.m3u8']);
   });
 });

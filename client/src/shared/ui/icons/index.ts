@@ -57,6 +57,8 @@ export { SearchIcon } from './SearchIcon';
 export { SendIcon } from './SendIcon';
 export { SettingsIcon } from './SettingsIcon';
 export { ShareIcon } from './ShareIcon';
+export type { SpeakerIconProps } from './SpeakerIcon';
+export { SpeakerIcon } from './SpeakerIcon';
 export { StumpsIcon } from './StumpsIcon';
 export { SunIcon } from './SunIcon';
 export { ThumbsDownIcon } from './ThumbsDownIcon';

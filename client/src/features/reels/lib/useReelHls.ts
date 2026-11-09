@@ -321,12 +321,30 @@ export function useReelHls(
       hlsRef.current = hls;
       hls.loadSource(sourceUrl);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, onReady);
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) markFailed();
       });
-      video.addEventListener('loadeddata', onReady, { once: true });
-      removeReady = () => video.removeEventListener('loadeddata', onReady);
+
+      if (currentRole === 'active') {
+        // Wait for buffered media — MANIFEST_PARSED alone can fire play() before a fragment lands.
+        const onFragBuffered = () => onReady();
+        hls.on(Hls.Events.FRAG_BUFFERED, onFragBuffered);
+        video.addEventListener('canplay', onReady, { once: true });
+        video.addEventListener('loadeddata', onReady, { once: true });
+        removeReady = () => {
+          hls.off(Hls.Events.FRAG_BUFFERED, onFragBuffered);
+          video.removeEventListener('canplay', onReady);
+          video.removeEventListener('loadeddata', onReady);
+        };
+      } else {
+        // Neighbors: light ready so silent prime can start ASAP.
+        hls.on(Hls.Events.MANIFEST_PARSED, onReady);
+        video.addEventListener('loadeddata', onReady, { once: true });
+        removeReady = () => {
+          hls.off(Hls.Events.MANIFEST_PARSED, onReady);
+          video.removeEventListener('loadeddata', onReady);
+        };
+      }
     };
 
     const raf = requestAnimationFrame(attach);
