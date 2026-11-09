@@ -24,7 +24,7 @@ export function isInPlayerWindow(
   return index >= activeIndex - behind && index <= activeIndex + ahead;
 }
 
-/** Immediate next slide — larger warm buffer + aggressive silent prime. */
+/** Immediate next slide — larger warm buffer (attach only; never silent-play). */
 export function isNextPlayerSlide(index: number, activeIndex: number): boolean {
   return index === activeIndex + 1;
 }
