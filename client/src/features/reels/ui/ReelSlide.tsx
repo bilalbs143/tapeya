@@ -5,12 +5,7 @@ import { SpeakerIcon } from '@/shared/ui/icons';
 import { Scrubber } from '@/shared/ui/Scrubber';
 
 import { setReelVideoMuted } from '../lib/inlineVideo';
-import {
-  claimReelPlayback,
-  registerReelVideo,
-  releaseReelPlayback,
-  resumeReelHlsLoading,
-} from '../lib/reelPlaybackGate';
+import { attachReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from '../lib/reelPlaybackGate';
 import { isReelsAudioUnlocked, relockReelsAudio, unlockReelsAudio } from '../lib/reelsAudioSession';
 import { useReelHls } from '../lib/useReelHls';
 import type { Reel } from '../model/schemas';
@@ -92,48 +87,41 @@ export function ReelSlide({
     }
   }
 
-  // Register mounted players so claimReelPlayback can silence siblings (Android).
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !inPlayerWindow) return undefined;
     return registerReelVideo(el);
   }, [inPlayerWindow, reel.id, canPlay]);
 
-  // Single-player policy: only the active reel may call play().
+  // Only the active reel may call play(); leaving active always releases MSE.
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !canPlay) return undefined;
 
     let cancelled = false;
+    let removeReadyWait = () => {};
 
     const runPlay = () => {
       if (cancelled || !active || failed) return;
       setReelVideoMuted(el, preferMuted);
-      const attempt = el.play();
-      if (!attempt || typeof attempt.then !== 'function') return;
-      void attempt
+      void el
+        .play()
         .then(() => {
-          if (cancelled) return;
-          if (!el.muted) unlockReelsAudio();
+          if (!cancelled && !el.muted) unlockReelsAudio();
         })
         .catch(() => {
-          if (cancelled) return;
-          if (el.muted) return;
+          if (cancelled || el.muted) return;
           setReelVideoMuted(el, true);
           setMutedByPolicy(true);
           void el.play().catch(() => undefined);
         });
     };
 
-    let removeReadyWait = () => {};
-
     const tryPlay = () => {
       if (cancelled || !active || failed) return;
-      // Hard-kill former owner first — Android MSE keeps audio after pause().
       claimReelPlayback(el);
-      resumeReelHlsLoading(el);
+      attachReelHls(el);
       removeReadyWait();
-      // After detachMedia() reattach, wait for data before play().
       if (el.readyState >= 2) {
         runPlay();
         return;
@@ -142,13 +130,8 @@ export function ReelSlide({
         removeReadyWait();
         runPlay();
       };
-      el.addEventListener('canplay', onReady);
-      el.addEventListener('loadeddata', onReady);
-      removeReadyWait = () => {
-        el.removeEventListener('canplay', onReady);
-        el.removeEventListener('loadeddata', onReady);
-        removeReadyWait = () => {};
-      };
+      el.addEventListener('canplay', onReady, { once: true });
+      removeReadyWait = () => el.removeEventListener('canplay', onReady);
     };
 
     if (active) {
@@ -189,7 +172,6 @@ export function ReelSlide({
       document.removeEventListener('visibilitychange', onVisibility);
       el.removeEventListener('playing', onPlaying);
       el.removeEventListener('timeupdate', onTimeUpdate);
-      // Leaving the active effect — detach MSE so Android drops audio.
       if (active) releaseReelPlayback(el);
     };
   }, [active, canPlay, readyToken, reel.id, preferMuted, failed]);
@@ -200,7 +182,7 @@ export function ReelSlide({
     setMutedByPolicy(false);
     if (!el) return;
     claimReelPlayback(el);
-    resumeReelHlsLoading(el);
+    attachReelHls(el);
     setReelVideoMuted(el, false);
     void el.play().catch(() => {
       releaseReelPlayback(el);
