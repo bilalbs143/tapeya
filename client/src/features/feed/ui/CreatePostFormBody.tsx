@@ -184,7 +184,6 @@ export function CreatePostFormBody({ flow, header }: CreatePostFormBodyProps) {
             ref={fileRef}
             type="file"
             accept="image/*"
-            multiple
             className="hidden"
             onChange={(e) => {
               pickPhotos(e.target.files);
@@ -204,7 +203,7 @@ export function CreatePostFormBody({ flow, header }: CreatePostFormBodyProps) {
                 icon={<PhotoIcon className="h-4 w-4" strokeWidth={1.9} />}
                 iconClass="bg-positive/14 text-positive"
                 title="Add Photo"
-                note={photos.length ? `${photos.length} of 10 selected` : 'Up to 10 photos'}
+                note={photos.length ? '1 photo selected' : 'One photo'}
                 onClick={() => fileRef.current?.click()}
               />
               <MediaDoor
@@ -217,22 +216,23 @@ export function CreatePostFormBody({ flow, header }: CreatePostFormBodyProps) {
             </div>
           )}
 
-          {photos.length > 0 ? (
-            <ul className="grid grid-cols-3 gap-1.5">
-              {previewUrls.map((src, i) => (
-                <li key={src} className="relative aspect-square overflow-hidden rounded-field">
-                  <img src={src} alt="" className="h-full w-full object-cover" />
-                  <button
-                    type="button"
-                    aria-label="Remove Photo"
-                    className="bg-veil-scrim absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full text-2xs font-bold text-white"
-                    onClick={() => removePhoto(i)}
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {previewUrls[0] ? (
+            <div className="bg-page-deep relative w-full overflow-hidden rounded-panel">
+              <img
+                src={previewUrls[0]}
+                alt=""
+                className="block h-auto w-full max-w-full"
+                style={{ aspectRatio: 'auto' }}
+              />
+              <button
+                type="button"
+                aria-label="Remove Photo"
+                className="bg-veil-scrim absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full text-sm font-bold text-white"
+                onClick={() => removePhoto(0)}
+              >
+                ×
+              </button>
+            </div>
           ) : null}
 
           {showBackgrounds ? (

@@ -62,9 +62,9 @@ export function useCreatePost() {
   }, [hashEditing]);
 
   function pickPhotos(files: FileList | null) {
-    if (!files?.length) return;
-    const next = [...photos, ...Array.from(files)].slice(0, 10);
-    setPhotos(next);
+    const file = files?.[0];
+    if (!file) return;
+    setPhotos([file]);
     setBackground('plain');
   }
 
