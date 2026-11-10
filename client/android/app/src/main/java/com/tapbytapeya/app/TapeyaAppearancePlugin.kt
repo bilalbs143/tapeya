@@ -1,13 +1,18 @@
 package com.tapbytapeya.app
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatDelegate
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 
-/** Cap Preferences `tapeya:theme` → night mode (cold start + live). */
+/**
+ * Cap Preferences `tapeya:theme` → AppCompat night mode (cold start + live).
+ * Live `apply` must hop to the main thread — Capacitor runs plugin methods off-main.
+ */
 @CapacitorPlugin(name = "TapeyaAppearance")
 class TapeyaAppearancePlugin : Plugin() {
     companion object {
@@ -20,6 +25,7 @@ class TapeyaAppearancePlugin : Plugin() {
             applyTheme(prefs.getString(THEME_KEY, null))
         }
 
+        /** Caller must be on the main thread (onCreate or runOnUiThread). */
         @JvmStatic
         fun applyTheme(theme: String?) {
             val mode = when (theme) {
@@ -27,13 +33,20 @@ class TapeyaAppearancePlugin : Plugin() {
                 "dark" -> AppCompatDelegate.MODE_NIGHT_YES
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
+            if (AppCompatDelegate.getDefaultNightMode() == mode) return
             AppCompatDelegate.setDefaultNightMode(mode)
         }
     }
 
     @PluginMethod
     fun apply(call: PluginCall) {
-        applyTheme(call.getString("theme"))
-        call.resolve()
+        val theme = call.getString("theme")
+        val run = Runnable {
+            applyTheme(theme)
+            call.resolve()
+        }
+        val act = activity
+        if (act != null) act.runOnUiThread(run)
+        else Handler(Looper.getMainLooper()).post(run)
     }
 }
