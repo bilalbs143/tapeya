@@ -4,13 +4,7 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import Hls from 'hls.js';
 
 import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
-import {
-  bindReelHls,
-  claimReelPlayback,
-  haltReelVideo,
-  releaseReelPlayback,
-  resumeReelHlsLoading,
-} from './reelPlaybackGate';
+import { attachReelHls, bindReelHls } from './reelPlaybackGate';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
 /** Immediate next slide — larger buffer for hitch-free snap. */
@@ -82,7 +76,7 @@ type UseReelHlsOptions = {
 /**
  * Attach source for a reel slide.
  * Neighbors must NOT call video.play() — Android + hls.js mixes audio from every playing element.
- * Warming is HTTP prefetch + hls.js attach/startLoad only.
+ * Warming is HTTP prefetch + hls.js attach/startLoad only. Play ownership lives in ReelSlide.
  */
 export function useReelHls(
   videoRef: RefObject<HTMLVideoElement | null>,
@@ -92,8 +86,7 @@ export function useReelHls(
   const { enabled = true, role = 'active' } = options;
   const hlsRef = useRef<Hls | null>(null);
   const roleRef = useRef(role);
-  const prevRoleRef = useRef(role);
-  const resumeRef = useRef<{ time: number; wasPlaying: boolean } | null>(null);
+  const resumeTimeRef = useRef<number | null>(null);
   const sourceKeyRef = useRef<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
@@ -136,24 +129,15 @@ export function useReelHls(
   }, []);
 
   const applyResume = useCallback((video: HTMLVideoElement) => {
-    const resume = resumeRef.current;
-    resumeRef.current = null;
-    if (!resume) return;
+    const time = resumeTimeRef.current;
+    resumeTimeRef.current = null;
+    if (time == null || !Number.isFinite(time) || time <= 0.25) return;
 
     const seek = () => {
-      if (Number.isFinite(resume.time) && resume.time > 0.25) {
-        try {
-          video.currentTime = resume.time;
-        } catch {
-          // Ignore seek failures on short clips.
-        }
-      }
-      if (resume.wasPlaying && roleRef.current === 'active') {
-        claimReelPlayback(video);
-        resumeReelHlsLoading(video);
-        void video.play().catch(() => undefined);
-      } else if (roleRef.current !== 'active') {
-        haltReelVideo(video);
+      try {
+        video.currentTime = time;
+      } catch {
+        // Ignore seek failures on short clips.
       }
     };
 
@@ -176,11 +160,8 @@ export function useReelHls(
     if (previousKey && previousKey !== sourceKey) {
       const video = videoRef.current;
       const upgradingToHls = previousKey.startsWith('progressive:') && mode === 'hls';
-      if (upgradingToHls && video) {
-        resumeRef.current = {
-          time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
-          wasPlaying: roleRef.current === 'active' && !video.paused,
-        };
+      if (upgradingToHls && video && Number.isFinite(video.currentTime)) {
+        resumeTimeRef.current = video.currentTime;
       }
     }
     sourceKeyRef.current = sourceKey;
@@ -205,7 +186,6 @@ export function useReelHls(
         readyHandled = true;
         applyResume(video);
         bumpReady();
-        // Neighbors stay paused — never silent-play (Android dual-audio).
         if (roleRef.current !== 'active') {
           setReelVideoMuted(video, true);
           try {
@@ -287,40 +267,27 @@ export function useReelHls(
     };
   }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume]);
 
-  // Promote next/warm → active without destroy/recreate; demote hard-kills MSE audio.
+  // Promote / demote buffers without destroy/recreate. Playback claim/release is ReelSlide's job.
   useEffect(() => {
-    const previous = prevRoleRef.current;
-    prevRoleRef.current = role;
     const hls = hlsRef.current;
-    const video = videoRef.current;
+    if (!hls) return;
+
+    const buffer = bufferForRole(role);
+    hls.config.maxBufferLength = buffer.maxBufferLength;
+    hls.config.maxMaxBufferLength = buffer.maxMaxBufferLength;
 
     if (role === 'active') {
-      if (!hls) return;
-      hls.config.maxBufferLength = HLS_ACTIVE_BUFFER.maxBufferLength;
-      hls.config.maxMaxBufferLength = HLS_ACTIVE_BUFFER.maxMaxBufferLength;
-      // May have been detachMedia()'d when a sibling claimed playback.
-      if (video) resumeReelHlsLoading(video);
+      const video = videoRef.current;
+      if (video) attachReelHls(video);
       else {
         try {
           hls.currentLevel = -1;
           hls.startLoad(-1);
         } catch {
-          // Native / detached instances may not expose these.
+          // Ignore.
         }
       }
-      return;
     }
-
-    if (hls) {
-      const buffer = bufferForRole(role);
-      hls.config.maxBufferLength = buffer.maxBufferLength;
-      hls.config.maxMaxBufferLength = buffer.maxMaxBufferLength;
-    }
-
-    if (!video) return;
-    // Leaving active: detach MSE. Warm neighbors that never played: soft pause only.
-    if (previous === 'active') releaseReelPlayback(video);
-    else haltReelVideo(video);
   }, [role, videoRef]);
 
   return { sourceUrl, useHls, mode, failed, retry, readyToken };

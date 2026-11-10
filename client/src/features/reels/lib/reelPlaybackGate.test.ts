@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  attachReelHls,
   bindReelHls,
   claimReelPlayback,
-  killReelPlayback,
   registerReelVideo,
   releaseReelPlayback,
-  resumeReelHlsLoading,
 } from './reelPlaybackGate';
 
 function fakeVideo(paused = true): HTMLVideoElement {
@@ -15,7 +14,6 @@ function fakeVideo(paused = true): HTMLVideoElement {
     muted: false,
     defaultMuted: false,
     currentTime: 1.5,
-    src: '',
     play: vi.fn(async () => {
       video.paused = false;
     }),
@@ -24,12 +22,20 @@ function fakeVideo(paused = true): HTMLVideoElement {
     }),
     setAttribute: vi.fn(),
     removeAttribute: vi.fn(),
-    getAttribute: vi.fn(() => null),
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
-    load: vi.fn(),
   } as unknown as HTMLVideoElement & { paused: boolean };
   return video;
+}
+
+function fakeHls(media: HTMLVideoElement | null) {
+  return {
+    media,
+    stopLoad: vi.fn(),
+    startLoad: vi.fn(),
+    detachMedia: vi.fn(),
+    attachMedia: vi.fn(),
+  };
 }
 
 describe('reelPlaybackGate', () => {
@@ -39,18 +45,12 @@ describe('reelPlaybackGate', () => {
     while (cleanups.length) cleanups.pop()?.();
   });
 
-  it('hard-kills the former owner on claim so MSE audio cannot linger', () => {
+  it('detaches the former owner when another reel claims playback', () => {
     const a = fakeVideo(false);
     const b = fakeVideo(true);
     cleanups.push(registerReelVideo(a), registerReelVideo(b));
 
-    const hlsA = {
-      media: a,
-      stopLoad: vi.fn(),
-      startLoad: vi.fn(),
-      detachMedia: vi.fn(),
-      attachMedia: vi.fn(),
-    };
+    const hlsA = fakeHls(a);
     bindReelHls(a, hlsA as never);
 
     claimReelPlayback(a);
@@ -62,16 +62,10 @@ describe('reelPlaybackGate', () => {
     expect(a.muted).toBe(true);
   });
 
-  it('releaseReelPlayback detaches media even when already paused', () => {
+  it('releaseReelPlayback detaches even when already paused', () => {
     const video = fakeVideo(true);
     cleanups.push(registerReelVideo(video));
-    const hls = {
-      media: video,
-      stopLoad: vi.fn(),
-      startLoad: vi.fn(),
-      detachMedia: vi.fn(),
-      attachMedia: vi.fn(),
-    };
+    const hls = fakeHls(video);
     bindReelHls(video, hls as never);
 
     claimReelPlayback(video);
@@ -80,28 +74,17 @@ describe('reelPlaybackGate', () => {
     expect(hls.detachMedia).toHaveBeenCalled();
   });
 
-  it('resumeReelHlsLoading reattaches after detach', () => {
+  it('attachReelHls reattaches after detach', () => {
     const video = fakeVideo(true);
-    const hls = {
-      media: null as HTMLVideoElement | null,
-      stopLoad: vi.fn(),
-      startLoad: vi.fn(),
-      detachMedia: vi.fn(),
-      attachMedia: vi.fn((el: HTMLVideoElement) => {
-        hls.media = el;
-      }),
-    };
+    const hls = fakeHls(null);
+    hls.attachMedia = vi.fn((el: HTMLVideoElement) => {
+      hls.media = el;
+    });
     bindReelHls(video, hls as never);
 
-    resumeReelHlsLoading(video);
+    attachReelHls(video);
 
     expect(hls.attachMedia).toHaveBeenCalledWith(video);
     expect(hls.startLoad).toHaveBeenCalledWith(-1);
-  });
-
-  it('killReelPlayback is a no-op without hls binding', () => {
-    const video = fakeVideo(false);
-    expect(() => killReelPlayback(video)).not.toThrow();
-    expect(video.pause).toHaveBeenCalled();
   });
 });
