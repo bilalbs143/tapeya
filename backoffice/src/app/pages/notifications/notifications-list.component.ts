@@ -196,13 +196,25 @@ export class NotificationsListComponent implements OnInit, OnDestroy {
 
   public deleteAll(): void {
     if (this.totalRecords === 0) return;
-    if (!confirm('Delete all notifications? This cannot be undone.')) return;
-    this.notificationsService.flush().subscribe({
-      next: () => {
-        this.messageService.success('All notifications have been deleted.');
-        this.loadHttpData();
-      },
-      error: () => this.messageService.error('Failed to delete notifications.'),
-    });
+    this.sub.add(
+      this.messageService
+        .prompt(
+          'Delete All Notifications?',
+          'Are you sure you want to delete all notifications? This cannot be undone.',
+          'Delete',
+          'Cancel'
+        )
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (!confirmed) return;
+          this.notificationsService.flush().subscribe({
+            next: () => {
+              this.messageService.success('All notifications have been deleted.');
+              this.loadHttpData();
+            },
+            error: () => this.messageService.error('Failed to delete notifications.'),
+          });
+        })
+    );
   }
 }
