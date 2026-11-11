@@ -66,6 +66,36 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>FacebookAppID</key>
+	<string>972949645600556</string>
+	<key>FacebookClientToken</key>
+	<string>c70f92d3a97880cfae81e5abab704848</string>
+	<key>FacebookDisplayName</key>
+	<string>Tapeya</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb972949645600556</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tapbytapeya.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>tapeya</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Allow Tapeya to use your device identifier to measure ad performance and show you more relevant ads.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Tapeya needs camera access so you can go live.</string>
 	<key>NSMicrophoneUsageDescription</key>

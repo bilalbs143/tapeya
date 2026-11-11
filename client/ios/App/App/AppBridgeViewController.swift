@@ -17,5 +17,6 @@ class AppBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(TapeyaAppearancePlugin())
         bridge?.registerPluginInstance(TapeyaBroadcastPlugin())
+        bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
     }
 }

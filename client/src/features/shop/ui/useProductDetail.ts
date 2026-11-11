@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
+import { AppEventParams, AppEvents, logEvent } from '@/shared/lib/analytics/facebook';
 import { toast } from '@/shared/ui/toast';
 
 import { useAddShopCartItemMutation, useGetShopProductQuery } from '../api/shopApi';
@@ -26,11 +27,30 @@ export function useProductDetail(productSlug: string, vendor: string | undefined
   const addLabel = productAddToCartLabel(oos, formatPkr(unit * qty));
   const barSubtitle = product?.categoryName ?? 'Gear and Kits';
 
+  useEffect(() => {
+    if (!product?.id) return;
+    void logEvent(AppEvents.VIEWED_CONTENT, {
+      [AppEventParams.CONTENT_ID]: String(product.id),
+      [AppEventParams.CONTENT_TYPE]: product.categoryName,
+    });
+    // Fire once per product id (legacy parity) — ignore category renames.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- product.id only
+  }, [product?.id]);
+
   async function add() {
     if (!product) return;
     try {
       await addItem({ productId: product.id, quantity: qty }).unwrap();
       toast({ title: 'Added to Cart', tone: 'success' });
+      void logEvent(
+        AppEvents.ADDED_TO_CART,
+        {
+          [AppEventParams.CONTENT_ID]: String(product.id),
+          [AppEventParams.CONTENT_TYPE]: product.categoryName,
+          [AppEventParams.CURRENCY]: 'PKR',
+        },
+        unit * qty
+      );
     } catch (err) {
       toast({ title: getApiErrorMessage(err, 'Could not add to cart.'), tone: 'error' });
     }

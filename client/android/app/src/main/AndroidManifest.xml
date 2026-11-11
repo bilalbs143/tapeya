@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- First-party Analytics only — do not collect AAID (keeps App Store "tracking" off). -->
+        <!-- Firebase AnalyticsWithoutAdIdSupport — keep AAID off for GA; Meta uses AD_ID separately. -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
@@ -76,12 +76,27 @@
             android:name=".BroadcastForegroundService"
             android:exported="false"
             android:foregroundServiceType="camera|microphone" />
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="@string/facebook_client_token" />
+        <meta-data
+            android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
+            android:value="true" />
+        <meta-data
+            android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled"
+            android:value="true" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Android 13+ — requested at runtime by @capacitor/push-notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 13+ advertising ID (required for Facebook ad/analytics tracking) -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <!-- Self-serve go-live (TapeyaBroadcastPlugin) — not required so Play isn't camera-only. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />

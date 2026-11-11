@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage, parseApiError } from '@/shared/api/errors';
 import { settingsByKey, useGetPublicSystemSettingsQuery } from '@/shared/api/systemSettingsApi';
 import { APP_PATHS } from '@/shared/config/paths';
+import { AppEventParams, AppEvents, logEvent } from '@/shared/lib/analytics/facebook';
 import { safeInternalPath } from '@/shared/lib/safeInternalPath';
 import { persistAuthSession } from '@/shared/store/authSession';
 import { useAppDispatch } from '@/shared/store/hooks';
@@ -77,6 +78,12 @@ export function useOtpFlow() {
         const result = await verifyOtp({ phone, code: value }).unwrap();
         clearOtpPreview();
         markReturningUser();
+        // Register funnel only — not every first OTP on a fresh install (login).
+        if (justRegistered) {
+          void logEvent(AppEvents.COMPLETED_REGISTRATION, {
+            [AppEventParams.REGISTRATION_METHOD]: 'phone',
+          });
+        }
         // Persist before navigate — RTK onQueryStarted may still be racing RequireAuth.
         await persistAuthSession(dispatch, {
           accessToken: result.auth.accessToken,
