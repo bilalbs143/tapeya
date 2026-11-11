@@ -34,6 +34,28 @@ export default defineConfig({
       '@/test': fileURLToPath(new URL('./src/test', import.meta.url)),
     },
   },
+  build: {
+    // hls.js ~560KB alone — warn only on larger regressions.
+    chunkSizeWarningLimit: 600,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /node_modules[\\/](react|react-dom|scheduler)([\\/]|$)/,
+              priority: 20,
+            },
+            {
+              name: 'redux-vendor',
+              test: /node_modules[\\/](@reduxjs[\\/]toolkit|react-redux|immer)([\\/]|$)/,
+              priority: 15,
+            },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

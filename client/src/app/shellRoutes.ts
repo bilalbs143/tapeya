@@ -1,12 +1,14 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
+import { loadStatsPage } from '@/features/stats';
+
 import { APP_PATHS } from '@/shared/config/paths';
 
 export const shellRouteObjects: RouteObject[] = [
   {
     path: APP_PATHS.stats,
-    Component: lazy(() => import('@/features/stats').then((m) => ({ default: m.StatsPage }))),
+    Component: lazy(() => loadStatsPage()),
   },
   {
     path: APP_PATHS.support,
