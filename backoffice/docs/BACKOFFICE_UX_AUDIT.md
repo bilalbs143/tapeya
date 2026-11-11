@@ -385,7 +385,7 @@ Detail-shell tabs all use the same `mat-tab-nav-bar` + `router-outlet` pattern �
 - **Current:** Most delete confirmations follow `messageService.prompt('Delete Vendor?', 'Are you sure you want to delete "X"?', 'Delete', 'Cancel')` — names the object, doesn't state downstream effects.
 - **Issue:** For destructive actions with real side effects, "are you sure" without the effect isn't enough information for an admin to make a good call.
 - **Standard:** State the consequence in one clause when one exists — the Vendor-suspend flow already does this (`vendors.component.ts`'s `suspendVendor` message: *"Suspend '{name}'? Products from this vendor will be hidden from shoppers."*). Extend that pattern to every destructive confirm with a real side effect.
-- **Implement:** ✅ Done — cross-referenced against the API's actual delete/cascade behavior (`laravel`'s migrations and controllers) rather than guessing:
+- **Implement:** ✅ Done — cross-referenced against the API's actual delete/cascade behavior (`api`'s migrations and controllers) rather than guessing:
   - **Delete User** — `shop_orders`, posts, comments, likes, and follows all `cascadeOnDelete` on `user_id`; copy now states this is permanent.
   - **Delete Tournament** — matches, interest campaigns, and submissions all `cascadeOnDelete` on `tournament_id`; copy now states this.
   - **Delete Vendor** — `shop_products.vendor_id` is `restrictOnDelete`, so a vendor with products fails at the DB layer today (surfaces as a generic "Server error." — no exception handler catches `QueryException` specifically); copy now warns of this up front instead of letting the admin hit an opaque failure.

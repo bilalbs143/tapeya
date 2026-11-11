@@ -36,8 +36,7 @@
     "app/www": true,
     "app/ios/App/Pods": true,
     "backoffice/dist": true,
-    "backoffice/.angular": true,
-    "laravel/vendor": true
+    "backoffice/.angular": true
   },
   "search.exclude": {
     "**/node_modules": true,

@@ -11,8 +11,6 @@ backoffice/.angular/
 # Laravel runtime / cache
 api/storage/
 api/bootstrap/cache/
-laravel/storage/
-laravel/vendor/
 
 # Lock files (large, low signal for AI)
 **/package-lock.json
