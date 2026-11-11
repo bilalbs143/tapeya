@@ -100,7 +100,7 @@ describe('reattemptIfDegraded', () => {
     expect(window.location.reload).not.toHaveBeenCalled();
   });
 
-  it('reloads when a corrected CDN base is found after a degraded boot', async () => {
+  it('reloads when CDN settings recover after a degraded boot', async () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error('offline'));
     vi.stubGlobal('fetch', fetchMock);
     const { bootstrapCdnFromPublicSettings, reattemptIfDegraded } = await import('../bootstrapCdn');

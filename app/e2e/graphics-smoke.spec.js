@@ -9,6 +9,17 @@ const GRAPHICS_URL = `/1-9999999999-${SIGNATURE}`;
 
 test.describe('graphics artifact smoke', () => {
   test.beforeEach(async ({ page }) => {
+    // Boot calls bootstrapCdnFromPublicSettings → GET /system-settings (2 attempts).
+    // Without a mock, CI logs net::ERR_CONNECTION_REFUSED and the smoke assert fails.
+    await page.route('**/system-settings**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ key: 'cdn_public_base_url', value: 'https://cdn.tapeya.com' }],
+        }),
+      });
+    });
     await page.route('**/graphic-sessions/access/**', async (route) => {
       await route.fulfill({
         status: 200,

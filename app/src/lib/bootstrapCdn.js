@@ -13,7 +13,7 @@
  */
 
 import { baseUrl } from '@/lib/apiOrigin';
-import { getCdnPublicBase, setCdnPublicBaseUrl } from '@/lib/constants/assets';
+import { setCdnPublicBaseUrl } from '@/lib/constants/assets';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { isNative } from '@/platform/platform';
 
@@ -102,10 +102,13 @@ export async function bootstrapCdnFromPublicSettings() {
  */
 export async function reattemptIfDegraded() {
   if (!degraded) return;
-  const before = getCdnPublicBase();
+  // Reload on any degraded → healthy transition. Comparing URL strings misses the
+  // common case where the built-in DEFAULT_CDN_PUBLIC_BASE already equals the live
+  // value — we still need a reload so boot code that branched on "degraded" can re-run
+  // with a confirmed settings fetch (and the module tree can treat the base as live).
   await bootstrapCdnFromPublicSettings();
-  if (!degraded && getCdnPublicBase() !== before) {
-    console.warn('[cdn] Recovered a corrected CDN base on resume; reloading.');
+  if (!degraded) {
+    console.warn('[cdn] Recovered CDN settings on resume; reloading.');
     window.location.reload();
   }
 }
