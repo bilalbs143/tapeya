@@ -3,16 +3,33 @@ require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
 platform :ios, '15.0'
 use_frameworks!
 
-# Hybrid native deps (intentional, long-term until HaishinKit 2.2+ plugin migration):
-# - Capacitor plugins: CapApp-SPM (Capacitor 8 default)
-# - HaishinKit: CocoaPods only (pin matches TapeyaBroadcastPlugin 2.0.x API)
+# Capacitor plugins via CocoaPods (not CapApp-SPM) so Firebase Analytics ships
+# dSYMs into the archive — SPM Firebase binaries omit them (App Store upload warnings).
 #
-# Do not add HaishinKit as an Xcode SPM package. Always open App.xcworkspace
-# (npm run cap:ios / cap:open:ios). `cap open ios` alone opens the .xcodeproj and
-# will not link this pod.
+# HaishinKit stays on CocoaPods (pin matches TapeyaBroadcastPlugin 2.0.x API).
+# Always open App.xcworkspace (npm run cap:ios / cap:open:ios).
 install! 'cocoapods', :disable_input_output_paths => true
 
+def capacitor_pods
+  pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
+  pod 'AparajitaCapacitorSecureStorage', :path => '../../node_modules/@aparajita/capacitor-secure-storage'
+  pod 'CapacitorCommunityKeepAwake', :path => '../../node_modules/@capacitor-community/keep-awake'
+  pod 'CapacitorFirebaseAnalytics', :path => '../../node_modules/@capacitor-firebase/analytics'
+  pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
+  pod 'CapacitorKeyboard', :path => '../../node_modules/@capacitor/keyboard'
+  pod 'CapacitorPreferences', :path => '../../node_modules/@capacitor/preferences'
+  pod 'CapacitorPushNotifications', :path => '../../node_modules/@capacitor/push-notifications'
+  pod 'CapacitorScreenOrientation', :path => '../../node_modules/@capacitor/screen-orientation'
+  pod 'CapacitorShare', :path => '../../node_modules/@capacitor/share'
+  pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
+end
+
 target 'App' do
+  capacitor_pods
+  # Capawesome: AnalyticsWithoutAdIdSupport must sit outside capacitor_pods
+  # (default Cap pod is Lite with no Firebase). Same no-IDFA intent as former SPM trait.
+  pod 'CapacitorFirebaseAnalytics/AnalyticsWithoutAdIdSupport', :path => '../../node_modules/@capacitor-firebase/analytics'
   pod 'HaishinKit', '2.0.9'
   # Meta App Events (ad attribution) — matches legacy pin.
   pod 'FBSDKCoreKit', '~> 17.0'
@@ -22,8 +39,33 @@ post_install do |installer|
   assertDeploymentTarget(installer)
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
+      # Xcode 15+: user script sandboxing blocks CocoaPods embed-frameworks scripts.
       config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      # CapacitorCordova uses legacy quoted imports (e.g. CDVPlugin.h); Clang errors on those in frameworks.
       config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
     end
+  end
+
+  # macOS ships openrsync, which races on CocoaPods' [CP] Copy XCFrameworks (temp files like
+  # .*.??????). Replace rsync with ditto — reliable for archive builds (FBSDKCoreKit, Firebase, etc.).
+  Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', '*', '*-xcframeworks.sh')).each do |script|
+    contents = File.read(script)
+    next unless contents.include?('rsync --delete')
+
+    patched = contents.gsub(
+      /copy_dir\(\)\n\{\n.*?^\}/m,
+      <<~'SH'.strip
+        copy_dir()
+        {
+          local source="$1"
+          local destination="$2"
+          echo "ditto \"${source}\" \"${destination}\""
+          rm -rf "${destination}"
+          mkdir -p "${destination}"
+          ditto "${source}" "${destination}"
+        }
+      SH
+    )
+    File.write(script, patched) if patched != contents
   end
 end

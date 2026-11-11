@@ -9,8 +9,8 @@ import VideoToolbox
  * See LIVE_STREAM_MOBILE_BROADCAST.md's "iOS — Swift, HaishinKit-based" section.
  *
  * Dependency: HaishinKit **2.0.9 via CocoaPods** (`ios/App/Podfile`) — same API surface as
- * legacy `app/`. Capacitor plugins stay on CapApp-SPM; do not add HaishinKit as an SPM
- * package. Migrating to HaishinKit 2.2+ / `RTMPHaishinKit` is a separate plugin rewrite.
+ * legacy `app/`. Capacitor plugins also use CocoaPods; do not add HaishinKit as an Xcode
+ * SPM package. Migrating to HaishinKit 2.2+ / `RTMPHaishinKit` is a separate plugin rewrite.
  *
  * Compositing: MTHKView is inserted below the Capacitor webview so floating JS controls
  * stay visible on top of full-bleed camera preview.

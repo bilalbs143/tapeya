@@ -479,12 +479,12 @@ Shell chrome only (`ScreenBar`, nav, drawer, scrollport). Pages compose `ScreenB
 
 ### 5.13 Platform & native (`shared/platform`, `shared/native`, `ios/`, `android/`)
 
-| Layer                | Rule                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Features             | Call `shared/native/*` and `shared/platform/platform.ts` — **not** `@capacitor/*` directly for wrapped concerns                                            |
-| New Capacitor API    | Add a thin façade in `shared/native` first                                                                                                                 |
-| `ios/`, `android/`   | Capacitor-generated projects; do not relocate into `src/`; custom native plugins stay documented and minimal                                               |
-| iOS package managers | CapApp-SPM for Capacitor plugins; CocoaPods (`ios/App/Podfile`) for HaishinKit 2.0.9 only. Open `App.xcworkspace` — see `client/README.md` Native section. |
+| Layer                | Rule                                                                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Features             | Call `shared/native/*` and `shared/platform/platform.ts` — **not** `@capacitor/*` directly for wrapped concerns                                                            |
+| New Capacitor API    | Add a thin façade in `shared/native` first                                                                                                                                 |
+| `ios/`, `android/`   | Capacitor-generated projects; do not relocate into `src/`; custom native plugins stay documented and minimal                                                               |
+| iOS package managers | CocoaPods for Capacitor plugins (incl. Firebase Analytics without IDFA) + HaishinKit 2.0.9 + FBSDKCoreKit. Open `App.xcworkspace` — see `client/README.md` Native section. |
 
 **Permissions:** request behind user gestures; document platform differences in feature docs when behaviour diverges (e.g. orientation).
 
