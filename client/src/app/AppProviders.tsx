@@ -15,6 +15,7 @@ import { useAppDispatch } from '@/shared/store/hooks';
 import { store } from '@/shared/store/store';
 import { ToastHost } from '@/shared/ui/toast';
 
+import { AnalyticsBoot } from './AnalyticsBoot';
 import { AppBootLoader } from './AppBootLoader';
 import { ErrorBoundary } from './ErrorBoundary';
 import { NativeEffects } from './NativeEffects';
@@ -66,6 +67,7 @@ export function AppProviders({ children }: AppProvidersProps) {
               <AuthHydration>
                 <BootPrefetch>
                   <Suspense fallback={<AppBootLoader />}>{children}</Suspense>
+                  <AnalyticsBoot />
                   <NativeEffects />
                   <RealtimeEffects />
                   <ProgrammaticDialogPrompts />

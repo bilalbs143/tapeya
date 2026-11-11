@@ -11,6 +11,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- First-party Analytics only — do not collect AAID (keeps App Store "tracking" off). -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"

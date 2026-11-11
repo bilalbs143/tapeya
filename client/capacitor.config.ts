@@ -10,6 +10,22 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'never',
   },
+  // Capawesome Firebase Analytics — SPM symlink + no IDFA (avoids ATT for first-party analytics).
+  experimental: {
+    ios: {
+      spm: {
+        swiftToolsVersion: '6.1',
+        packageOptions: {
+          '@capacitor-firebase/analytics': {
+            symlink: true,
+          },
+        },
+        packageTraits: {
+          '@capacitor-firebase/analytics': ['AnalyticsWithoutAdIdSupport'],
+        },
+      },
+    },
+  },
   plugins: {
     // Native splash stays until hideNativeSplash() after auth hydrate.
     // Do not set launchShowDuration to 0 — Cap iOS then skips showOnLaunch.

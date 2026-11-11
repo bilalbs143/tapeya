@@ -38,6 +38,7 @@
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",
     "@capacitor-community/keep-awake": "^8.0.1",
+    "@capacitor-firebase/analytics": "^8.6.0",
     "@capacitor/android": "^8.5.3",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.3",
@@ -65,6 +66,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.17",
+    "firebase": "^12.19.0",
     "hls.js": "^1.7.3",
     "laravel-echo": "^2.6.1",
     "pusher-js": "^8.6.0",
