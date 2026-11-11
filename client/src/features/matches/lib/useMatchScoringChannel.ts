@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { createRealtimeClient, isRealtimeConfigured } from '@/shared/config/realtime';
+import { acquireRealtimeClient, isRealtimeConfigured, releaseRealtimeClient } from '@/shared/config/realtime';
 import { selectAccessToken } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
@@ -30,7 +30,7 @@ export function useMatchScoringChannel(matchId: number | null, { enabled = true 
   useEffect(() => {
     if (!canSubscribe || !matchId || !accessToken) return;
 
-    const client = createRealtimeClient({ authToken: accessToken });
+    const client = acquireRealtimeClient({ authToken: accessToken });
     if (!client) return;
 
     const channelName = `match.${matchId}.scoring`;
@@ -91,7 +91,7 @@ export function useMatchScoringChannel(matchId: number | null, { enabled = true 
       pendingTimers.clear();
       unbind();
       client.leave(channelName);
-      client.disconnect();
+      releaseRealtimeClient(client);
     };
   }, [accessToken, canSubscribe, dispatch, matchId]);
 

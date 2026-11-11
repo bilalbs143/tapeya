@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { createRealtimeClient, isRealtimeConfigured } from '@/shared/config/realtime';
+import { acquireRealtimeClient, isRealtimeConfigured, releaseRealtimeClient } from '@/shared/config/realtime';
 import { selectAccessToken } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
@@ -16,7 +16,7 @@ export function useLiveStreamChannel(streamId: number | null, { enabled = true }
   useEffect(() => {
     if (!enabled || !streamId || !configured) return;
 
-    const client = createRealtimeClient({ authToken: accessToken });
+    const client = acquireRealtimeClient({ authToken: accessToken });
     if (!client) return;
 
     const channelName = `live-stream.${streamId}`;
@@ -38,7 +38,7 @@ export function useLiveStreamChannel(streamId: number | null, { enabled = true }
 
     return () => {
       client.leave(channelName);
-      client.disconnect();
+      releaseRealtimeClient(client);
     };
   }, [accessToken, configured, dispatch, enabled, streamId]);
 }

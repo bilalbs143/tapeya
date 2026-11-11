@@ -1,17 +1,14 @@
 import { useEffect, useRef } from 'react';
 
-import { createRealtimeClient, isRealtimeConfigured } from '@/shared/config/realtime';
+import { acquireRealtimeClient, isRealtimeConfigured, releaseRealtimeClient } from '@/shared/config/realtime';
 import { selectAccessToken } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
 import { liveCommentWireSchema, toLiveComment } from '../model/schemas';
 import { appendLiveComment } from './appendLiveComment';
+import { type HeartEventPayload, parseHeartEventPayload } from './heartEvent';
 
-export type HeartEventPayload = {
-  userId: number | null;
-  avatarUrl: string | null;
-  initials: string;
-};
+export type { HeartEventPayload };
 
 type Options = {
   enabled?: boolean | undefined;
@@ -31,7 +28,7 @@ export function useStreamChatChannel(streamId: number | null, { enabled = true, 
   useEffect(() => {
     if (!enabled || !streamId || !configured) return;
 
-    const client = createRealtimeClient({ authToken: accessToken });
+    const client = acquireRealtimeClient({ authToken: accessToken });
     if (!client) return;
 
     const channelName = `live-stream.${streamId}.chat`;
@@ -44,17 +41,12 @@ export function useStreamChatChannel(streamId: number | null, { enabled = true, 
     });
 
     channel.listen('.live-stream.chat.heart', (raw) => {
-      const event = raw as { user_id?: number; avatar_url?: string | null; initials?: string } | null;
-      heartRef.current?.({
-        userId: event?.user_id ?? null,
-        avatarUrl: event?.avatar_url ?? null,
-        initials: event?.initials?.trim() || '?',
-      });
+      heartRef.current?.(parseHeartEventPayload(raw));
     });
 
     return () => {
       client.leave(channelName);
-      client.disconnect();
+      releaseRealtimeClient(client);
     };
   }, [accessToken, configured, dispatch, enabled, streamId]);
 }

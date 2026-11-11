@@ -160,9 +160,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
 
   const onHeartEvent = useCallback(
     (payload: HeartEventPayload) => {
-      if (payload.userId != null && myUserId != null && Number(payload.userId) === Number(myUserId)) {
-        return;
-      }
+      if (payload.userId != null && myUserId != null && payload.userId === myUserId) return;
       spawnBurst(payload.avatarUrl, payload.initials);
     },
     [myUserId, spawnBurst]

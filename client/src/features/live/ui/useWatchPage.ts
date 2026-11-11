@@ -66,9 +66,8 @@ export function useWatchPage(streamId: number, valid: boolean) {
   const onHeartEvent = useCallback(
     (payload: HeartEventPayload) => {
       if (landscape) return;
-      if (payload.userId != null && myUserId != null && Number(payload.userId) === Number(myUserId)) {
-        return;
-      }
+      // Own heart already spawned locally on send — skip the echo.
+      if (payload.userId != null && myUserId != null && payload.userId === myUserId) return;
       spawnBurst(payload.avatarUrl, payload.initials);
     },
     [landscape, myUserId, spawnBurst]
@@ -159,15 +158,13 @@ export function useWatchPage(streamId: number, valid: boolean) {
 
   function heart() {
     requireSession(() => {
-      void (async () => {
-        if (landscape) return;
-        spawnBurst(me?.avatarUrl ?? null, displayInitials(me?.name, me?.nickname));
-        try {
-          await sendHeart({ streamId }).unwrap();
-        } catch {
-          /* hearts are fire-and-forget */
-        }
-      })();
+      if (landscape || !chatEnabled) return;
+      spawnBurst(me?.avatarUrl ?? null, displayInitials(me?.name, me?.nickname));
+      void sendHeart({ streamId })
+        .unwrap()
+        .catch(() => {
+          /* fire-and-forget — remotes still see the WS event when POST succeeds */
+        });
     });
   }
 

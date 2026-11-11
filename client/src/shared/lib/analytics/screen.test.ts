@@ -12,11 +12,11 @@ vi.mock('@capacitor/core', () => ({
 }));
 
 vi.mock('./google', () => ({
-  logPageView: (...args: unknown[]) => logPageView(...args),
+  logPageView,
 }));
 
 vi.mock('@capacitor-firebase/analytics', () => ({
-  FirebaseAnalytics: { setCurrentScreen: (...args: unknown[]) => setCurrentScreen(...args) },
+  FirebaseAnalytics: { setCurrentScreen },
 }));
 
 describe('logScreenView', () => {

@@ -1,10 +1,9 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import type { ZodType } from 'zod';
 
 import { env } from './env';
 
-/** Echo/Reverb bootstrap — features import here, not laravel-echo directly; `null` when Reverb env unset. §7.3 */
+/** Echo/Reverb bootstrap — features import here, not laravel-echo directly. §7.3 */
 
 export type RealtimeConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'unavailable' | 'failed';
 
@@ -35,40 +34,125 @@ type ReverbConfig = {
   scheme: 'http' | 'https';
 };
 
-function apiOrigin(): string {
+/** Dev/default key — must match `REVERB_APP_KEY` in `api/.env.example`. */
+export const DEFAULT_REVERB_APP_KEY = 'local-reverb-key';
+
+/**
+ * Host/port/scheme when VITE_REVERB_* overrides are unset.
+ * Reach WS via the API host (prod wss:443; local http → Reverb :8080).
+ */
+export function deriveReverbEndpointFromApiUrl(apiUrl: string): Pick<ReverbConfig, 'host' | 'port' | 'scheme'> | null {
   try {
-    return new URL(env.VITE_API_URL).origin;
+    const api = new URL(apiUrl);
+    const useTls = api.protocol === 'https:';
+    const local = api.hostname === 'localhost' || api.hostname === '127.0.0.1';
+    return {
+      host: api.hostname,
+      port: useTls ? 443 : local ? 8080 : 80,
+      scheme: useTls ? 'https' : 'http',
+    };
   } catch {
-    return '';
+    return null;
   }
 }
 
-function resolveReverbConfig(): ReverbConfig | null {
-  const appKey = env.VITE_REVERB_APP_KEY;
-  const host = env.VITE_REVERB_HOST;
-  if (!appKey || !host) return null;
+/** Resolve Reverb connection — optional overrides, otherwise API-derived defaults. */
+export function resolveReverbConfig(
+  options: {
+    apiUrl?: string;
+    appKey?: string | undefined;
+    host?: string | undefined;
+    port?: string | undefined;
+    scheme?: 'http' | 'https' | undefined;
+  } = {}
+): ReverbConfig | null {
+  const apiUrl = options.apiUrl ?? env.VITE_API_URL;
+  const derived = deriveReverbEndpointFromApiUrl(apiUrl);
+  if (!derived) return null;
 
-  const scheme = env.VITE_REVERB_SCHEME ?? (env.VITE_API_URL.startsWith('https') ? 'https' : 'http');
-  const port = env.VITE_REVERB_PORT ? Number(env.VITE_REVERB_PORT) : scheme === 'https' ? 443 : 8080;
+  const appKey = (options.appKey ?? env.VITE_REVERB_APP_KEY)?.trim() || DEFAULT_REVERB_APP_KEY;
+  const host = (options.host ?? env.VITE_REVERB_HOST)?.trim() || derived.host;
+  const scheme = options.scheme ?? env.VITE_REVERB_SCHEME ?? derived.scheme;
+  const rawPort = options.port ?? env.VITE_REVERB_PORT;
+  const port = rawPort ? Number(rawPort) : derived.port;
   if (!Number.isFinite(port)) return null;
 
   return { appKey, host, port, scheme };
 }
 
-/** True when VITE_REVERB_* is configured enough to attempt a socket. */
+/** True when we can open a Reverb socket (API URL parseable). */
 export function isRealtimeConfigured(): boolean {
   return resolveReverbConfig() != null;
 }
 
-/** Per-subscription client — use with bearer token for private channels. */
-export function createRealtimeClient(options: CreateOptions = {}): RealtimeClient | null {
+type PusherConnection = {
+  bind: (event: string, handler: (states: { current: string }) => void) => void;
+  unbind: (event: string, handler: (states: { current: string }) => void) => void;
+};
+
+type EchoLike = {
+  channel: (name: string) => unknown;
+  private: (channel: string) => unknown;
+  leave: (channel: string) => void;
+  disconnect: () => void;
+  connector?: { pusher?: { connection: PusherConnection } };
+};
+
+function normalizeConnectionStatus(raw: string): RealtimeConnectionStatus {
+  switch (raw) {
+    case 'connecting':
+    case 'connected':
+    case 'disconnected':
+    case 'unavailable':
+    case 'failed':
+      return raw;
+    default:
+      return 'disconnected';
+  }
+}
+
+function wrapEcho(echo: EchoLike): RealtimeClient {
+  return {
+    channel(name) {
+      return echo.channel(name) as RealtimeChannel;
+    },
+    private(channel) {
+      return echo.private(channel) as RealtimeChannel;
+    },
+    leave(channel) {
+      echo.leave(channel);
+    },
+    disconnect() {
+      echo.disconnect();
+    },
+    onConnectionChange(callback) {
+      const pusher = echo.connector?.pusher;
+      if (!pusher) return () => {};
+
+      const handler = (states: { current: string }) => {
+        callback(normalizeConnectionStatus(states.current));
+      };
+      pusher.connection.bind('state_change', handler);
+      return () => {
+        pusher.connection.unbind('state_change', handler);
+      };
+    },
+  };
+}
+
+function createRealtimeClient(options: CreateOptions = {}): RealtimeClient | null {
   const reverb = resolveReverbConfig();
-  const origin = apiOrigin();
-  if (!reverb || !origin) return null;
+  if (!reverb) return null;
+
+  let origin: string;
+  try {
+    origin = new URL(env.VITE_API_URL).origin;
+  } catch {
+    return null;
+  }
 
   window.Pusher = Pusher;
 
-  // Echo's reverb broadcaster options are loosely typed across versions.
   const echoOptions: Record<string, unknown> = {
     broadcaster: 'reverb',
     key: reverb.appKey,
@@ -90,65 +174,48 @@ export function createRealtimeClient(options: CreateOptions = {}): RealtimeClien
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Echo constructor generics vary by package version.
-  const echo = new Echo(echoOptions as any);
-
-  return {
-    channel(name: string) {
-      return echo.channel(name) as unknown as RealtimeChannel;
-    },
-    private(channel: string) {
-      return echo.private(channel) as unknown as RealtimeChannel;
-    },
-    leave(channel: string) {
-      echo.leave(channel);
-    },
-    disconnect() {
-      echo.disconnect();
-    },
-    onConnectionChange(callback) {
-      const pusher = (echo as unknown as { connector?: { pusher?: { connection: PusherConnection } } }).connector
-        ?.pusher;
-      if (!pusher) return () => {};
-
-      const handler = (states: { current: string }) => {
-        callback(normalizeConnectionStatus(states.current));
-      };
-      pusher.connection.bind('state_change', handler);
-      return () => {
-        pusher.connection.unbind('state_change', handler);
-      };
-    },
-  };
+  return wrapEcho(new Echo(echoOptions as any) as unknown as EchoLike);
 }
 
-type PusherConnection = {
-  bind: (event: string, handler: (states: { current: string }) => void) => void;
-  unbind: (event: string, handler: (states: { current: string }) => void) => void;
+type SharedRealtime = {
+  client: RealtimeClient;
+  authToken: string | null;
+  refs: number;
 };
 
-function normalizeConnectionStatus(raw: string): RealtimeConnectionStatus {
-  switch (raw) {
-    case 'connecting':
-    case 'connected':
-    case 'disconnected':
-    case 'unavailable':
-    case 'failed':
-      return raw;
-    default:
-      return 'disconnected';
+let sharedRealtime: SharedRealtime | null = null;
+
+/**
+ * Ref-counted shared Echo — one socket for live chat/status + scoring/hub.
+ * Pass the bearer when any subscriber needs private channels.
+ */
+export function acquireRealtimeClient(options: CreateOptions = {}): RealtimeClient | null {
+  const authToken = options.authToken?.trim() || null;
+
+  if (sharedRealtime && sharedRealtime.authToken !== authToken) {
+    // Abandon the old socket; stale `releaseRealtimeClient(old)` calls no-op via identity check.
+    sharedRealtime.client.disconnect();
+    sharedRealtime = null;
   }
+
+  if (!sharedRealtime) {
+    const client = createRealtimeClient({ authToken });
+    if (!client) return null;
+    sharedRealtime = { client, authToken, refs: 0 };
+  }
+
+  sharedRealtime.refs += 1;
+  return sharedRealtime.client;
 }
 
-let sharedClient: RealtimeClient | null | undefined;
-
-/** Shared client without auth — private channels need `createRealtimeClient({ authToken })`. */
-export function getRealtimeClient(): RealtimeClient | null {
-  if (sharedClient !== undefined) return sharedClient;
-  sharedClient = createRealtimeClient();
-  return sharedClient;
-}
-
-/** Helper for feature listeners — parse once at the boundary. */
-export function parseRealtimePayload<T>(schema: ZodType<T>, raw: unknown): T {
-  return schema.parse(raw);
+/**
+ * Drop a ref for the client this subscriber acquired.
+ * Pass the acquired instance so token-swap cleanups cannot release a newer socket.
+ */
+export function releaseRealtimeClient(client: RealtimeClient): void {
+  if (!sharedRealtime || sharedRealtime.client !== client) return;
+  sharedRealtime.refs = Math.max(0, sharedRealtime.refs - 1);
+  if (sharedRealtime.refs > 0) return;
+  sharedRealtime.client.disconnect();
+  sharedRealtime = null;
 }

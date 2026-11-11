@@ -121,5 +121,14 @@ export default tseslint.config(
     rules: {
       'import/no-default-export': 'off',
     },
+  },
+  {
+    // Node build helpers (e.g. scripts/run-vite-build.mjs) — not browser code.
+    files: ['scripts/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.es2022 },
+    },
   }
 );

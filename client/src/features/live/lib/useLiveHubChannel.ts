@@ -8,7 +8,7 @@ import {
   toHomeStream,
 } from '@/features/feed/model/homeSchemas';
 
-import { createRealtimeClient, isRealtimeConfigured } from '@/shared/config/realtime';
+import { acquireRealtimeClient, isRealtimeConfigured, releaseRealtimeClient } from '@/shared/config/realtime';
 import { selectAccessToken } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
@@ -68,7 +68,7 @@ export function useLiveHubChannel() {
   useEffect(() => {
     if (!accessToken || !configured) return;
 
-    const client = createRealtimeClient({ authToken: accessToken });
+    const client = acquireRealtimeClient({ authToken: accessToken });
     if (!client) return;
 
     const channelName = 'live-hub';
@@ -101,7 +101,7 @@ export function useLiveHubChannel() {
 
     return () => {
       client.leave(channelName);
-      client.disconnect();
+      releaseRealtimeClient(client);
     };
   }, [accessToken, configured, dispatch]);
 }
