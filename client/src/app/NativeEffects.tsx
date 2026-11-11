@@ -3,9 +3,10 @@ import { App } from '@capacitor/app';
 
 import { useAppDeepLink, usePushNotifications } from '@/features/notifications';
 
+import { reapplyAndroidSystemNavHidden, startAndroidSystemNavHidden } from '@/shared/native/androidSystemNav';
 import { reapplyKeepAwake } from '@/shared/native/keepAwake';
 import { orientationSession } from '@/shared/native/orientationSession';
-import { isNativePlatform } from '@/shared/platform/platform';
+import { getPlatform, isNativePlatform } from '@/shared/platform/platform';
 
 /** Capacitor-only side effects that need router + auth context. Mount once under BrowserRouter (see AppProviders). */
 
@@ -17,6 +18,7 @@ export function NativeEffects() {
     if (!isNativePlatform()) return undefined;
 
     void orientationSession.ensurePortraitBase();
+    if (getPlatform() === 'android') void startAndroidSystemNavHidden();
 
     let removed = false;
     let handle: { remove: () => Promise<void> } | undefined;
@@ -24,6 +26,7 @@ export function NativeEffects() {
       if (isActive) {
         void orientationSession.reapply();
         void reapplyKeepAwake();
+        if (getPlatform() === 'android') void reapplyAndroidSystemNavHidden();
       }
     }).then((h) => {
       if (removed) {
