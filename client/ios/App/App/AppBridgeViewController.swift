@@ -19,5 +19,7 @@ class AppBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(TapeyaBroadcastPlugin())
         bridge?.registerPluginInstance(YoutubeStreamOverlayPlugin())
         bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
+        // Cap may insert its splash above the WebView — keep brand overlay on top.
+        SplashBrandOverlay.bringToFront()
     }
 }

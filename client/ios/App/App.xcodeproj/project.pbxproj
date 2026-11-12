@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE34CEF3A01C4AF8B36C4529 /* SplashBrandOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85DDE6691469475EB40FF04F /* SplashBrandOverlay.swift */; };
 		B2C3D4E5F60718293A4B5C6D /* YoutubeStreamOverlayPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* YoutubeStreamOverlayPlugin.swift */; };
 		245DF6F83119464F98CB6375 /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
@@ -44,6 +45,7 @@
 		728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeyaBroadcastPlugin.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		05583107C05841029F0AD02F /* TapeyaAppearancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeyaAppearancePlugin.swift; sourceTree = "<group>"; };
+		85DDE6691469475EB40FF04F /* SplashBrandOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashBrandOverlay.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		B1BF724E8B249F7B36840D8E /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB5488674EDB2F3A9FD99F36 /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 			children = (
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				05583107C05841029F0AD02F /* TapeyaAppearancePlugin.swift */,
+				85DDE6691469475EB40FF04F /* SplashBrandOverlay.swift */,
 				A1B2C3D4E5F60718293A4B5C /* YoutubeStreamOverlayPlugin.swift */,
 				245DF6F83119464F98CB6374 /* AppBridgeViewController.swift */,
 				728A63B783FB45718ADFFBBE /* TapeyaBroadcastPlugin.swift */,
@@ -245,6 +248,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				96596DBB53184F7083A3C751 /* TapeyaAppearancePlugin.swift in Sources */,
+				CE34CEF3A01C4AF8B36C4529 /* SplashBrandOverlay.swift in Sources */,
 				B2C3D4E5F60718293A4B5C6D /* YoutubeStreamOverlayPlugin.swift in Sources */,
 				245DF6F83119464F98CB6375 /* AppBridgeViewController.swift in Sources */,
 				728A63B783FB45718ADFFBBF /* TapeyaBroadcastPlugin.swift in Sources */,

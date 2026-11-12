@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
+import { hideNativeSplashBrand } from '@/shared/native/appearance';
+
 /** Native splash façade (§11) — hide after auth hydrate. */
 const launchedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
 const MIN_VISIBLE_MS = 1200;
@@ -17,4 +19,6 @@ export async function hideNativeSplash(): Promise<void> {
   } catch {
     /* optional */
   }
+
+  await hideNativeSplashBrand();
 }

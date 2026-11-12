@@ -10,6 +10,14 @@
 - Media **Full** uses CSS 90° rotate + 16:9 contain for React chrome (loader / Exit on web).
 - Go Live hard-locks to stream encode orientation via `orientationSession`.
 
+## iOS splash brand
+
+Cold start keeps light/dark `SplashBackground` (no Cap `backgroundColor`). Full logo + one-line tagline:
+
+1. `LaunchScreen.storyboard` — best-effort `SplashLogo` + tagline (may blank on large PNGs)
+2. `SplashBrandCache` / `SplashBrandOverlay` — decode light+dark once, window overlay until hide
+3. JS `hideNativeSplash()` — Cap `SplashScreen.hide` then `TapeyaAppearance.hideSplashBrand`
+
 ## Non-goals (current)
 
 - Tilt-to-open immersive (deviceorientation) — removed; revisit later

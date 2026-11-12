@@ -29,12 +29,20 @@ public class TapeyaAppearancePlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "TapeyaAppearance"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "apply", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "hideSplashBrand", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func apply(_ call: CAPPluginCall) {
         let theme = call.getString("theme")
         DispatchQueue.main.async {
             ThemeAppearance.apply(theme)
+            call.resolve()
+        }
+    }
+
+    @objc func hideSplashBrand(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            SplashBrandOverlay.hide()
             call.resolve()
         }
     }
