@@ -18,6 +18,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        AttPrompt.requestIfNeeded()
+    }
+
     func sceneDidEnterBackground(_ scene: UIScene) {
         TapeyaBroadcastPlugin.handleAppDidEnterBackground()
     }

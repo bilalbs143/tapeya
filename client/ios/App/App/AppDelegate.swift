@@ -1,18 +1,17 @@
 import UIKit
 import Capacitor
-import AppTrackingTransparency
 import FBSDKCoreKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    private var didRequestTrackingAuthorization = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         SplashBrandCache.warm()
+        // No advertiser ID until ATT resolves (see AttPrompt).
+        Settings.shared.isAdvertiserIDCollectionEnabled = false
         ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
-        syncFacebookTrackingSettings()
         return true
     }
 
@@ -27,8 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        requestTrackingAuthorizationIfNeeded()
-        AppEvents.shared.activateApp()
+        // SceneDelegate is preferred; keep as fallback for non-scene edge cases.
+        AttPrompt.requestIfNeeded()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -41,32 +40,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                           sessionRole: connectingSceneSession.role)
         config.delegateClass = SceneDelegate.self
         return config
-    }
-
-    private func syncFacebookTrackingSettings() {
-        if #available(iOS 14, *) {
-            Settings.shared.isAdvertiserIDCollectionEnabled =
-                ATTrackingManager.trackingAuthorizationStatus == .authorized
-        } else {
-            Settings.shared.isAdvertiserIDCollectionEnabled = true
-        }
-    }
-
-    private func requestTrackingAuthorizationIfNeeded() {
-        guard #available(iOS 14, *) else {
-            syncFacebookTrackingSettings()
-            return
-        }
-
-        if ATTrackingManager.trackingAuthorizationStatus != .notDetermined {
-            syncFacebookTrackingSettings()
-            return
-        }
-
-        guard !didRequestTrackingAuthorization else { return }
-        didRequestTrackingAuthorization = true
-        ATTrackingManager.requestTrackingAuthorization { [weak self] _ in
-            self?.syncFacebookTrackingSettings()
-        }
     }
 }

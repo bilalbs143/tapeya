@@ -10,6 +10,10 @@
 - Media **Full** uses CSS 90° rotate + 16:9 contain for React chrome (loader / Exit on web).
 - Go Live hard-locks to stream encode orientation via `orientationSession`.
 
+## App Tracking Transparency (iOS)
+
+Facebook advertiser-ID collection requires ATT. Prompt runs from `AttPrompt` ~1.2s after the scene becomes active (iPadOS drops early requests), and `AppEvents.activateApp` / advertiser ID stay off until the user answers. For App Review: fresh install → record the ATT sheet → attach the screen recording in App Review Information notes.
+
 ## Native splash brand (iOS + Android)
 
 Cold start keeps light/dark page backgrounds (no Cap `backgroundColor`). Full logo + one-line tagline:
