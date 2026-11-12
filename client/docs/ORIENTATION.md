@@ -14,7 +14,7 @@
 
 Cold start keeps light/dark page backgrounds (no Cap `backgroundColor`). Full logo + one-line tagline:
 
-1. Platform launch surface — iOS `LaunchScreen` / Android `@drawable/splash` (full logo; Android 12 icon stays the mark)
+1. Platform launch surface — iOS `LaunchScreen` / Android `@drawable/splash` (full logo; Android 12 uses a transparent system icon)
 2. `SplashBrandOverlay` — decode logo once, window overlay with tagline until hide
 3. JS `hideNativeSplash()` — Cap `SplashScreen.hide` then `TapeyaAppearance.hideSplashBrand`
 
