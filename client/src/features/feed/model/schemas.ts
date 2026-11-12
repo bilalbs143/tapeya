@@ -114,13 +114,23 @@ export type Post = {
   };
   liked: boolean;
   saved: boolean;
+  /** Wrapper author label for the “{name} reposted” strip. */
   reposter: { name: string } | null;
-  original: {
-    id: number;
-    author: PostAuthor;
-    age: string;
-    body: string | null;
-  } | null;
+  /** Nested original inside a repost card (`repost_of`). */
+  original: RepostOriginal | null;
+};
+
+/** Compact original embedded in a repost — richer than a text stub. */
+export type RepostOriginal = {
+  id: number;
+  unavailable: boolean;
+  kind: Exclude<PostKind, 'repost'>;
+  author: PostAuthor | null;
+  age: string;
+  body: string | null;
+  background: PostBackgroundId | null;
+  photos: PostPhoto[];
+  poster: string | null;
 };
 
 export type FeedTab = 'explore' | 'following' | 'mine' | 'saved';
@@ -191,11 +201,67 @@ function mapAuthor(creator: z.infer<typeof creatorWireSchema>, following = false
   };
 }
 
-function parseNestedPost(raw: unknown): PostWire | null {
+function mapPhotos(wire: PostWire): PostPhoto[] {
+  if (wire.type !== 'image') return [];
+  const photos = (wire.media ?? []).flatMap((m) =>
+    m.url
+      ? [
+          {
+            url: m.url,
+            width: m.width ?? null,
+            height: m.height ?? null,
+          },
+        ]
+      : []
+  );
+  const cover = wire.cover_url?.trim();
+  if (photos.length === 0 && cover) {
+    return [{ url: cover, width: null, height: null }];
+  }
+  return photos;
+}
+
+function mapRepostOriginal(raw: unknown): RepostOriginal | null {
   if (!raw || typeof raw !== 'object') return null;
-  if ('unavailable' in raw && (raw as { unavailable?: boolean }).unavailable) return null;
+
+  const stub = raw as { id?: unknown; unavailable?: unknown };
+  if (stub.unavailable === true) {
+    return {
+      id: typeof stub.id === 'number' ? stub.id : 0,
+      unavailable: true,
+      kind: 'text',
+      author: null,
+      age: '',
+      body: null,
+      background: null,
+      photos: [],
+      poster: null,
+    };
+  }
+
   const parsed = postWireSchema.safeParse(raw);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) return null;
+  const nested = parsed.data;
+  if (nested.type === 'repost') return null;
+
+  const nestedCreator = nested.creator ?? {
+    id: 0,
+    name: 'Unknown',
+    nickname: null,
+    avatar_url: null,
+  };
+
+  return {
+    id: nested.id,
+    unavailable: false,
+    kind: mapKind(nested.type) as Exclude<PostKind, 'repost'>,
+    author: mapAuthor(nestedCreator),
+    age: formatRelativeAge(nested.published_at ?? nested.created_at),
+    body: nested.body ?? nested.caption ?? null,
+    background: mapBackground(nested.background_id),
+    photos: mapPhotos(nested),
+    poster: nested.playback?.poster_url ?? nested.cover_url ?? null,
+  };
 }
 
 export function toDomain(wire: PostWire): Post {
@@ -207,45 +273,13 @@ export function toDomain(wire: PostWire): Post {
   };
   const author = mapAuthor(creator, Boolean(wire.viewer.following_creator));
   const body = wire.body ?? wire.caption ?? null;
-  // Prefer media[] URLs (full file). cover_url alone is a fallback when media isn't loaded.
-  let photos: PostPhoto[] = [];
-  if (wire.type === 'image') {
-    photos = (wire.media ?? []).flatMap((m) =>
-      m.url
-        ? [
-            {
-              url: m.url,
-              width: m.width ?? null,
-              height: m.height ?? null,
-            },
-          ]
-        : []
-    );
-    const cover = wire.cover_url?.trim();
-    if (photos.length === 0 && cover) {
-      photos = [{ url: cover, width: null, height: null }];
-    }
-  }
+  const photos = mapPhotos(wire);
 
   let original: Post['original'] = null;
   let reposter: Post['reposter'] = null;
   if (wire.type === 'repost') {
-    const nested = parseNestedPost(wire.repost_of);
-    if (nested) {
-      const nestedCreator = nested.creator ?? {
-        id: 0,
-        name: 'Unknown',
-        nickname: null,
-        avatar_url: null,
-      };
-      original = {
-        id: nested.id,
-        author: mapAuthor(nestedCreator),
-        age: formatRelativeAge(nested.published_at ?? nested.created_at),
-        body: nested.body ?? nested.caption ?? null,
-      };
-      reposter = { name: author.name };
-    }
+    reposter = { name: author.name };
+    original = mapRepostOriginal(wire.repost_of);
   }
 
   return {

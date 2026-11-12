@@ -18,6 +18,7 @@ import { getFeedTextBackground } from '../lib/composeBackgrounds';
 import type { Post, PostPhoto } from '../model/schemas';
 import { feedRoutes } from '../routes';
 import { ReportSheet } from './ReportSheet';
+import { RepostedPostEmbed } from './RepostedPostEmbed';
 import { TextPostBackground } from './TextPostBackground';
 
 type PostCardProps = {
@@ -87,10 +88,13 @@ export function PostCard({
   return (
     <article className={cn('border-border-subtle bg-surface overflow-hidden rounded-card border', className)}>
       {kind === 'repost' && post.reposter ? (
-        <p className="text-dim flex items-center gap-2 px-3.5 pt-3 text-3xs font-semibold">
-          <RepostIcon size="xs" strokeWidth={2} className="h-[13px] w-[13px]" />
+        <p className="text-dim flex items-center gap-1.5 px-3.5 pt-3 text-3xs font-semibold">
+          <RepostIcon size="xs" strokeWidth={2} className="h-[13px] w-[13px]" aria-hidden />
           <span>
-            <span className="text-body font-bold">{post.reposter.name}</span> reposted
+            <Link to={profileHref} className="text-body hover:text-brand-text font-bold">
+              {post.reposter.name}
+            </Link>{' '}
+            reposted
           </span>
         </p>
       ) : null}
@@ -144,6 +148,7 @@ export function PostCard({
         ) : null}
       </header>
 
+      {/* Quote caption on the wrapper (photos/video/repost). Plain text posts use the block below. */}
       {body && kind !== 'text' ? (
         <p className="text-body px-3.5 pb-2.5 text-2xs leading-relaxed whitespace-pre-wrap">{body}</p>
       ) : null}
@@ -187,34 +192,7 @@ export function PostCard({
         </Link>
       ) : null}
 
-      {kind === 'repost' && post.original ? (
-        <div className="border-border bg-page-deep mx-3.5 mb-3.5 overflow-hidden rounded-field border">
-          <div className="px-3 pt-2.5 pb-2">
-            <UserIdentity
-              user={{
-                name: post.original.author.name,
-                avatarUrl: post.original.author.avatarUrl,
-                isOfficial: post.original.author.isOfficial,
-              }}
-              to={userProfilePath({
-                id: post.original.author.id,
-                nickname: post.original.author.nickname,
-              })}
-              avatarSize="xs"
-              className="gap-2"
-              meta={<span className="text-dim block text-4xs font-medium">{post.original.age}</span>}
-            />
-          </div>
-          {post.original.body ? (
-            <Link
-              to={feedRoutes.post(post.original.id)}
-              className="text-muted block px-3 pb-2.5 text-2xs leading-relaxed"
-            >
-              {post.original.body}
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      {kind === 'repost' ? <RepostedPostEmbed original={post.original} /> : null}
 
       <footer className="border-border-subtle flex items-center justify-between border-t px-2 py-1">
         <div className="flex items-center gap-0.5" role="group" aria-label="Post Actions">
@@ -304,7 +282,7 @@ function ActionIcon({
     <>
       {children}
       {showCount ? (
-        <span className="text-dim min-w-[0.75rem] text-3xs font-semibold tabular-nums">{formatEngagement(count)}</span>
+        <span className="text-dim min-w-3 text-3xs font-semibold tabular-nums">{formatEngagement(count)}</span>
       ) : null}
     </>
   );

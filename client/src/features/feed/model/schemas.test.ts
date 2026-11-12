@@ -67,6 +67,7 @@ describe('toDomain', () => {
         id: 5,
         type: 'text',
         body: 'Original thought',
+        background_id: 'pitch',
         counts: { likes: 1, comments: 0, shares: 0, reposts: 0 },
         viewer: { liked: false, saved: false },
         creator: { id: 9, name: 'Original', nickname: 'orig', avatar_url: null },
@@ -79,8 +80,91 @@ describe('toDomain', () => {
     expect(post.reposter).toEqual({ name: 'Reposter' });
     expect(post.original).toMatchObject({
       id: 5,
+      unavailable: false,
+      kind: 'text',
       body: 'Original thought',
+      background: 'pitch',
       author: { handle: 'orig', name: 'Original' },
+    });
+  });
+
+  it('maps redacted repost_of to unavailable original', () => {
+    const wire: PostWire = {
+      id: 21,
+      type: 'repost',
+      body: 'Quoted',
+      counts: { likes: 0, comments: 0, shares: 0, reposts: 1 },
+      viewer: { liked: false, saved: false },
+      creator: { id: 2, name: 'Reposter', nickname: 'rep', avatar_url: null },
+      repost_of: {
+        id: 8,
+        type: 'video',
+        unavailable: true,
+        body: null,
+        caption: null,
+        media: null,
+        playback: null,
+        creator: null,
+      },
+    };
+
+    const post = toDomain(wire);
+    expect(post.reposter).toEqual({ name: 'Reposter' });
+    expect(post.body).toBe('Quoted');
+    expect(post.original).toEqual({
+      id: 8,
+      unavailable: true,
+      kind: 'text',
+      author: null,
+      age: '',
+      body: null,
+      background: null,
+      photos: [],
+      poster: null,
+    });
+  });
+
+  it('maps image/video nest media onto original', () => {
+    const imageWire: PostWire = {
+      id: 22,
+      type: 'repost',
+      body: null,
+      counts: { likes: 0, comments: 0, shares: 0, reposts: 1 },
+      viewer: { liked: false, saved: false },
+      creator: { id: 2, name: 'Reposter', nickname: 'rep', avatar_url: null },
+      repost_of: {
+        id: 9,
+        type: 'image',
+        body: 'Shot',
+        media: [{ id: 1, kind: 'image', url: 'https://cdn.example/a.jpg', width: 800, height: 600 }],
+        counts: { likes: 0, comments: 0, shares: 0, reposts: 0 },
+        viewer: { liked: false, saved: false },
+        creator: { id: 3, name: 'Photog', nickname: 'pic', avatar_url: null },
+      },
+    };
+    expect(toDomain(imageWire).original).toMatchObject({
+      kind: 'photos',
+      photos: [{ url: 'https://cdn.example/a.jpg', width: 800, height: 600 }],
+    });
+
+    const videoWire: PostWire = {
+      ...imageWire,
+      id: 23,
+      repost_of: {
+        id: 10,
+        type: 'video',
+        body: null,
+        cover_url: 'https://cdn.example/poster.jpg',
+        playback: { poster_url: 'https://cdn.example/poster.jpg' },
+        counts: { likes: 0, comments: 0, shares: 0, reposts: 0 },
+        viewer: { liked: false, saved: false },
+        creator: { id: 4, name: 'Clip', nickname: 'clip', avatar_url: null },
+      },
+    };
+    expect(toDomain(videoWire).original).toMatchObject({
+      kind: 'video',
+      poster: 'https://cdn.example/poster.jpg',
+      photos: [],
     });
   });
 });
