@@ -79,7 +79,7 @@ final class SplashBrandOverlay: UIView {
         taglineLabel.numberOfLines = 1
         taglineLabel.adjustsFontSizeToFitWidth = true
         taglineLabel.minimumScaleFactor = 0.78
-        taglineLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        taglineLabel.font = .systemFont(ofSize: 15, weight: .medium)
         taglineLabel.textColor = UIColor(named: "SplashTagline") ?? .secondaryLabel
         taglineLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -96,8 +96,8 @@ final class SplashBrandOverlay: UIView {
             stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
             trailingAnchor.constraint(equalTo: stack.trailingAnchor, constant: 24),
 
-            logoView.widthAnchor.constraint(equalToConstant: 260),
-            logoView.heightAnchor.constraint(equalToConstant: 98),
+            logoView.widthAnchor.constraint(equalToConstant: 276),
+            logoView.heightAnchor.constraint(equalToConstant: 104),
 
             taglineLabel.widthAnchor.constraint(equalTo: stack.widthAnchor),
         ])

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Match client dark page background token -->
+    <!-- Match client dark page background / muted tagline tokens -->
     <color name="splash_background">#13131B</color>
+    <color name="splash_tagline">#A4ABC0</color>
 </resources>

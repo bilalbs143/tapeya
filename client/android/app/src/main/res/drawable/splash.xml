@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- System light/dark via values(-night)/splash_background + drawable(-night)/splash_mark. -->
+<!-- Cap splash layer — light/dark via values(-night) + drawable(-night)/splash_logo. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
-    <item>
+    <item
+        android:width="276dp"
+        android:height="104dp"
+        android:gravity="center">
         <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_mark" />
+            android:gravity="fill"
+            android:src="@drawable/splash_logo" />
     </item>
 </layer-list>

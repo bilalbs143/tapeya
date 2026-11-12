@@ -12,10 +12,12 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
         TapeyaAppearancePlugin.applyStored(this);
+        SplashBrandOverlay.warm(this);
         registerPlugin(TapeyaAppearancePlugin.class);
         registerPlugin(TapeyaBroadcastPlugin.class);
         registerPlugin(FacebookAnalyticsPlugin.class);
         super.onCreate(savedInstanceState);
+        SplashBrandOverlay.show(this);
         // Hide OS nav early (before JS). Transient-by-swipe: edge swipe peeks then auto-hides.
         // Status bar stays visible. JS re-applies on resume via androidSystemNav.ts.
         applyHiddenAndroidNavigationBar();
@@ -23,6 +25,12 @@ public class MainActivity extends BridgeActivity {
         FacebookSdk.setAutoLogAppEventsEnabled(true);
         FacebookSdk.setAutoInitEnabled(true);
         FacebookSdk.fullyInitialize();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        SplashBrandOverlay.bringToFront(this);
     }
 
     @Override

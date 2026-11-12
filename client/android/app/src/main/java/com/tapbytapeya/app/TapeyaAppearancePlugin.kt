@@ -49,4 +49,15 @@ class TapeyaAppearancePlugin : Plugin() {
         if (act != null) act.runOnUiThread(run)
         else Handler(Looper.getMainLooper()).post(run)
     }
+
+    @PluginMethod
+    fun hideSplashBrand(call: PluginCall) {
+        val run = Runnable {
+            SplashBrandOverlay.hide()
+            call.resolve()
+        }
+        val act = activity
+        if (act != null) act.runOnUiThread(run)
+        else Handler(Looper.getMainLooper()).post(run)
+    }
 }

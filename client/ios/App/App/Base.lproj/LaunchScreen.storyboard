@@ -17,18 +17,18 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="18" translatesAutoresizingMaskIntoConstraints="NO" id="brand-stack">
-                                <rect key="frame" x="24" y="360" width="345" height="132"/>
+                                <rect key="frame" x="24" y="355" width="345" height="142"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashLogo" translatesAutoresizingMaskIntoConstraints="NO" id="logo-image">
-                                        <rect key="frame" x="42.5" y="0.0" width="260" height="98"/>
+                                        <rect key="frame" x="34.5" y="0.0" width="276" height="104"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" constant="260" id="logo-w"/>
-                                            <constraint firstAttribute="height" constant="98" id="logo-h"/>
+                                            <constraint firstAttribute="width" constant="276" id="logo-w"/>
+                                            <constraint firstAttribute="height" constant="104" id="logo-h"/>
                                         </constraints>
                                     </imageView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Live Cricket &amp; Instant Updates, Anytime!" textAlignment="center" lineBreakMode="clip" numberOfLines="1" adjustsFontSizeToFit="YES" minimumScaleFactor="0.78" translatesAutoresizingMaskIntoConstraints="NO" id="tagline-label">
-                                        <rect key="frame" x="0.0" y="116" width="345" height="16"/>
-                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
+                                        <rect key="frame" x="0.0" y="122" width="345" height="20"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="15"/>
                                         <color key="textColor" name="SplashTagline"/>
                                         <nil key="highlightedColor"/>
                                     </label>

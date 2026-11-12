@@ -12,9 +12,9 @@ type TapeyaAppearancePlugin = {
 
 const TapeyaAppearance = registerPlugin<TapeyaAppearancePlugin>('TapeyaAppearance');
 
-/** iOS only — dismiss window splash logo overlay after Cap SplashScreen.hide. */
+/** Dismiss native window splash logo overlay after Cap SplashScreen.hide (iOS + Android). */
 export async function hideNativeSplashBrand(): Promise<void> {
-  if (Capacitor.getPlatform() !== 'ios') return;
+  if (!Capacitor.isNativePlatform()) return;
   try {
     await TapeyaAppearance.hideSplashBrand();
   } catch {
