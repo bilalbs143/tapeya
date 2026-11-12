@@ -12,7 +12,18 @@ export function sellerStoreSlugLine(slug: string | null | undefined): string | n
   return slug ? `tapeya.com/shop/${slug}` : null;
 }
 
-export type SellerStoreFieldErrors = { storeName?: string };
+export type SellerStoreFieldErrors = { storeName?: string; phone?: string };
+
+export function omitSellerErrorKey(
+  errors: SellerStoreFieldErrors,
+  key: keyof SellerStoreFieldErrors
+): SellerStoreFieldErrors {
+  if (!(key in errors)) return errors;
+  const next = { ...errors };
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- drop one field key
+  delete next[key];
+  return next;
+}
 
 export function validateSellerStoreName(storeName: string): SellerStoreFieldErrors {
   if (!storeName.trim()) return { storeName: 'Store name is required.' };

@@ -1,3 +1,5 @@
+import { PhoneField } from '@/features/auth';
+
 import type { UserSummary } from '@/entities/user';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
@@ -23,8 +25,9 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
     waHref,
     fileInput,
     name,
-    tel,
-    setTel,
+    countryCode,
+    setCountryCode,
+    national,
     message,
     file,
     setFile,
@@ -32,6 +35,7 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
     isLoading,
     clearNameError,
     clearMessageError,
+    clearPhoneError,
     onPick,
     onSubmit,
     goHome,
@@ -96,16 +100,13 @@ export function SupportFormBody({ me, supportPhone }: SupportFormBodyProps) {
           className="h-12 rounded-panel"
         />
 
-        <Input
+        <PhoneField
           label="Phone"
-          type="tel"
-          inputMode="tel"
-          value={tel}
-          onChange={(e) => setTel(e.target.value)}
+          countryCode={countryCode}
+          onCountryCodeChange={setCountryCode}
+          value={national}
+          onNationalChange={clearPhoneError}
           error={errors.phone}
-          placeholder="+92 3xx xxxxxxx"
-          autoComplete="tel"
-          className="h-12 rounded-panel"
         />
 
         <Textarea

@@ -1,6 +1,8 @@
 import { type ChangeEvent, type FormEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { countryByCode, optionalNationalError, splitE164, toE164 } from '@/features/auth';
+
 import type { UserSummary } from '@/entities/user';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
@@ -27,8 +29,10 @@ export function useSupportForm({ me, supportPhone }: UseSupportFormArgs) {
   const [submitSupport, { isLoading }] = useSubmitSupportMessageMutation();
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const seeded = splitE164(me?.phone);
   const [name, setName] = useState(me?.name?.trim() || me?.nickname?.trim() || '');
-  const [tel, setTel] = useState(me?.phone?.trim() || '');
+  const [countryCode, setCountryCode] = useState(seeded.code);
+  const [national, setNational] = useState(seeded.national);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -59,11 +63,19 @@ export function useSupportForm({ me, supportPhone }: UseSupportFormArgs) {
     setErrors((prev) => omitSupportErrorKey(prev, 'message'));
   }
 
+  function clearPhoneError(next: string) {
+    setNational(next);
+    setErrors((prev) => omitSupportErrorKey(prev, 'phone'));
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (isLoading) return;
 
+    const dial = countryByCode(countryCode).dial;
     const next = validateSupportForm(name, message);
+    const phoneError = optionalNationalError(national, countryCode);
+    if (phoneError) next.phone = phoneError;
     setErrors(next);
     if (Object.keys(next).length) {
       toast({
@@ -77,7 +89,7 @@ export function useSupportForm({ me, supportPhone }: UseSupportFormArgs) {
     try {
       const result = await submitSupport({
         name: name.trim(),
-        phone: tel.trim() || undefined,
+        phone: national.trim() ? toE164(dial, national) : undefined,
         message: message.trim(),
         attachment: file ?? undefined,
       }).unwrap();
@@ -105,8 +117,9 @@ export function useSupportForm({ me, supportPhone }: UseSupportFormArgs) {
     waHref,
     fileInput,
     name,
-    tel,
-    setTel,
+    countryCode,
+    setCountryCode,
+    national,
     message,
     file,
     setFile,
@@ -114,6 +127,7 @@ export function useSupportForm({ me, supportPhone }: UseSupportFormArgs) {
     isLoading,
     clearNameError,
     clearMessageError,
+    clearPhoneError,
     onPick,
     onSubmit,
     goHome,

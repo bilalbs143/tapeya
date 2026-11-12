@@ -1,12 +1,15 @@
 import { type FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { countryByCode, optionalNationalError, splitE164, toE164 } from '@/features/auth';
+
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { DEFAULT_COUNTRY } from '@/shared/model/location';
 import { toast } from '@/shared/ui/toast';
 
 import { useUpdateVendorStoreMutation } from '../api/vendorShopApi';
 import {
+  omitSellerErrorKey,
   parseSellerShippingAmount,
   sellerStoreCanEdit,
   type SellerStoreFieldErrors,
@@ -27,9 +30,11 @@ export function useSellerStoreForm({ store }: UseSellerStoreFormArgs) {
   const [updateStore, { isLoading: saving }] = useUpdateVendorStoreMutation();
   const canEdit = sellerStoreCanEdit(store.status);
 
+  const seeded = splitE164(store.phone);
   const [storeName, setStoreName] = useState(store.storeName);
   const [description, setDescription] = useState(store.description ?? '');
-  const [phone, setPhone] = useState(store.phone ?? '');
+  const [countryCode, setCountryCode] = useState(seeded.code);
+  const [national, setNational] = useState(seeded.national);
   const [email, setEmail] = useState(store.email ?? '');
   const [address, setAddress] = useState(store.address ?? '');
   const [country, setCountry] = useState(store.country?.trim() || DEFAULT_COUNTRY);
@@ -43,17 +48,21 @@ export function useSellerStoreForm({ store }: UseSellerStoreFormArgs) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!canEdit) return;
-    const next = validateSellerStoreName(storeName);
+    const dial = countryByCode(countryCode).dial;
+    const next: SellerStoreFieldErrors = { ...validateSellerStoreName(storeName) };
+    const phoneError = optionalNationalError(national, countryCode);
+    if (phoneError) next.phone = phoneError;
     if (Object.keys(next).length) {
       setErrors(next);
       return;
     }
     setErrors({});
+    const phone = national.trim() ? toE164(dial, national) : null;
     try {
       await updateStore({
         store_name: storeName.trim(),
         description: description.trim() || null,
-        phone: phone.trim() || null,
+        phone,
         email: email.trim() || null,
         address: address.trim() || null,
         city: city.trim() || null,
@@ -71,7 +80,11 @@ export function useSellerStoreForm({ store }: UseSellerStoreFormArgs) {
   }
 
   function clearStoreNameError() {
-    setErrors({});
+    setErrors((prev) => omitSellerErrorKey(prev, 'storeName'));
+  }
+
+  function clearPhoneError() {
+    setErrors((prev) => omitSellerErrorKey(prev, 'phone'));
   }
 
   return {
@@ -82,8 +95,10 @@ export function useSellerStoreForm({ store }: UseSellerStoreFormArgs) {
     setStoreName,
     description,
     setDescription,
-    phone,
-    setPhone,
+    countryCode,
+    setCountryCode,
+    national,
+    setNational,
     email,
     setEmail,
     address,
@@ -96,6 +111,7 @@ export function useSellerStoreForm({ store }: UseSellerStoreFormArgs) {
     setShipping,
     errors,
     clearStoreNameError,
+    clearPhoneError,
     saving,
     onSubmit,
     goSeller,

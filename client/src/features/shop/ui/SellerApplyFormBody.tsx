@@ -1,3 +1,5 @@
+import { PhoneField } from '@/features/auth';
+
 import { Button } from '@/shared/ui/Button';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { Form, FormSection } from '@/shared/ui/Form';
@@ -32,8 +34,10 @@ export function SellerApplyFormBody({ flow }: SellerApplyFormProps) {
     setStoreName,
     description,
     setDescription,
-    phone,
-    setPhone,
+    countryCode,
+    setCountryCode,
+    national,
+    setNational,
     email,
     setEmail,
     address,
@@ -46,6 +50,7 @@ export function SellerApplyFormBody({ flow }: SellerApplyFormProps) {
     setShipping,
     errors,
     clearStoreNameError,
+    clearPhoneError,
     onSubmit,
   } = flow;
 
@@ -75,13 +80,16 @@ export function SellerApplyFormBody({ flow }: SellerApplyFormProps) {
           className="min-h-20 rounded-field p-3 text-body-sm"
         />
 
-        <Input
+        <PhoneField
           label="Phone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+92 3xx xxxxxxx"
-          className="h-12 rounded-field"
+          countryCode={countryCode}
+          onCountryCodeChange={setCountryCode}
+          value={national}
+          onNationalChange={(next) => {
+            setNational(next);
+            clearPhoneError();
+          }}
+          error={errors.phone}
         />
 
         <Input

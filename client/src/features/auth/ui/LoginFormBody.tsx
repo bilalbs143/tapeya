@@ -23,8 +23,8 @@ export function LoginFormBody({ flow }: LoginFormBodyProps) {
     profiles,
     savedMode,
     busyPhone,
-    dial,
-    setDial,
+    countryCode,
+    setCountryCode,
     national,
     setNational,
     error,
@@ -80,11 +80,11 @@ export function LoginFormBody({ flow }: LoginFormBodyProps) {
           <PhoneField
             label="Phone Number"
             required
-            dial={dial}
-            onDialChange={setDial}
+            countryCode={countryCode}
+            onCountryCodeChange={setCountryCode}
             value={national}
-            onChange={(e) => {
-              setNational(e.target.value);
+            onNationalChange={(next) => {
+              setNational(next);
               clearPhoneFeedback();
             }}
             error={error ?? undefined}
@@ -101,7 +101,7 @@ export function LoginFormBody({ flow }: LoginFormBodyProps) {
                 first — it takes a name and this same number.
               </p>
               <Button asChild variant="secondary" size="sm">
-                <Link to={authRoutes.register()} state={{ dial, national, returnTo }}>
+                <Link to={authRoutes.register()} state={{ countryCode, national, returnTo }}>
                   Register This Number
                 </Link>
               </Button>

@@ -1,9 +1,9 @@
-import { isValidName, isValidNational } from './phone';
+import { isValidName, nationalNumberError } from './phone';
 
 export type RegisterLocationState = {
   returnTo?: string;
   from?: string;
-  dial?: string;
+  countryCode?: string;
   national?: string;
 };
 
@@ -13,9 +13,15 @@ export type RegisterFieldErrors = {
   nickname?: string;
 };
 
-export function validateRegisterForm(national: string, name: string, nickname: string): RegisterFieldErrors {
+export function validateRegisterForm(
+  national: string,
+  name: string,
+  nickname: string,
+  countryCode?: string
+): RegisterFieldErrors {
   const next: RegisterFieldErrors = {};
-  if (!isValidNational(national)) next.phone = 'Enter the number without the country code, digits only.';
+  const phoneError = nationalNumberError(national, countryCode);
+  if (phoneError) next.phone = phoneError;
   if (!name.trim()) next.name = 'Required.';
   else if (!isValidName(name)) next.name = 'Letters and spaces only.';
   if (!nickname.trim()) next.nickname = 'Required — teammates see this on the scorecard.';

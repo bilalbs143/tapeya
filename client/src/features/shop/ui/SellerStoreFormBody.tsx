@@ -1,5 +1,7 @@
 import { createContext, type FormEvent, type ReactNode, useContext } from 'react';
 
+import { PhoneField } from '@/features/auth';
+
 import { Button } from '@/shared/ui/Button';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { Form, FormSection } from '@/shared/ui/Form';
@@ -55,8 +57,10 @@ export function SellerStoreFormBody() {
     setStoreName,
     description,
     setDescription,
-    phone,
-    setPhone,
+    countryCode,
+    setCountryCode,
+    national,
+    setNational,
     email,
     setEmail,
     address,
@@ -69,6 +73,7 @@ export function SellerStoreFormBody() {
     setShipping,
     errors,
     clearStoreNameError,
+    clearPhoneError,
     onSubmit,
   } = useSellerStoreFormFlow();
 
@@ -102,14 +107,17 @@ export function SellerStoreFormBody() {
           className="min-h-20 rounded-field p-3 text-body-sm"
         />
 
-        <Input
+        <PhoneField
           label="Phone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          countryCode={countryCode}
+          onCountryCodeChange={setCountryCode}
+          value={national}
+          onNationalChange={(next) => {
+            setNational(next);
+            clearPhoneError();
+          }}
+          error={errors.phone}
           disabled={!canEdit}
-          placeholder="+92 3xx xxxxxxx"
-          className="h-12 rounded-field"
         />
 
         <Input

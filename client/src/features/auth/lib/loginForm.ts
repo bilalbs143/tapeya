@@ -1,17 +1,16 @@
-import { isValidNational } from './phone';
+import { nationalNumberError } from './phone';
 
 export type LoginLocationState = {
   returnTo?: string;
   from?: string;
-  dial?: string;
+  countryCode?: string;
   national?: string;
 };
 
 export type LoginMode = 'saved' | 'phone';
 
-export function loginNationalError(national: string): string | null {
-  if (!isValidNational(national)) return 'Enter the number without the country code, digits only.';
-  return null;
+export function loginNationalError(national: string, countryCode?: string): string | null {
+  return nationalNumberError(national, countryCode);
 }
 
 export function loginShellTitle(savedMode: boolean): string {

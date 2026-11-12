@@ -21,8 +21,8 @@ type RegisterFormBodyProps = {
 export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
   const {
     returnTo,
-    dial,
-    setDial,
+    countryCode,
+    setCountryCode,
     national,
     setNational,
     name,
@@ -43,7 +43,7 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
     taken ? (
       <span>
         This number already has an account.{' '}
-        <Link to={authRoutes.login()} state={{ dial, national, returnTo }} className="text-body font-bold">
+        <Link to={authRoutes.login()} state={{ countryCode, national, returnTo }} className="text-body font-bold">
           Login Instead →
         </Link>
       </span>
@@ -69,11 +69,11 @@ export function RegisterFormBody({ flow }: RegisterFormBodyProps) {
         <PhoneField
           label="Phone Number"
           required
-          dial={dial}
-          onDialChange={setDial}
+          countryCode={countryCode}
+          onCountryCodeChange={setCountryCode}
           value={national}
-          onChange={(e) => {
-            setNational(e.target.value);
+          onNationalChange={(next) => {
+            setNational(next);
             clearPhoneError();
           }}
           error={phoneError}

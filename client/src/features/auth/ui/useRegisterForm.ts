@@ -6,7 +6,7 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { safeInternalPath } from '@/shared/lib/safeInternalPath';
 
 import { useRegisterMutation } from '../api/authApi';
-import { COUNTRIES } from '../lib/constants';
+import { countryByCode, DEFAULT_COUNTRY_CODE } from '../lib/constants';
 import { startCooldown } from '../lib/cooldown';
 import { markJustRegistered } from '../lib/justRegistered';
 import { setOtpPreview } from '../lib/otpPreviewSession';
@@ -20,7 +20,7 @@ import {
 } from '../lib/registerForm';
 import { authRoutes } from '../routes';
 
-/** Dial / name / nickname state and register → OTP navigation. */
+/** Country / name / nickname state and register → OTP navigation. */
 export function useRegisterForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +29,7 @@ export function useRegisterForm() {
 
   const [register] = useRegisterMutation();
 
-  const [dial, setDial] = useState(state?.dial ?? COUNTRIES[0].dial);
+  const [countryCode, setCountryCode] = useState(state?.countryCode ?? DEFAULT_COUNTRY_CODE);
   const [national, setNational] = useState(state?.national ?? '');
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -45,11 +45,11 @@ export function useRegisterForm() {
     e.preventDefault();
     setTaken(false);
     setSubmitted(true);
-    const next = validateRegisterForm(national, name, nickname);
+    const next = validateRegisterForm(national, name, nickname, countryCode);
     setErrors(next);
     if (Object.keys(next).length) return;
 
-    const phone = toE164(dial, national);
+    const phone = toE164(countryByCode(countryCode).dial, national);
     setBusy(true);
     try {
       // Register already sends OTP — do not call request-otp again.
@@ -88,8 +88,8 @@ export function useRegisterForm() {
 
   return {
     returnTo,
-    dial,
-    setDial,
+    countryCode,
+    setCountryCode,
     national,
     setNational,
     name,

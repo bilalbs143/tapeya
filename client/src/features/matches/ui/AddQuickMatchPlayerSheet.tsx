@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { isValidNational, PhoneField, toE164 } from '@/features/auth';
+import { countryByCode, DEFAULT_COUNTRY_CODE, nationalNumberError, PhoneField, toE164 } from '@/features/auth';
 import { useLookupMyUsersQuery, useLookupUsersQuery } from '@/features/profile';
 
 import {
@@ -38,8 +38,9 @@ export function AddQuickMatchPlayerSheet({
   const [mode, setMode] = useState<'find' | 'new'>(initialMode);
   const [search, setSearch] = useState('');
   const [name, setName] = useState('');
-  const [dial, setDial] = useState('+92');
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [national, setNational] = useState('');
+  const dial = countryByCode(countryCode).dial;
   const [error, setError] = useState<string | null>(null);
   const taken = new Set(takenIds);
   const query = search.trim();
@@ -64,8 +65,9 @@ export function AddQuickMatchPlayerSheet({
 
   function addWalkUp() {
     const phone = toE164(dial, national);
-    if (!isValidNational(national)) {
-      setError('Enter the number without the country code, digits only.');
+    const phoneError = nationalNumberError(national, dial);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
     const next = playerError({ name, phone });
@@ -157,10 +159,10 @@ export function AddQuickMatchPlayerSheet({
             <PhoneField
               label="Phone Number"
               required
-              dial={dial}
-              onDialChange={setDial}
+              countryCode={countryCode}
+              onCountryCodeChange={setCountryCode}
               value={national}
-              onChange={(event) => setNational(event.target.value)}
+              onNationalChange={setNational}
               error={error ?? undefined}
             />
           </Form>

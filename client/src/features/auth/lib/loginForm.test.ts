@@ -3,13 +3,18 @@ import { describe, expect, it } from 'vitest';
 import { loginNationalError, loginShellDescription, loginShellTitle } from './loginForm';
 
 describe('loginNationalError', () => {
-  it('rejects empty / short national numbers', () => {
-    expect(loginNationalError('')).toBe('Enter the number without the country code, digits only.');
-    expect(loginNationalError('123')).toBe('Enter the number without the country code, digits only.');
+  it('rejects empty / short national numbers for the selected country', () => {
+    expect(loginNationalError('', 'PK')).toBe('Enter the number without the country code, digits only.');
+    expect(loginNationalError('123', 'PK')).toMatch(/10-digit.*Pakistan/i);
   });
 
-  it('accepts a valid national number', () => {
-    expect(loginNationalError('3001234567')).toBeNull();
+  it('rejects a leading trunk zero', () => {
+    expect(loginNationalError('03001234567', 'PK')).toMatch(/leading 0|trunk zero/i);
+  });
+
+  it('accepts a valid national number for that country', () => {
+    expect(loginNationalError('3001234567', 'PK')).toBeNull();
+    expect(loginNationalError('501234567', 'AE')).toBeNull();
   });
 });
 

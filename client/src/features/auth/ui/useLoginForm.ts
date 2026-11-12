@@ -8,7 +8,7 @@ import { persistAuthSession } from '@/shared/store/authSession';
 import { useAppDispatch } from '@/shared/store/hooks';
 
 import { useLazyMeWithTokenQuery, useRequestOtpMutation } from '../api/authApi';
-import { COUNTRIES } from '../lib/constants';
+import { countryByCode, DEFAULT_COUNTRY_CODE } from '../lib/constants';
 import { startCooldown } from '../lib/cooldown';
 import {
   type LoginLocationState,
@@ -39,7 +39,7 @@ export function useLoginForm() {
   const [mode, setMode] = useState<LoginMode>(() => (bootProfiles.length ? 'saved' : 'phone'));
   const [busyPhone, setBusyPhone] = useState<string | null>(null);
 
-  const [dial, setDial] = useState(state?.dial ?? COUNTRIES[0].dial);
+  const [countryCode, setCountryCode] = useState(state?.countryCode ?? DEFAULT_COUNTRY_CODE);
   const [national, setNational] = useState(state?.national ?? '');
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<string | null>(null);
@@ -107,13 +107,13 @@ export function useLoginForm() {
     setError(null);
     setNotFound(null);
 
-    const nationalError = loginNationalError(national);
+    const nationalError = loginNationalError(national, countryCode);
     if (nationalError) {
       setError(nationalError);
       return;
     }
 
-    const phone = toE164(dial, national);
+    const phone = toE164(countryByCode(countryCode).dial, national);
     setSending(true);
     try {
       await requestAndGo(phone);
@@ -139,8 +139,8 @@ export function useLoginForm() {
     profiles,
     savedMode,
     busyPhone,
-    dial,
-    setDial,
+    countryCode,
+    setCountryCode,
     national,
     setNational,
     error,
