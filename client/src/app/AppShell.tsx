@@ -117,7 +117,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   }
 
   return (
-    <div className={cn('bg-page fixed inset-0 flex flex-col overflow-hidden', className)}>
+    <div data-shell-canvas="" className={cn('bg-page fixed inset-0 flex flex-col overflow-hidden', className)}>
       {isAuthenticated ? (
         <>
           <ShellTopNav user={topUser} />
@@ -127,6 +127,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
 
       {/* Guest CMS/legal: no TopBar — pad the notch so ScreenBar stays layout-dumb. */}
       <div
+        data-shell-body=""
         className={cn(
           'bg-surface flex min-h-0 flex-1 overflow-hidden',
           !isAuthenticated && 'pt-[env(safe-area-inset-top)]'

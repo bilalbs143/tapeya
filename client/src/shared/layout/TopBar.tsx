@@ -90,6 +90,7 @@ export function TopBar({ liveCount = 0, unread, action, className }: TopBarProps
 
   return (
     <header
+      data-shell-topnav
       className={cn(
         'bg-surface border-border-subtle relative z-40 flex shrink-0 items-center justify-between gap-3 border-b px-3.5 pb-2.5 tab:hidden',
         // Safe-area is extra top inset; keep explicit bottom padding under the icons.

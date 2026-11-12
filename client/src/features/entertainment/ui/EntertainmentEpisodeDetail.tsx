@@ -5,6 +5,7 @@ import { UploadVideoPlayer, YoutubeProxyPlayer } from '@/features/live';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
+import { isIosNativeYoutubeLandscape } from '@/shared/native/youtubeStreamOverlay';
 import { Button } from '@/shared/ui/Button';
 import { PlayFillIcon } from '@/shared/ui/icons';
 import { ImmersiveLandscapeStage } from '@/shared/ui/ImmersiveLandscapeStage';
@@ -100,7 +101,12 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
     >
       <div className={cn('flex min-h-0 flex-1 flex-col', landscape ? 'overflow-visible' : 'overflow-hidden')}>
         <div className={cn('relative shrink-0 overflow-hidden tab:rounded-field', landscape && 'overflow-visible')}>
-          <ImmersiveLandscapeStage landscape={landscape} deviceLandscape={deviceLandscape} onExit={exitLandscape}>
+          <ImmersiveLandscapeStage
+            landscape={landscape}
+            deviceLandscape={deviceLandscape}
+            iosNativeLandscape={isIosNativeYoutubeLandscape(landscape && playing && Boolean(youtubeSrc))}
+            onExit={exitLandscape}
+          >
             {!playing && poster ? (
               <img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : null}
@@ -108,7 +114,14 @@ export function EntertainmentEpisodeDetail({ episode, routeSerialId }: Entertain
               <div className="absolute inset-0 bg-[linear-gradient(150deg,var(--color-brand-deep),var(--color-page-deep))]" />
             ) : null}
             {playing && youtubeSrc ? (
-              <YoutubeProxyPlayer key={playSession} src={youtubeSrc} title={episode.title} posterUrl={poster} />
+              <YoutubeProxyPlayer
+                key={playSession}
+                src={youtubeSrc}
+                title={episode.title}
+                posterUrl={poster}
+                controls
+                landscape={landscape}
+              />
             ) : null}
             {playing && isUpload && episode.videoUrl ? (
               <UploadVideoPlayer key={playSession} src={episode.videoUrl} posterUrl={poster} />

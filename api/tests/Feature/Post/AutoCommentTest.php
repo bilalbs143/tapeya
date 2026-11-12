@@ -3,6 +3,7 @@
 namespace Tests\Feature\Post;
 
 use App\Enums\Post\PostStatusEnum;
+use App\Enums\Post\PostTypeEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Listeners\PostCommentedPushListener;
@@ -304,7 +305,7 @@ class AutoCommentTest extends TestCase
         $original = $this->publishedReel($owner);
         $repost = Post::query()->create([
             'user_id' => $owner->id,
-            'type' => \App\Enums\Post\PostTypeEnum::Repost,
+            'type' => PostTypeEnum::Repost,
             'repost_of_post_id' => $original->id,
             'body' => null,
             'status' => PostStatusEnum::Ready,

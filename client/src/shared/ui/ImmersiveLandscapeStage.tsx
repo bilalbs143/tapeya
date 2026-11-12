@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { onYoutubeStreamExitImmersive } from '@/shared/native/youtubeStreamOverlay';
 import { RotateIcon } from '@/shared/ui/icons';
 
 export const MEDIA_ROTATE_BTN_CLASS =
@@ -129,7 +130,7 @@ function MediaContainFrame({ enabled, children }: { enabled: boolean; children: 
   const scale = enabled && box.w > 0 && box.h > 0 ? Math.min(box.w / 16, box.h / 9) : 0;
 
   return (
-    <div ref={ref} className="absolute inset-0 overflow-hidden bg-black">
+    <div ref={ref} className="immersive-media-contain absolute inset-0 overflow-hidden bg-black">
       <div
         className="absolute"
         style={
@@ -152,8 +153,10 @@ function MediaContainFrame({ enabled, children }: { enabled: boolean; children: 
 
 type ImmersiveLandscapeStageProps = {
   landscape: boolean;
-  /** WebView already landscape (web). Native stays false → CSS rotate. */
+  /** WebView already landscape (web) — fill without CSS rotate. */
   deviceLandscape?: boolean | undefined;
+  /** iOS native YouTube Full — transparent stage + native Exit (Cap Exit cannot sit above overlay). */
+  iosNativeLandscape?: boolean | undefined;
   children: ReactNode;
   onExit: () => void;
   overlay?: ReactNode;
@@ -167,6 +170,7 @@ type ImmersiveLandscapeStageProps = {
 export function ImmersiveLandscapeStage({
   landscape,
   deviceLandscape = false,
+  iosNativeLandscape = false,
   children,
   onExit,
   overlay = null,
@@ -186,10 +190,21 @@ export function ImmersiveLandscapeStage({
     if (!landscape) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('immersive-media-landscape');
     return () => {
       document.body.style.overflow = prev;
+      document.documentElement.classList.remove('immersive-media-landscape');
     };
   }, [landscape]);
+
+  // iOS YouTube Full: Exit is a native button on the overlay (Cap HTML can't sit above it).
+  useEffect(() => {
+    if (!landscape || !iosNativeLandscape) return undefined;
+    const handle = onYoutubeStreamExitImmersive(onExit);
+    return () => {
+      void Promise.resolve(handle).then((listener) => listener.remove());
+    };
+  }, [landscape, iosNativeLandscape, onExit]);
 
   return (
     <div
@@ -197,7 +212,8 @@ export function ImmersiveLandscapeStage({
       aria-modal={landscape ? true : undefined}
       aria-label={landscape ? 'Landscape video' : undefined}
       className={cn(
-        'relative w-full overflow-hidden bg-black',
+        'immersive-landscape-stage relative w-full overflow-hidden',
+        iosNativeLandscape && landscape ? 'bg-transparent' : 'bg-black',
         landscape ? 'z-100' : fill ? 'h-full min-h-0' : 'aspect-video',
         className
       )}
@@ -205,7 +221,7 @@ export function ImmersiveLandscapeStage({
     >
       <MediaContainFrame enabled={landscape}>{children}</MediaContainFrame>
       {landscape ? overlay : null}
-      {landscape ? (
+      {landscape && !iosNativeLandscape ? (
         <MediaRotateButton onClick={onExit} aria-label={exitLabel} className="absolute top-3 right-4 z-10" />
       ) : null}
     </div>

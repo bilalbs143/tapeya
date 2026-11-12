@@ -1,50 +1,56 @@
 # App-react screen orientation
 
-**Status:** Portrait-locked app; media Full is manual CSS-rotate only (tilt deferred)  
-**Date:** October 2026  
+**Status:** Portrait-locked app; media Full is manual only (tilt deferred)  
+**Date:** November 2026  
 **Related:** [LIVE_STREAM_ORIENTATION.md](../../docs/LIVE_STREAM_ORIENTATION.md), [APP_REWRITE_ARCHITECTURE.md](../../docs/APP_REWRITE_ARCHITECTURE.md) §11
 
 ## Goals
 
 - Portrait-first shell on native (feed, tabs, reels, shop, profile, media).
-- Media **Full** uses CSS 90° rotate + 16:9 contain (same player fiber — no remount).
+- Media **Full** uses CSS 90° rotate + 16:9 contain for React chrome (loader / Exit on web).
 - Go Live hard-locks to stream encode orientation via `orientationSession`.
 
 ## Non-goals (current)
 
 - Tilt-to-open immersive (deviceorientation) — removed; revisit later
 - Unlocking OS landscape on media pages
-- YouTube embed `rotate=1` / `cover=1`
-- Porting iOS `YoutubeStreamOverlay`
+
+## iOS YouTube overlay
+
+Capacitor’s in-DOM YouTube iframe often never reaches PLAYING on iOS. Watch / highlights / entertainment use `YoutubeStreamOverlayPlugin` → `/embed/youtube`.
+
+| Mode        | When                              | Behaviour                                            |
+| ----------- | --------------------------------- | ---------------------------------------------------- |
+| Interactive | Highlights / episode (`controls`) | Native above Cap — YouTube scrubber tappable         |
+| Underlay    | Watch / live (portrait + Full)    | Native below Cap — LIVE badge / chat / Exit tappable |
+
+**Full on iOS native**
+
+1. `immersiveFullscreen` — native WKWebView fills the host
+2. Embed `rotate=1&cover=1` — video orients inside that WKWebView
+3. React stage CSS-rotates so loader + LIVE badge sit on the landscape top edge
+4. Exit is native (Cap HTML cannot sit above the overlay); web/Android keep Cap Exit
+5. `html.ios-youtube-underlay` punches shell canvas + player hole only (TopNav/chat keep `bg-surface`)
+
+Web / Android Full uses CSS-rotate only (iframe / HLS). Shared player API: `YoutubeProxyPlayer` (`controls`, `landscape`).
 
 ## Policy
 
-| Surface                        | Native lock                      | UI                                           |
-| ------------------------------ | -------------------------------- | -------------------------------------------- |
-| Boot + shell + media           | `portrait`                       | Normal chrome                                |
-| Go Live on-air                 | Stream `portrait` \| `landscape` | Coach mark if lock fails                     |
-| Watch / Highlights / Episode   | Stay `portrait`                  | **Full** → CSS-rotate immersive; Exit leaves |
-| Watch portrait self-serve live | Stay `portrait`; no Full         | 16:9 watch chrome                            |
-| Reels                          | Stay `portrait`                  | No Full                                      |
+| Surface                        | Native lock                      | UI                                   |
+| ------------------------------ | -------------------------------- | ------------------------------------ |
+| Boot + shell + media           | `portrait`                       | Normal chrome                        |
+| Go Live on-air                 | Stream `portrait` \| `landscape` | Coach mark if lock fails             |
+| Watch / Highlights / Episode   | Stay `portrait`                  | **Full** → immersive UI; Exit leaves |
+| Watch portrait self-serve live | Stay `portrait`; no Full         | 16:9 watch chrome                    |
+| Reels                          | Stay `portrait`                  | No Full                              |
 
 ## Architecture
 
 ```
 Boot → orientationSession.ensurePortraitBase()  // portrait lock
 
-Media Full → useImmersiveLandscape forced + ImmersiveLandscapeStage CSS-rotate
+Media Full → useImmersiveLandscape + ImmersiveLandscapeStage
 Media Exit → leave immersive
 
 Go Live → session.push(streamOrientation) → pop on leave
 ```
-
-## API
-
-| Symbol                        | Module                                   |
-| ----------------------------- | ---------------------------------------- |
-| `lockOrientation` / …         | `shared/native/orientation.ts`           |
-| `orientationSession`          | `shared/native/orientationSession.ts`    |
-| `useOrientationLock`          | `shared/native/useOrientationLock.ts`    |
-| `useImmersiveLandscape`       | `shared/native/useImmersiveLandscape.ts` |
-| `ImmersiveLandscapeStage`     | `shared/ui/ImmersiveLandscapeStage.tsx`  |
-| `useBroadcastOrientationLock` | `features/live/lib/…`                    |

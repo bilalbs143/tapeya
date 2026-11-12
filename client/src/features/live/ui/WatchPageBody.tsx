@@ -1,9 +1,11 @@
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
+import { isIosNativeYoutubeLandscape } from '@/shared/native/youtubeStreamOverlay';
 import { Button } from '@/shared/ui/Button';
 import { ImmersiveLandscapeStage } from '@/shared/ui/ImmersiveLandscapeStage';
 import { LiveBadge } from '@/shared/ui/LiveBadge';
 
+import { isYoutubeIframePlayback } from '../lib/playback';
 import type { LiveStream } from '../model/schemas';
 import { ChatDock } from './ChatDock';
 import { FloatingHeartsOverlay } from './FloatingHeartsOverlay';
@@ -47,8 +49,10 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
     handleShare,
   } = flow;
 
+  const iosNativeLandscape = isIosNativeYoutubeLandscape(landscape && isYoutubeIframePlayback(stream.playback));
+
   const statusOverlay = (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center bg-gradient-to-b from-black/55 to-transparent px-3 pt-3 pb-8">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center bg-gradient-to-b from-black/55 to-transparent px-3 pt-2.5 pb-8">
       {stream.status === 'live' ? (
         <LiveBadge
           variant="media"
@@ -79,6 +83,7 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
           <ImmersiveLandscapeStage
             landscape={landscape}
             deviceLandscape={deviceLandscape}
+            iosNativeLandscape={iosNativeLandscape}
             onExit={exitLandscape}
             overlay={landscape ? statusOverlay : null}
           >
@@ -88,6 +93,7 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
               posterUrl={poster}
               fill
               title={stream.title}
+              landscape={landscape}
             />
           </ImmersiveLandscapeStage>
           {!landscape ? statusOverlay : null}
@@ -106,7 +112,8 @@ export function WatchPageBody({ flow, stream }: WatchPageBodyProps) {
 
         {!landscape ? (
           <>
-            <div className="border-border-subtle shrink-0 border-b px-4 py-3">
+            {/* Opaque under iOS YouTube underlay — page-dock is punched transparent. */}
+            <div className="bg-surface border-border-subtle shrink-0 border-b px-4 py-3">
               <StreamHostRow
                 host={stream.host}
                 isLive={isLive}

@@ -2,6 +2,7 @@ import { UploadVideoPlayer, YoutubeProxyPlayer } from '@/features/live';
 
 import { PageDock, ScreenBar } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
+import { isIosNativeYoutubeLandscape } from '@/shared/native/youtubeStreamOverlay';
 import { PlayFillIcon, RotateIcon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from '@/shared/ui/icons';
 import { ImmersiveLandscapeStage } from '@/shared/ui/ImmersiveLandscapeStage';
 import { type MediaActionItem, MediaActionRow } from '@/shared/ui/MediaActionRow';
@@ -78,6 +79,8 @@ export function HighlightDetailBody({ clip, related }: HighlightDetailBodyProps)
     },
   ];
 
+  const iosNativeLandscape = isIosNativeYoutubeLandscape(landscape && playing && Boolean(youtubeSrc));
+
   // Dock-fill: player + meta stay put; only “More Highlights” scrolls inside.
   // BottomNav hidden (same as watch/episode) — below-fold column owns home-indicator inset.
   return (
@@ -89,7 +92,12 @@ export function HighlightDetailBody({ clip, related }: HighlightDetailBodyProps)
     >
       <div className={cn('flex min-h-0 flex-1 flex-col', landscape ? 'overflow-visible' : 'overflow-hidden')}>
         <div className={cn('relative shrink-0 overflow-hidden tab:rounded-field', landscape && 'overflow-visible')}>
-          <ImmersiveLandscapeStage landscape={landscape} deviceLandscape={deviceLandscape} onExit={exitLandscape}>
+          <ImmersiveLandscapeStage
+            landscape={landscape}
+            deviceLandscape={deviceLandscape}
+            iosNativeLandscape={iosNativeLandscape}
+            onExit={exitLandscape}
+          >
             {!playing && clip.thumbnailUrl ? (
               <img src={clip.thumbnailUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : null}
@@ -97,7 +105,14 @@ export function HighlightDetailBody({ clip, related }: HighlightDetailBodyProps)
               <div className="absolute inset-0 bg-[linear-gradient(150deg,var(--color-brand-deep),var(--color-page-deep))]" />
             ) : null}
             {playing && youtubeSrc ? (
-              <YoutubeProxyPlayer key={playSession} src={youtubeSrc} title={clip.title} posterUrl={clip.thumbnailUrl} />
+              <YoutubeProxyPlayer
+                key={playSession}
+                src={youtubeSrc}
+                title={clip.title}
+                posterUrl={clip.thumbnailUrl}
+                controls
+                landscape={landscape}
+              />
             ) : null}
             {playing && isUpload && clip.videoUrl ? (
               <UploadVideoPlayer key={playSession} src={clip.videoUrl} posterUrl={clip.thumbnailUrl} />

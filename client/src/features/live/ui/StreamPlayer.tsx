@@ -23,6 +23,8 @@ type StreamPlayerProps = {
   fill?: boolean | undefined;
   className?: string | undefined;
   title?: string | undefined;
+  /** Immersive Full — native YouTube immersive + embed rotate/cover on iOS. */
+  landscape?: boolean | undefined;
 };
 
 const PLAYBACK_ERROR_SLATE = {
@@ -38,8 +40,13 @@ export function StreamPlayer({
   fill = false,
   className,
   title = 'Live Stream',
+  landscape = false,
 }: StreamPlayerProps) {
-  const box = cn(fill ? 'relative h-full w-full bg-black' : 'relative aspect-video w-full bg-black', className);
+  const box = cn(
+    'stream-player-shell',
+    fill ? 'relative h-full w-full bg-black' : 'relative aspect-video w-full bg-black',
+    className
+  );
   const active = ['live', 'ended'].includes(status) && Boolean(playback);
   useKeepAwake(active);
 
@@ -67,7 +74,7 @@ export function StreamPlayer({
     return (
       <div className={cn(box, 'overflow-hidden')}>
         {isYoutubeIframePlayback(playback) ? (
-          <YoutubeProxyPlayer key={src} src={src} title={title} posterUrl={posterUrl} />
+          <YoutubeProxyPlayer key={src} src={src} title={title} posterUrl={posterUrl} landscape={landscape} />
         ) : (
           <GenericIframePlayer key={src} src={src} title={title} posterUrl={posterUrl} />
         )}

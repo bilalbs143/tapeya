@@ -646,6 +646,36 @@ html.broadcast-camera-underlay body {
   overflow: hidden;
 }
 
+/**
+ * iOS YouTube underlay — punch AppShell canvas/body + player hole only.
+ * Coupled to `data-shell-canvas` / `data-shell-body` / `data-page-dock`.
+ * Do not clear all `.bg-surface` (breaks light-mode chrome).
+ */
+html.ios-youtube-underlay,
+html.ios-youtube-underlay body,
+html.ios-youtube-underlay #root,
+html.ios-youtube-underlay #root > div,
+html.ios-youtube-underlay main,
+html.ios-youtube-underlay [data-shell-canvas],
+html.ios-youtube-underlay [data-shell-body],
+html.ios-youtube-underlay [data-page-dock] {
+  background-color: transparent !important;
+}
+
+html.ios-youtube-underlay .immersive-landscape-stage,
+html.ios-youtube-underlay .immersive-media-contain,
+html.ios-youtube-underlay .stream-player-shell {
+  background-color: transparent !important;
+}
+
+/** Full — hide AppShell top chrome. */
+html.immersive-media-landscape [data-shell-topnav],
+html.immersive-media-landscape [data-app-bottom-nav] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /** Live watch — avatar + heart bubbles float up over the player. */
 @keyframes live-float-heart {
   0% {
