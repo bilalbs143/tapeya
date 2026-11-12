@@ -19,32 +19,38 @@ use Throwable;
 /**
  * Drip silent likes/views onto public ready posts from random active users.
  *
- * Admin: enabled + daily max. Fresh posts (≤ {@see PostsSettings::AUTO_ENGAGEMENT_FRESH_DAYS})
+ * Admin: enabled + daily max. Hot posts (≤ {@see PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS})
  * use an aggressive daily band; older posts stay eligible under soft lifetime but drip slowly.
- * Soft like lifetime = dailyMax × fresh days; reel views use a mild lead over likes.
+ * Soft like lifetime = dailyMax × {@see PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS}; reel views lead likes.
  *
- * Pace: every 15 minutes, at most one like (and matching views) per post,
- * and at most one like per post owner (so multi-post creators never get a notification stack).
- * Daily quotas are unchanged — remaining room is spread at random across the day's ticks;
- * owners with many posts rotate which reel gets the like.
+ * Pace: every 10 minutes, at most one like (and matching views) per post,
+ * and at most one like per post owner (natural drip, no notification stack).
+ * Each tick processes hot under-target posts first, then mature if capacity remains.
+ * Owners with many posts rotate which reel gets the like within the active pass.
  * Reels keep likes_count < views_count; simple posts get likes only.
  *
- * Cursor: {@see self::CURSOR_CACHE_KEY}. Daily state: {@see self::dailyStateCacheKey()}.
+ * Cursors: {@see self::CURSOR_CACHE_KEY} (hot), {@see self::MATURE_CURSOR_CACHE_KEY}.
+ * Daily state: {@see self::dailyStateCacheKey()}.
  */
 class AutoEngagementService
 {
     public const CURSOR_CACHE_KEY = 'posts.auto_engagement.cursor_id';
 
-    /** Keep in sync with routes/console.php (everyFifteenMinutes). */
-    private const TICKS_PER_DAY = 96;
+    public const MATURE_CURSOR_CACHE_KEY = 'posts.auto_engagement.mature_cursor_id';
 
-    /** One catalog pass per 15-minute tick so likes can spread across the day. */
-    private const TARGET_PASSES_PER_DAY = 96;
+    /** Keep in sync with routes/console.php (everyTenMinutes). */
+    private const TICKS_PER_DAY = 144;
+
+    /** One catalog pass per 10-minute tick so likes can spread across the day. */
+    private const TARGET_PASSES_PER_DAY = 144;
 
     private const MAX_CHUNK = 200;
 
-    /** Never stack likes/notifications in one tick. */
+    /** Never stack likes on the same post in one tick. */
     private const LIKE_PER_TICK = 1;
+
+    /** Max likes across different posts for the same creator in one tick (keeps notifications natural). */
+    private const LIKES_PER_OWNER_PER_TICK = 1;
 
     /** Extra viewers beyond the liker so reel likes stay strictly below views. */
     private const EXTRA_VIEWS_PER_AUTO_LIKE = 1;
@@ -79,6 +85,7 @@ class AutoEngagementService
         $remaining = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)->count();
         if ($remaining === 0) {
             $this->resetCursor();
+            $this->resetMatureCursor();
 
             return 0;
         }
@@ -87,34 +94,124 @@ class AutoEngagementService
         $today = now()->toDateString();
         $likedThisTick = 0;
         $scanned = 0;
-        $wrapped = false;
-        /** @var array<int, true> owners who already received a like this tick */
-        $ownersLikedThisTick = [];
-        // Scan deeper than chunk: owner throttle skips many same-creator posts.
+        /** @var array<int, int> likes already applied per owner this tick */
+        $ownerLikesThisTick = [];
+        /** @var array<int, true> posts that already received a like this tick (blocks wrap re-hits) */
+        $postsLikedThisTick = [];
         $maxScan = max($chunk * 20, min(self::MAX_CHUNK * 3, max($remaining, $chunk)));
 
+        $hotCutoff = now()->subDays($this->settings->autoEngagementFreshDays());
+        $hotScope = static function (Builder $q) use ($hotCutoff): Builder {
+            return $q->where('published_at', '>=', $hotCutoff);
+        };
+        $matureScope = static function (Builder $q) use ($hotCutoff): Builder {
+            return $q->where('published_at', '<', $hotCutoff);
+        };
+
+        $this->runAgePass(
+            $hotScope,
+            self::CURSOR_CACHE_KEY,
+            $chunk,
+            $maxScan,
+            $today,
+            $reelsDaily,
+            $simpleDaily,
+            $reelsDailyMin,
+            $reelsDailyMax,
+            $simpleDailyMin,
+            $simpleDailyMax,
+            $reelsMax,
+            $simpleMax,
+            $reelsViewMax,
+            $likedThisTick,
+            $scanned,
+            $ownerLikesThisTick,
+            $postsLikedThisTick,
+        );
+
+        if ($likedThisTick < $chunk && $scanned < $maxScan) {
+            $this->runAgePass(
+                $matureScope,
+                self::MATURE_CURSOR_CACHE_KEY,
+                $chunk,
+                $maxScan,
+                $today,
+                $reelsDaily,
+                $simpleDaily,
+                $reelsDailyMin,
+                $reelsDailyMax,
+                $simpleDailyMin,
+                $simpleDailyMax,
+                $reelsMax,
+                $simpleMax,
+                $reelsViewMax,
+                $likedThisTick,
+                $scanned,
+                $ownerLikesThisTick,
+                $postsLikedThisTick,
+            );
+        }
+
+        return $likedThisTick;
+    }
+
+    /**
+     * Scan one age band (hot or mature) until chunk/scan limits are hit.
+     *
+     * @param  callable(Builder): Builder  $ageScope
+     * @param  array<int, int>  $ownerLikesThisTick
+     * @param  array<int, true>  $postsLikedThisTick
+     */
+    private function runAgePass(
+        callable $ageScope,
+        string $cursorKey,
+        int $chunk,
+        int $maxScan,
+        string $today,
+        int $reelsDaily,
+        int $simpleDaily,
+        int $reelsDailyMin,
+        int $reelsDailyMax,
+        int $simpleDailyMin,
+        int $simpleDailyMax,
+        int $reelsMax,
+        int $simpleMax,
+        int $reelsViewMax,
+        int &$likedThisTick,
+        int &$scanned,
+        array &$ownerLikesThisTick,
+        array &$postsLikedThisTick,
+    ): void {
+        $wrapped = false;
+
         while ($likedThisTick < $chunk && $scanned < $maxScan) {
-            $post = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
-                ->where('id', '>', $this->cursor())
-                ->orderBy('id')
-                ->first();
+            $query = $ageScope($this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax))
+                ->where('id', '>', $this->cursorFor($cursorKey))
+                ->orderBy('id');
+
+            $post = $query->first();
 
             if ($post === null) {
                 if ($wrapped) {
                     break;
                 }
-                $this->resetCursor();
+                $this->storeCursorFor($cursorKey, 0);
                 $wrapped = true;
 
                 continue;
             }
 
             $scanned++;
-            $this->storeCursor((int) $post->id);
+            $postId = (int) $post->id;
+            $this->storeCursorFor($cursorKey, $postId);
+
+            if (isset($postsLikedThisTick[$postId])) {
+                continue;
+            }
 
             $ownerId = (int) $post->user_id;
-            if ($ownerId > 0 && isset($ownersLikedThisTick[$ownerId])) {
-                // One like per creator per tick — prevents lock-screen stacks.
+            if ($ownerId > 0 && ($ownerLikesThisTick[$ownerId] ?? 0) >= self::LIKES_PER_OWNER_PER_TICK) {
+                // One like per creator per tick — natural drip, no notification stacks.
                 continue;
             }
 
@@ -136,7 +233,7 @@ class AutoEngagementService
                 continue;
             }
 
-            $state = $this->dailyState((int) $post->id, $today, $dailyMin, $dailyMax);
+            $state = $this->dailyState($postId, $today, $dailyMin, $dailyMax);
             $video = $this->isVideo($post);
             $likeRoom = max(0, $state['quota'] - $state['likes']);
             $viewQuota = $video ? $this->settings->scaleViewsAboveLikes($state['quota']) : 0;
@@ -149,6 +246,7 @@ class AutoEngagementService
                 $reelsMax,
                 $simpleMax,
                 $reelsViewMax,
+                $ageScope,
             )) {
                 continue;
             }
@@ -173,16 +271,15 @@ class AutoEngagementService
 
             [$likesAdded, $viewsAdded] = $this->dripEngagePost($post, $likeMax, $viewMax, $dripLikes, $dripViews);
             if ($likesAdded > 0 || $viewsAdded > 0) {
-                $this->bumpDailyState((int) $post->id, $today, $likesAdded, $viewsAdded, $state);
+                $this->bumpDailyState($postId, $today, $likesAdded, $viewsAdded, $state);
             }
             if ($likesAdded > 0 && $ownerId > 0) {
-                $ownersLikedThisTick[$ownerId] = true;
-                $this->storeOwnerLikeCursor($ownerId, $today, (int) $post->id);
+                $postsLikedThisTick[$postId] = true;
+                $ownerLikesThisTick[$ownerId] = ($ownerLikesThisTick[$ownerId] ?? 0) + 1;
+                $this->storeOwnerLikeCursor($ownerId, $today, $postId);
                 $likedThisTick++;
             }
         }
-
-        return $likedThisTick;
     }
 
     public function remainingUnderTargetCount(?int $reelsMax = null, ?int $simpleMax = null, ?int $reelsViewMax = null): int
@@ -206,12 +303,22 @@ class AutoEngagementService
 
     public function resetCursor(): void
     {
-        $this->storeCursor(0);
+        $this->storeCursorFor(self::CURSOR_CACHE_KEY, 0);
+    }
+
+    public function resetMatureCursor(): void
+    {
+        $this->storeCursorFor(self::MATURE_CURSOR_CACHE_KEY, 0);
     }
 
     public function cursor(): int
     {
-        return max(0, (int) Cache::get(self::CURSOR_CACHE_KEY, 0));
+        return $this->cursorFor(self::CURSOR_CACHE_KEY);
+    }
+
+    public function matureCursor(): int
+    {
+        return $this->cursorFor(self::MATURE_CURSOR_CACHE_KEY);
     }
 
     public function chunkSize(): int
@@ -344,6 +451,9 @@ class AutoEngagementService
     /**
      * Rotate likes across a creator's posts so the same reel is not hit every tick.
      */
+    /**
+     * @param  (callable(Builder): Builder)|null  $ageScope  Limit rotation to the active hot/mature pass.
+     */
     private function shouldSkipForOwnerRotation(
         Post $post,
         int $ownerId,
@@ -351,18 +461,21 @@ class AutoEngagementService
         int $reelsMax,
         int $simpleMax,
         int $reelsViewMax,
+        ?callable $ageScope = null,
     ): bool {
         $lastId = (int) Cache::get(self::ownerLikeCursorCacheKey($ownerId, $date), 0);
         if ($lastId <= 0 || (int) $post->id > $lastId) {
             return false;
         }
 
-        $hasLater = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
+        $query = $this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax)
             ->where('user_id', $ownerId)
-            ->where('id', '>', $lastId)
-            ->exists();
+            ->where('id', '>', $lastId);
+        if ($ageScope !== null) {
+            $query = $ageScope($query);
+        }
 
-        if ($hasLater) {
+        if ($query->exists()) {
             return true;
         }
 
@@ -402,7 +515,7 @@ class AutoEngagementService
     }
 
     /**
-     * Spread remaining daily likes across leftover 15-minute slots (at most one like per tick).
+     * Spread remaining daily likes across leftover 10-minute slots (at most one like per tick).
      */
     private function shouldApplyLikeThisTick(int $likeRoom): bool
     {
@@ -423,7 +536,7 @@ class AutoEngagementService
 
     private function remainingTicksToday(): int
     {
-        $elapsed = ((int) now()->hour * 4) + intdiv((int) now()->minute, 15);
+        $elapsed = ((int) now()->hour * 6) + intdiv((int) now()->minute, 10);
 
         return max(1, self::TICKS_PER_DAY - $elapsed);
     }
@@ -589,9 +702,20 @@ class AutoEngagementService
         return $type === PostTypeEnum::Video;
     }
 
+    private function cursorFor(string $cursorKey): int
+    {
+        return max(0, (int) Cache::get($cursorKey, 0));
+    }
+
+    private function storeCursorFor(string $cursorKey, int $postId): void
+    {
+        Cache::forever($cursorKey, max(0, $postId));
+    }
+
+    /** @deprecated Use {@see storeCursorFor()} with {@see self::CURSOR_CACHE_KEY}. */
     private function storeCursor(int $postId): void
     {
-        Cache::forever(self::CURSOR_CACHE_KEY, max(0, $postId));
+        $this->storeCursorFor(self::CURSOR_CACHE_KEY, $postId);
     }
 
     private function reloadSettings(): void

@@ -188,10 +188,10 @@ class AutoCommentService
             return false;
         }
 
-        $post->loadMissing('user:id,name,nickname');
-        $creatorFirstName = AutoCommentPhrases::firstNameFrom(
-            (string) ($post->user?->name ?: $post->user?->nickname ?: '')
-        );
+        // Reposts: plain phrases only (no creator name — reposter ≠ original creator).
+        $creatorFirstName = $this->isRepost($post)
+            ? null
+            : $this->creatorFirstName($post);
 
         $body = AutoCommentPhrases::randomUnused(
             PostComment::query()->where('post_id', $post->id)->pluck('body'),
@@ -307,13 +307,33 @@ class AutoCommentService
             ->first();
     }
 
+    private function creatorFirstName(Post $post): ?string
+    {
+        $post->loadMissing('user:id,name,nickname');
+
+        return AutoCommentPhrases::firstNameFrom($post->user?->name)
+            ?? AutoCommentPhrases::firstNameFrom($post->user?->nickname);
+    }
+
+    private function isRepost(Post $post): bool
+    {
+        if ($post->repost_of_post_id !== null) {
+            return true;
+        }
+
+        return $this->postType($post) === PostTypeEnum::Repost;
+    }
+
     private function isVideo(Post $post): bool
     {
-        $type = $post->type instanceof PostTypeEnum
+        return $this->postType($post) === PostTypeEnum::Video;
+    }
+
+    private function postType(Post $post): ?PostTypeEnum
+    {
+        return $post->type instanceof PostTypeEnum
             ? $post->type
             : PostTypeEnum::tryFrom((string) $post->type);
-
-        return $type === PostTypeEnum::Video;
     }
 
     /** @return array{quota: int, comments: int} */

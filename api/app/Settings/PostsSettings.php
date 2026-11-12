@@ -46,22 +46,31 @@ class PostsSettings extends Settings
 
     /**
      * Max likes auto-applied to a reel per calendar day.
-     * Fresh posts roll in the upper band ({@see dailyDripRange()}); mature posts use
-     * {@see matureDailyDripRange()}. Soft like lifetime = daily × fresh days.
+     * Hot posts (≤ {@see AUTO_ENGAGEMENT_HOT_DAYS}) roll in the upper band ({@see dailyDripRange()});
+     * older posts use {@see matureDailyDripRange()}. Soft like lifetime = daily × {@see AUTO_ENGAGEMENT_LIFE_DAYS}.
      */
     public int $reelsEngagementPerDay;
 
     /** Floor of daily random drip as a fraction of daily max (keeps days from rolling near 1). */
-    public const AUTO_ENGAGEMENT_DAILY_FLOOR_RATIO = 0.7;
+    public const AUTO_ENGAGEMENT_DAILY_FLOOR_RATIO = 0.8;
 
     /**
-     * Mature posts (> fresh window) use this fraction of the daily max as their slow ceiling.
-     * Example: daily 50 → mature daily max 10.
+     * Mature posts (> hot window) use this fraction of the daily max as their slow ceiling.
+     * Example: daily 50 → mature daily max 15.
      */
-    public const AUTO_ENGAGEMENT_MATURE_DAILY_RATIO = 0.2;
+    public const AUTO_ENGAGEMENT_MATURE_DAILY_RATIO = 0.3;
 
-    /** Aggressive boost window in days; also used as soft-lifetime multiplier. */
-    public const AUTO_ENGAGEMENT_FRESH_DAYS = 30;
+    /** Aggressive (hot) boost window in days — pace + auto-comment freshness. */
+    public const AUTO_ENGAGEMENT_HOT_DAYS = 10;
+
+    /** Soft-lifetime multiplier in days (daily max × this). Kept longer than the hot window. */
+    public const AUTO_ENGAGEMENT_LIFE_DAYS = 30;
+
+    /**
+     * @deprecated Use {@see AUTO_ENGAGEMENT_HOT_DAYS} (pace) or {@see AUTO_ENGAGEMENT_LIFE_DAYS} (lifetime).
+     * Kept as an alias of the hot window for older call sites.
+     */
+    public const AUTO_ENGAGEMENT_FRESH_DAYS = self::AUTO_ENGAGEMENT_HOT_DAYS;
 
     /**
      * Soft lifetime / daily view room vs likes for reels (likes must stay strictly below views).
@@ -104,11 +113,11 @@ class PostsSettings extends Settings
     }
 
     /**
-     * Soft ceiling so a post cannot grow forever (daily max × freshness window).
+     * Soft ceiling so a post cannot grow forever (daily max × life days).
      */
     public function reelsLifetimeMax(): int
     {
-        return $this->reelsDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+        return $this->reelsDailyMax() * self::AUTO_ENGAGEMENT_LIFE_DAYS;
     }
 
     /** Soft view ceiling for reels — always above like lifetime so likes can stay behind views. */
@@ -138,7 +147,7 @@ class PostsSettings extends Settings
 
     public function simpleLifetimeMax(): int
     {
-        return $this->simpleDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+        return $this->simpleDailyMax() * self::AUTO_ENGAGEMENT_LIFE_DAYS;
     }
 
     public function reelsCommentDailyMax(): int
@@ -153,12 +162,12 @@ class PostsSettings extends Settings
 
     public function reelsCommentLifetimeMax(): int
     {
-        return $this->reelsCommentDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+        return $this->reelsCommentDailyMax() * self::AUTO_ENGAGEMENT_LIFE_DAYS;
     }
 
     public function simpleCommentLifetimeMax(): int
     {
-        return $this->simpleCommentDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+        return $this->simpleCommentDailyMax() * self::AUTO_ENGAGEMENT_LIFE_DAYS;
     }
 
     public function commentDailyMaxFromLikes(int $likeDailyMax): int
@@ -179,14 +188,20 @@ class PostsSettings extends Settings
         return max(0, (int) floor($likesCount * self::AUTO_COMMENT_TO_LIKE_RATIO));
     }
 
+    /** Hot / aggressive drip window (days). Also used by auto-comments. */
     public function autoEngagementFreshDays(): int
     {
-        return self::AUTO_ENGAGEMENT_FRESH_DAYS;
+        return self::AUTO_ENGAGEMENT_HOT_DAYS;
+    }
+
+    public function autoEngagementLifeDays(): int
+    {
+        return self::AUTO_ENGAGEMENT_LIFE_DAYS;
     }
 
     /**
      * Inclusive random daily drip range for a given daily max.
-     * Uses the upper band so days stay aggressive (e.g. 50 → 35…50).
+     * Uses the upper band so days stay aggressive (e.g. 50 → 40…50).
      *
      * @return array{0: int, 1: int} [min, max]
      */
@@ -203,7 +218,7 @@ class PostsSettings extends Settings
 
     /**
      * Slow daily drip band for posts older than the fresh window.
-     * Uses ~{@see AUTO_ENGAGEMENT_MATURE_DAILY_RATIO} of the fresh daily max (e.g. 50 → 1…10).
+     * Uses ~{@see AUTO_ENGAGEMENT_MATURE_DAILY_RATIO} of the fresh daily max (e.g. 50 → 1…15).
      *
      * @return array{0: int, 1: int} [min, max]
      */

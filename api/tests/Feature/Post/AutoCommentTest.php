@@ -276,8 +276,11 @@ class AutoCommentTest extends TestCase
     {
         $this->assertSame('Ali', AutoCommentPhrases::firstNameFrom('Ali Muraad'));
         $this->assertSame('Zain', AutoCommentPhrases::firstNameFrom('zain'));
+        $this->assertSame('Ahmed', AutoCommentPhrases::firstNameFrom('M Ahmed Gill'));
         $this->assertNull(AutoCommentPhrases::firstNameFrom(''));
         $this->assertNull(AutoCommentPhrases::firstNameFrom('user'));
+        $this->assertNull(AutoCommentPhrases::firstNameFrom('TM7'));
+        $this->assertNull(AutoCommentPhrases::firstNameFrom('ali771'));
 
         $withName = 0;
         foreach (range(1, 80) as $_) {
@@ -290,6 +293,39 @@ class AutoCommentTest extends TestCase
         }
 
         $this->assertGreaterThan(10, $withName);
+    }
+
+    public function test_reposts_get_plain_comments_without_creator_name(): void
+    {
+        $this->enable();
+
+        $owner = $this->recentUser(['name' => 'Ali Khan', 'nickname' => 'ali771']);
+        $this->dormantUser();
+        $original = $this->publishedReel($owner);
+        $repost = Post::query()->create([
+            'user_id' => $owner->id,
+            'type' => \App\Enums\Post\PostTypeEnum::Repost,
+            'repost_of_post_id' => $original->id,
+            'body' => null,
+            'status' => PostStatusEnum::Ready,
+            'published_at' => now()->subDay(),
+            'likes_count' => 25,
+            'views_count' => 0,
+            'comments_count' => 0,
+        ]);
+
+        $placed = 0;
+        foreach (range(1, 6) as $_) {
+            if (app(AutoCommentService::class)->commentOnPost($repost->fresh())) {
+                $placed++;
+            }
+        }
+
+        $this->assertGreaterThan(0, $placed);
+        $bodies = PostComment::query()->where('post_id', $repost->id)->pluck('body');
+        foreach ($bodies as $body) {
+            $this->assertDoesNotMatchRegularExpression('/\bAli\b/u', (string) $body);
+        }
     }
 
     public function test_comment_caps_derive_from_like_daily_max(): void

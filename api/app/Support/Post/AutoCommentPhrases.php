@@ -294,7 +294,10 @@ class AutoCommentPhrases
         return null;
     }
 
-    /** First word of display name, letters only (e.g. "Ali Muraad" → "Ali"). */
+    /**
+     * Best first name from a display name / nickname.
+     * Skips initials ("M Ahmed Gill" → "Ahmed") and handle-like tokens with digits ("TM7" → null).
+     */
     public static function firstNameFrom(?string $fullName): ?string
     {
         if ($fullName === null) {
@@ -307,9 +310,19 @@ class AutoCommentPhrases
         }
 
         $parts = preg_split('/\s+/u', $fullName) ?: [];
-        $first = $parts[0] ?? '';
+        foreach ($parts as $part) {
+            $part = trim((string) $part);
+            if ($part === '' || preg_match('/\d/u', $part) === 1) {
+                continue;
+            }
 
-        return self::sanitizeFirstName($first);
+            $candidate = self::sanitizeFirstName($part);
+            if ($candidate !== null) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     public static function normalize(string $body): string

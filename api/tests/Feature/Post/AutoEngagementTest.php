@@ -32,6 +32,7 @@ class AutoEngagementTest extends TestCase
         parent::setUp();
         $this->seed(SystemSettingsSeeder::class);
         Cache::forget(AutoEngagementService::CURSOR_CACHE_KEY);
+        Cache::forget(AutoEngagementService::MATURE_CURSOR_CACHE_KEY);
         Notification::fake();
         Queue::fake();
     }
@@ -68,7 +69,8 @@ class AutoEngagementTest extends TestCase
         return $this->makeVideoPost($owner, array_merge([
             'body' => 'Auto engage reel',
             'status' => PostStatusEnum::Ready,
-            'published_at' => now()->subDays(10),
+            // Clearly inside the 10-day hot window (avoid boundary flakiness).
+            'published_at' => now()->subDays(2),
             'likes_count' => 0,
             'views_count' => 0,
         ], $extra));
@@ -81,7 +83,7 @@ class AutoEngagementTest extends TestCase
             'type' => PostTypeEnum::Text,
             'body' => 'Auto engage text',
             'status' => PostStatusEnum::Ready,
-            'published_at' => now()->subDays(10),
+            'published_at' => now()->subDays(2),
             'likes_count' => 0,
             'views_count' => 0,
         ], $extra));
@@ -103,7 +105,7 @@ class AutoEngagementTest extends TestCase
         $service = app(AutoEngagementService::class);
         $this->assertSame(3, $service->chunkSize());
 
-        // Same owner: at most one like per tick (no notification stack).
+        // Same owner: at most one like per tick (natural drip); never >1 like per post.
         $this->assertSame(1, $service->process());
         $likesAfterFirst = (int) $p1->fresh()->likes_count
             + (int) $p2->fresh()->likes_count
@@ -194,7 +196,7 @@ class AutoEngagementTest extends TestCase
         $this->assertSame(2, (int) $post->fresh()->likes_count);
     }
 
-    public function test_mature_posts_drip_slower_than_fresh(): void
+    public function test_hot_posts_preferred_over_mature_same_owner(): void
     {
         $this->enable(50);
 
@@ -204,23 +206,25 @@ class AutoEngagementTest extends TestCase
         }
 
         $old = $this->publishedReel($owner, [
-            'published_at' => now()->subDays(PostsSettings::AUTO_ENGAGEMENT_FRESH_DAYS + 5),
+            'published_at' => now()->subDays(PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS + 5),
         ]);
-        $fresh = $this->publishedReel($owner, ['published_at' => now()->subDays(2)]);
+        $hot = $this->publishedReel($owner, ['published_at' => now()->subDays(2)]);
         $this->seedDailyQuota($old, 10);
-        $this->seedDailyQuota($fresh, 12);
+        $this->seedDailyQuota($hot, 1);
 
         $service = app(AutoEngagementService::class);
         $this->assertSame(2, $service->remainingUnderTargetCount());
 
-        $service->process();
-        $service->process();
+        // Hot pass first: same owner gets the hot like; mature waits.
+        $this->assertSame(1, $service->process());
+        $this->assertSame(1, (int) $hot->fresh()->likes_count);
+        $this->assertSame(0, (int) $old->fresh()->likes_count);
+        $this->assertGreaterThan((int) $hot->fresh()->likes_count, (int) $hot->fresh()->views_count);
 
-        // Same owner → one like per tick; two ticks → one each (rotated by cursor).
+        // Hot daily quota spent → mature pass can drip.
+        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $old->fresh()->likes_count);
-        $this->assertSame(1, (int) $fresh->fresh()->likes_count);
         $this->assertGreaterThan((int) $old->fresh()->likes_count, (int) $old->fresh()->views_count);
-        $this->assertGreaterThan((int) $fresh->fresh()->likes_count, (int) $fresh->fresh()->views_count);
     }
 
     public function test_reel_likes_stay_strictly_below_views(): void
@@ -379,6 +383,7 @@ class AutoEngagementTest extends TestCase
         $ownerLikes = 0;
         foreach ($owned as $post) {
             $ownerLikes += (int) $post->fresh()->likes_count;
+            $this->assertLessThanOrEqual(1, (int) $post->fresh()->likes_count);
         }
         $this->assertSame(1, $ownerLikes);
         $this->assertSame(1, (int) $otherPost->fresh()->likes_count);
@@ -395,10 +400,13 @@ class AutoEngagementTest extends TestCase
         $this->assertSame(150, $settings->reelsLifetimeMax());
         $this->assertSame(90, $settings->simpleLifetimeMax());
         $this->assertSame([4, 5], $settings->dailyDripRange(5));
-        $this->assertSame([35, 50], $settings->dailyDripRange(50));
-        $this->assertSame([1, 10], $settings->matureDailyDripRange(50));
+        $this->assertSame([40, 50], $settings->dailyDripRange(50));
+        $this->assertSame([1, 15], $settings->matureDailyDripRange(50));
         $this->assertSame(180, $settings->reelsViewsLifetimeMax());
         $this->assertSame(6, $settings->scaleViewsAboveLikes(5));
-        $this->assertSame(PostsSettings::AUTO_ENGAGEMENT_FRESH_DAYS, $settings->autoEngagementFreshDays());
+        $this->assertSame(PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS, $settings->autoEngagementFreshDays());
+        $this->assertSame(PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS, $settings->autoEngagementLifeDays());
+        $this->assertSame(10, PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS);
+        $this->assertSame(30, PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS);
     }
 }
