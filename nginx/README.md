@@ -5,8 +5,8 @@ Production mirrors of `/etc/nginx/sites-available/*.conf`. HTTP is ACME + HTTPS 
 | File | Host | Root |
 |------|------|------|
 | `api.conf` | `api.tapeya.com` | `/var/www/tapeya/api/public` |
-| `app.conf` | `tapeya.com` (+ `www` → apex) | `/var/www/tapeya/app/dist` |
-| `graphics.conf` | `graphics.tapeya.com` | `/var/www/tapeya/app/dist-graphics` |
+| `app.conf` | `tapeya.com` (+ `www` → apex) | `/var/www/tapeya/client/dist` |
+| `graphics.conf` | `graphics.tapeya.com` | `/var/www/tapeya/app/dist-graphics` (legacy `app/` graphics build) |
 | `backoffice.conf` | `backoffice.tapeya.com` | `/var/www/tapeya/backoffice/dist/backoffice/browser` |
 
 `tapeya.conf` only includes the four files above (optional all-in-one include).
@@ -52,9 +52,9 @@ certbot certonly --webroot -w /var/www/certbot -d graphics.tapeya.com --cert-nam
 
 ## App / Laravel checklist
 
-- Build app: `cd app && npm run build:production`
-- Graphics: `cd app && npm run build:graphics:production`
-- Backoffice: `cd backoffice && npm run build`
+- Build consumer: `cd client && npm run build:production` → `client/dist`
+- Graphics (unchanged path): `cd app && npm run build:graphics:production` → `app/dist-graphics`
+- Backoffice: `cd backoffice && npm run build:production`
 - `CORS_ALLOWED_ORIGINS` — web hosts; Capacitor covered by `config/cors.php` patterns
 - `REVERB_ALLOWED_ORIGINS` must include `localhost` for Capacitor
 - Admin → Graphics Frontend URL → `https://graphics.tapeya.com`

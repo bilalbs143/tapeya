@@ -1,90 +1,81 @@
-# Production deploy — `main` → uncommitted `develop`
+# Production deploy — `tapeya-dev` (`d33ddaaa`) → `origin/main` (`b3a88f5`)
 
-Ship **production `main`** (`fc64564`) up through the **current local `develop` working tree** (committed tip `874a5f8` **plus** uncommitted App Store 1.2 / Entertainment / ops work). **No** `migrate:fresh` / `migrate:refresh` / DB wipe.
+Ship **current `origin/main`** onto **`tapeya-dev`** (`/var/www/tapeya`). Local `main` / `develop` / `origin/main` / `origin/develop` are already aligned at **`b3a88f5`** — no commit or merge step is needed for this cut.
 
-**Critical:** the release is **not** on `origin` yet. Commit (or stash-and-commit) the dirty tree on `develop`, push, then merge to `main` before touching production.
+**Host:** `ssh tapeya-dev` → `/var/www/tapeya`  
+**No** `migrate:fresh` / `migrate:refresh` / DB wipe.
 
 This file is the runbook. Follow steps **in order**.
 
 ---
 
-## 0. Snapshot (update SHAs at commit / deploy time)
+## 0. Snapshot (as of 2026-11-12)
 
-| Ref | SHA / state (as of writing) | Notes |
-|-----|-----------------------------|--------|
-| **`origin/main` / prod baseline** | `fc64564` | Raise API nginx/PHP upload limits to 10G; drama bulk import + size-cap work already on `main` |
-| **Local `develop` tip (committed)** | `874a5f8` | Ahead of `main` by **3 commits**; also ahead of `origin/develop` by those 3 |
-| **Working tree (laptop)** | **dirty** | ~98 modified + ~30 untracked — **must be committed** before merge/deploy |
-| **`main..develop` (committed only)** | `740ce65` → `d1bb4f7` → `874a5f8` | Live watch comments letterbox + client docs (docs-only commits do not need prod code) |
-| **Uncommitted (this release)** | working tree | UGC safety 1.2, Entertainment rename, drama provider, YouTube embed/proxy, user-reports admin, native bumps |
+| Ref | SHA / state | Notes |
+|-----|-------------|--------|
+| **Deployed on `tapeya-dev`** | `d33ddaaa` | *Fix backoffice dialog scroll for long forms.* (2026-10-19). Branch `main`. |
+| **Target (`origin/main`)** | `b3a88f5` | *Bump Android version to 1.1.13 (25).* Same tip as local `main` / `develop`. |
+| **Delta** | **65 commits** | `d33ddaaa..b3a88f5` (fast-forward pull). |
+| **Server git status** | **dirty** | 8 modified AutoComment / AutoEngagement files + untracked `.env.bak`, `opcache-preload.php`, `warmup.sh`, `exports/`. **Must stash or export before pull.** |
+| **Server tree extras** | present | Still has `angular-theme/` + `laravel/` (removed upstream in `4e8a6fe`). No `client/` yet — pull will add it. |
 
-**Before you start deploy day:** re-run and paste into this section:
+**Before deploy day, re-verify:**
 
 ```bash
+# laptop
 git fetch origin
-git rev-parse --short origin/main
-git rev-parse --short develop
-git rev-list --left-right --count origin/main...develop
-git log --oneline origin/main..develop
-git status -sb
+git rev-parse --short origin/main   # expect b3a88f5 (or newer)
+git log --oneline d33ddaaa..origin/main | head
+
+# tapeya-dev
+ssh tapeya-dev 'cd /var/www/tapeya && git fetch origin && git rev-parse --short HEAD && git status -sb && git rev-list --left-right --count HEAD...origin/main'
 ```
 
-Release tip = SHA on `main` **after** committing the dirty tree on `develop` and merging into `main`.
+Release tip = `origin/main` SHA at pull time (record as `RELEASE_SHA`).
 
 ---
 
 ## 1. Hard rules (read once)
 
-1. **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or drop/recreate the production database for this release.
-2. **Do not** `git pull` / deploy a dirty tree. Commit (or intentionally exclude) all release files first.
-3. **Additive migrations only.** Run **`migrate --force` only**.
-4. After migrate, run **`StaticPageSeeder`** so production Terms / Privacy have zero-tolerance + 24h copy (App Store 1.2). Prefer seeder over hand-editing backoffice HTML.
-5. Deploy order: **commit + push** → **merge to `main`** → **API code** → **`migrate --force`** → **`StaticPageSeeder`** → caches/workers → backoffice + app builds → (optional) native stores.
-6. Do **not** commit secrets (`.env`, credentials).
-7. Do **not** ship `client` as part of this consumer release (local rewrite; not required for App Store 1.2).
+1. **Never** run `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, or drop/recreate the production database.
+2. **Do not** `git pull` on a dirty tree. Stash / export server-only edits first.
+3. **Additive / intentional schema only.** Run **`migrate --force` only**. Expect **one** new migration after pull (see §3).
+4. Deploy order: **backup + preserve dirty** → **pull `main`** → **API deps** → **`migrate --force`** → caches/workers → **backoffice + `client/` build** → point `tapeya.com` at `client/dist`. **Keep** `graphics.tapeya.com` on `app/dist-graphics` (do not rebuild/replace graphics unless intentional).
+5. Do **not** commit secrets (`.env`, credentials, `exports/*.sql*`).
+6. Do **not** wholesale-run `SystemSettingsSeeder` (overwrites live settings).
 
 ---
 
-## 2. What this release contains (product)
+## 2. What this release contains (product delta)
 
-### A. Already committed on `develop` (not yet on `main`)
+High-signal themes in `d33ddaaa..b3a88f5` (omitting merge noise):
 
-| SHA | Summary |
-|-----|---------|
-| `740ce65` | Document client best practices, layout, forms, and copy |
-| `d1bb4f7` | Close client audit tracker and clarify density rules |
-| `874a5f8` | Keep live watch comments in the letterbox under the player |
+### API / platform
 
-### B. Uncommitted working tree (must commit) — main product
+- Drop `cricket_format` end-to-end (`67b5de8` + migration `2026_10_31_100000_drop_cricket_format_everywhere`)
+- CDN URL from system settings (`ab3d6f4`)
+- Terms gate removal on client path; API stamps terms by default (`28ae7d9`) — UGC tables already **Ran** on this host
+- Remove unused `angular-theme/` + legacy `laravel/` trees (`4e8a6fe`)
 
-**App Store Guideline 1.2 — UGC safety**
+### Consumer (`app/` + new `client/`)
 
-- Required Terms checkbox on register; blocking `TermsAcceptanceGate` for users without `terms_accepted_at` (gate hides on `/pages/*` so Terms/Privacy are readable)
-- Shared `ReportDialog` (post / reel / user) + `BlockUserDialog` on posts, reels, creator profiles
-- API: `POST /me/accept-terms`, block/unblock/report user, feed hides blocked authors, keyword filter on posts/comments/reels
-- Admin + backoffice **User Reports**
-- Zero-tolerance Terms copy + 24h review commitment (`StaticPageSeeder`)
-- Native bumps for resubmission (iOS **1.1.8 / build 50**, Android **1.1.12 / versionCode 24** — confirm in tree before ship)
+- Full **`client/`** Capacitor rewrite added (`e8dba42`) and iterated: feed/reels polish, keyboard inset fixes, dual-audio reel gate, splash light/dark, GA4 + Firebase Analytics, Meta Pixel / Facebook App Events, Reverb live chat, Android nav hide, iOS CocoaPods for Firebase dSYMs
+- Native tips at `b3a88f5`: **client iOS 1.1.9 (53)**, **client Android 1.1.13 (25)**; legacy `app/` Android still **1.1.12 (24)**
 
-**Entertainment (ex–Drama Serials consumer UX)**
+### Backoffice
 
-- App routes/pages/API client renamed toward **Entertainment**; feed widget + Explore entry
-- Drama CMS still in backoffice; optional `provider` column on serials
-- Episode video optimize command/job/service (if included in the commit)
+- Custom confirm for delete-all notifications (`fc3b18b`)
+- Image upload / aspect-ratio hint alignment with client
 
-**Other ops / fixes in the dirty tree (include only if you commit them)**
+### Ops / CI
 
-- Live stream sync / chat / admin stream controllers + tests
-- YouTube embed proxy + blade + tests
-- Push notification templates / events
-- nginx `app.conf` tweaks
-- Docs (`APP_REWRITE_ARCHITECTURE`, `LIVE_STREAM_ORIENTATION`)
+- Graphics CDN bootstrap CI fixes (`b3f3a95`)
+- Root `package-lock.json` removed (`3714698`)
 
-### C. Out of scope / optional
+### Out of scope for this host pull
 
-- Full `client` rewrite (not this production consumer cut)
-- Deleting unused jamia/Jumia DNS (ops, not this git deploy)
-- `migrate:fresh` / one-shot wipe scripts (**forbidden**)
+- Publishing a new App Store / Play binary (do separately after API is live if needed)
+- Rebuilding / replacing **`app/dist-graphics`** — graphics stays on the legacy `app/` pipeline
 
 ---
 
@@ -94,122 +85,112 @@ Release tip = SHA on `main` **after** committing the dirty tree on `develop` and
 
 | Migration | Effect |
 |-----------|--------|
-| `2026_10_12_100000_add_provider_to_drama_serials_table` | Optional provider on drama serials |
-| `2026_10_19_100000_add_ugc_safety_tables` | `users.terms_accepted_at`, `user_blocks`, `user_reports` |
+| `2026_10_31_100000_drop_cricket_format_everywhere` | Drops `matches.cricket_format`; merges duplicate career-stat rows that differed only by format; drops format columns/indexes on batting/bowling/fielding stats |
 
-Confirm with `migrate:status` before/after. Expect **these two** pending on prod until run (plus any older pending you already planned — **stop** if unexpected).
+**Already Ran on this host (do not expect pending):**
 
-### B. Seeders (required for 1.2 copy)
+- `2026_10_12_100000_add_provider_to_drama_serials_table`
+- `2026_10_19_100000_add_ugc_safety_tables`
 
-```bash
-cd /var/www/tapeya/api
-php artisan db:seed --class=StaticPageSeeder --force
-```
+Confirm with `migrate:status` before/after. If anything unexpected is pending after pull, **stop**.
 
-Updates **Terms of Use** + **Privacy Policy** HTML (zero tolerance, report/block, 24h review). Safe to re-run (`updateOrCreate` by slug).
+### B. Seeders
+
+**None required** for this cut. Do **not** run `SystemSettingsSeeder` wholesale. Demo/review seeders (`ClientReviewSeeder`, `ScoringDemoSeeder`) are not for production.
 
 ### C. Do **not** run
 
 | Action | Why |
 |--------|-----|
-| `SystemSettingsSeeder` wholesale | Can overwrite live settings |
 | `migrate:fresh` / `migrate:refresh` | Destroys production data |
-| Random one-off scripts under `api/database/scripts/` | None required for this cut |
+| `SystemSettingsSeeder` | Overwrites live settings |
+| Random one-offs under `api/database/scripts/` | None required |
 
 ---
 
-## 4. Pre-flight (local)
+## 4. Pre-flight
 
-### 4.1 Commit the dirty develop tree
+### 4.1 Laptop — confirm tip
 
 ```bash
 cd /path/to/tapeya
-git checkout develop
-git status -sb
 git fetch origin
-```
-
-Commit **all** files intended for this release (API safety + Entertainment + backoffice user-reports + app UI + migrations + `StaticPageSeeder` + native version bumps). Exclude secrets and accidental local-only junk.
-
-Suggested commit message focus: App Store 1.2 UGC safety + Entertainment rename + related ops.
-
-```bash
-git add -A   # or path-scoped adds — review carefully
-git status
-git commit -m "$(cat <<'EOF'
-Ship App Store 1.2 UGC safety and Entertainment rename.
-
-Required terms, report/block, feed hide, admin user reports, and updated Terms copy; consumer serials → entertainment.
-EOF
-)"
-# Add a second commit for live-letterbox / docs already on develop if you prefer history clean — optional
-```
-
-Record:
-
-```bash
-git rev-parse --short HEAD   # NEW develop tip = release candidate
-git log --oneline origin/main..HEAD
-```
-
-### 4.2 Push develop
-
-```bash
-git push -u origin develop
-```
-
-### 4.3 Fast checks (recommended)
-
-```bash
-cd api && php artisan test --filter='UserSafetyTest|PostInteractionTest|DramaSerialApi|YouTubeEmbed'
-```
-
-Optional smokes locally:
-
-- Register requires Terms; existing user without `terms_accepted_at` sees gate; `/pages/terms-of-use` readable with gate dismissed
-- Report + block on post / reel / profile; blocked author disappears from feed
-- Admin User Reports list/update
-- Entertainment hub / detail / episode play
-- Live watch comments still letterboxed under player
-
-### 4.4 Merge to main
-
-```bash
 git checkout main
-git pull origin main   # expect fc64564 (or newer if prod moved)
-git merge develop      # FF preferred
-git push origin main
-git rev-parse --short HEAD   # record RELEASE_SHA
+git pull origin main
+git rev-parse --short HEAD   # RELEASE_SHA — expect b3a88f5 or newer
+git status -sb               # should be clean
 ```
 
-### 4.5 Backup before touching production
+### 4.2 Backup + preserve server-only dirty work
 
-On the API host (or managed DB snapshot):
+On `tapeya-dev` the tree has **local** AutoComment / AutoEngagement edits that are **not** on `origin/main`. Preserve them before pull:
 
-- Full DB dump **or** at least: `users`, `settings`, `migrations`, `posts`, `static_pages`, `user_blocks`, `user_reports` (latter two may not exist yet)
-- Note current prod git SHA: `git -C /var/www/tapeya rev-parse --short HEAD`
-- `git status -sb` on the box — tree must be clean before pull (or restore junk first)
+```bash
+ssh tapeya-dev
+cd /var/www/tapeya
+
+# record pre-deploy SHA
+git rev-parse HEAD | tee /tmp/pre-deploy-sha.txt
+git status -sb | tee /tmp/pre-deploy-status.txt
+
+# DB backup (or managed snapshot)
+# mysqldump / existing exports/ pattern — keep off the git tree if huge
+
+# export dirty tracked files (keep a copy outside the pull)
+STAMP=$(date +%Y%m%d-%H%M%S)
+mkdir -p exports/pre-deploy-$STAMP/files
+git diff > exports/pre-deploy-$STAMP/tracked.diff
+git diff --stat > exports/pre-deploy-$STAMP/diff-stat.txt
+cp /tmp/pre-deploy-sha.txt exports/pre-deploy-$STAMP/pre-sha.txt
+for f in \
+  api/app/Services/Post/AutoCommentService.php \
+  api/app/Services/Post/AutoEngagementService.php \
+  api/app/Settings/PostsSettings.php \
+  api/app/Settings/SystemSettingRegistry.php \
+  api/app/Support/Post/AutoCommentPhrases.php \
+  api/routes/console.php \
+  api/tests/Feature/Post/AutoCommentTest.php \
+  api/tests/Feature/Post/AutoEngagementTest.php
+do
+  mkdir -p "exports/pre-deploy-$STAMP/files/$(dirname "$f")"
+  cp "$f" "exports/pre-deploy-$STAMP/files/$f"
+done
+
+# clear tracked dirt so pull can FF
+git restore \
+  api/app/Services/Post/AutoCommentService.php \
+  api/app/Services/Post/AutoEngagementService.php \
+  api/app/Settings/PostsSettings.php \
+  api/app/Settings/SystemSettingRegistry.php \
+  api/app/Support/Post/AutoCommentPhrases.php \
+  api/routes/console.php \
+  api/tests/Feature/Post/AutoCommentTest.php \
+  api/tests/Feature/Post/AutoEngagementTest.php
+
+git status -sb   # modified list empty; untracked exports/ + bak files OK
+```
+
+Untracked `api/.env.bak-*`, `api/opcache-preload.php`, `api/warmup.sh`, and `exports/` can stay (gitignored or untracked).
 
 ---
 
-## 5. Production deploy — API
+## 5. Production deploy — API (`tapeya-dev`)
 
-Paths assume `/var/www/tapeya/...` — adjust to your server. Confirm PHP-FPM version/socket.
+Paths: `/var/www/tapeya/...`. PHP **8.3.6**, Node **v22**, npm **10.9**.
 
-### 5.1 Clean tree, then pull
+### 5.1 Pull `main`
 
 ```bash
 cd /var/www/tapeya
 git fetch origin
 git checkout main
+git status -sb                 # tracked tree must be clean
+git pull origin main           # FF d33ddaaa → RELEASE_SHA
+git rev-parse --short HEAD     # must equal RELEASE_SHA
 git status -sb
-# if dirty throwaway edits:
-#   git restore .
-#   git status -sb   # must be clean
-git pull origin main
-git rev-parse --short HEAD   # must equal RELEASE_SHA
-git status -sb               # still clean
 ```
+
+Expect: `angular-theme/` + `laravel/` gone; `client/` present.
 
 ### 5.2 PHP deps
 
@@ -218,29 +199,26 @@ cd /var/www/tapeya/api
 composer install --no-dev --optimize-autoloader
 ```
 
-### 5.3 Migrations only (no refresh)
+### 5.3 Migrations only
 
 ```bash
 cd /var/www/tapeya/api
-php artisan migrate:status | tail -40
+php artisan migrate:status | tail -20
 php artisan migrate --force
 ```
 
-**Expect:** `2026_10_12_…provider…` and `2026_10_19_…ugc_safety…`. If anything unexpected is pending, **stop** and investigate.
+**Expect:** `2026_10_31_100000_drop_cricket_format_everywhere`. Stop if unexpected pendings appear.
 
-### 5.4 Static pages (Terms / Privacy) — required for 1.2
+### 5.4 Re-apply server-only Auto* patches? (decide explicitly)
 
-```bash
-cd /var/www/tapeya/api
-php artisan db:seed --class=StaticPageSeeder --force
-```
-
-Verify:
+If production still needs the host-only AutoComment / AutoEngagement behavior:
 
 ```bash
-curl -sS https://api.tapeya.com/api/v1/static-pages/terms-of-use | head -c 400
-# should mention zero tolerance / 24 hours (not April 2026-only fluff)
+# review diff first, then copy back from exports/pre-deploy-$STAMP/files/…
+# prefer committing those changes on develop later instead of leaving the box dirty
 ```
+
+If upstream `main` already superseded that work, **leave restored** and delete the export after smoke.
 
 ### 5.5 Caches / workers
 
@@ -248,14 +226,14 @@ curl -sS https://api.tapeya.com/api/v1/static-pages/terms-of-use | head -c 400
 cd /var/www/tapeya/api
 php artisan config:clear
 php artisan config:cache
-php artisan route:cache   # if you normally route-cache in prod
+php artisan route:cache    # if you normally route-cache here
 php artisan settings:clear-cache
 
 sudo supervisorctl restart all
-sudo systemctl reload php8.3-fpm   # adjust PHP version/socket
+sudo systemctl reload php8.3-fpm
 ```
 
-If `nginx/app.conf` changed in this release, reload nginx after publishing the conf:
+Nginx confs on this host (`api.conf`, `app.conf`, `backoffice.conf`, `graphics.conf`) — reload only if this release changed published nginx files:
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
@@ -265,75 +243,102 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ## 6. Production deploy — frontends
 
-### 6.1 Backoffice (`admin.tapeya.com`) — **required**
+### 6.1 Backoffice (`admin` / backoffice vhost) — **required**
 
 ```bash
 cd /var/www/tapeya/backoffice
 npm ci
 npm run build:production
-# publish dist/backoffice/browser
+# dist/backoffice/browser is what the vhost serves
 ```
 
-Ships: User Reports, drama serial provider/CMS updates (if committed).
+### 6.2 Consumer web (`client/` → tapeya.com) — **required**
 
-### 6.2 Consumer app (`tapeya.com`) — **required**
+```bash
+cd /var/www/tapeya/client
+npm ci
+npm run build:production
+# output: /var/www/tapeya/client/dist
+```
+
+Then publish nginx root change (repo `nginx/app.conf` → `/var/www/tapeya/client/dist`):
+
+```bash
+sudo cp /etc/nginx/sites-available/app.conf /etc/nginx/sites-available/app.conf.bak-$(date +%Y%m%d-%H%M%S)
+sudo cp /var/www/tapeya/nginx/app.conf /etc/nginx/sites-available/app.conf
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**Do not** change `graphics.conf`. **Do not** run `app` `build:graphics*` unless you intend to refresh overlays.
+
+### 6.3 Legacy `app/` — graphics only
+
+Leave `app/dist-graphics` and `graphics.tapeya.com` alone. Rebuild only when shipping graphics changes:
 
 ```bash
 cd /var/www/tapeya/app
 npm ci
-npm run build:production
+npm run build:graphics:production
+# output must stay: /var/www/tapeya/app/dist-graphics
 ```
 
-Ships: Terms gate, report/block, Entertainment pages, StaticPage layout, live comment letterbox.
+### 6.4 Native store binaries — **optional / separate**
 
-### 6.3 Native stores — **required for App Store 1.2 review**
-
-Web-only deploy is **not** enough for Apple 1.2 if reviewers use the binary.
+Build from a machine with signing keys (not required to finish the web/API pull):
 
 ```bash
-cd /var/www/tapeya/app
-# confirm versions in android/app/build.gradle + ios MARKETING_VERSION / CURRENT_PROJECT_VERSION
-npm run cap:ios          # production API
-# and/or
-npm run cap:android
+cd client   # rewrite Capacitor app
+# iOS 1.1.9 (53) — Xcode archive after cap sync
+# Android 1.1.13 (25)
+npm run build:production
+npx cap sync
 ```
 
-Upload the new iOS build (expect **1.1.8 (50)** unless you bumped again) and Android as needed. **API + StaticPageSeeder must already be live** before reviewers open the binary (Terms accept + legal pages hit production).
+Legacy `app/` Capacitor remains at Android **1.1.12 (24)** if you still ship that binary.
 
 ---
 
 ## 7. Post-deploy smoke (must pass)
 
-### UGC safety (1.2)
+### Platform
 
-- [ ] `users.terms_accepted_at` column exists; `user_blocks` / `user_reports` tables exist
-- [ ] Register without Terms → 422; with Terms → OK and timestamp set
-- [ ] Existing user with `terms_accepted_at` null → blocking gate; accept → continues
-- [ ] `/pages/terms-of-use` and `/pages/privacy-policy` show **new** copy (zero tolerance, 24h) and app subpage chrome
-- [ ] Report post / reel / user works; block removes author from feed; User Reports visible in admin
-- [ ] Suggestions / hashtag reels do not show blocked creators
+- [ ] `git -C /var/www/tapeya rev-parse --short HEAD` equals `RELEASE_SHA`
+- [ ] `migrate:status` shows `2026_10_31_…cricket_format…` **Ran**
+- [ ] `matches.cricket_format` column gone; player stats unique on `(player_id, tournament_type)` only
+- [ ] API boots; workers up; no spike of 500s
 
-### Entertainment / live
+### Product
 
-- [ ] Entertainment hub / detail / episode playback
-- [ ] Live watch comments sit in the letterbox under the player
-- [ ] YouTube embed proxy still loads where used
+- [ ] Feed / reels (no dual-audio on Android if testing Cap build)
+- [ ] Live watch chat / Reverb still connects
+- [ ] Backoffice login + notifications delete-all uses custom prompt
+- [ ] Shop product images / upload hints still sane
+- [ ] Graphics / CDN bootstrap if you rely on system-settings CDN URL
 
-### Health
+### Hygiene
 
-- [ ] API boots; `migrate:status` healthy
-- [ ] Existing feed / reels / shop / quick match unchanged for happy paths
-- [ ] Workers up; no 500s on `/me/accept-terms` or `/users/{id}/block`
+- [ ] Working tree on the box is clean **or** only intentional re-applied Auto* files
+- [ ] `exports/` backups retained; secrets not committed
 
 ---
 
 ## 8. Rollback (no refresh)
 
-1. Redeploy previous known-good git SHA on API / backoffice / app (`fc64564` or your recorded pre-deploy SHA).
-2. Restart workers + reload PHP-FPM; rebuild frontends from that SHA.
-3. **Schema:** `terms_accepted_at` / `user_blocks` / `user_reports` / `provider` are additive — safe to leave if you roll code back. Prefer **not** `migrate:rollback` unless you have a tested down path.
-4. Static pages: re-seed from the older SHA’s seeder **or** restore `static_pages` from backup if legal copy must match the rolled-back binary.
-5. Clear caches:
+1. Record current SHA, then:
+
+```bash
+cd /var/www/tapeya
+git fetch origin
+git checkout main
+git reset --hard d33ddaaa   # or your recorded pre-deploy SHA
+# rebuild frontends from that SHA; composer install; config:cache
+sudo supervisorctl restart all
+sudo systemctl reload php8.3-fpm
+```
+
+2. **Schema:** `drop_cricket_format` is a **data-merging** migration. Prefer **leaving schema forward** if you roll code back. Only `migrate:rollback` if you have a tested down path and accept format columns returning empty/default.
+3. Restore Auto* files from `exports/pre-deploy-*` if the rolled-back code depended on them.
+4. Clear caches:
 
 ```bash
 php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache
@@ -345,33 +350,30 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 
 | Symptom | Cause | Fix |
 |---------|--------|-----|
-| Terms / Privacy still look “old” | Prod DB not reseeded; binary points at `api.tapeya.com` | Run `StaticPageSeeder` on prod; hard-refresh / new native build |
-| Terms gate stuck forever | Accept-terms 404 / column missing | Deploy API + migrate before app; check `/api/v1/me/accept-terms` |
-| Feed 500 after deploy | Migrated code without `user_blocks` migration | Run `migrate --force` |
-| Gate covers Terms page | Old app build without legal-page exception | Ship build that hides gate on `/pages/*` |
-| `git pull` refuses | Dirty files on API host | `git status`; `git restore .` only for throwaway edits |
-| Reviewer rejects 1.2 | Web-only deploy; binary missing report/block/terms | Ship store build **after** API + seeder |
-| Entertainment 404 | Old web/native bundle | Redeploy `app/` `build:production`; sync Capacitor |
+| `git pull` refuses / conflicts | Dirty Auto* files on host | Export → `git restore` → pull (§4.2) |
+| Unexpected pending migrations | Older host drift | Stop; compare `migrate:status` to `RELEASE_SHA` tree |
+| Career stats look wrong after migrate | Format-row merge | Inspect `player_*_stats` before/after; restore from DB backup if needed |
+| Consumer site still old | Forgot `app/` `build:production` | Rebuild and publish `app/dist` |
+| `client/` 404 / wrong app | Nginx still points at `app/` | Expected until you cut the vhost over |
+| Reverb fails in Cap WebView | Missing `localhost` origin allowlist | See [DEPLOYMENT.md](./DEPLOYMENT.md) Reverb note; restart Reverb |
+| Firebase / dSYM / analytics only | Native binary not rebuilt | Optional store cut; web pull does not ship Cap binaries |
 
 ---
 
 ## 10. Checklist summary (copy/paste)
 
 ```text
-[ ] Record origin/main SHA (expect fc64564)
-[ ] Commit dirty develop tree; record RELEASE_CANDIDATE SHA
-[ ] Push origin develop
-[ ] Merge develop → main; push main; record RELEASE_SHA
-[ ] DB backup (users / settings / migrations / posts / static_pages)
-[ ] Prod: clean git status; git pull main @ RELEASE_SHA
+[ ] Laptop: origin/main SHA recorded (expect b3a88f5+) → RELEASE_SHA
+[ ] tapeya-dev: record HEAD d33ddaaa; git status; DB backup
+[ ] Export + git restore dirty AutoComment/AutoEngagement files
+[ ] git fetch && git pull origin main → HEAD == RELEASE_SHA
 [ ] composer install --no-dev --optimize-autoloader
-[ ] php artisan migrate --force  (expect 2026_10_12 provider + 2026_10_19 ugc_safety)
-[ ] php artisan db:seed --class=StaticPageSeeder --force
-[ ] curl Terms page — zero tolerance / 24 hours present
-[ ] config:cache + settings:clear-cache; restart workers / reload php-fpm
-[ ] Build/deploy backoffice
-[ ] Build/deploy consumer app (web)
-[ ] Capacitor iOS/Android store builds (1.2 review)
+[ ] php artisan migrate --force  (expect 2026_10_31 drop cricket_format only)
+[ ] Decide: re-apply Auto* host patches or leave clean / commit later
+[ ] config:cache + settings:clear-cache; restart workers; reload php8.3-fpm
+[ ] Build/deploy backoffice (npm ci && build:production)
+[ ] Build/deploy app/ consumer web
+[ ] Optional: client/ build + nginx cutover; store binaries
 [ ] Smoke section 7
 ```
 
@@ -379,6 +381,5 @@ php artisan config:clear && php artisan config:cache && php artisan settings:cle
 
 ## Related
 
-- [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands / nginx sketches
-- [APP_REWRITE_ARCHITECTURE.md](./APP_REWRITE_ARCHITECTURE.md) — rewrite is local / not this consumer cut
-- Prior drama bulk-import + 10G upload limits already on `main` as of `fc64564`
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands / nginx sketches / Reverb origins
+- Prior UGC safety + drama provider migrations are **already applied** on this host as of `d33ddaaa`

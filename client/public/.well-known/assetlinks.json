@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tapbytapeya.app",
+      "sha256_cert_fingerprints": [
+        "33:9F:3F:81:DD:65:AD:CA:E5:AB:BC:55:A0:08:EA:14:E6:CE:28:FD:D1:12:65:FB:EB:97:49:D8:6F:A3:42:80"
+      ]
+    }
+  }
+]
