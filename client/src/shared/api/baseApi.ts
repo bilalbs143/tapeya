@@ -53,11 +53,17 @@ function isPublicAuthRequest(url: string): boolean {
   return PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
 }
 
+/** RTK `getState()` is untyped here; `selectAccessToken` only needs `{ auth }`. */
+type AuthTokenState = Parameters<typeof selectAccessToken>[0];
+
+function accessTokenFrom(getState: () => unknown): string | null {
+  return selectAccessToken(getState() as AuthTokenState);
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: env.VITE_API_URL,
   prepareHeaders: (headers, { getState }) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RTK Query's own getState() is untyped at this layer; store.ts wires the real RootState.
-    const token = selectAccessToken(getState() as any);
+    const token = accessTokenFrom(getState);
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
@@ -76,20 +82,25 @@ export const baseApi = createApi({
       args.headers = { 'Content-Type': 'application/json', ...(args.headers ?? {}) };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- same getState typing gap as prepareHeaders.
-    const hadToken = Boolean(selectAccessToken(api.getState() as any));
+    const tokenAtStart = accessTokenFrom(api.getState);
     const result = await rawBaseQuery(args, api, extraOptions);
 
     // 401 + Bearer on a protected route = session expiry (OTP failure is also 401).
-    if (result.error?.status === 401 && hadToken && !isPublicAuthRequest(resolveRequestUrl(args))) {
-      await clearAuthSession(api.dispatch);
-      // dialogStore is callable outside React — §13.1
-      dialogStore.open('sessionExpired', {
-        onLogIn: () => {
-          dialogStore.closeAll();
-          window.location.assign(APP_PATHS.login);
-        },
-      });
+    // Only clear if this request actually had a token AND that token is still the
+    // current session — avoids boot races (/me before hydrate) and stale in-flight
+    // 401s wiping a freshly logged-in session.
+    if (result.error?.status === 401 && tokenAtStart && !isPublicAuthRequest(resolveRequestUrl(args))) {
+      const tokenNow = accessTokenFrom(api.getState);
+      if (tokenNow && tokenNow === tokenAtStart) {
+        await clearAuthSession(api.dispatch);
+        // dialogStore is callable outside React — §13.1
+        dialogStore.open('sessionExpired', {
+          onLogIn: () => {
+            dialogStore.closeAll();
+            window.location.assign(APP_PATHS.login);
+          },
+        });
+      }
     }
 
     return result;

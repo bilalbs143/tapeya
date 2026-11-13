@@ -143,15 +143,29 @@ class QuickMatchTest extends TestCase
             ->count());
     }
 
-    public function test_duplicate_phone_returns_422(): void
+    public function test_walk_up_phone_that_already_exists_attaches_that_user(): void
     {
         $owner = $this->activeUser();
-        $this->activeUser(['phone' => '+923001111111']);
+        $existing = $this->activeUser([
+            'name' => 'Ali Khan Existing',
+            'phone' => '+923001111111',
+        ]);
 
-        $this->actingAs($owner, 'api')
+        $matchId = $this->actingAs($owner, 'api')
             ->postJson('/api/v1/quick-matches', $this->basePayload($owner))
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['home.players.1.phone']);
+            ->assertCreated()
+            ->json('data.id');
+
+        $match = TournamentMatch::query()->with('homeTeam')->findOrFail($matchId);
+        $homeIds = DB::table('match_squads')
+            ->where('match_id', $match->id)
+            ->where('team_id', $match->home_team_id)
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->assertContains((int) $existing->id, $homeIds);
+        $this->assertSame(1, User::query()->where('phone', '+923001111111')->count());
     }
 
     public function test_non_owner_cannot_score(): void

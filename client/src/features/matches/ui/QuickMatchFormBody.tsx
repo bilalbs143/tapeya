@@ -4,7 +4,7 @@ import { PageDock } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
-import { Form } from '@/shared/ui/Form';
+import { Form, FormRow } from '@/shared/ui/Form';
 import { NumberStepper } from '@/shared/ui/NumberStepper';
 import { StickyActionBar } from '@/shared/ui/StickyActionBar';
 
@@ -93,27 +93,30 @@ export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
         }
       >
         <Form density="compact" className="flex flex-col px-4 pt-4 pb-4" onSubmit={(e) => e.preventDefault()}>
-          <Field label="Overs" required>
-            <NumberStepper
-              value={overs}
-              min={QUICK_MATCH_OVERS_MIN}
-              max={QUICK_MATCH_OVERS_MAX}
-              onChange={setOvers}
-              decreaseLabel="Decrease Overs"
-              increaseLabel="Increase Overs"
-            />
-          </Field>
+          {/* Stacks on phone; pairs from `tab` via FormRow — no mobile class changes. */}
+          <FormRow>
+            <Field label="Overs" required>
+              <NumberStepper
+                value={overs}
+                min={QUICK_MATCH_OVERS_MIN}
+                max={QUICK_MATCH_OVERS_MAX}
+                onChange={setOvers}
+                decreaseLabel="Decrease Overs"
+                increaseLabel="Increase Overs"
+              />
+            </Field>
 
-          <Field label="Players Per Side" required hint="Both rosters resize to match">
-            <NumberStepper
-              value={players}
-              min={QUICK_MATCH_PLAYERS_MIN}
-              max={QUICK_MATCH_PLAYERS_MAX}
-              onChange={setSideSize}
-              decreaseLabel="Decrease Players"
-              increaseLabel="Increase Players"
-            />
-          </Field>
+            <Field label="Players Per Side" required hint="Both rosters resize to match">
+              <NumberStepper
+                value={players}
+                min={QUICK_MATCH_PLAYERS_MIN}
+                max={QUICK_MATCH_PLAYERS_MAX}
+                onChange={setSideSize}
+                decreaseLabel="Decrease Players"
+                increaseLabel="Increase Players"
+              />
+            </Field>
+          </FormRow>
 
           <div className="bg-border-subtle h-px" />
 

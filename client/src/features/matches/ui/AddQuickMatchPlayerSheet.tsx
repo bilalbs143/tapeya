@@ -1,6 +1,13 @@
 import { useState } from 'react';
 
-import { countryByCode, DEFAULT_COUNTRY_CODE, nationalNumberError, PhoneField, toE164 } from '@/features/auth';
+import {
+  countryByCode,
+  DEFAULT_COUNTRY_CODE,
+  nationalDigits,
+  nationalNumberError,
+  PhoneField,
+  toE164,
+} from '@/features/auth';
 import { useLookupMyUsersQuery, useLookupUsersQuery } from '@/features/profile';
 
 import {
@@ -27,6 +34,10 @@ type AddQuickMatchPlayerSheetProps = {
   onAdd: (player: QuickMatchPlayer) => void;
 };
 
+function phoneDigits(value: string | null | undefined): string {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
 export function AddQuickMatchPlayerSheet({
   open,
   sideLabel,
@@ -49,6 +60,17 @@ export function AddQuickMatchPlayerSheet({
   const rows = (query.length >= 2 ? found.data : mine.data) ?? [];
   const loading = query.length >= 2 ? found.isFetching : mine.isFetching;
 
+  const phone = toE164(dial, national);
+  const phoneReady = nationalNumberError(national, dial) == null && nationalDigits(national).length > 0;
+  const phoneLookup = useLookupUsersQuery(phone, {
+    skip: !open || mode !== 'new' || !phoneReady,
+  });
+  const matchedUser =
+    phoneReady && phoneLookup.data
+      ? (phoneLookup.data.find((user) => phoneDigits(user.phone) === phoneDigits(phone)) ?? null)
+      : null;
+  const matchedLabel = matchedUser ? matchedUser.name?.trim() || matchedUser.nickname?.trim() || 'Player' : null;
+
   function close() {
     setError(null);
     setSearch('');
@@ -64,12 +86,28 @@ export function AddQuickMatchPlayerSheet({
   }
 
   function addWalkUp() {
-    const phone = toE164(dial, national);
     const phoneError = nationalNumberError(national, dial);
     if (phoneError) {
       setError(phoneError);
       return;
     }
+
+    // Known phone → attach that Tapeya account; typed name is ignored.
+    if (matchedUser && matchedLabel) {
+      if (taken.has(matchedUser.id)) {
+        setError('That player is already on a side.');
+        return;
+      }
+      onAdd({ userId: matchedUser.id, name: matchedLabel });
+      close();
+      return;
+    }
+
+    if (phoneLookup.isFetching) {
+      setError('Checking that number…');
+      return;
+    }
+
     const next = playerError({ name, phone });
     if (next) {
       setError(next);
@@ -83,7 +121,9 @@ export function AddQuickMatchPlayerSheet({
     <BaseDialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
       <DialogHeader>
         <DialogTitle>Add to {sideLabel}</DialogTitle>
-        <DialogDescription>Pick someone on Tapeya, or type a new name and phone.</DialogDescription>
+        <DialogDescription>
+          Pick someone on Tapeya, or enter a phone — if they already have an account we use their name.
+        </DialogDescription>
       </DialogHeader>
 
       <DialogBody className="max-h-[80dvh] overflow-y-auto">
@@ -155,16 +195,48 @@ export function AddQuickMatchPlayerSheet({
               addWalkUp();
             }}
           >
-            <Input label="Name" required value={name} onChange={(event) => setName(event.target.value)} />
             <PhoneField
               label="Phone Number"
               required
               countryCode={countryCode}
-              onCountryCodeChange={setCountryCode}
+              onCountryCodeChange={(code) => {
+                setCountryCode(code);
+                setError(null);
+              }}
               value={national}
-              onNationalChange={setNational}
+              onNationalChange={(value) => {
+                setNational(value);
+                setError(null);
+              }}
               error={error ?? undefined}
             />
+
+            {phoneReady && phoneLookup.isFetching ? (
+              <p className="text-dim text-2xs" role="status">
+                Checking that number…
+              </p>
+            ) : null}
+
+            {matchedUser && matchedLabel ? (
+              <p
+                className="border-border-subtle rounded-panel border bg-transparent px-3 py-2.5 text-2xs leading-snug"
+                role="status"
+              >
+                <span className="text-muted font-mono text-4xs font-bold tracking-eyebrow uppercase">On Tapeya</span>
+                <span className="mt-1 block text-sm font-bold text-ink">{matchedLabel}</span>
+                {matchedUser.nickname ? (
+                  <span className="text-dim font-mono mt-0.5 block text-3xs">@{matchedUser.nickname}</span>
+                ) : null}
+              </p>
+            ) : (
+              <Input
+                label="Name"
+                required
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                hint={phoneReady && !phoneLookup.isFetching ? 'Only needed when this number is new.' : undefined}
+              />
+            )}
           </Form>
         )}
       </DialogBody>
@@ -174,7 +246,7 @@ export function AddQuickMatchPlayerSheet({
           <Button type="button" variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button type="submit" form="add-quick-match-player">
+          <Button type="submit" form="add-quick-match-player" disabled={phoneReady && phoneLookup.isFetching}>
             Add Player
           </Button>
         </DialogFooter>

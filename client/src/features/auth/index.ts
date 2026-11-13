@@ -9,7 +9,14 @@ export {
   useVerifyOtpMutation,
 } from './api/authApi';
 export { countryByCode, DEFAULT_COUNTRY_CODE, DEFAULT_DIAL } from './lib/constants';
-export { isValidNational, nationalNumberError, optionalNationalError, splitE164, toE164 } from './lib/phone';
+export {
+  isValidNational,
+  nationalDigits,
+  nationalNumberError,
+  optionalNationalError,
+  splitE164,
+  toE164,
+} from './lib/phone';
 export { guestAuthPath, guestAuthPathSync, isReturningUser, markReturningUser } from './lib/returningUser';
 export type {
   RegisterInput,

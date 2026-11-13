@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useMeQuery } from '@/features/auth';
-
 import { APP_PATHS } from '@/shared/config/paths';
 import {
   dispatchDeepLinkNavigation,
@@ -18,6 +16,8 @@ import {
   setStoredPushToken,
 } from '@/shared/native/push';
 import { isNativePlatform } from '@/shared/platform/platform';
+import { selectIsAuthenticated } from '@/shared/store/authSlice';
+import { useAppSelector } from '@/shared/store/hooks';
 
 import { useRegisterDeviceTokenMutation } from '../api/deviceTokenApi';
 
@@ -80,12 +80,12 @@ export function usePushNotifications() {
     locationRef.current = location.pathname;
   }, [location.pathname]);
 
-  const { data: me } = useMeQuery();
+  // Token presence is enough — no need to hit /me from this global effect.
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [registerToken] = useRegisterDeviceTokenMutation();
-  const authed = Boolean(me?.id);
 
   useEffect(() => {
-    if (!isNativePlatform() || !authed) return undefined;
+    if (!isNativePlatform() || !isAuthenticated) return undefined;
 
     let cancelled = false;
     let removeAction: (() => void) | undefined;
@@ -120,5 +120,5 @@ export function usePushNotifications() {
       cancelled = true;
       removeAction?.();
     };
-  }, [authed, navigate, registerToken]);
+  }, [isAuthenticated, navigate, registerToken]);
 }

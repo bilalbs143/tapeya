@@ -207,21 +207,23 @@ export function CreateTournamentWizard({
       <Form density="compact" className="flex flex-col px-4 pt-3.5 pb-4" onSubmit={(e) => e.preventDefault()}>
         {step === 0 ? (
           <>
-            <Input
-              label="Name"
-              required
-              value={f.name}
-              maxLength={60}
-              onChange={(e) => setF((s) => ({ ...s, name: e.target.value.slice(0, 60) }))}
-            />
-            <Input
-              label="Short Name"
-              required
-              value={f.shortName}
-              maxLength={64}
-              hint="Used on scorecards and the live ticker."
-              onChange={(e) => setF((s) => ({ ...s, shortName: e.target.value.slice(0, 64) }))}
-            />
+            <FormRow>
+              <Input
+                label="Name"
+                required
+                value={f.name}
+                maxLength={60}
+                onChange={(e) => setF((s) => ({ ...s, name: e.target.value.slice(0, 60) }))}
+              />
+              <Input
+                label="Short Name"
+                required
+                value={f.shortName}
+                maxLength={64}
+                hint="Used on scorecards and the live ticker."
+                onChange={(e) => setF((s) => ({ ...s, shortName: e.target.value.slice(0, 64) }))}
+              />
+            </FormRow>
 
             <Field label="Tournament Type">
               {() =>

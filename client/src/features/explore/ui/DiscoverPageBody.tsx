@@ -90,7 +90,7 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
           <div className="px-4 pt-3.5">
             <SectionLabel as="h2">{sectionLabel}</SectionLabel>
           </div>
-          <ul className="flex flex-col">
+          <ul className="flex flex-col desk:grid desk:grid-cols-2 desk:gap-x-3">
             {users.map((user) => (
               <SuggestedUserRow key={user.id} user={user} className="border-border-subtle border-b px-4 py-3" />
             ))}

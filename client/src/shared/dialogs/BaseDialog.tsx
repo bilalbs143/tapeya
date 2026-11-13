@@ -71,7 +71,8 @@ export function BaseDialog({
             'inset-x-0 bottom-0 rounded-t-sheet',
             'data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
             'tab:top-1/2 tab:left-1/2 tab:bottom-auto tab:w-full tab:max-w-dialog tab:-translate-x-1/2 tab:-translate-y-1/2',
-            'tab:rounded-card tab:shadow-pop',
+            // Clip opaque DialogFooter to the card radius (phone sheet bottom is flush / hidden).
+            'tab:overflow-hidden tab:rounded-card tab:shadow-pop',
             'tab:data-[state=open]:animate-dialog-in tab:data-[state=closed]:animate-dialog-out',
             shellClassName
           )}

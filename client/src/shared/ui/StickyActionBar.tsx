@@ -18,7 +18,7 @@ export function StickyActionBar({ children, className, edge = false }: StickyAct
     <div
       className={cn(
         // Opaque surface — same as comment compose / dialog footer (no see-through above keyboard).
-        'border-border-subtle bg-surface isolate shrink-0 border-t px-4 pt-3',
+        'border-border-subtle bg-surface isolate shrink-0 border-t px-4 pt-3 tab:border-t-0',
         // Normal: BottomNav owns home-indicator — fixed breathing room.
         // Edge (no nav): home-indicator via `--safe-above-keyboard` (0 while keyboard covers it).
         edge ? 'pb-[max(10px,var(--safe-above-keyboard))]' : 'pb-3',

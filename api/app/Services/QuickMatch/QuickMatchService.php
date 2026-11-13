@@ -378,11 +378,17 @@ final class QuickMatchService
             $name = trim((string) ($player['name'] ?? ''));
             $phone = OtpService::normalizePhone((string) ($player['phone'] ?? ''));
 
+            // Walk-up with a known phone → attach that account (ignore typed name).
             $existing = User::query()->where('phone', $phone)->first();
             if ($existing !== null) {
-                throw ValidationException::withMessages([
-                    "{$sideKey}.players.{$index}.phone" => 'This number is already registered. Add them from search.',
-                ]);
+                if (! $existing->isUser() || $existing->isBlocked()) {
+                    throw ValidationException::withMessages([
+                        "{$sideKey}.players.{$index}.phone" => 'Player must be an active Tapeya user.',
+                    ]);
+                }
+                $ids[] = (int) $existing->id;
+
+                continue;
             }
 
             $created = NicknameFromName::createUser([

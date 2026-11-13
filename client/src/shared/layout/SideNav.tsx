@@ -65,19 +65,20 @@ export function SideNav({ className, user }: SideNavProps) {
     <aside
       aria-label="Primary"
       className={cn(
-        'border-border-subtle bg-surface no-scrollbar flex w-[312px] shrink-0 flex-col overflow-y-auto border-r py-3',
+        // Pin footer: scroll only the nav list — avoids Get the App colliding with last rows.
+        'border-border-subtle bg-surface flex h-full w-[312px] shrink-0 flex-col overflow-hidden border-r py-3',
         className
       )}
     >
-      <div className="px-2.5 pb-2">
+      <div className="shrink-0 px-2.5 pb-2">
         <ShellPrimaryCtas canBroadcast={Boolean(me?.canBroadcast)} />
       </div>
 
-      <nav className="min-h-0 flex-1 px-2.5 pt-0.5 pb-2">
+      <nav className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-2.5 pt-0.5 pb-2">
         <NavGroupList pathname={pathname} groups={groups} />
       </nav>
 
-      <div className="mt-auto shrink-0 px-2.5 pt-2">
+      <div className="border-border-subtle shrink-0 border-t px-2.5 pt-2.5">
         <div className="border-border-subtle bg-surface rounded-panel border p-3">
           <p className="text-2xs font-bold text-ink">Get the App</p>
           <p className="text-muted mt-1 text-3xs leading-relaxed text-pretty">

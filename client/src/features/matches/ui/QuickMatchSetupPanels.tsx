@@ -113,31 +113,32 @@ export function QuickMatchRoster({
 
   return (
     <section className="border-border-subtle bg-surface overflow-hidden rounded-card border">
-      <div className="flex items-center gap-2.5 px-3.5 pt-3.5 pb-2">
-        <span className="border-border-subtle bg-surface-raised font-mono grid size-8 shrink-0 place-items-center rounded-icon border text-4xs font-extrabold text-ink">
-          {quickMatchInitials(name, letter)}
-        </span>
+      <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2">
         {editing ? (
-          <Input
-            value={name}
-            aria-label={`Side ${letter} name`}
-            placeholder={`Side ${letter} name`}
-            onChange={(event) => onRename(event.target.value)}
-            onBlur={() => {
-              if (name.trim()) setEditing(false);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && name.trim()) setEditing(false);
-            }}
-          />
+          <div className="min-w-0 flex-1">
+            <Input
+              value={name}
+              aria-label={`Side ${letter} name`}
+              placeholder={`Side ${letter} name`}
+              onChange={(event) => onRename(event.target.value)}
+              onBlur={() => {
+                if (name.trim()) setEditing(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && name.trim()) setEditing(false);
+              }}
+            />
+          </div>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink">{name.trim()}</span>
+          <span className="border-border-subtle flex h-11 min-w-0 flex-1 items-center truncate rounded-field border px-3 text-sm font-extrabold text-ink">
+            {name.trim()}
+          </span>
         )}
         <button
           type="button"
           aria-label={`Rename side ${letter}`}
           onClick={() => setEditing(true)}
-          className="bg-surface-raised text-brand-text grid size-8 shrink-0 place-items-center rounded-icon"
+          className="bg-surface-raised text-brand-text grid h-11 w-11 shrink-0 place-items-center rounded-field"
         >
           <PencilIcon size="xs" className="size-3.5" strokeWidth={1.9} />
         </button>

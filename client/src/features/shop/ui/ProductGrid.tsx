@@ -97,7 +97,7 @@ export function ProductRail({
   return (
     <HScroll as="ul" className={cn('gap-3', className)}>
       {products.map((p) => (
-        <li key={p.id} className="w-36 shrink-0">
+        <li key={p.id} className="w-36 shrink-0 desk:w-40">
           <ProductCard product={p} className="h-full" />
         </li>
       ))}
