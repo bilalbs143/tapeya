@@ -1,5 +1,7 @@
 package com.tapbytapeya.app;
 
+import android.content.Context;
+
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -13,8 +15,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends BridgeActivity {
     @Override
+    protected void attachBaseContext(Context newBase) {
+        // AppCompat wraps this context with night mode from setDefaultNightMode.
+        TapeyaAppearancePlugin.applyStored(newBase);
+        super.attachBaseContext(newBase);
+    }
+
+    @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Night mode already applied in TapeyaApp; Cap launchShowDuration is 0.
+        // Force Resources + launch theme to stored light/dark before SplashScreen reads
+        // windowSplashScreenBackground (uiMode in configChanges otherwise leaves system-light).
+        TapeyaAppearancePlugin.applyStoredConfiguration(this);
+
         AtomicBoolean keepSplash = new AtomicBoolean(true);
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         splash.setKeepOnScreenCondition(keepSplash::get);
