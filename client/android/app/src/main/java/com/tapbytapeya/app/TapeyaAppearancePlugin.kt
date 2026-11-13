@@ -1,6 +1,5 @@
 package com.tapbytapeya.app
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Handler
@@ -44,7 +43,9 @@ class TapeyaAppearancePlugin : Plugin() {
             AppCompatDelegate.setDefaultNightMode(mode)
         }
 
-        private fun nightModeActive(context: Context): Boolean =
+        /** Whether splash should use dark brand page / night logo assets. */
+        @JvmStatic
+        fun nightModeActive(context: Context): Boolean =
             when (storedTheme(context)) {
                 "dark" -> true
                 "light" -> false
@@ -55,7 +56,21 @@ class TapeyaAppearancePlugin : Plugin() {
                 }
             }
 
-        private fun configurationForStoredTheme(context: Context): Configuration {
+        /**
+         * Hardcoded light/dark [Theme.SplashScreen] — Android 12 OS splash does not honor
+         * AppCompat night for `@color/splash_background`.
+         */
+        @JvmStatic
+        fun launchSplashThemeRes(context: Context): Int =
+            if (nightModeActive(context)) {
+                R.style.AppTheme_NoActionBarLaunch_Dark
+            } else {
+                R.style.AppTheme_NoActionBarLaunch_Light
+            }
+
+        /** Context that resolves values-night / drawable-night-nodpi for splash overlay. */
+        @JvmStatic
+        fun splashContext(context: Context): Context {
             val config = Configuration(context.resources.configuration)
             val bit =
                 if (nightModeActive(context)) {
@@ -64,25 +79,7 @@ class TapeyaAppearancePlugin : Plugin() {
                     Configuration.UI_MODE_NIGHT_NO
                 }
             config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or bit
-            return config
-        }
-
-        /**
-         * Context that resolves values-night / drawable-night-nodpi for splash overlay.
-         * MainActivity lists `uiMode` in configChanges, so Activity resources can stay light.
-         */
-        @JvmStatic
-        fun splashContext(context: Context): Context =
-            context.createConfigurationContext(configurationForStoredTheme(context))
-
-        /**
-         * Before [androidx.core.splashscreen.SplashScreen.installSplashScreen] — re-apply the
-         * launch theme after [applyStored] so splash attrs can pick night colors when possible.
-         */
-        @JvmStatic
-        fun applyStoredConfiguration(activity: Activity) {
-            applyStored(activity)
-            activity.setTheme(R.style.AppTheme_NoActionBarLaunch)
+            return context.createConfigurationContext(config)
         }
     }
 

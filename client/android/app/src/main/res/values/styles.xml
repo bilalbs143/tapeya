@@ -16,13 +16,23 @@
     </style>
 
     <!--
-      OS splash = solid brand page (bg + icon both @color/splash_background).
-      Light/dark via values-night + drawable-night-nodpi/splash_logo on the overlay.
+      Manifest default launch theme (preview before onCreate). Real light/dark is chosen in
+      MainActivity via NoActionBarLaunch.Light / .Dark with hardcoded splash colors — Android 12
+      OS splash does not flip @color/splash_background from AppCompat night mode.
     -->
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBarLaunch.Light" />
+
+    <style name="AppTheme.NoActionBarLaunch.Light" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
-        <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_system_icon</item>
+        <item name="windowSplashScreenBackground">#F3F4F8</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_system_icon_light</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+    <style name="AppTheme.NoActionBarLaunch.Dark" parent="Theme.SplashScreen">
+        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">#13131B</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_system_icon_dark</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

@@ -16,16 +16,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void attachBaseContext(Context newBase) {
-        // AppCompat wraps this context with night mode from setDefaultNightMode.
         TapeyaAppearancePlugin.applyStored(newBase);
         super.attachBaseContext(newBase);
     }
 
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Force Resources + launch theme to stored light/dark before SplashScreen reads
-        // windowSplashScreenBackground (uiMode in configChanges otherwise leaves system-light).
-        TapeyaAppearancePlugin.applyStoredConfiguration(this);
+        // Pick hardcoded Light/Dark SplashScreen theme from stored pref before the OS splash
+        // reads background/icon (resource @color night flipping does not work here).
+        setTheme(TapeyaAppearancePlugin.launchSplashThemeRes(this));
 
         AtomicBoolean keepSplash = new AtomicBoolean(true);
         SplashScreen splash = SplashScreen.installSplashScreen(this);
