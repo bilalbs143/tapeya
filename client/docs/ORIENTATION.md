@@ -16,10 +16,10 @@ Facebook advertiser-ID collection requires ATT. Prompt runs from `AttPrompt` ~1.
 
 ## Native splash brand (iOS + Android)
 
-Cold start keeps light/dark page backgrounds (no Cap `backgroundColor`). Full logo + one-line tagline:
+Cold start keeps light/dark page backgrounds (no Cap `backgroundColor`). Branding:
 
-1. Platform launch surface — iOS `LaunchScreen` / Android `@drawable/splash` (full logo; Android 12 uses a transparent system icon)
-2. `SplashBrandOverlay` — decode logo once, window overlay with tagline until hide
+1. Platform launch surface — iOS `LaunchScreen` (full logo + tagline); Android `@drawable/splash` (full logo). On Android 12+, Cap keeps the system splash until hide — only `windowSplashScreenBackground` + circular `splash_mark` are visible (layer-list / overlay sit underneath).
+2. `SplashBrandOverlay` — full logo + one-line tagline for pre-12 Cap splash and the handoff after the system splash exits
 3. JS `hideNativeSplash()` — Cap `SplashScreen.hide` then `TapeyaAppearance.hideSplashBrand`
 
 ## Non-goals (current)

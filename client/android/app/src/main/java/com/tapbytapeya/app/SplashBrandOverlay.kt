@@ -12,9 +12,10 @@ import java.lang.ref.WeakReference
 /**
  * Window-level splash brand (Android).
  *
- * Android 12+ system splash only supports a circular icon, so Cap's layer-list
- * shows the full logo and this overlay adds logo + one-line tagline until JS hides.
- * Logos are decoded once and kept in memory (light/dark via night resources).
+ * Cap's Android 12+ launch path keeps the *system* splash (bg + circular mark)
+ * until JS hide — full logo / tagline cannot appear there. This overlay covers
+ * pre-12 Cap splash and the brief handoff after the system splash exits.
+ * Logos are decoded once (light/dark via night resources).
  */
 object SplashBrandOverlay {
     private var presented: WeakReference<View>? = null

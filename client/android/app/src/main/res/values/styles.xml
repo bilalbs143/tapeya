@@ -15,11 +15,15 @@
         <item name="android:background">@null</item>
     </style>
 
-    <!-- Launch splash follows system light/dark (layer-list + night resources). -->
+    <!--
+      Launch splash: Cap Android 12+ API keeps this theme on-screen until SplashScreen.hide.
+      Only background + animatedIcon are visible there (layer-list / overlay sit underneath).
+      Use circular splash_mark — a transparent icon looks like a blank page.
+    -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_system_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_mark</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
