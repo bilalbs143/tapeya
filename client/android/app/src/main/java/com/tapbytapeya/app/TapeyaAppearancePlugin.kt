@@ -1,6 +1,7 @@
 package com.tapbytapeya.app
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatDelegate
@@ -20,21 +21,51 @@ class TapeyaAppearancePlugin : Plugin() {
         private const val THEME_KEY = "tapeya:theme"
 
         @JvmStatic
+        fun storedTheme(context: Context): String? =
+            context.applicationContext
+                .getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE)
+                .getString(THEME_KEY, null)
+
+        @JvmStatic
         fun applyStored(context: Context) {
-            val prefs = context.applicationContext.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE)
-            applyTheme(prefs.getString(THEME_KEY, null))
+            applyTheme(storedTheme(context))
         }
 
         /** Caller must be on the main thread (onCreate or runOnUiThread). */
         @JvmStatic
         fun applyTheme(theme: String?) {
-            val mode = when (theme) {
-                "light" -> AppCompatDelegate.MODE_NIGHT_NO
-                "dark" -> AppCompatDelegate.MODE_NIGHT_YES
-                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            }
+            val mode =
+                when (theme) {
+                    "light" -> AppCompatDelegate.MODE_NIGHT_NO
+                    "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+                    else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                }
             if (AppCompatDelegate.getDefaultNightMode() == mode) return
             AppCompatDelegate.setDefaultNightMode(mode)
+        }
+
+        /**
+         * Context that resolves values-night / drawable-night-nodpi for splash.
+         * Needed because MainActivity lists `uiMode` in configChanges, so AppCompat
+         * may not flip [Activity] resources before [SplashBrandOverlay] inflates.
+         */
+        @JvmStatic
+        fun splashContext(context: Context): Context {
+            val night =
+                when (storedTheme(context)) {
+                    "dark" -> true
+                    "light" -> false
+                    else -> {
+                        val mask =
+                            context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                        mask == Configuration.UI_MODE_NIGHT_YES
+                    }
+                }
+            val config = Configuration(context.resources.configuration)
+            val bit =
+                if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+            config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or bit
+            return context.createConfigurationContext(config)
         }
     }
 

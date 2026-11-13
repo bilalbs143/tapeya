@@ -14,10 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Apply stored light/dark *before* the OS splash so solid page + logo overlay share
-        // values(-night) / drawable-night-nodpi. Cap launchShowDuration is 0.
-        TapeyaAppearancePlugin.applyStored(this);
-
+        // Night mode already applied in TapeyaApp; Cap launchShowDuration is 0.
         AtomicBoolean keepSplash = new AtomicBoolean(true);
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         splash.setKeepOnScreenCondition(keepSplash::get);

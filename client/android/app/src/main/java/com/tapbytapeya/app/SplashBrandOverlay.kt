@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import java.lang.ref.WeakReference
 
-/** Full logo + tagline (iOS-sized). Shown until JS `hideSplashBrand`. */
+/** Full logo + tagline (iOS-sized). Inflated with stored light/dark. Shown until JS `hideSplashBrand`. */
 object SplashBrandOverlay {
     private var presented: WeakReference<View>? = null
 
@@ -15,7 +15,8 @@ object SplashBrandOverlay {
     fun show(activity: Activity) {
         hide()
         val root = activity.window?.decorView as? ViewGroup ?: return
-        val overlay = LayoutInflater.from(activity).inflate(R.layout.splash_brand_overlay, root, false)
+        val themed = TapeyaAppearancePlugin.splashContext(activity)
+        val overlay = LayoutInflater.from(themed).inflate(R.layout.splash_brand_overlay, root, false)
         overlay.elevation = 100f
         root.addView(
             overlay,

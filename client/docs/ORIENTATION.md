@@ -18,8 +18,8 @@ Facebook advertiser-ID collection requires ATT. Prompt runs from `AttPrompt` ~1.
 
 Cold start keeps light/dark page backgrounds (no Cap `backgroundColor`). Branding:
 
-1. Platform launch — iOS `LaunchScreen` (trait light/dark). Android 12+ OS splash is a solid brand page (`splash_background` + matching icon); Cap `launchShowDuration` is `0`. Stored theme is applied before `installSplashScreen` so solid page and overlay agree.
-2. `SplashBrandOverlay` — full logo + tagline (`splash_logo` / `splash_tagline`, night variants) until auth hydrate
+1. Platform launch — iOS `LaunchScreen` (trait light/dark). Android: `TapeyaApp` applies stored `tapeya:theme` before any Activity so the OS solid brand page resolves night colors; Cap `launchShowDuration` is `0`.
+2. `SplashBrandOverlay` — full logo + tagline inflated via a configuration context for the stored theme (MainActivity handles `uiMode` itself, so Activity resources may stay light otherwise)
 3. JS `hideNativeSplash()` — Cap `SplashScreen.hide` then `TapeyaAppearance.hideSplashBrand`
 
 ## Non-goals (current)
