@@ -17,7 +17,7 @@
 
     <!--
       Android 12+ cold-start only: bg + circular splash_mark (OS requirement).
-      CapLaunchSplash dismisses Cap’s hold ASAP → SplashBrandOverlay (full logo + tagline).
+      Cap launchShowDuration is 0; MainActivity releases keep onto SplashBrandOverlay.
       Transparent animatedIcon = blank page — never remove the mark.
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
