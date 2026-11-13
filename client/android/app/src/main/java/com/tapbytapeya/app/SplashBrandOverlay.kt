@@ -10,12 +10,11 @@ import android.widget.ImageView
 import java.lang.ref.WeakReference
 
 /**
- * Window-level splash brand (Android).
+ * Window-level splash brand (Android) — full logo + tagline like iOS.
  *
- * Cap's Android 12+ launch path keeps the *system* splash (bg + circular mark)
- * until JS hide — full logo / tagline cannot appear there. This overlay covers
- * pre-12 Cap splash and the brief handoff after the system splash exits.
- * Logos are decoded once (light/dark via night resources).
+ * Cap Android 12+ briefly keeps a circular system mark (`splash_mark`); with
+ * `launchAutoHide` that exits quickly so this overlay owns the brand until JS
+ * `hideSplashBrand`. Logos are decoded once (light/dark via night resources).
  */
 object SplashBrandOverlay {
     private var presented: WeakReference<View>? = null

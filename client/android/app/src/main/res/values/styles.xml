@@ -16,9 +16,9 @@
     </style>
 
     <!--
-      Launch splash: Cap Android 12+ API keeps this theme on-screen until SplashScreen.hide.
-      Only background + animatedIcon are visible there (layer-list / overlay sit underneath).
-      Use circular splash_mark — a transparent icon looks like a blank page.
+      Android 12+ cold-start only: bg + circular splash_mark (OS requirement).
+      Cap launchAutoHide hands off to SplashBrandOverlay (full logo + tagline).
+      Transparent animatedIcon = blank page — never remove the mark.
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>

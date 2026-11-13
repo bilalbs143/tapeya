@@ -13,10 +13,13 @@ const config: CapacitorConfig = {
   // Capawesome Firebase Analytics no-IDFA: Podfile
   // `CapacitorFirebaseAnalytics/AnalyticsWithoutAdIdSupport` (CocoaPods — ships dSYMs).
   plugins: {
-    // Native splash stays until hideNativeSplash() after auth hydrate.
-    // Do not set launchShowDuration to 0 — Cap iOS then skips showOnLaunch.
+    // Cap splash auto-hides quickly; SplashBrandOverlay (full logo + tagline) stays until
+    // hideNativeSplash() after auth hydrate. Do not set launchShowDuration to 0 — Cap iOS
+    // then skips showOnLaunch. On Android 12+, Cap keeps the circular system mark until this
+    // auto-hide — launchAutoHide:false left that mark up for the whole boot (no full logo).
     SplashScreen: {
-      launchAutoHide: false,
+      launchAutoHide: true,
+      launchShowDuration: 200,
       // No backgroundColor — Cap would paint one fixed hex and wipe system dark/light.
       // Native splash assets already own page bg + mark (iOS colorset / Android values-night).
       androidSplashResourceName: 'splash',
