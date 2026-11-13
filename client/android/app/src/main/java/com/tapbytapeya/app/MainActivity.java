@@ -18,6 +18,13 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(FacebookAnalyticsPlugin.class);
         super.onCreate(savedInstanceState);
         SplashBrandOverlay.show(this);
+        // Cap's Android 12 mark stays until SplashScreen.hide; auto-hide waits on first
+        // WebView predraw (~seconds). Drop it now so SplashBrandOverlay owns the brand.
+        CapLaunchSplash.dismiss(this);
+        getWindow().getDecorView().post(() -> {
+            CapLaunchSplash.dismiss(this);
+            SplashBrandOverlay.bringToFront(this);
+        });
         // Hide OS nav early (before JS). Transient-by-swipe: edge swipe peeks then auto-hides.
         // Status bar stays visible. JS re-applies on resume via androidSystemNav.ts.
         applyHiddenAndroidNavigationBar();

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Mirror iOS SplashBrandOverlay / LaunchScreen: 276×104 logo, 15pt medium tagline, spacing 18, inset 24, −8. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/splash_brand_overlay"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -33,13 +35,15 @@
             android:layout_marginTop="18dp"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
+            android:includeFontPadding="false"
             android:maxLines="1"
             android:text="@string/splash_tagline"
             android:textColor="@color/splash_tagline"
-            android:textSize="15sp"
-            app:autoSizeMaxTextSize="15sp"
-            app:autoSizeMinTextSize="12sp"
-            app:autoSizeStepGranularity="1sp"
-            app:autoSizeTextType="uniform" />
+            android:textSize="15dp"
+            app:autoSizeMaxTextSize="15dp"
+            app:autoSizeMinTextSize="12dp"
+            app:autoSizeStepGranularity="1dp"
+            app:autoSizeTextType="uniform"
+            tools:ignore="SpUsage" />
     </LinearLayout>
 </FrameLayout>
