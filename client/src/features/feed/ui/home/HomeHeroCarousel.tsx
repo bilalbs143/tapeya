@@ -84,13 +84,6 @@ export function HomeHeroCarousel({ slides, loading = false, className }: HomeHer
           slidesPerView={1}
           centeredSlides={false}
           loop={showDots}
-          breakpoints={{
-            900: {
-              slidesPerView: 1.5,
-              centeredSlides: true,
-              spaceBetween: 16,
-            },
-          }}
           autoplay={
             showDots
               ? {

@@ -104,3 +104,22 @@ export function ProductRail({
     </HScroll>
   );
 }
+
+/** Matches `ProductRail` card size — use under a section header while the rail loads. */
+export function ProductRailSkeleton({
+  count = SKELETON.productRail,
+  className,
+}: {
+  count?: number | undefined;
+  className?: string | undefined;
+}) {
+  return (
+    <HScroll as="ul" className={cn('gap-3', className)} aria-hidden>
+      {Array.from({ length: count }, (_, i) => (
+        <li key={i} className="w-36 shrink-0 desk:w-40">
+          <ProductCardSkeleton className="h-full" />
+        </li>
+      ))}
+    </HScroll>
+  );
+}

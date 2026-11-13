@@ -9,7 +9,7 @@ import { shopPaths } from '../lib/shopPaths';
 import { BrandRail } from './BrandRail';
 import { CartLink } from './CartLink';
 import { ProductCardSkeleton } from './ProductCard';
-import { ProductGrid, ProductRail } from './ProductGrid';
+import { ProductGrid, ProductRail, ProductRailSkeleton } from './ProductGrid';
 import { ShopSectionHeader } from './ShopSectionHeader';
 import type { useShopHome } from './useShopHome';
 
@@ -19,11 +19,15 @@ type ShopHomeBodyProps = {
   flow: ShopHomeFlow;
 };
 
+const HOME_RAIL_SKELETONS = [
+  { title: 'Most Popular', label: 'Loading Most Popular' },
+  { title: 'Special Offer', label: 'Loading Special Offer' },
+] as const;
+
 /** ScreenBar + search + brands pinned; product rails/grid scroll. */
 export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
   const brandCount = SKELETON.brandRail;
   const productCount = SKELETON.productGrid;
-  const railCount = SKELETON.productRail;
   const {
     query,
     setQuery,
@@ -68,9 +72,16 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
           {!searching ? (
             <div className="pt-3 pb-2.5">
               {brandsLoading ? (
-                <HScroll className="gap-2.5" bleed={false}>
+                <HScroll className="gap-2" bleed={false} aria-busy="true" aria-label="Loading Brands">
                   {Array.from({ length: brandCount }, (_, i) => (
-                    <Skeleton key={i} className="h-14 w-14 shrink-0 rounded-full" />
+                    <span
+                      key={i}
+                      className="border-border-subtle bg-surface flex shrink-0 items-center gap-2 rounded-chip border py-1.5 pr-3 pl-1.5"
+                      aria-hidden
+                    >
+                      <Skeleton className="h-7 w-7 shrink-0 rounded-icon" />
+                      <Skeleton className="h-2.5 w-14" />
+                    </span>
                   ))}
                 </HScroll>
               ) : brandsError ? (
@@ -112,13 +123,13 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
             )}
           </>
         ) : railsLoading ? (
-          <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading Shop">
-            <Skeleton className="h-4 w-32" />
-            <HScroll className="gap-3">
-              {Array.from({ length: railCount }, (_, i) => (
-                <Skeleton key={i} className="h-48 w-36 shrink-0 rounded-card" />
-              ))}
-            </HScroll>
+          <div className="flex flex-col gap-5" aria-busy="true" aria-label="Loading Shop">
+            {HOME_RAIL_SKELETONS.map((rail) => (
+              <section key={rail.title} className="flex flex-col gap-3" aria-label={rail.label}>
+                <ShopSectionHeader title={rail.title} action={<Skeleton className="h-3 w-14" />} />
+                <ProductRailSkeleton />
+              </section>
+            ))}
           </div>
         ) : railsError ? (
           <ErrorState title="Couldn't Load the Shop" description="Featured rails didn't answer." onRetry={retryRails} />
