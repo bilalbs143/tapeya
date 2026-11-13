@@ -11,8 +11,8 @@ const MATCH: Record<string, StatusMeta> = {
   live: { tone: 'live', label: 'Live' },
   in_progress: { tone: 'live', label: 'Live' },
   break: { tone: 'warning', label: 'Break' },
-  no_toss: { tone: 'neutral', label: 'Toss pending' },
-  toss_done: { tone: 'brand', label: 'Toss done' },
+  no_toss: { tone: 'neutral', label: 'Toss Pending' },
+  toss_done: { tone: 'brand', label: 'Toss Done' },
   scheduled: { tone: 'neutral', label: 'Scheduled' },
   completed: { tone: 'positive', label: 'Result' },
   cancelled: { tone: 'danger', label: 'Cancelled' },
@@ -30,19 +30,19 @@ const ORDER: Record<string, StatusMeta> = {
 };
 
 const VENDOR: Record<string, StatusMeta> = {
-  none: { tone: 'neutral', label: 'No store' },
-  pending: { tone: 'brand', label: 'Pending approval' },
+  none: { tone: 'neutral', label: 'No Store' },
+  pending: { tone: 'brand', label: 'Pending Approval' },
   approved: { tone: 'positive', label: 'Approved' },
   suspended: { tone: 'danger', label: 'Suspended' },
-  rejected: { tone: 'danger', label: 'Not approved' },
+  rejected: { tone: 'danger', label: 'Not Approved' },
 };
 
 const TOURNAMENT: Record<string, StatusMeta> = {
   setup: { tone: 'neutral', label: 'Setup' },
   active: { tone: 'brand', label: 'Active' },
   upcoming: { tone: 'neutral', label: 'Upcoming' },
-  review: { tone: 'brand', label: 'In review' },
-  rejected: { tone: 'danger', label: 'Not approved' },
+  review: { tone: 'brand', label: 'In Review' },
+  rejected: { tone: 'danger', label: 'Not Approved' },
   previous: { tone: 'neutral', label: 'Finished' },
   inactive: { tone: 'neutral', label: 'Finished' },
 };

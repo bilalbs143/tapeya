@@ -27,9 +27,9 @@ export function squadCountsByTeam(occupancy: SquadOccupancy[]): Map<number, numb
 }
 
 export function squadState(squadSize: number): { label: string; tone: 'empty' | 'short' | 'ready' } {
-  if (!squadSize) return { label: 'No squad', tone: 'empty' };
+  if (!squadSize) return { label: 'No Squad', tone: 'empty' };
   if (squadSize < SQUAD_XI) return { label: `Needs ${SQUAD_XI - squadSize}`, tone: 'short' };
-  return { label: `${squadSize} players`, tone: 'ready' };
+  return { label: `${squadSize} Players`, tone: 'ready' };
 }
 
 export function squadsReadyCount(teams: TournamentTeam[], counts: Map<number, number>): number {

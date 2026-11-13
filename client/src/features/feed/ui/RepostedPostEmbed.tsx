@@ -133,7 +133,7 @@ export function RepostedPostEmbed({ original, className }: RepostedPostEmbedProp
               </MediaFrame>
             </span>
           ) : (
-            <p className="text-brand-text px-3 pb-3 text-2xs font-semibold">Open reel</p>
+            <p className="text-brand-text px-3 pb-3 text-2xs font-semibold">Open Reel</p>
           )
         ) : null}
       </Link>

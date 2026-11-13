@@ -43,7 +43,7 @@ describe('TournamentCard', () => {
 
     expect(screen.getByText('Ramzan Cup')).toBeInTheDocument();
     expect(screen.getByText('4/8')).toBeInTheDocument();
-    expect(screen.getByText(/Add 4 more team/)).toBeInTheDocument();
+    expect(screen.getByText(/Add 4 More Team/)).toBeInTheDocument();
   });
 
   it('renders previous card with public link', () => {

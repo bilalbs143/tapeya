@@ -30,7 +30,7 @@ export function TournamentWorkspaceFooter({ flow, tournament }: TournamentWorksp
     return (
       <StickyActionBar>
         <Button className="w-full font-bold" onClick={() => openAttach(hasGroups ? 1 : undefined)}>
-          Add first team
+          Add First Team
         </Button>
       </StickyActionBar>
     );
@@ -45,7 +45,7 @@ export function TournamentWorkspaceFooter({ flow, tournament }: TournamentWorksp
           disabled={!canAdd}
           onClick={() => openAttach(neediest != null ? neediest.g : hasGroups ? 1 : undefined)}
         >
-          Add team
+          Add Team
         </Button>
         <Button asChild className="flex-1">
           <Link to={tournamentRoutes.squad(tournament.id)}>Squads</Link>

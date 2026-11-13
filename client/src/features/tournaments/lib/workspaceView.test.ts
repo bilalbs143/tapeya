@@ -33,7 +33,7 @@ describe('workspaceView', () => {
   });
 
   it('labels squad progress for XI threshold', () => {
-    expect(squadState(0).label).toBe('No squad');
+    expect(squadState(0).label).toBe('No Squad');
     expect(squadState(7).label).toBe('Needs 4');
     expect(squadState(11).tone).toBe('ready');
   });

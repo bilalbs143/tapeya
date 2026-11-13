@@ -59,7 +59,7 @@ export function LoginFormBody({ flow }: LoginFormBodyProps) {
             onClick={() => setMode('phone')}
           >
             <PlusIcon className="h-3.5 w-3.5" strokeWidth={2} />
-            Use another number
+            Use Another Number
           </Button>
         ) : (
           <Button type="submit" form="login-phone" size="lg" className="w-full" loading={sending}>

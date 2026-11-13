@@ -37,7 +37,10 @@ type BaseDialogProps = {
   children: ReactNode;
 };
 
-/** Sheet below `tab`, centred card at `tab+`. Registry + feature overlays share this chrome. §13 */
+/**
+ * Phone: bottom sheet + slide. Desktop (`tab+`): card centred with `inset-0 m-auto`
+ * (not translate) so dialog-in/out can scale without fighting position.
+ */
 export function BaseDialog({
   open,
   onOpenChange,
@@ -53,6 +56,10 @@ export function BaseDialog({
   const showX = showClose && canClose;
   const handleVisible = showHandle ?? canClose;
 
+  function blockDismiss(event: Event) {
+    if (!canClose) event.preventDefault();
+  }
+
   return (
     <DialogPrimitive.Root
       open={open}
@@ -65,27 +72,20 @@ export function BaseDialog({
         <Overlay />
         <DialogPrimitive.Content
           className={cn(
-            // Phone sheets: no bottom border. Solid surface + KeyboardInsetPad fill the keyboard zone.
-            'bg-surface border-border fixed z-50 flex flex-col border-x border-t text-ink focus:outline-none tab:border',
-            // Stay pinned to bottom — never `bottom: inset` (that leaves veil in the corners).
-            'inset-x-0 bottom-0 rounded-t-sheet',
-            'data-[state=open]:animate-sheet-in data-[state=closed]:animate-sheet-out',
-            'tab:top-1/2 tab:left-1/2 tab:bottom-auto tab:w-full tab:max-w-dialog tab:-translate-x-1/2 tab:-translate-y-1/2',
-            // Clip opaque DialogFooter to the card radius (phone sheet bottom is flush / hidden).
-            'tab:overflow-hidden tab:rounded-card tab:shadow-pop',
+            'bg-surface border-border fixed z-50 flex flex-col text-ink focus:outline-none',
+            // Phone sheet — KeyboardInsetPad owns the bottom safe/keyboard fill (no border-b).
+            'inset-x-0 bottom-0 rounded-t-sheet border-x border-t',
+            'max-tab:data-[state=open]:animate-sheet-in max-tab:data-[state=closed]:animate-sheet-out',
+            // Desktop card — margin box centres; transform left for scale-only motion.
+            'tab:inset-0 tab:m-auto tab:h-fit tab:max-h-[min(90dvh,720px)] tab:w-full tab:max-w-dialog',
+            'tab:overflow-hidden tab:rounded-card tab:border tab:shadow-pop',
             'tab:data-[state=open]:animate-dialog-in tab:data-[state=closed]:animate-dialog-out',
             shellClassName
           )}
           onOpenAutoFocus={onOpenAutoFocus}
-          onPointerDownOutside={(event) => {
-            if (!canClose) event.preventDefault();
-          }}
-          onEscapeKeyDown={(event) => {
-            if (!canClose) event.preventDefault();
-          }}
-          onInteractOutside={(event) => {
-            if (!canClose) event.preventDefault();
-          }}
+          onPointerDownOutside={blockDismiss}
+          onEscapeKeyDown={blockDismiss}
+          onInteractOutside={blockDismiss}
         >
           {handleVisible ? (
             <span aria-hidden className="bg-surface-raised mx-auto mt-3 block h-1 w-9 rounded-full tab:hidden" />

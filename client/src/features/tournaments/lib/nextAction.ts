@@ -13,27 +13,27 @@ export type TournamentNextAction = {
 
 export function tournamentNextAction(t: Tournament): TournamentNextAction {
   if (t.hubSection === 'previous' || t.status === 'previous' || t.status === 'inactive') {
-    return { kind: 'done', label: 'View tournament', to: tournamentRoutes.public(t.id) };
+    return { kind: 'done', label: 'View Tournament', to: tournamentRoutes.public(t.id) };
   }
 
   const cap = t.teamCap;
   if (cap != null && t.teamsCount === 0) {
-    return { kind: 'teams', label: 'Add the first team', to: tournamentRoutes.detail(t.id) };
+    return { kind: 'teams', label: 'Add the First Team', to: tournamentRoutes.detail(t.id) };
   }
   if (cap != null && t.teamsCount < cap) {
     const missing = cap - t.teamsCount;
     return {
       kind: 'teams',
-      label: `Add ${missing} more team${missing > 1 ? 's' : ''}`,
+      label: `Add ${missing} More Team${missing > 1 ? 's' : ''}`,
       to: tournamentRoutes.detail(t.id),
     };
   }
   if (t.matchesCount === 0) {
     return {
       kind: 'fixtures',
-      label: 'Add the first fixture',
+      label: 'Add the First Fixture',
       to: `${APP_PATHS.startMatch}?tournamentId=${t.id}`,
     };
   }
-  return { kind: 'scoring', label: 'Score match day', to: APP_PATHS.matches };
+  return { kind: 'scoring', label: 'Score Match Day', to: APP_PATHS.matches };
 }

@@ -112,14 +112,14 @@ export const PROFILE_STRENGTH_TOTAL = STRENGTH_FIELDS.length + 1;
 
 const GAP_META = {
   avatar: { id: 'profile-photo', label: 'Photo' },
-  playingRole: { id: 'profile-playing-role', label: 'Playing role' },
+  playingRole: { id: 'profile-playing-role', label: 'Playing Role' },
   city: { id: 'profile-city', label: 'City' },
   name: { id: 'profile-name', label: 'Name' },
   nickname: { id: 'profile-nickname', label: 'Nickname' },
   email: { id: 'profile-email', label: 'Email' },
-  dateOfBirth: { id: 'profile-dob', label: 'Date of birth' },
-  battingStyle: { id: 'profile-batting', label: 'Batting style' },
-  bowlingStyle: { id: 'profile-bowling', label: 'Bowling style' },
+  dateOfBirth: { id: 'profile-dob', label: 'Date of Birth' },
+  battingStyle: { id: 'profile-batting', label: 'Batting Style' },
+  bowlingStyle: { id: 'profile-bowling', label: 'Bowling Style' },
   country: { id: 'profile-country', label: 'Country' },
 } as const;
 

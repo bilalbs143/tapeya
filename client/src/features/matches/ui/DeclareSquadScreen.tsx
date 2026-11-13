@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/dialogs/BaseDialog';
-import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { CloseIcon, PlusIcon, SearchIcon } from '@/shared/ui/icons';
@@ -72,12 +71,8 @@ export function DeclareSquadScreen(props: DeclareSquadScreenProps) {
         onOpenChange={onOpenChange}
         showClose={false}
         showHandle={false}
-        // Shell owns insets + dock pad; body layout stays on contentClassName (`p-0` safe).
-        shellClassName={cn(
-          'inset-x-0 top-[max(48px,env(safe-area-inset-top))] bottom-0',
-          'tab:top-1/2 tab:left-1/2 tab:right-auto tab:bottom-auto',
-          'tab:-translate-x-1/2 tab:-translate-y-1/2 tab:max-h-[min(90dvh,720px)] tab:shadow-pop'
-        )}
+        // Phone: clear of status chrome; `tab:top-0` restores BaseDialog’s inset-0 centre.
+        shellClassName="top-[max(48px,env(safe-area-inset-top))] tab:top-0"
         contentClassName="flex h-auto max-h-none flex-col overflow-hidden p-0"
       >
         <DialogHeader className="border-border-subtle shrink-0 border-b pr-5 pb-3">
