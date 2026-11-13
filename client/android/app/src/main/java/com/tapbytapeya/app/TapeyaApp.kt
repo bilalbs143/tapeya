@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 
 /**
- * Apply stored light/dark as early as [attachBaseContext] so Android 12 OS splash
- * theme attrs (`splash_background`, system icon) resolve night resources.
+ * Apply stored light/dark before Activities. Must use [base] prefs only in
+ * [attachBaseContext] — [Context.getApplicationContext] is not ready yet.
  */
 class TapeyaApp : Application() {
     override fun attachBaseContext(base: Context) {

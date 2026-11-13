@@ -21,11 +21,10 @@ class TapeyaAppearancePlugin : Plugin() {
         private const val PREFS_GROUP = "CapacitorStorage"
         private const val THEME_KEY = "tapeya:theme"
 
+        /** Prefer [Context] directly — [Context.getApplicationContext] crashes in attachBaseContext. */
         @JvmStatic
         fun storedTheme(context: Context): String? =
-            context.applicationContext
-                .getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE)
-                .getString(THEME_KEY, null)
+            context.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE).getString(THEME_KEY, null)
 
         @JvmStatic
         fun applyStored(context: Context) {
@@ -77,21 +76,12 @@ class TapeyaAppearancePlugin : Plugin() {
             context.createConfigurationContext(configurationForStoredTheme(context))
 
         /**
-         * Before [androidx.core.splashscreen.SplashScreen.installSplashScreen] — push stored
-         * light/dark into Activity (+ app) Resources and re-apply the launch theme so
-         * `windowSplashScreenBackground` / system icon are not stuck on system-light.
+         * Before [androidx.core.splashscreen.SplashScreen.installSplashScreen] — re-apply the
+         * launch theme after [applyStored] so splash attrs can pick night colors when possible.
          */
         @JvmStatic
         fun applyStoredConfiguration(activity: Activity) {
             applyStored(activity)
-            val config = configurationForStoredTheme(activity)
-            @Suppress("DEPRECATION")
-            activity.resources.updateConfiguration(config, activity.resources.displayMetrics)
-            @Suppress("DEPRECATION")
-            activity.applicationContext.resources.updateConfiguration(
-                config,
-                activity.applicationContext.resources.displayMetrics,
-            )
             activity.setTheme(R.style.AppTheme_NoActionBarLaunch)
         }
     }
