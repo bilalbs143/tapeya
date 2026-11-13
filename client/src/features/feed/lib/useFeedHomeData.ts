@@ -78,10 +78,8 @@ export function useFeedHomeWidgets(enabled: boolean) {
 
 export function useFeedHomeRailData() {
   const userId = useAppSelector(selectUserId);
-  const { data: products = [] } = useGetHomePopularProductsQuery({ perPage: 4 });
   const { data: quick } = useGetQuickMatchesQuery(undefined, { skip: userId == null });
   return {
-    products,
     nextMatch: pickNextMatch(quick),
   };
 }

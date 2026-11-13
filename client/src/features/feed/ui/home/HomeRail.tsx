@@ -16,7 +16,7 @@ type HomeRailProps = {
   compact?: boolean | undefined;
 };
 
-/** Desktop home rail — next match, optional shop picks. */
+/** Desk rail cards — next match and/or “Gear near you” shop picks. */
 export function HomeRail({ nextMatch, products = [], compact = false }: HomeRailProps) {
   const hasContent = Boolean(nextMatch) || (!compact && products.length > 0);
   if (!hasContent && compact) return null;

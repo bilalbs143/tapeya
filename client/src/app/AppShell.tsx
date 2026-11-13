@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { useMeQuery } from '@/features/auth';
-import { DeskMediaRail } from '@/features/feed';
+import { DeskGearRail, DeskMediaRail } from '@/features/feed';
 
 import { userHandle } from '@/entities/user';
 
@@ -164,6 +164,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
               <aside className="border-border-subtle hidden h-full w-[384px] shrink-0 flex-col border-l px-3.5 py-4 desk:flex wide:w-[424px]">
                 <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto">
                   <SideRail />
+                  <DeskGearRail />
                   <DeskMediaRail />
                   {rail}
                 </div>

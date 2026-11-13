@@ -10,8 +10,8 @@ import { Card } from '@/shared/ui/Card';
 import { MediaPosterChip } from './MediaPosterChip';
 
 /**
- * Always-on desk widgets — Card chrome like “Gear near you”;
- * 2 latest highlights + 3 entertainment tiles sized to fit the rail.
+ * Always-on desk widgets — highlights + entertainment
+ * (shop “Gear near you” is `DeskGearRail`).
  */
 export function DeskMediaRail() {
   const { data: highlights = [] } = useGetHomeHighlightsQuery({ perPage: 4 });
