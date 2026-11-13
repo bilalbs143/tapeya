@@ -14,24 +14,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Own the Android 12+ splash: keep the OS splash only until SplashBrandOverlay is
-        // attached, then release. Cap launchShowDuration is 0 so Cap does not re-hold the
-        // circular mark for the whole WebView boot (that was the double-splash).
+        // Android 12+ always shows an OS splash first. Ours is a solid brand page (no circular
+        // mark). Keep it only until SplashBrandOverlay is attached, then remove instantly —
+        // Cap launchShowDuration is 0 so Cap cannot re-hold a second branded splash.
         AtomicBoolean keepSystemSplash = new AtomicBoolean(true);
-        SplashScreen.installSplashScreen(this).setKeepOnScreenCondition(keepSystemSplash::get);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        splashScreen.setKeepOnScreenCondition(keepSystemSplash::get);
+        splashScreen.setOnExitAnimationListener(splashScreenView -> splashScreenView.remove());
 
         TapeyaAppearancePlugin.applyStored(this);
         SplashBrandOverlay.warm(this);
-        // Attach full logo + tagline before Cap/WebView init so the first drawn frame is
-        // already branded (OS mark exits onto this, not a blank WebView).
         SplashBrandOverlay.show(this);
-        keepSystemSplash.set(false);
+        // Exit OS splash as soon as a frame can draw onto the overlay (same brand bg).
+        getWindow().getDecorView().post(() -> keepSystemSplash.set(false));
 
         registerPlugin(TapeyaAppearancePlugin.class);
         registerPlugin(TapeyaBroadcastPlugin.class);
         registerPlugin(FacebookAnalyticsPlugin.class);
         super.onCreate(savedInstanceState);
+
+        // Bridge setContentView can reshuffle z-order; put brand back, then ensure OS splash
+        // is gone (instant remove — no circular-mark zoom animation).
+        SplashBrandOverlay.show(this);
         SplashBrandOverlay.bringToFront(this);
+        keepSystemSplash.set(false);
+
         // Hide OS nav early (before JS). Transient-by-swipe: edge swipe peeks then auto-hides.
         // Status bar stays visible. JS re-applies on resume via androidSystemNav.ts.
         applyHiddenAndroidNavigationBar();

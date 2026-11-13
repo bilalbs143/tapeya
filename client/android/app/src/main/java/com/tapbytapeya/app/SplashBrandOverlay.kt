@@ -11,8 +11,8 @@ import java.lang.ref.WeakReference
  * Window-level splash brand (Android) — full logo + tagline like iOS.
  *
  * Sizing mirrors iOS `SplashBrandOverlay` / LaunchScreen: logo 276×104, tagline 15,
- * stack spacing 18, horizontal inset 24, centerY −8. Attached before Cap/WebView init;
- * Cap launchShowDuration is 0 so the circular OS mark is not held for a second splash.
+ * stack spacing 18, horizontal inset 24, centerY −8. OS splash is a solid brand page
+ * (no circular mark); this overlay is the only logo + tagline. Cap launchShowDuration is 0.
  */
 object SplashBrandOverlay {
     private var presented: WeakReference<View>? = null

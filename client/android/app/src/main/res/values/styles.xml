@@ -16,14 +16,14 @@
     </style>
 
     <!--
-      Android 12+ cold-start only: bg + circular splash_mark (OS requirement).
-      Cap launchShowDuration is 0; MainActivity releases keep onto SplashBrandOverlay.
-      Transparent animatedIcon = blank page — never remove the mark.
+      Android 12+ always draws an OS splash (bg + icon). Icon is tinted to splash_background
+      so that phase is an invisible solid page; SplashBrandOverlay owns logo + tagline.
+      Cap launchShowDuration is 0 — Cap must not re-hold a second branded splash.
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_mark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_system_icon</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
