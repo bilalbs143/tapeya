@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mirror iOS SplashBrandOverlay / LaunchScreen: 276×104 logo, 15pt medium tagline, spacing 18, inset 24, −8. -->
+<!-- iOS-sized brand; light/dark via splash_background, splash_tagline, splash_logo (night-nodpi). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

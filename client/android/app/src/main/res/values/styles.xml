@@ -16,9 +16,8 @@
     </style>
 
     <!--
-      Android 12+ always draws an OS splash (bg + icon). Icon is tinted to splash_background
-      so that phase is an invisible solid page; SplashBrandOverlay owns logo + tagline.
-      Cap launchShowDuration is 0 — Cap must not re-hold a second branded splash.
+      OS splash = solid brand page (bg + icon both @color/splash_background).
+      Light/dark via values-night + drawable-night-nodpi/splash_logo on the overlay.
     -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>

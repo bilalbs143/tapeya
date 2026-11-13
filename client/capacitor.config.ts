@@ -13,16 +13,11 @@ const config: CapacitorConfig = {
   // Capawesome Firebase Analytics no-IDFA: Podfile
   // `CapacitorFirebaseAnalytics/AnalyticsWithoutAdIdSupport` (CocoaPods — ships dSYMs).
   plugins: {
-    // launchShowDuration 0: Cap must not own launch splash. Android 12 Cap keep-on-screen
-    // was a circular mark for the whole WebView boot, then SplashBrandOverlay (double splash).
-    // Branding is LaunchScreen / Theme.SplashScreen handoff → SplashBrandOverlay until
-    // hideNativeSplash() after auth hydrate. iOS LaunchScreen + SplashBrandOverlay already
-    // cover cold start without Cap showOnLaunch.
+    // launchShowDuration 0: Cap does not own launch splash (Android 12 keep = double splash).
+    // Branding is LaunchScreen / solid OS page → SplashBrandOverlay until hideNativeSplash().
     SplashScreen: {
       launchShowDuration: 0,
-      launchAutoHide: true,
       // No backgroundColor — Cap would paint one fixed hex and wipe system dark/light.
-      // Native splash assets already own page bg + mark (iOS colorset / Android values-night).
       androidSplashResourceName: 'splash',
     },
     // WebView box stays fixed; AppShell is `fixed inset-0` + shared `KeyboardInsetPad`.

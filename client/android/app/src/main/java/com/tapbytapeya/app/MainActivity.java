@@ -14,30 +14,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Android 12+ always shows an OS splash first. Ours is a solid brand page (no circular
-        // mark). Keep it only until SplashBrandOverlay is attached, then remove instantly —
-        // Cap launchShowDuration is 0 so Cap cannot re-hold a second branded splash.
-        AtomicBoolean keepSystemSplash = new AtomicBoolean(true);
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(keepSystemSplash::get);
-        splashScreen.setOnExitAnimationListener(splashScreenView -> splashScreenView.remove());
-
+        // Apply stored light/dark *before* the OS splash so solid page + logo overlay share
+        // values(-night) / drawable-night-nodpi. Cap launchShowDuration is 0.
         TapeyaAppearancePlugin.applyStored(this);
-        SplashBrandOverlay.warm(this);
-        SplashBrandOverlay.show(this);
-        // Exit OS splash as soon as a frame can draw onto the overlay (same brand bg).
-        getWindow().getDecorView().post(() -> keepSystemSplash.set(false));
+
+        AtomicBoolean keepSplash = new AtomicBoolean(true);
+        SplashScreen splash = SplashScreen.installSplashScreen(this);
+        splash.setKeepOnScreenCondition(keepSplash::get);
+        splash.setOnExitAnimationListener(view -> view.remove());
 
         registerPlugin(TapeyaAppearancePlugin.class);
         registerPlugin(TapeyaBroadcastPlugin.class);
         registerPlugin(FacebookAnalyticsPlugin.class);
         super.onCreate(savedInstanceState);
 
-        // Bridge setContentView can reshuffle z-order; put brand back, then ensure OS splash
-        // is gone (instant remove — no circular-mark zoom animation).
         SplashBrandOverlay.show(this);
-        SplashBrandOverlay.bringToFront(this);
-        keepSystemSplash.set(false);
+        keepSplash.set(false);
 
         // Hide OS nav early (before JS). Transient-by-swipe: edge swipe peeks then auto-hides.
         // Status bar stays visible. JS re-applies on resume via androidSystemNav.ts.
@@ -46,12 +38,6 @@ public class MainActivity extends BridgeActivity {
         FacebookSdk.setAutoLogAppEventsEnabled(true);
         FacebookSdk.setAutoInitEnabled(true);
         FacebookSdk.fullyInitialize();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        SplashBrandOverlay.bringToFront(this);
     }
 
     @Override
