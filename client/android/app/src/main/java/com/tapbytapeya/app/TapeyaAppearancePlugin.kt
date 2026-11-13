@@ -20,14 +20,11 @@ class TapeyaAppearancePlugin : Plugin() {
         private const val PREFS_GROUP = "CapacitorStorage"
         private const val THEME_KEY = "tapeya:theme"
 
-        /** Prefer [Context] directly — [Context.getApplicationContext] crashes in attachBaseContext. */
-        @JvmStatic
-        fun storedTheme(context: Context): String? =
-            context.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE).getString(THEME_KEY, null)
-
         @JvmStatic
         fun applyStored(context: Context) {
-            applyTheme(storedTheme(context))
+            applyTheme(
+                context.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE).getString(THEME_KEY, null),
+            )
         }
 
         /** Caller must be on the main thread (onCreate or runOnUiThread). */
@@ -43,41 +40,24 @@ class TapeyaAppearancePlugin : Plugin() {
             AppCompatDelegate.setDefaultNightMode(mode)
         }
 
-        /** Whether splash should use dark brand page / night logo assets. */
-        @JvmStatic
-        fun nightModeActive(context: Context): Boolean =
-            when (storedTheme(context)) {
-                "dark" -> true
-                "light" -> false
-                else -> {
-                    val mask =
-                        context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-                    mask == Configuration.UI_MODE_NIGHT_YES
-                }
-            }
-
-        /**
-         * Hardcoded light/dark [Theme.SplashScreen] — Android 12 OS splash does not honor
-         * AppCompat night for `@color/splash_background`.
-         */
-        @JvmStatic
-        fun launchSplashThemeRes(context: Context): Int =
-            if (nightModeActive(context)) {
-                R.style.AppTheme_NoActionBarLaunch_Dark
-            } else {
-                R.style.AppTheme_NoActionBarLaunch_Light
-            }
-
-        /** Context that resolves values-night / drawable-night-nodpi for splash overlay. */
+        /** Inflate splash overlay with stored light/dark (Activity may stay system-light). */
         @JvmStatic
         fun splashContext(context: Context): Context {
+            val theme =
+                context.getSharedPreferences(PREFS_GROUP, Context.MODE_PRIVATE).getString(THEME_KEY, null)
+            val night =
+                when (theme) {
+                    "dark" -> true
+                    "light" -> false
+                    else -> {
+                        val mask =
+                            context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                        mask == Configuration.UI_MODE_NIGHT_YES
+                    }
+                }
             val config = Configuration(context.resources.configuration)
             val bit =
-                if (nightModeActive(context)) {
-                    Configuration.UI_MODE_NIGHT_YES
-                } else {
-                    Configuration.UI_MODE_NIGHT_NO
-                }
+                if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
             config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or bit
             return context.createConfigurationContext(config)
         }

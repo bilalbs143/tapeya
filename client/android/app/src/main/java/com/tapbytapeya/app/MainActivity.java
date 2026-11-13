@@ -1,7 +1,5 @@
 package com.tapbytapeya.app;
 
-import android.content.Context;
-
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -15,17 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends BridgeActivity {
     @Override
-    protected void attachBaseContext(Context newBase) {
-        TapeyaAppearancePlugin.applyStored(newBase);
-        super.attachBaseContext(newBase);
-    }
-
-    @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
-        // Pick hardcoded Light/Dark SplashScreen theme from stored pref before the OS splash
-        // reads background/icon (resource @color night flipping does not work here).
-        setTheme(TapeyaAppearancePlugin.launchSplashThemeRes(this));
-
+        // Cap launchShowDuration is 0. OS splash is a solid brand page; hand off to
+        // SplashBrandOverlay (full logo + tagline) after Bridge is up.
         AtomicBoolean keepSplash = new AtomicBoolean(true);
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         splash.setKeepOnScreenCondition(keepSplash::get);
