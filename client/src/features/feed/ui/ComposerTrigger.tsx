@@ -35,7 +35,7 @@ export function ComposerTrigger({ user, className }: ComposerTriggerProps) {
           className="text-dim min-w-0 flex-1 truncate text-left text-2xs tab:text-body-sm"
         >
           <span className="tab:hidden">Share your cricket moment…</span>
-          <span className="hidden tab:inline">Post a result, a clip, or find a match this Sunday…</span>
+          <span className="hidden tab:inline">Post a result, a reel, or find a match this Sunday…</span>
         </button>
 
         <button
@@ -59,7 +59,7 @@ export function ComposerTrigger({ user, className }: ComposerTriggerProps) {
           to={feedRoutes.createReel()}
           className="text-dim hover:text-ink hidden shrink-0 text-2xs font-semibold tab:inline"
         >
-          Clip
+          Reel
         </Link>
         <Link
           to={feedRoutes.create()}

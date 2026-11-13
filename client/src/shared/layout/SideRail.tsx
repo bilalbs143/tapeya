@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { PlusIcon } from '@/shared/ui/icons';
 
-/** Default desktop rail — override with `useShellRail`. */
+/** Desktop “Start Something” card — always shown; pages may add more via `useShellRail`. */
 export function SideRail() {
   return (
     <Card className="p-3.5">
@@ -26,5 +26,22 @@ export function SideRail() {
         </Button>
       </div>
     </Card>
+  );
+}
+
+/** Pinned to the bottom of the desk rail. */
+export function SideRailFooter() {
+  return (
+    <p className="text-dim shrink-0 px-1 pt-3 text-3xs leading-relaxed">
+      <Link to={APP_PATHS.support} className="hover:text-ink">
+        Help
+      </Link>
+      {' · '}
+      <Link to={APP_PATHS.support} className="hover:text-ink">
+        Support
+      </Link>
+      <br />
+      <span className="font-mono mt-1 inline-block text-4xs tracking-[.04em]">© 2026 Tapeya</span>
+    </p>
   );
 }

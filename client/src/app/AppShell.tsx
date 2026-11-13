@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { useMeQuery } from '@/features/auth';
+import { DeskMediaRail } from '@/features/feed';
 
 import { userHandle } from '@/entities/user';
 
@@ -22,6 +23,7 @@ import {
   ShellTopNav,
   SideNav,
   SideRail,
+  SideRailFooter,
   usePageDockActive,
   useShellKeyboardPadEnabled,
   useShellRailValue,
@@ -136,30 +138,38 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
         {isAuthenticated ? <SideNav className="hidden tab:flex" user={sideUser} /> : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <ShellScrollport
-              fill={fixedFrame}
-              className={cn('min-h-0 flex-1', fixedFrame ? 'overflow-hidden' : 'overflow-y-auto')}
-            >
-              <main className={cn('flex min-w-0 flex-col', fixedFrame ? 'h-full min-h-0' : 'flex-1')}>
-                <div
-                  className={cn(
-                    'mx-auto flex w-full flex-col tab:max-w-[800px]',
-                    fixedFrame ? 'h-full min-h-0 overflow-hidden' : 'min-h-full flex-1'
-                  )}
-                >
-                  <Outlet />
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              <ShellScrollport
+                fill={fixedFrame}
+                className={cn('min-h-0 flex-1', fixedFrame ? 'overflow-hidden' : 'overflow-y-auto')}
+              >
+                <main className={cn('flex min-w-0 flex-col', fixedFrame ? 'h-full min-h-0' : 'min-h-full flex-1')}>
+                  <div
+                    className={cn(
+                      'mx-auto flex w-full flex-col tab:max-w-[800px]',
+                      fixedFrame ? 'h-full min-h-0 overflow-hidden' : 'min-h-full flex-1'
+                    )}
+                  >
+                    <Outlet />
+                  </div>
+                </main>
+              </ShellScrollport>
+
+              {showBottomNav ? <BottomNav className="tab:hidden" /> : null}
+            </div>
+
+            {/* Viewport-height rail — sibling of the scroller (same idea as SideNav). */}
+            {isAuthenticated ? (
+              <aside className="border-border-subtle hidden h-full w-[384px] shrink-0 flex-col border-l px-3.5 py-4 desk:flex wide:w-[424px]">
+                <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto">
+                  <SideRail />
+                  <DeskMediaRail />
+                  {rail}
                 </div>
-              </main>
-
-              {isAuthenticated ? (
-                <aside className="border-border-subtle no-scrollbar sticky top-0 hidden w-[384px] shrink-0 flex-col gap-3.5 overflow-y-auto border-l px-3.5 py-4 desk:flex wide:w-[424px]">
-                  {rail ?? <SideRail />}
-                </aside>
-              ) : null}
-            </ShellScrollport>
-
-            {showBottomNav ? <BottomNav className="tab:hidden" /> : null}
+                <SideRailFooter />
+              </aside>
+            ) : null}
           </div>
         </div>
       </div>

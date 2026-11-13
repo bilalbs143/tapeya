@@ -83,20 +83,6 @@ export function HomeRail({ nextMatch, products = [], compact = false }: HomeRail
           </div>
         </Card>
       ) : null}
-
-      {compact ? null : (
-        <p className="text-dim px-1 pt-1 text-3xs leading-relaxed">
-          <Link to={APP_PATHS.support} className="hover:text-ink">
-            Help
-          </Link>
-          {' · '}
-          <Link to={APP_PATHS.support} className="hover:text-ink">
-            Support
-          </Link>
-          <br />
-          <span className="font-mono mt-1 inline-block text-4xs tracking-[.04em]">© 2026 Tapeya</span>
-        </p>
-      )}
     </>
   );
 }

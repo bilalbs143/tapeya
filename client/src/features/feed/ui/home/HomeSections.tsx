@@ -9,6 +9,8 @@ import { SectionLabel } from '@/shared/layout';
 import { HScroll } from '@/shared/ui/HScroll';
 import { MediaFrame } from '@/shared/ui/media';
 
+import { MediaPosterChip } from './MediaPosterChip';
+
 export function ProductsRail({
   products = [],
   title = 'Popular Products',
@@ -72,9 +74,7 @@ export function HighlightsRail({ highlights = [] }: { highlights?: HomeHighlight
             <>
               <span className="bg-page relative block aspect-video overflow-hidden rounded-panel">
                 {h.poster ? <img src={h.poster} alt="" className="h-full w-full object-cover" /> : null}
-                <span className="bg-brand/85 absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-4xs font-bold text-white">
-                  HIGHLIGHTS
-                </span>
+                <MediaPosterChip>Highlights</MediaPosterChip>
               </span>
               <p className="mt-1.5 line-clamp-2 text-2xs font-bold text-ink">{h.caption}</p>
             </>
@@ -90,7 +90,7 @@ export function HighlightsRail({ highlights = [] }: { highlights?: HomeHighlight
   );
 }
 
-/** Explore-tab entertainment rail. */
+/** Explore-tab / desk-rail entertainment strip. */
 export function EntertainmentRail({
   serials = [],
   title = 'Entertainment',
@@ -121,9 +121,7 @@ export function EntertainmentRail({
           >
             <span className="border-border-subtle bg-page relative block aspect-show-poster overflow-hidden rounded-panel border">
               {serial.poster ? <img src={serial.poster} alt="" className="h-full w-full object-cover" /> : null}
-              <span className="bg-brand/85 absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-4xs font-bold tracking-eyebrow text-white uppercase">
-                Entertainment
-              </span>
+              <MediaPosterChip>Entertainment</MediaPosterChip>
             </span>
           </Link>
         ))}

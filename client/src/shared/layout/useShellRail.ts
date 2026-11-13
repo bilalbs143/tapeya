@@ -6,7 +6,7 @@ export function useShellRailValue(): ReactNode {
   return useContext(ShellRailValueContext);
 }
 
-/** Register desktop rail — pass a component type, not an element, for stable effect deps. */
+/** Extra desktop rail widgets below `SideRail` — pass a component type for stable effect deps. */
 export function useShellRail(Rail: ComponentType | null): void {
   const setRail = useContext(ShellRailSetContext);
 

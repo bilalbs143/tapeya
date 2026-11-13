@@ -16,7 +16,7 @@ export { ShellRailProvider } from './ShellRail';
 export { handleNavRootReselect, scrollShellToTop } from './shellScroll';
 export { ShellScrollport } from './ShellScrollport';
 export { SideNav } from './SideNav';
-export { SideRail } from './SideRail';
+export { SideRail, SideRailFooter } from './SideRail';
 export { DesktopTopBar, ShellTopNav, TopBar } from './TopBar';
 export { useShell } from './useShell';
 export { useShellRail, useShellRailValue } from './useShellRail';

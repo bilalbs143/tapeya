@@ -35,6 +35,7 @@ export { feedRouteObjects, feedRoutes } from './routes';
 export { CommentComposer } from './ui/CommentComposer';
 export { CommentThread } from './ui/CommentThread';
 export { ComposerTrigger } from './ui/ComposerTrigger';
+export { DeskMediaRail } from './ui/home/DeskMediaRail';
 export { PostCard } from './ui/PostCard';
 export { ReelBand, ReelBandSkeleton } from './ui/ReelBand';
 export { ReportSheet } from './ui/ReportSheet';
