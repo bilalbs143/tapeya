@@ -29,6 +29,12 @@ export function isActivePath(pathname: string, to: string, navTargets: readonly 
   return !navTargets.some((other) => other !== to && other.length > to.length && pathMatches(pathname, other));
 }
 
+export type SidebarInterestNav = {
+  slug: string;
+  tournamentName: string;
+  logoUrl?: string | null | undefined;
+};
+
 /** Side menu groups for phone drawer and desktop SideNav. */
 export function buildNavGroups(opts?: {
   /** Pending / approved / suspended store — show Seller Hub (same as app `userHasVendorAccess`). */
@@ -41,7 +47,10 @@ export function buildNavGroups(opts?: {
   const canApplyAsSeller = opts?.canApplyAsSeller ?? !hasStore;
   const ordersBadge = opts?.ordersBadge;
 
-  const shopItems: NavItem[] = [{ to: APP_PATHS.shopOrders, label: 'My Orders', icon: 'orders', badge: ordersBadge }];
+  const shopItems: NavItem[] = [
+    { to: APP_PATHS.shop, label: 'Shop', icon: 'shop' },
+    { to: APP_PATHS.shopOrders, label: 'My Orders', icon: 'orders', badge: ordersBadge },
+  ];
   if (hasStore) {
     shopItems.push({ to: APP_PATHS.seller, label: 'Seller Hub', icon: 'seller' });
   } else if (canApplyAsSeller) {
@@ -53,7 +62,7 @@ export function buildNavGroups(opts?: {
       label: 'Main',
       items: [
         { to: APP_PATHS.home, label: 'Home', icon: 'home' },
-        { to: APP_PATHS.scorecard, label: 'Score', icon: 'score', liveDot: true },
+        { to: APP_PATHS.stats, label: 'My Stats', icon: 'stats' },
       ],
     },
     {
@@ -63,13 +72,6 @@ export function buildNavGroups(opts?: {
         { to: APP_PATHS.matches, label: 'My Matches', icon: 'matches' },
         { to: APP_PATHS.tournaments, label: 'My Tournaments', icon: 'tournaments' },
         { to: APP_PATHS.tournamentCreate, label: 'Create Tournament', icon: 'create' },
-      ],
-    },
-    {
-      label: 'You',
-      items: [
-        { to: APP_PATHS.stats, label: 'My Stats', icon: 'stats' },
-        { to: APP_PATHS.ranking, label: 'Top Players', icon: 'players' },
       ],
     },
     {

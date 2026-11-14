@@ -3,16 +3,42 @@ import type { MutationResult } from '@/shared/api/types';
 import { unwrapMessage, unwrapMutation } from '@/shared/api/unwrap';
 
 import {
+  type InterestDialogPayload,
   type InterestShowPayload,
   type InterestSubmission,
   type InterestSubmitBody,
+  parseInterestDialog,
   parseInterestShow,
   submissionToDomain,
   submissionWireSchema,
 } from '../model/schemas';
 
+type InterestTag = { type: 'InterestCampaign'; id: string };
+
+function interestCampaignTags(slug: string): InterestTag[] {
+  return [
+    { type: 'InterestCampaign', id: slug },
+    { type: 'InterestCampaign', id: 'DIALOG' },
+    { type: 'InterestCampaign', id: 'SIDEBAR' },
+  ];
+}
+
 export const interestApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- RTK Query no-arg query
+    getSidebarInterestCampaign: builder.query<InterestDialogPayload, void>({
+      query: () => '/interest-campaigns/sidebar',
+      transformResponse: (raw: unknown) => parseInterestDialog(raw),
+      providesTags: () => [{ type: 'InterestCampaign', id: 'SIDEBAR' }],
+    }),
+
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- RTK Query no-arg query
+    getDialogInterestCampaign: builder.query<InterestDialogPayload, void>({
+      query: () => '/interest-campaigns/dialog',
+      transformResponse: (raw: unknown) => parseInterestDialog(raw),
+      providesTags: () => [{ type: 'InterestCampaign', id: 'DIALOG' }],
+    }),
+
     getInterestCampaign: builder.query<InterestShowPayload, string>({
       query: (slug) => `/interest-campaigns/${slug}`,
       transformResponse: (raw: unknown) => parseInterestShow(raw),
@@ -33,7 +59,7 @@ export const interestApi = baseApi.injectEndpoints({
           data: result.data ? submissionToDomain(result.data) : null,
         };
       },
-      invalidatesTags: (_r, _e, { slug }) => [{ type: 'InterestCampaign', id: slug }],
+      invalidatesTags: (_r, _e, { slug }) => interestCampaignTags(slug),
     }),
 
     withdrawInterest: builder.mutation<string | undefined, string>({
@@ -42,9 +68,15 @@ export const interestApi = baseApi.injectEndpoints({
         method: 'DELETE',
       }),
       transformResponse: (raw: unknown) => unwrapMessage()(raw),
-      invalidatesTags: (_r, _e, slug) => [{ type: 'InterestCampaign', id: slug }],
+      invalidatesTags: (_r, _e, slug) => interestCampaignTags(slug),
     }),
   }),
 });
 
-export const { useGetInterestCampaignQuery, useSubmitInterestMutation, useWithdrawInterestMutation } = interestApi;
+export const {
+  useGetSidebarInterestCampaignQuery,
+  useGetDialogInterestCampaignQuery,
+  useGetInterestCampaignQuery,
+  useSubmitInterestMutation,
+  useWithdrawInterestMutation,
+} = interestApi;

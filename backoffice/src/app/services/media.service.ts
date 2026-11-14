@@ -12,7 +12,7 @@ export type UploadProgressFn = (percent: number) => void;
  * backend model type via POST/DELETE /admin/media/{type}/{id}/{field}.
  *
  * Supported types (defined in the backend MediaRegistry):
- *   brand, category, hero-slider, tournament, team, campaign, match, product, user
+ *   brand, category, hero-slider, tournament, team, campaign, interest-submission, match, product, user
  */
 @Injectable({ providedIn: 'root' })
 export class MediaService {

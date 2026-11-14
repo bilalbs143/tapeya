@@ -19,6 +19,7 @@ use App\Enums\Support\SupportMessageStatusEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestCustomFieldTypeEnum;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
@@ -79,6 +80,7 @@ class EnumController extends Controller
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
             'tournament_interest_form_field' => $this->toOptions(TournamentInterestFormFieldEnum::cases()),
+            'tournament_interest_custom_field_type' => $this->toOptions(TournamentInterestCustomFieldTypeEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),

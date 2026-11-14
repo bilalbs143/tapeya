@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 import type { Reel } from '../model/schemas';
+import { whenActiveReelAttachIdle } from './reelAttachPriority';
 
 const PROGRESSIVE_WARM_RANGE = 'bytes=0-786431';
 const PREFETCH_CONCURRENCY = 3;
@@ -26,10 +27,11 @@ export function prefersReducedData(): boolean {
   return effectiveType === 'slow-2g' || effectiveType === '2g';
 }
 
-/** How many upcoming reels to byte-warm (0 / 4 / 6). */
+/** How many upcoming reels to byte-warm (0 / 2 / 4 / 6). */
 export function getReelPrefetchDepth(): number {
   if (prefersReducedData()) return 0;
-  if (!hasNetworkInformationApi()) return 6;
+  // iOS / Safari — no Network Information API. Keep light so first play + video warm win.
+  if (!hasNetworkInformationApi()) return 2;
   const connection = (
     navigator as Navigator & {
       connection?: { effectiveType?: string };
@@ -211,8 +213,25 @@ export function useReelPrefetch(reels: PrefetchReel[], activeIndex: number): voi
         }
       };
 
+      // Active HTTP warm can share cache with the active <video>; do it first.
       if (activeReel) await warmOne(activeReel);
       if (cancelled || controller.signal.aborted || upcoming.length === 0) return;
+
+      // Hold upcoming byte-warm until the active video attach has data.
+      await new Promise<void>((resolve) => {
+        const cancelIdle = whenActiveReelAttachIdle(() => resolve());
+        const onAbort = () => {
+          cancelIdle();
+          resolve();
+        };
+        if (controller.signal.aborted) {
+          onAbort();
+          return;
+        }
+        controller.signal.addEventListener('abort', onAbort, { once: true });
+      });
+      if (cancelled || controller.signal.aborted) return;
+
       await runPrefetchPool(upcoming, warmOne, PREFETCH_CONCURRENCY, controller.signal);
     })();
 

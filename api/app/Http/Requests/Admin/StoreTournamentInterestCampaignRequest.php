@@ -6,6 +6,7 @@ use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Http\Requests\Admin\Concerns\ValidatesTournamentInterestFormFields;
 use App\Models\Tournament;
+use App\Support\Interest\InterestCustomFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class StoreTournamentInterestCampaignRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'tournament_id' => ['nullable', 'integer', Rule::exists(Tournament::class, 'id')],
             'tournament_name' => ['required_without:tournament_id', 'nullable', 'string', 'max:191'],
             'slug' => ['nullable', 'string', 'max:191', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
@@ -34,7 +35,28 @@ class StoreTournamentInterestCampaignRequest extends FormRequest
             'show_in_sidebar' => ['sometimes', 'boolean'],
             'show_dialog' => ['sometimes', 'boolean'],
             'status' => ['nullable', Rule::enum(TournamentInterestCampaignStatusEnum::class)],
-        ];
+        ], InterestCustomFields::adminRules());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function validated($key = null, $default = null)
+    {
+        $data = parent::validated($key, $default);
+        if ($key !== null) {
+            return $data;
+        }
+
+        $data = $this->normalizeCustomFieldsInData($data);
+        if (! array_key_exists('custom_fields', $data)) {
+            $data['custom_fields'] = [];
+        }
+        if (! array_key_exists('form_fields', $data)) {
+            $data['form_fields'] = TournamentInterestFormFieldEnum::defaults();
+        }
+
+        return $data;
     }
 
     public function messages(): array

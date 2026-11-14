@@ -9,15 +9,21 @@ function shopLabels(opts?: Parameters<typeof buildNavGroups>[0]): string[] {
   return shop?.items.map((i) => i.label) ?? [];
 }
 
-describe('buildNavGroups seller rows', () => {
-  it('shows Become a Seller when the user can apply', () => {
-    expect(shopLabels({ canApplyAsSeller: true })).toEqual(['My Orders', 'Become a Seller']);
-    expect(shopLabels()).toEqual(['My Orders', 'Become a Seller']);
+describe('buildNavGroups', () => {
+  it('puts My Stats in Main and drops the You group', () => {
+    const groups = buildNavGroups();
+    expect(groups.map((g) => g.label)).toEqual(['Main', 'Play', 'Shop', 'Help']);
+    expect(groups.find((g) => g.label === 'Main')?.items.map((i) => i.label)).toEqual(['Home', 'My Stats']);
+  });
+
+  it('shows Shop, My Orders, and Become a Seller when the user can apply', () => {
+    expect(shopLabels({ canApplyAsSeller: true })).toEqual(['Shop', 'My Orders', 'Become a Seller']);
+    expect(shopLabels()).toEqual(['Shop', 'My Orders', 'Become a Seller']);
   });
 
   it('shows Seller Hub when the user has vendor access', () => {
     const labels = shopLabels({ hasStore: true, canApplyAsSeller: false });
-    expect(labels).toEqual(['My Orders', 'Seller Hub']);
+    expect(labels).toEqual(['Shop', 'My Orders', 'Seller Hub']);
     expect(
       buildNavGroups({ hasStore: true })
         .find((g) => g.label === 'Shop')
@@ -25,8 +31,8 @@ describe('buildNavGroups seller rows', () => {
     ).toBe(APP_PATHS.seller);
   });
 
-  it('hides both seller rows after rejection', () => {
-    expect(shopLabels({ hasStore: false, canApplyAsSeller: false })).toEqual(['My Orders']);
+  it('hides seller rows after rejection but keeps Shop and My Orders', () => {
+    expect(shopLabels({ hasStore: false, canApplyAsSeller: false })).toEqual(['Shop', 'My Orders']);
   });
 });
 

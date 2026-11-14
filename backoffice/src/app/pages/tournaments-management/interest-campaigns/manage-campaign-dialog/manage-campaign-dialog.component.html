@@ -132,9 +132,9 @@
 
         <div class="col-span-12">
           <fieldset class="field-group-fieldset">
-            <legend class="field-group-label">Form Fields <span class="text-error">*</span></legend>
+            <legend class="field-group-label">Account Fields <span class="text-error">*</span></legend>
             <p class="mb-2 mt-0 max-w-3xl text-xs leading-snug text-muted">
-              Pick fields for the public form. Unchecked = hidden. Name comes from the account; country &amp; city toggle
+              Profile fields from the player account. Unchecked = hidden. Name is always stored; country &amp; city toggle
               together.
             </p>
             <div class="grid grid-cols-12 gap-x-4 gap-y-2">
@@ -155,6 +155,171 @@
             </div>
             @if (form.get('form_fields')?.touched && form.get('form_fields')?.hasError('required')) {
               <p class="mt-2 text-xs text-error">Select at least one form field.</p>
+            }
+          </fieldset>
+        </div>
+
+        <div class="col-span-12">
+          <fieldset class="field-group-fieldset">
+            <legend class="field-group-label">Custom Fields</legend>
+            <p class="mb-3 mt-0 max-w-3xl text-xs leading-snug text-muted">
+              Campaign-only questions (text, dropdown, or file). Example: Trial Venue as a dropdown with Lahore / Islamabad.
+            </p>
+
+            <div class="mb-3 flex flex-wrap gap-2">
+              <app-ui-button
+                type="button"
+                variant="secondary"
+                (click)="addCustomField('text')"
+              >
+                Add Text
+              </app-ui-button>
+              <app-ui-button
+                type="button"
+                variant="secondary"
+                (click)="addCustomField('select')"
+              >
+                Add Dropdown
+              </app-ui-button>
+              <app-ui-button
+                type="button"
+                variant="secondary"
+                (click)="addCustomField('file')"
+              >
+                Add File
+              </app-ui-button>
+            </div>
+
+            @if (customFields.length === 0) {
+              <p class="m-0 text-xs text-muted">No custom fields — players only fill the account fields above.</p>
+            }
+
+            <div class="flex flex-col gap-4">
+              @for (field of customFields; track i; let i = $index) {
+                <div class="rounded-sm border border-border p-3">
+                  <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-semibold text-muted">Field {{ i + 1 }}</span>
+                    <div class="flex flex-wrap gap-1">
+                      <button
+                        type="button"
+                        mat-icon-button
+                        [disabled]="i === 0"
+                        (click)="moveCustomField(i, -1)"
+                        aria-label="Move up"
+                      >
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button
+                        type="button"
+                        mat-icon-button
+                        [disabled]="i === customFields.length - 1"
+                        (click)="moveCustomField(i, 1)"
+                        aria-label="Move down"
+                      >
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                      <button
+                        type="button"
+                        mat-icon-button
+                        color="warn"
+                        (click)="removeCustomField(i)"
+                        aria-label="Remove field"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-12 lg:col-span-5">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full"
+                      >
+                        <mat-label>Label</mat-label>
+                        <input
+                          matInput
+                          [ngModel]="field.label"
+                          [ngModelOptions]="{ standalone: true }"
+                          (ngModelChange)="onCustomLabelChange(i, $event)"
+                          maxlength="191"
+                          placeholder="e.g. Trial Venue"
+                        />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-full"
+                      >
+                        <mat-label>Type</mat-label>
+                        <mat-select
+                          [ngModel]="field.type"
+                          [ngModelOptions]="{ standalone: true }"
+                          (ngModelChange)="onCustomTypeChange(i, $event)"
+                        >
+                          @if (customFieldTypeOptions$ | async; as typeOpts) {
+                            @for (opt of typeOpts; track opt.value) {
+                              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                            }
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-span-12 sm:col-span-6 lg:col-span-3 flex items-center">
+                      <mat-checkbox
+                        [checked]="field.required"
+                        (change)="onCustomRequiredChange(i, $event.checked)"
+                        color="primary"
+                      >
+                        Required
+                      </mat-checkbox>
+                    </div>
+
+                    @if (field.type === 'select') {
+                      <div class="col-span-12">
+                        <mat-form-field
+                          appearance="outline"
+                          class="w-full"
+                        >
+                          <mat-label>Options</mat-label>
+                          <mat-chip-grid
+                            #optionsGrid
+                            aria-label="Dropdown options"
+                          >
+                            @for (opt of field.options ?? []; track opt) {
+                              <mat-chip-row
+                                (removed)="removeCustomOption(i, opt)"
+                                class="text-sm"
+                              >
+                                {{ opt }}
+                                <button
+                                  type="button"
+                                  matChipRemove
+                                  [attr.aria-label]="'Remove ' + opt"
+                                >
+                                  <mat-icon>cancel</mat-icon>
+                                </button>
+                              </mat-chip-row>
+                            }
+                            <input
+                              placeholder="e.g. Lahore, Islamabad — press Enter or comma after each option"
+                              [matChipInputFor]="optionsGrid"
+                              [matChipInputSeparatorKeyCodes]="optionChipSeparatorKeys"
+                              [matChipInputAddOnBlur]="true"
+                              (matChipInputTokenEnd)="addCustomOption(i, $event)"
+                            />
+                          </mat-chip-grid>
+                        </mat-form-field>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            @if (customFieldError) {
+              <p class="mt-2 mb-0 text-xs text-error">{{ customFieldError }}</p>
             }
           </fieldset>
         </div>

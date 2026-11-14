@@ -174,7 +174,7 @@ Fix failures you introduced. Do not weaken TypeScript or skip tests to greenwash
 - ~~Tournaments: teams attach (`/tournaments/:id/teams` + ManageTeamDialog; logo upload deferred)~~
 - ~~Notifications inbox (`/notifications` + shell bell unread badge)~~
 - ~~Upcoming tournaments fan discover (`/upcoming-tournaments` + detail)~~
-- ~~Interest form (`/interest/:slug` — submit / withdraw / media; dialog + sidebar deferred)~~
+- ~~Interest form (`/interest/:slug` — submit / withdraw / media; auto-dialog + sidebar banner)~~
 - ~~Highlights hub (`/highlights` + detail; home rail + explore tile)~~
 
 ## Page layout (non-negotiable)

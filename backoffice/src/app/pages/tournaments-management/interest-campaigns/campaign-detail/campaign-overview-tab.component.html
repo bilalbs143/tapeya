@@ -134,6 +134,12 @@
             {{ formFieldLabels.length ? formFieldLabels.join(', ') : emptyCell }}
           </dd>
         </div>
+        @if (customFieldsSummary) {
+          <div class="border-b border-border py-2.5 sm:col-span-2">
+            <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Custom Fields</dt>
+            <dd class="m-0 text-sm font-semibold leading-snug">{{ customFieldsSummary }}</dd>
+          </div>
+        }
         <div class="min-w-0 border-b border-border py-2.5 sm:col-span-2">
           <dt class="m-0 mb-0.5 text-[11.5px] text-muted">Description</dt>
           <dd

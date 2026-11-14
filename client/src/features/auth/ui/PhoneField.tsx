@@ -68,12 +68,19 @@ export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(function
           <SelectTrigger
             aria-label="Country Code"
             disabled={disabled}
-            className="bg-surface border-border h-12 w-auto shrink-0 gap-1.5 rounded-panel px-3"
+            className="bg-surface border-border h-12 w-auto shrink-0 rounded-panel px-3"
           >
-            <span className="text-body-lg leading-none">{country.flag}</span>
-            <SelectValue>
-              <span className="font-mono text-sm font-bold text-ink">{country.dial}</span>
-            </SelectValue>
+            <span className="inline-flex items-center gap-2">
+              <span
+                className="inline-flex size-5 shrink-0 items-center justify-center text-body-lg leading-none"
+                aria-hidden
+              >
+                {country.flag}
+              </span>
+              <SelectValue>
+                <span className="font-mono text-sm font-bold leading-none text-ink">{country.dial}</span>
+              </SelectValue>
+            </span>
           </SelectTrigger>
           <SelectContent className="max-h-72">
             {COUNTRIES.map((c) => (

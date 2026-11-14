@@ -1,4 +1,4 @@
-/** Matches API `TournamentInterestFormFieldEnum`. */
+/** Matches API `TournamentInterestFormFieldEnum` defaults (trial_venue is opt-in). */
 export const DEFAULT_INTEREST_FORM_FIELDS = [
   'profile_picture',
   'name',

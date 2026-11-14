@@ -21,12 +21,14 @@ return new class extends Migration
             $table->string('phone', 30)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('city', 100)->nullable();
+            $table->json('custom_answers')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('profile_picture_path')->nullable();
             $table->string('id_document_path')->nullable();
 
             $table->string('status', 20)->default('pending');
             $table->timestamp('withdrawn_at')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
 
             // One submission per (campaign, player); re-submits update the existing row.

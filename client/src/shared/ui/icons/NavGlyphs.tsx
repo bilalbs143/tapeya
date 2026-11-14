@@ -5,7 +5,7 @@ type GlyphProps = {
   active?: boolean;
 };
 
-const base = 'h-[17px] w-[17px]';
+const base = 'h-5 w-5';
 
 export function HomeGlyph({ className, active }: GlyphProps) {
   return (
@@ -68,8 +68,9 @@ export function LiveGlyph({ className, active }: GlyphProps) {
       strokeLinecap="round"
       aria-hidden
     >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M5.5 8.5a8 8 0 0 0 0 7M18.5 8.5a8 8 0 0 1 0 7" />
+      <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" />
+      <path d="M8.15 7.7a5.5 5.5 0 0 0 0 8.6M15.85 7.7a5.5 5.5 0 0 1 0 8.6" />
+      <path d="M5.2 4.9a9.5 9.5 0 0 0 0 14.2M18.8 4.9a9.5 9.5 0 0 1 0 14.2" />
     </svg>
   );
 }

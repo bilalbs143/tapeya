@@ -1,0 +1,256 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Edit Interest Submission"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        @if (fieldEnabled('profile_picture')) {
+          <div class="col-span-12 flex justify-center">
+            <app-avatar-uploader
+              [currentUrl]="currentAvatarUrl"
+              altText="Player photo"
+              (fileChange)="onAvatarChange($event)"
+            />
+          </div>
+        }
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Name"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Name is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        @if (fieldEnabled('nickname')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Nickname</mat-label>
+              <input
+                matInput
+                formControlName="nickname"
+                placeholder="Nickname"
+              />
+              @if (form.get('nickname')?.invalid && form.get('nickname')?.touched) {
+                <mat-error>Nickname is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (fieldEnabled('email')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                placeholder="Email"
+              />
+              @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <mat-error>Valid email is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (fieldEnabled('phone')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Phone</mat-label>
+              <input
+                matInput
+                formControlName="phone"
+                placeholder="e.g. +921234567890"
+              />
+              @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+                <mat-error>Valid phone is required (e.g. +92...)</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (fieldEnabled('date_of_birth')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Date of Birth</mat-label>
+              <input
+                matInput
+                formControlName="date_of_birth"
+                [matDatepicker]="dobPicker"
+                placeholder="Select Date"
+              />
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="dobPicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+              @if (form.get('date_of_birth')?.invalid && form.get('date_of_birth')?.touched) {
+                <mat-error>Date of birth is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (fieldEnabled('country')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>Country</mat-label>
+              <mat-select
+                formControlName="country"
+                placeholder="Select Country"
+              >
+                <mat-option value="">Select Country</mat-option>
+                @for (c of countriesList; track c.country_code) {
+                  <mat-option [value]="c.name">{{ c.name }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('country')?.invalid && form.get('country')?.touched) {
+                <mat-error>Country is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (fieldEnabled('city')) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-label>City</mat-label>
+              <mat-select
+                formControlName="city"
+                placeholder="Select City"
+              >
+                <mat-option value="">Select City</mat-option>
+                @for (city of cities; track city.id) {
+                  <mat-option [value]="city.name">{{ city.name }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('city')?.invalid && form.get('city')?.touched) {
+                <mat-error>City is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        <div
+          formGroupName="custom_answers"
+          class="contents"
+        >
+          @for (field of scalarCustomFields; track field.id) {
+            <div class="col-span-12 lg:col-span-6">
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <mat-label>{{ field.label }}</mat-label>
+                @if (field.type === 'select') {
+                  <mat-select
+                    [formControlName]="field.id"
+                    [placeholder]="'Select ' + field.label"
+                  >
+                    <mat-option value="">Select {{ field.label }}</mat-option>
+                    @for (opt of field.options ?? []; track opt) {
+                      <mat-option [value]="opt">{{ opt }}</mat-option>
+                    }
+                  </mat-select>
+                } @else {
+                  <input
+                    matInput
+                    [formControlName]="field.id"
+                    [placeholder]="field.label"
+                  />
+                }
+                @if (form.get('custom_answers.' + field.id)?.invalid && form.get('custom_answers.' + field.id)?.touched) {
+                  <mat-error>{{ field.label }} is required</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          }
+        </div>
+
+        <div
+          formGroupName="files"
+          class="contents"
+        >
+          @for (field of fileCustomFields; track field.id) {
+            <div class="col-span-12">
+              <app-file-upload
+                [formControlName]="field.id"
+                [label]="field.label"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                acceptLabel="JPG, PNG, WebP, PDF"
+                [maxSizeMb]="10"
+              ></app-file-upload>
+            </div>
+          }
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+      >
+        Cancel
+      </app-ui-button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Save Changes"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

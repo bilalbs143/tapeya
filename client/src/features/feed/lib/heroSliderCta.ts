@@ -1,6 +1,7 @@
-import type { HomeHeroSlide } from '../model/homeSchemas';
+import { dialogStore } from '@/shared/dialogs';
+import { APP_STORE_NAME, PLAY_STORE_NAME } from '@/shared/native/storeLinks';
 
-export type HeroSlideAction = { kind: 'none' } | { kind: 'navigate'; path: string } | { kind: 'external'; url: string };
+import type { HomeHeroSlide } from '../model/homeSchemas';
 
 export type HeroStoreLinks = {
   /** Native Capacitor platform, or `web`. */
@@ -8,6 +9,14 @@ export type HeroStoreLinks = {
   iosStoreUrl: string;
   playStoreUrl: string;
 };
+
+export type HeroSlideAction =
+  | { kind: 'none' }
+  | { kind: 'navigate'; path: string }
+  | { kind: 'external'; url: string }
+  | { kind: 'dialog'; key: 'interestCampaign'; props: { slug: string } }
+  | { kind: 'dialog'; key: 'downloadApp'; props: { appStoreUrl: string; playStoreUrl: string } }
+  | { kind: 'dialog'; key: 'appUpdate'; props: { storeUrl: string; storeName: string } };
 
 function isHttpUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -30,6 +39,20 @@ export function isHeroSlideInteractive(slide: HomeHeroSlide): boolean {
   if (slide.ctaType === 'url') return Boolean(slide.ctaUrl);
   if (slide.ctaType === 'dialog') return Boolean(slide.ctaDialogKey);
   return Boolean(slide.ctaUrl && slide.ctaLabel);
+}
+
+/** Unique interest campaign slugs referenced by hero dialog CTAs (for prefetch). */
+export function interestCampaignSlugsFromHeroSlides(slides: readonly HomeHeroSlide[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const slide of slides) {
+    if (slide.ctaType !== 'dialog' || slide.ctaDialogKey?.trim() !== 'interestCampaign') continue;
+    const slug = slide.ctaDialogParam?.trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    out.push(slug);
+  }
+  return out;
 }
 
 function detectMobileWebStore(): 'ios' | 'android' | null {
@@ -55,26 +78,44 @@ export function pickStoreDownloadUrl(links: HeroStoreLinks): string | null {
   return ios || android || null;
 }
 
-/** Hero CTA — interest dialog, store links, external URL, or in-app path. */
-export function resolveHeroSlideAction(
-  slide: HomeHeroSlide,
-  store: HeroStoreLinks,
-  interestPathForSlug: (slug: string) => string
-): HeroSlideAction {
-  if (slide.ctaType === 'dialog' && slide.ctaDialogKey) {
-    if (slide.ctaDialogKey === 'interestCampaign' && slide.ctaDialogParam) {
-      return { kind: 'navigate', path: interestPathForSlug(slide.ctaDialogParam) };
+function storeNameForUrl(url: string): string {
+  return /play\.google\.com/i.test(url) ? PLAY_STORE_NAME : APP_STORE_NAME;
+}
+
+function resolveDialogAction(slide: HomeHeroSlide, store: HeroStoreLinks): HeroSlideAction {
+  switch (slide.ctaDialogKey?.trim()) {
+    case 'interestCampaign': {
+      const slug = slide.ctaDialogParam?.trim();
+      return slug ? { kind: 'dialog', key: 'interestCampaign', props: { slug } } : { kind: 'none' };
     }
-    if (slide.ctaDialogKey === 'downloadApp' || slide.ctaDialogKey === 'appUpdate') {
-      const url = pickStoreDownloadUrl(store);
-      return url ? { kind: 'external', url } : { kind: 'none' };
+    case 'downloadApp': {
+      const appStoreUrl = store.iosStoreUrl.trim();
+      const playStoreUrl = store.playStoreUrl.trim();
+      if (!appStoreUrl && !playStoreUrl) return { kind: 'none' };
+      return { kind: 'dialog', key: 'downloadApp', props: { appStoreUrl, playStoreUrl } };
     }
-    return { kind: 'none' };
+    case 'appUpdate': {
+      const storeUrl = pickStoreDownloadUrl(store);
+      if (!storeUrl) return { kind: 'none' };
+      return {
+        kind: 'dialog',
+        key: 'appUpdate',
+        props: { storeUrl, storeName: storeNameForUrl(storeUrl) },
+      };
+    }
+    default:
+      return { kind: 'none' };
   }
+}
+
+/** Hero CTA — dialog (interest / download / update), external URL, or in-app path. */
+export function resolveHeroSlideAction(slide: HomeHeroSlide, store: HeroStoreLinks): HeroSlideAction {
+  if (slide.ctaType === 'dialog') return resolveDialogAction(slide, store);
 
   const url = slide.ctaUrl?.trim();
   if (!url) return { kind: 'none' };
 
+  // Wire default `cta_target_blank: true` — open http(s) externally like legacy.
   if (slide.ctaTargetBlank && isHttpUrl(url)) {
     return { kind: 'external', url };
   }
@@ -86,4 +127,29 @@ export function resolveHeroSlideAction(
 export function openHeroExternalUrl(url: string): void {
   if (typeof window === 'undefined') return;
   window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+/** Run a resolved hero CTA (navigate / external / dialog). */
+export function applyHeroSlideAction(action: HeroSlideAction, navigate: (path: string) => void): void {
+  if (action.kind === 'navigate') {
+    navigate(action.path);
+    return;
+  }
+  if (action.kind === 'external') {
+    openHeroExternalUrl(action.url);
+    return;
+  }
+  if (action.kind !== 'dialog') return;
+
+  switch (action.key) {
+    case 'interestCampaign':
+      dialogStore.open('interestCampaign', action.props);
+      break;
+    case 'downloadApp':
+      dialogStore.open('downloadApp', action.props);
+      break;
+    case 'appUpdate':
+      dialogStore.open('appUpdate', action.props);
+      break;
+  }
 }

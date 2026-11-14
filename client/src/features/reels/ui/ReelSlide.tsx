@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { SpeakerIcon } from '@/shared/ui/icons';
 import { Scrubber } from '@/shared/ui/Scrubber';
+import { Spinner } from '@/shared/ui/Spinner';
 
 import { setReelVideoMuted } from '../lib/inlineVideo';
 import { attachReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from '../lib/reelPlaybackGate';
+import { reelLog, reelMark, reelSince } from '../lib/reelPlaybackLog';
 import { isReelsAudioUnlocked, relockReelsAudio, unlockReelsAudio } from '../lib/reelsAudioSession';
 import { useReelHls } from '../lib/useReelHls';
 import type { Reel } from '../model/schemas';
@@ -67,7 +69,11 @@ export function ReelSlide({
   const [mutedByPolicy, setMutedByPolicy] = useState(false);
   /** Hide WebView play-artwork until a real frame paints. */
   const [videoReady, setVideoReady] = useState(false);
+  /** Mid-play stall (waiting event after first frame). */
+  const [stalled, setStalled] = useState(false);
   const [mediaEpoch, setMediaEpoch] = useState({ reelId: reel.id, readyToken: 0 });
+  /** Delayed start spinner — key clears show on render when wait ends (no sync setState-in-effect). */
+  const [startHint, setStartHint] = useState({ key: '', show: false });
 
   const role = active ? 'active' : isNext ? 'next' : 'warm';
   const { mode, failed, retry, readyToken } = useReelHls(videoRef, reel.playback, {
@@ -76,16 +82,32 @@ export function ReelSlide({
   });
   const canPlay = mode != null && !failed;
   const preferMuted = active ? !isReelsAudioUnlocked() && mutedByPolicy : true;
+  const needsStartHint = active && !failed && !videoReady && inPlayerWindow;
+  const startHintKey = needsStartHint ? `${reel.id}:start` : '';
 
   // Reset tip / reveal when reel or attach epoch changes (render-time — avoid setState-in-effect).
   if (reel.id !== mediaEpoch.reelId || readyToken !== mediaEpoch.readyToken) {
     setMediaEpoch({ reelId: reel.id, readyToken });
     setVideoReady(false);
+    setStalled(false);
     if (reel.id !== mediaEpoch.reelId) {
       setMutedByPolicy(false);
       setProgress(0);
     }
   }
+
+  if (startHint.key !== startHintKey) {
+    setStartHint({ key: startHintKey, show: false });
+  }
+
+  // Soft start indicator — only the delayed `true` lives in an effect.
+  useEffect(() => {
+    if (!startHintKey) return undefined;
+    const timer = window.setTimeout(() => {
+      setStartHint((prev) => (prev.key === startHintKey ? { ...prev, show: true } : prev));
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [startHintKey]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -93,24 +115,47 @@ export function ReelSlide({
     return registerReelVideo(el);
   }, [inPlayerWindow, reel.id, canPlay]);
 
-  // Only the active reel may call play(); leaving active always releases MSE.
+  // Only the active reel may call play().
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !canPlay) return undefined;
 
     let cancelled = false;
     let removeReadyWait = () => {};
+    const playMark = `play:${reel.id}`;
 
     const runPlay = () => {
       if (cancelled || !active || failed) return;
+      if (!el.paused && el.readyState >= 2) return;
+
+      reelLog('play.call', {
+        reelId: reel.id,
+        readyState: el.readyState,
+        muted: preferMuted,
+        sinceAttachMs: reelSince(playMark),
+      });
       setReelVideoMuted(el, preferMuted);
       void el
         .play()
         .then(() => {
-          if (!cancelled && !el.muted) unlockReelsAudio();
+          if (cancelled) return;
+          reelLog('play.resolved', {
+            reelId: reel.id,
+            sinceAttachMs: reelSince(playMark),
+            muted: el.muted,
+            currentTime: Number(el.currentTime.toFixed(2)),
+          });
+          if (!el.muted) unlockReelsAudio();
         })
-        .catch(() => {
-          if (cancelled || el.muted) return;
+        .catch((err: unknown) => {
+          const name = err instanceof Error ? err.name : 'unknown';
+          reelLog('play.rejected', {
+            reelId: reel.id,
+            sinceAttachMs: reelSince(playMark),
+            error: name,
+          });
+          // AbortError = superseded play(); not an autoplay policy block.
+          if (cancelled || name === 'AbortError' || el.muted) return;
           setReelVideoMuted(el, true);
           setMutedByPolicy(true);
           void el.play().catch(() => undefined);
@@ -119,6 +164,13 @@ export function ReelSlide({
 
     const tryPlay = () => {
       if (cancelled || !active || failed) return;
+      reelMark(playMark);
+      reelLog('play.try', {
+        reelId: reel.id,
+        readyState: el.readyState,
+        readyToken,
+        networkState: el.networkState,
+      });
       claimReelPlayback(el);
       attachReelHls(el);
       removeReadyWait();
@@ -128,6 +180,7 @@ export function ReelSlide({
       }
       const onReady = () => {
         removeReadyWait();
+        reelLog('play.canplay', { reelId: reel.id, sinceAttachMs: reelSince(playMark), readyState: el.readyState });
         runPlay();
       };
       el.addEventListener('canplay', onReady, { once: true });
@@ -135,7 +188,8 @@ export function ReelSlide({
     };
 
     if (active) {
-      tryPlay();
+      // Wait until useReelHls signals attach.ready (readyToken).
+      if (readyToken > 0 || el.readyState >= 2) tryPlay();
     } else if (wasActiveRef.current) {
       releaseReelPlayback(el);
       setProgress(0);
@@ -144,10 +198,24 @@ export function ReelSlide({
     }
     wasActiveRef.current = active;
 
-    const onPlaying = () => setVideoReady(true);
+    const onPlaying = () => {
+      reelLog('play.playing', {
+        reelId: reel.id,
+        sinceAttachMs: reelSince(playMark),
+        currentTime: Number(el.currentTime.toFixed(2)),
+      });
+      setVideoReady(true);
+      setStalled(false);
+    };
+    const onWaiting = () => {
+      if (el.readyState < 3) setStalled(true);
+    };
     const onTimeUpdate = () => {
       if (scrubbingRef.current) return;
-      if (el.currentTime > 0) setVideoReady(true);
+      if (el.currentTime > 0) {
+        setVideoReady(true);
+        setStalled(false);
+      }
       const dur = el.duration;
       if (!Number.isFinite(dur) || dur <= 0) return;
       setProgress((el.currentTime / dur) * 100);
@@ -162,6 +230,7 @@ export function ReelSlide({
 
     if (active) {
       el.addEventListener('playing', onPlaying);
+      el.addEventListener('waiting', onWaiting);
       el.addEventListener('timeupdate', onTimeUpdate);
     }
     document.addEventListener('visibilitychange', onVisibility);
@@ -171,10 +240,19 @@ export function ReelSlide({
       removeReadyWait();
       document.removeEventListener('visibilitychange', onVisibility);
       el.removeEventListener('playing', onPlaying);
+      el.removeEventListener('waiting', onWaiting);
       el.removeEventListener('timeupdate', onTimeUpdate);
-      if (active) releaseReelPlayback(el);
     };
   }, [active, canPlay, readyToken, reel.id, preferMuted, failed]);
+
+  // Release MSE/audio only when leaving active or unmounting — not on readyToken refresh.
+  useEffect(() => {
+    if (!active) return undefined;
+    const el = videoRef.current;
+    return () => {
+      if (el) releaseReelPlayback(el);
+    };
+  }, [active, reel.id]);
 
   function unmuteFromGesture() {
     const el = videoRef.current;
@@ -219,6 +297,7 @@ export function ReelSlide({
   const bottomPad = desk ? 'bottom-4' : 'bottom-[calc(82px+env(safe-area-inset-bottom))]';
   const displayProgress = active ? progress : 0;
   const tipBottom = desk ? 'bottom-36' : 'bottom-[calc(12.75rem+env(safe-area-inset-bottom))]';
+  const showWaitSpinner = active && !failed && !chromeHidden && ((startHint.show && needsStartHint) || stalled);
 
   return (
     <div className={cn('relative h-full w-full shrink-0 snap-start overflow-hidden bg-black', className)}>
@@ -233,6 +312,12 @@ export function ReelSlide({
       ) : (
         <div className="absolute inset-0 bg-[image:var(--gradient-media-placeholder)]" />
       )}
+
+      {showWaitSpinner ? (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+          <Spinner size="md" tone="media" label={stalled ? 'Buffering' : 'Starting reel'} />
+        </div>
+      ) : null}
 
       {inPlayerWindow ? (
         // eslint-disable-next-line jsx-a11y/media-has-caption -- poster + mute tip until caption tracks ship

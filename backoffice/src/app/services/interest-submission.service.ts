@@ -21,12 +21,14 @@ export interface InterestSubmission {
   phone: string | null;
   country: string | null;
   city: string | null;
+  custom_answers?: Record<string, string | null>;
   date_of_birth: string | null;
   profile_picture_url: string | null;
   id_document_url: string | null;
   status: InterestSubmissionStatus;
   status_label: string;
   withdrawn_at: string | null;
+  notes?: string | null;
   user?: UserSearchRow | null;
   campaign?: InterestCampaign | null;
   created_at?: string;
@@ -47,7 +49,16 @@ export interface InterestSubmissionListResponse {
 }
 
 export interface UpdateInterestSubmissionPayload {
+  name?: string;
+  nickname?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
+  date_of_birth?: string | null;
+  custom_answers?: Record<string, string | null>;
   status?: InterestSubmissionStatus;
+  notes?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

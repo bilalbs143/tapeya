@@ -1,6 +1,13 @@
+import { Suspense } from 'react';
+
 import { BaseDialog } from './BaseDialog';
 import { dialogStore } from './dialogStore';
-import { DIALOG_COMPONENTS, DIALOG_CONTENT_CLASS_BY_KEY, DIALOG_SHOW_CLOSE_BY_KEY } from './registry';
+import {
+  DIALOG_COMPONENTS,
+  DIALOG_CONTENT_CLASS_BY_KEY,
+  DIALOG_SHELL_CLASS_BY_KEY,
+  DIALOG_SHOW_CLOSE_BY_KEY,
+} from './registry';
 import { useDialogStack } from './useDialog';
 
 /** Single mount in `AppProviders` for all `dialogStore.open` calls. §13 */
@@ -24,12 +31,17 @@ export function DialogHost() {
           forceSessionRelogin(top.props);
           return;
         }
+        const onDismiss = (top.props as { onDismiss?: () => void } | null)?.onDismiss;
         dialogStore.close(top.id);
+        onDismiss?.();
       }}
       contentClassName={DIALOG_CONTENT_CLASS_BY_KEY[top.key] ?? ''}
+      shellClassName={DIALOG_SHELL_CLASS_BY_KEY[top.key] ?? ''}
     >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous registry; DialogProps<K> keeps every *call site* fully typed, this is the one place the union collapses to render dynamically. */}
-      <DialogBody {...(top.props as any)} />
+      <Suspense fallback={null}>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous registry; DialogProps<K> keeps every *call site* fully typed, this is the one place the union collapses to render dynamically. */}
+        <DialogBody {...(top.props as any)} />
+      </Suspense>
     </BaseDialog>
   );
 }

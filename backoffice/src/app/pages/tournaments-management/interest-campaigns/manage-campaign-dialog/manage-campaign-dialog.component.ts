@@ -1,7 +1,17 @@
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
@@ -20,6 +30,8 @@ import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/compon
 import {
   DEFAULT_INTEREST_FORM_FIELDS,
   LOCKED_INTEREST_FORM_FIELDS,
+  type InterestCustomField,
+  type InterestCustomFieldType,
   type InterestFormFieldKey,
 } from 'src/app/shared/constants/interest-form-field.constants';
 import { CAMPAIGN_LOGO_ASPECT } from 'src/app/shared/constants/thumbnail.constants';
@@ -53,10 +65,17 @@ function slugify(input: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function cloneCustomFields(fields: InterestCustomField[]): InterestCustomField[] {
+  return fields.map((f) => ({
+    ...f,
+    options: f.options ? [...f.options] : undefined,
+  }));
+}
+
 @Component({
   selector: 'app-manage-campaign-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MaterialModule, CommonSharedModule, FileUploadComponent],
   templateUrl: './manage-campaign-dialog.component.html',
 })
 export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
@@ -77,9 +96,13 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
   public tournamentOptions: TournamentPickerRow[] = [];
   public tournamentSearch$ = new Subject<string>();
   public slugDirty = false;
+  public customFields: InterestCustomField[] = [];
+  public customFieldError: string | null = null;
+  public readonly optionChipSeparatorKeys = [ENTER, COMMA] as const;
 
   public readonly statusOptions$ = this.enumsService.getOptions('tournament_interest_campaign_status');
   public readonly formFieldOptions$ = this.enumsService.getOptions('tournament_interest_form_field');
+  public readonly customFieldTypeOptions$ = this.enumsService.getOptions('tournament_interest_custom_field_type');
 
   public get isEdit(): boolean {
     return this.data.mode === 'edit';
@@ -148,6 +171,12 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       status: [c?.status ?? 'open', [Validators.required]],
       logo: [c?.logo_url ? ({ files: [], existingUrls: [c.logo_url] } as FileUploadValue) : null],
     });
+
+    this.customFields = cloneCustomFields(
+      (c?.custom_fields ?? [])
+        .filter((f) => f.id !== 'id_document' && f.label?.trim().toLowerCase() !== 'cnic / b-form')
+        .map((f) => f)
+    );
 
     this.applyKindRules(initialKind);
     this.sub.add(this.form.get('kind')?.valueChanges.subscribe((k) => this.applyKindRules(k)));
@@ -257,6 +286,78 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     this.ensureCountryCityPairing();
   }
 
+  public addCustomField(type: InterestCustomFieldType = 'text'): void {
+    const label = type === 'select' ? 'Trial Venue' : type === 'file' ? 'Document Upload' : 'Custom Question';
+    this.customFields = [
+      ...this.customFields,
+      {
+        type,
+        label,
+        required: true,
+        ...(type === 'select' ? { options: [] } : {}),
+      },
+    ];
+    this.markCustomFieldsChanged();
+  }
+
+  public removeCustomField(index: number): void {
+    this.customFields = this.customFields.filter((_, i) => i !== index);
+    this.markCustomFieldsChanged();
+  }
+
+  public moveCustomField(index: number, delta: number): void {
+    const target = index + delta;
+    if (target < 0 || target >= this.customFields.length) return;
+    const next = [...this.customFields];
+    const [row] = next.splice(index, 1);
+    next.splice(target, 0, row);
+    this.customFields = next;
+    this.form.markAsDirty();
+  }
+
+  public onCustomLabelChange(index: number, label: string): void {
+    // Server derives/keeps the storage key from label + previous campaign fields.
+    this.patchCustomField(index, { label });
+  }
+
+  public onCustomTypeChange(index: number, type: InterestCustomFieldType): void {
+    this.patchCustomField(index, {
+      type,
+      options: type === 'select' ? [...(this.customFields[index].options ?? [])] : undefined,
+    });
+    this.customFieldError = null;
+  }
+
+  public onCustomRequiredChange(index: number, required: boolean): void {
+    this.patchCustomField(index, { required });
+  }
+
+  public addCustomOption(index: number, event: MatChipInputEvent): void {
+    const value = (event.value ?? '').trim();
+    event.chipInput?.clear();
+    if (!value) return;
+    const options = [...(this.customFields[index].options ?? [])];
+    if (options.some((opt) => opt.toLowerCase() === value.toLowerCase())) return;
+    this.patchCustomField(index, { options: [...options, value] });
+    this.customFieldError = null;
+  }
+
+  public removeCustomOption(index: number, option: string): void {
+    this.patchCustomField(index, {
+      options: (this.customFields[index].options ?? []).filter((opt) => opt !== option),
+    });
+  }
+
+  private patchCustomField(index: number, patch: Partial<InterestCustomField>): void {
+    this.customFields = this.customFields.map((field, i) => (i === index ? { ...field, ...patch } : field));
+    this.form.markAsDirty();
+  }
+
+  private markCustomFieldsChanged(): void {
+    this.customFieldError = null;
+    this.form.markAsDirty();
+  }
+
   private ensureCountryCityPairing(): void {
     const control = this.form.get('form_fields');
     const current = [...((control?.value as InterestFormFieldKey[] | null) ?? [])];
@@ -306,9 +407,28 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     }
   }
 
+  private validateCustomFields(): boolean {
+    for (const field of this.customFields) {
+      if (!field.label.trim()) {
+        this.customFieldError = 'Each custom field needs a label.';
+        return false;
+      }
+      if (field.type === 'select' && !field.options?.length) {
+        this.customFieldError = `Add options for “${field.label.trim()}”.`;
+        return false;
+      }
+    }
+    this.customFieldError = null;
+    return true;
+  }
+
   public onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    if (!this.validateCustomFields()) {
       return;
     }
 
@@ -327,21 +447,19 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => this.dialogRef.close(true),
-        // The HTTP error interceptor surfaces 422 / server messages; nothing to do here.
         error: () => undefined,
       });
   }
 
-  /**
-   * Only include fields that apply to the chosen kind. For linked campaigns we
-   * omit `tournament_name` so the server can snapshot it from the tournament
-   * (sending `null` would fail the Update rule `sometimes|required`).
-   */
   private buildPayload(): CreateInterestCampaignPayload {
     const v = this.form.getRawValue();
     const isLinked = v.kind === 'linked';
     const slug = (v.slug ?? '').trim();
     const description = (v.description ?? '').trim();
+
+    const formFields = this.normalizeFormFields(
+      Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...(v.form_fields ?? DEFAULT_INTEREST_FORM_FIELDS)]))
+    );
 
     const payload: CreateInterestCampaignPayload = {
       tournament_id: isLinked ? (v.tournament?.id ?? null) : null,
@@ -349,9 +467,13 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       description: description ? description : null,
       show_in_sidebar: !!v.show_in_sidebar,
       show_dialog: !!v.show_dialog,
-      form_fields: this.normalizeFormFields(
-        Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...(v.form_fields ?? DEFAULT_INTEREST_FORM_FIELDS)]))
-      ),
+      form_fields: formFields,
+      custom_fields: this.customFields.map((f) => ({
+        type: f.type,
+        label: f.label.trim(),
+        required: !!f.required,
+        ...(f.type === 'select' ? { options: [...(f.options ?? [])] } : {}),
+      })),
     };
 
     if (!isLinked) {

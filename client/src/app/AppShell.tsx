@@ -27,6 +27,7 @@ import {
   usePageDockActive,
   useShellKeyboardPadEnabled,
   useShellRailValue,
+  useTabLayout,
 } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
@@ -57,6 +58,7 @@ export function AppShell({ bare = false, className }: AppShellProps) {
 function AppShellChrome({ bare = false, className }: AppShellProps) {
   const { pathname } = useLocation();
   const rail = useShellRailValue();
+  const isTab = useTabLayout();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   const keyboardInset = useKeyboardInset();
@@ -88,6 +90,8 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
     // Phone reels: dark tokens for page bg + Suspense/skeleton before the player paints
     // (same scoped `data-theme` pattern as overlay BottomNav). Desk SideNav stays app theme.
     const reelsPhoneDark = isReelsImmersivePath(pathname);
+    // Single Outlet per breakpoint. CSS-hiding a second Outlet still mounts the page
+    // (Reels/Live would attach media twice).
     return (
       <div
         className={cn(
@@ -96,23 +100,26 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           className
         )}
       >
-        <div className="hidden h-full tab:flex">
-          {isAuthenticated ? <SideNav user={sideUser} /> : null}
-          <div className="relative min-w-0 flex-1">
-            <Outlet />
+        {isTab ? (
+          <div className="flex h-full min-h-0 flex-1">
+            {isAuthenticated ? <SideNav user={sideUser} /> : null}
+            <div className="relative min-w-0 flex-1">
+              <Outlet />
+            </div>
           </div>
-        </div>
-        <div
-          data-theme={reelsPhoneDark ? 'dark' : undefined}
-          className={cn(
-            'relative flex min-h-0 flex-1 flex-col tab:hidden',
-            immersiveTransparent && 'bg-transparent',
-            reelsPhoneDark && 'bg-page text-ink'
-          )}
-        >
-          <Outlet />
-          {showBottomNav ? <BottomNav overlay /> : null}
-        </div>
+        ) : (
+          <div
+            data-theme={reelsPhoneDark ? 'dark' : undefined}
+            className={cn(
+              'relative flex min-h-0 flex-1 flex-col',
+              immersiveTransparent && 'bg-transparent',
+              reelsPhoneDark && 'bg-page text-ink'
+            )}
+          >
+            <Outlet />
+            {showBottomNav ? <BottomNav overlay /> : null}
+          </div>
+        )}
         <KeyboardInsetPad enabled={shellKeyboardPad && !immersiveTransparent} />
       </div>
     );

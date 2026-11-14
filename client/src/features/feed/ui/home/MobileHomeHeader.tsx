@@ -38,14 +38,16 @@ export function MobileHomeHeader({
       ) : null}
 
       <div className="pt-1.5 pb-4">
-        <p className="text-navy-text font-mono px-4 pb-2.5 text-4xs font-bold tracking-eyebrow uppercase">Explore</p>
-        <div className="grid grid-cols-5 gap-2 px-4">
+        <p className="text-navy-text font-mono px-3.5 pb-2.5 text-4xs font-bold tracking-eyebrow uppercase">Explore</p>
+        <div className="grid grid-cols-5 gap-1 px-3.5">
           {HOME_EXPLORE_TILES.map((item) => (
             <Link key={item.label} to={item.href} className="flex min-w-0 flex-col items-center text-center">
               <span className="border-border-subtle bg-surface grid aspect-square w-full max-w-14 place-items-center rounded-card border">
                 <item.icon className="text-body h-5 w-5" />
               </span>
-              <span className="text-ink mt-1.5 line-clamp-2 w-full text-4xs font-semibold">{item.label}</span>
+              <span className="text-ink mt-1.5 w-full truncate text-4xs leading-none font-semibold whitespace-nowrap">
+                {item.label}
+              </span>
             </Link>
           ))}
         </div>

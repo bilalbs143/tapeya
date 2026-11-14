@@ -13,6 +13,7 @@ use App\Http\Resources\User\InterestSubmissionResource;
 use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentInterestSubmission;
 use App\Models\User;
+use App\Support\Interest\InterestCustomFields;
 use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class InterestCampaignController extends Controller
             'campaign' => [
                 'slug' => $campaign->slug,
                 'tournament_name' => $campaign->tournament_name,
+                'logo_url' => MediaDisk::url($campaign->logo_path),
             ],
         ]);
     }
@@ -154,6 +156,13 @@ class InterestCampaignController extends Controller
             ->where('campaign_id', $campaign->id)
             ->where('user_id', $user->id)
             ->first();
+
+        $mergedAnswers = InterestCustomFields::mergeScalarAnswers(
+            $campaign->resolvedCustomFields(),
+            $submission?->rawCustomAnswers() ?? [],
+            is_array($payload['custom_answers'] ?? null) ? $payload['custom_answers'] : [],
+        );
+        $data['custom_answers'] = $mergedAnswers === [] ? null : $mergedAnswers;
 
         // On first submission, seed profile picture from the user's existing avatar
         // when they haven't uploaded one yet (upload happens via the media endpoint).

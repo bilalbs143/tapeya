@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 
 import { useLogoutMutation, useMeQuery } from '@/features/auth';
+import { useGetSidebarInterestCampaignQuery } from '@/features/interest';
 
 import { userCanApplyAsSeller, userHasVendorAccess } from '@/entities/user';
 
@@ -15,7 +16,7 @@ import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { toast } from '@/shared/ui/toast';
 
 import { buildNavGroups } from './navGroups';
-import { NavGroupList } from './navMenu';
+import { NavGroupList, NavInterestBanner } from './navMenu';
 import { ShellPrimaryCtas } from './ShellPrimaryCtas';
 
 type SideNavUser = {
@@ -33,8 +34,10 @@ type SideNavProps = {
 export function SideNav({ className, user }: SideNavProps) {
   const { pathname } = useLocation();
   const { data: me } = useMeQuery();
+  const { data: sidebarInterestPayload } = useGetSidebarInterestCampaignQuery();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
   const { iosStoreUrl, playStoreUrl } = useStoreLinks();
+  const sidebarCampaign = sidebarInterestPayload?.campaign;
   const groups = buildNavGroups({
     hasStore: userHasVendorAccess(me),
     canApplyAsSeller: userCanApplyAsSeller(me),
@@ -72,6 +75,7 @@ export function SideNav({ className, user }: SideNavProps) {
     >
       <div className="shrink-0 px-2.5 pb-2">
         <ShellPrimaryCtas canBroadcast={Boolean(me?.canBroadcast)} />
+        {sidebarCampaign ? <NavInterestBanner campaign={sidebarCampaign} pathname={pathname} className="mt-2" /> : null}
       </div>
 
       <nav className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-2.5 pt-0.5 pb-2">

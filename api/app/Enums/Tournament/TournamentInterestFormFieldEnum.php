@@ -33,7 +33,12 @@ enum TournamentInterestFormFieldEnum: string
         };
     }
 
-    /** Default v1 form — all fields enabled (matches legacy hardcoded form). */
+    /**
+     * Default user/account fields for legacy null form_fields.
+     * Campaign-specific questions live in custom_fields.
+     *
+     * @return list<string>
+     */
     public static function defaults(): array
     {
         return self::values();
@@ -44,13 +49,16 @@ enum TournamentInterestFormFieldEnum: string
     {
         return array_values(array_filter(
             self::values(),
-            fn (string $value) => ! in_array($value, [self::PROFILE_PICTURE->value, self::ID_DOCUMENT->value], true),
+            fn (string $value) => ! self::isFileField($value),
         ));
     }
 
     public static function isFileField(string $value): bool
     {
-        return in_array($value, [self::PROFILE_PICTURE->value, self::ID_DOCUMENT->value], true);
+        return in_array($value, [
+            self::PROFILE_PICTURE->value,
+            self::ID_DOCUMENT->value,
+        ], true);
     }
 
     /** Stored on every submission regardless of campaign toggles (NOT NULL column; sourced from account). */
@@ -68,7 +76,7 @@ enum TournamentInterestFormFieldEnum: string
         $rules = [];
 
         foreach ($enabled as $field) {
-            if (self::isAlwaysStored($field)) {
+            if (self::isAlwaysStored($field) || self::isFileField($field)) {
                 continue;
             }
 

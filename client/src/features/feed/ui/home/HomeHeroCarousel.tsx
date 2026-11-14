@@ -1,13 +1,18 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { isHeroSlideInteractive, openHeroExternalUrl, resolveHeroSlideAction } from '@/features/feed/lib/heroSliderCta';
+import {
+  applyHeroSlideAction,
+  interestCampaignSlugsFromHeroSlides,
+  isHeroSlideInteractive,
+  resolveHeroSlideAction,
+} from '@/features/feed/lib/heroSliderCta';
 import { useHeroStoreLinks } from '@/features/feed/lib/useHeroStoreLinks';
 import type { HomeHeroSlide } from '@/features/feed/model/homeSchemas';
-import { interestRoutes } from '@/features/interest';
+import { interestApi } from '@/features/interest';
 
 import { cn } from '@/shared/lib/cn';
 import { Skeleton } from '@/shared/ui/states';
@@ -24,12 +29,20 @@ type HomeHeroCarouselProps = {
   className?: string | undefined;
 };
 
-/** Home hero carousel — Swiper; CTAs via `resolveHeroSlideAction`. */
+/** Home hero carousel — Swiper; CTAs via `resolveHeroSlideAction` (dialog / in-app / external). */
 export function HomeHeroCarousel({ slides, loading = false, className }: HomeHeroCarouselProps) {
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [active, setActive] = useState(0);
   const navigate = useNavigate();
   const storeLinks = useHeroStoreLinks();
+  const prefetchInterest = interestApi.usePrefetch('getInterestCampaign');
+
+  useEffect(() => {
+    if (loading) return;
+    for (const slug of interestCampaignSlugsFromHeroSlides(slides)) {
+      prefetchInterest(slug);
+    }
+  }, [loading, prefetchInterest, slides]);
 
   const loopSlides = useMemo(() => {
     if (!slides.length) return [];
@@ -69,9 +82,7 @@ export function HomeHeroCarousel({ slides, loading = false, className }: HomeHer
   }
 
   function handleSlideTap(slide: HomeHeroSlide) {
-    const action = resolveHeroSlideAction(slide, storeLinks, interestRoutes.form);
-    if (action.kind === 'navigate') navigate(action.path);
-    else if (action.kind === 'external') openHeroExternalUrl(action.url);
+    applyHeroSlideAction(resolveHeroSlideAction(slide, storeLinks), navigate);
   }
 
   return (
@@ -148,7 +159,7 @@ function HeroSlideCard({ slide, onTap }: { slide: HomeHeroSlide; onTap: () => vo
         className="absolute inset-0 h-full w-full object-cover"
       />
       {tappable && slide.ctaLabel ? (
-        <span className="bg-brand text-ink absolute right-3 bottom-3 z-10 inline-flex items-center rounded-chip px-4 py-1.5 text-2xs font-bold tracking-wide shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
+        <span className="bg-brand text-white absolute right-3 bottom-3 z-10 inline-flex items-center rounded-button px-4 py-1.5 text-2xs font-bold tracking-wide shadow-card">
           {slide.ctaLabel}
         </span>
       ) : null}

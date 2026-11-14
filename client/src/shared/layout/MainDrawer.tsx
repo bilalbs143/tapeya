@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 
 import { useLogoutMutation, useMeQuery } from '@/features/auth';
+import { useGetSidebarInterestCampaignQuery } from '@/features/interest';
 
 import { userCanApplyAsSeller, userHandle, userHasVendorAccess } from '@/entities/user';
 
@@ -13,7 +14,7 @@ import { ChevronRightIcon, NAV_ICONS } from '@/shared/ui/icons';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 import { buildNavGroups } from './navGroups';
-import { NavGroupList } from './navMenu';
+import { NavGroupList, NavInterestBanner } from './navMenu';
 import { ShellPrimaryCtas } from './ShellPrimaryCtas';
 import { useShell } from './useShell';
 
@@ -22,12 +23,14 @@ export function MainDrawer() {
   const { drawerOpen, closeDrawer } = useShell();
   const { pathname } = useLocation();
   const { data: me } = useMeQuery();
+  const { data: sidebarInterestPayload } = useGetSidebarInterestCampaignQuery();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
   const { isNativeMobile, installedVersion, configuredVersion } = useNativeAppVersions();
 
   // RequireAuth waits for `/me` — drawer only mounts in the product shell.
   if (!drawerOpen || !me) return null;
 
+  const sidebarCampaign = sidebarInterestPayload?.campaign;
   const groups = buildNavGroups({
     hasStore: userHasVendorAccess(me),
     canApplyAsSeller: userCanApplyAsSeller(me),
@@ -90,6 +93,15 @@ export function MainDrawer() {
           </div>
 
           <ShellPrimaryCtas className="mt-2.5 flex gap-2" canBroadcast={me.canBroadcast} onNavigate={closeDrawer} />
+          {sidebarCampaign ? (
+            <NavInterestBanner
+              campaign={sidebarCampaign}
+              pathname={pathname}
+              onNavigate={closeDrawer}
+              compact
+              className="mt-2.5"
+            />
+          ) : null}
         </div>
 
         <nav className="min-h-0 flex-1 overflow-y-auto px-2.5 pt-1 pb-2 [scrollbar-width:none]">

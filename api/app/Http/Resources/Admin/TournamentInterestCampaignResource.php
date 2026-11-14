@@ -22,6 +22,7 @@ class TournamentInterestCampaignResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'form_fields' => $this->resolvedFormFields(),
+            'custom_fields' => $this->resolvedCustomFields(),
             'logo_url' => MediaDisk::url($this->logo_path),
             'show_in_sidebar' => (bool) $this->show_in_sidebar,
             'show_dialog' => (bool) $this->show_dialog,

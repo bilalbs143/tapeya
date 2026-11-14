@@ -40,6 +40,7 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
   public campaign: InterestCampaign | null = null;
   public stats: SubmissionStats = { total: 0, pending: 0, confirmed: 0, withdrawn: 0 };
   public formFieldLabels: string[] = [];
+  public customFieldsSummary = '';
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
 
@@ -78,6 +79,12 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
         const keys = campaign.data.form_fields?.length ? campaign.data.form_fields : DEFAULT_INTEREST_FORM_FIELDS;
         const byValue = new Map(formFieldOptions.map((opt) => [String(opt.value), opt.label]));
         this.formFieldLabels = keys.map((key) => byValue.get(key) ?? key);
+        this.customFieldsSummary = (campaign.data.custom_fields ?? [])
+          .map((f) => {
+            const opts = f.type === 'select' && f.options?.length ? ` (${f.options.join(', ')})` : '';
+            return `${f.label}${opts}`;
+          })
+          .join(' · ');
         const sum = pending + confirmed + withdrawn;
         const fromApi = campaign.data.submissions_count;
         this.stats = {

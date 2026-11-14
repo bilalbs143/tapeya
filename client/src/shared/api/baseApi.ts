@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-import { dialogStore } from '@/shared/dialogs';
+import { dialogStore } from '@/shared/dialogs/dialogStore';
 import { clearAuthSession } from '@/shared/store/authSession';
 import { selectAccessToken } from '@/shared/store/authSlice';
 

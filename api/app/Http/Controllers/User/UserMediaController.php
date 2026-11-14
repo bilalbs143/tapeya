@@ -37,6 +37,7 @@ use Illuminate\Http\Request;
  *   match / thumbnail
  *   interest-submission / profile_picture
  *   interest-submission / id_document
+ *   interest-submission / {custom file field id}
  *   reel / original   (video post — type key kept for app compat)
  *   reel / thumbnail
  *   product / images  (multiple; MediaRegistry)
@@ -140,7 +141,8 @@ class UserMediaController extends Controller
 
         $request->validate(['file' => $rules]);
 
-        $column = $config['column'];
+        $isCustomAnswer = ($config['storage'] ?? null) === 'custom_answers';
+        $column = $config['column'] ?? null;
 
         // Provisional client posters must not overwrite the FFmpeg poster after the original lands
         // (thumb upload races multipart complete → ExtractPostPosterJob force-refine).
@@ -153,9 +155,14 @@ class UserMediaController extends Controller
             ]);
         }
 
-        $oldPath = $type === 'reel'
-            ? ($record instanceof Post ? $record->videoRaw($column) : null)
-            : $record->getRawOriginal($column);
+        $oldPath = null;
+        if ($isCustomAnswer && $record instanceof TournamentInterestSubmission) {
+            $oldPath = $record->customAnswerPath($field);
+        } elseif ($type === 'reel') {
+            $oldPath = $record instanceof Post ? $record->videoRaw($column) : null;
+        } elseif (is_string($column)) {
+            $oldPath = $record->getRawOriginal($column);
+        }
 
         if ($oldPath) {
             MediaDisk::delete($oldPath);
@@ -181,7 +188,10 @@ class UserMediaController extends Controller
             $path = MediaDisk::storeUploaded($file, $dir);
         }
 
-        if ($type === 'reel' && $record instanceof Post) {
+        if ($isCustomAnswer && $record instanceof TournamentInterestSubmission) {
+            $record->setCustomAnswerPath($field, $path);
+            $record->refresh();
+        } elseif ($type === 'reel' && $record instanceof Post) {
             $record->fillVideo([$column => $path]);
             if ($field === 'thumbnail') {
                 $oldCover = $record->getRawOriginal('cover_path');
@@ -225,6 +235,16 @@ class UserMediaController extends Controller
 
         [$record, $config] = $resolved;
 
+        if (($config['storage'] ?? null) === 'custom_answers' && $record instanceof TournamentInterestSubmission) {
+            $oldPath = $record->customAnswerPath($field);
+            if ($oldPath) {
+                MediaDisk::delete($oldPath);
+            }
+            $record->setCustomAnswerPath($field, null);
+
+            return $this->noContent();
+        }
+
         $column = $config['column'];
         $oldPath = $record->getRawOriginal($column);
 
@@ -252,10 +272,6 @@ class UserMediaController extends Controller
 
         $typeConfig = $types[$type];
 
-        if (! array_key_exists($field, $typeConfig['fields'])) {
-            return $this->notFound("Unknown field '{$field}' for type '{$type}'.");
-        }
-
         /** @var class-string<Model> $modelClass */
         $modelClass = $typeConfig['model'];
         $record = $modelClass::query()->find($id);
@@ -264,6 +280,8 @@ class UserMediaController extends Controller
             return $this->notFound('Record not found.');
         }
 
+        $fieldConfig = $typeConfig['fields'][$field] ?? null;
+
         if ($type === 'interest-submission') {
             /** @var TournamentInterestSubmission $record */
             if ($record->user_id !== $request->user()?->id) {
@@ -271,10 +289,31 @@ class UserMediaController extends Controller
             }
 
             $campaign = $record->campaign()->first();
-
-            if (! TournamentInterestFormFieldEnum::isFileField($field) || $campaign === null || ! $campaign->formFieldEnabled($field)) {
+            if ($campaign === null) {
                 return $this->failure('This upload field is not enabled for this interest form.', 'VALIDATION_ERROR');
             }
+
+            if (TournamentInterestFormFieldEnum::isFileField($field)) {
+                if (! $campaign->formFieldEnabled($field) || $fieldConfig === null) {
+                    return $this->failure('This upload field is not enabled for this interest form.', 'VALIDATION_ERROR');
+                }
+
+                return [$record, $fieldConfig];
+            }
+
+            if (! $campaign->customFileFieldEnabled($field)) {
+                return $this->failure('This upload field is not enabled for this interest form.', 'VALIDATION_ERROR');
+            }
+
+            return [$record, [
+                'dir' => 'interest/custom-files/'.$field,
+                'storage' => 'custom_answers',
+                'file_rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            ]];
+        }
+
+        if ($fieldConfig === null) {
+            return $this->notFound("Unknown field '{$field}' for type '{$type}'.");
         }
 
         if ($type === 'reel') {
@@ -292,7 +331,7 @@ class UserMediaController extends Controller
             }
         }
 
-        return [$record, $typeConfig['fields'][$field]];
+        return [$record, $fieldConfig];
     }
 
     private function uploadProductMedia(Request $request, int $id, string $field): JsonResponse

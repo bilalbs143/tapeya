@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { useMeQuery } from '@/features/auth';
 
 import { APP_PATHS } from '@/shared/config/paths';
-import { dialogStore } from '@/shared/dialogs/dialogStore';
+import { dialogStore } from '@/shared/dialogs';
 import { shouldPromptAppUpdate } from '@/shared/lib/appVersionCompare';
 import {
   appUpdateReminderStorageKey,

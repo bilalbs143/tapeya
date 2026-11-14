@@ -6,6 +6,7 @@ use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Http\Requests\Admin\UpdateTournamentInterestSubmissionRequest;
 use App\Http\Resources\Admin\TournamentInterestSubmissionResource;
 use App\Models\TournamentInterestSubmission;
+use App\Support\Interest\InterestCustomFields;
 use Illuminate\Http\JsonResponse;
 
 class TournamentInterestSubmissionController extends BaseAdminController
@@ -41,6 +42,21 @@ class TournamentInterestSubmissionController extends BaseAdminController
                 } elseif ($data['status'] !== $withdrawn) {
                     $data['withdrawn_at'] = null;
                 }
+            }
+
+            if (array_key_exists('custom_answers', $data)) {
+                $campaign = $submission->campaign;
+                $merged = InterestCustomFields::mergeScalarAnswers(
+                    $campaign?->resolvedCustomFields() ?? [],
+                    $submission->rawCustomAnswers(),
+                    is_array($data['custom_answers']) ? $data['custom_answers'] : [],
+                );
+                $data['custom_answers'] = $merged === [] ? null : $merged;
+            }
+
+            if (array_key_exists('notes', $data)) {
+                $notes = is_string($data['notes']) ? trim($data['notes']) : null;
+                $data['notes'] = $notes === '' || $notes === null ? null : $notes;
             }
         });
     }

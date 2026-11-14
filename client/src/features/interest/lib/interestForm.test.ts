@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { InterestFormField, InterestFormValues } from '../model/schemas';
-import { interestNeedsAvatar, interestNeedsDoc, validateInterestForm } from './interestForm';
+import { interestNeedsAvatar, validateInterestForm } from './interestForm';
 
 const fields: InterestFormField[] = ['email', 'date_of_birth', 'city', 'country', 'profile_picture', 'id_document'];
 
@@ -13,6 +13,7 @@ const emptyValues: InterestFormValues = {
   dateOfBirth: '',
   city: '',
   country: '',
+  customAnswers: { trial_venue: '' },
 };
 
 const goodValues: InterestFormValues = {
@@ -23,7 +24,18 @@ const goodValues: InterestFormValues = {
   dateOfBirth: '2000-01-01',
   city: 'Lahore',
   country: 'PK',
+  customAnswers: { trial_venue: 'Lahore' },
 };
+
+const customFields = [
+  {
+    id: 'trial_venue',
+    type: 'select' as const,
+    label: 'Trial Venue',
+    required: true,
+    options: ['Lahore', 'Islamabad'],
+  },
+];
 
 describe('interestNeedsAvatar', () => {
   it('is true only when the campaign asks and nothing is on file', () => {
@@ -32,43 +44,37 @@ describe('interestNeedsAvatar', () => {
   });
 });
 
-describe('interestNeedsDoc', () => {
-  it('is true when campaign asks and no id doc url', () => {
-    expect(interestNeedsDoc({ formFields: fields }, null)).toBe(true);
-    expect(interestNeedsDoc({ formFields: fields }, { idDocumentUrl: 'https://cdn/d.pdf' })).toBe(false);
-  });
-});
-
 describe('validateInterestForm', () => {
   it('flags required empty fields', () => {
     const errors = validateInterestForm({
-      campaign: { formFields: fields },
+      campaign: { formFields: fields, customFields },
       values: emptyValues,
       needsAvatar: true,
-      needsDoc: true,
       avatarFile: null,
       avatarPreview: null,
-      docFile: null,
-      docUrl: null,
+      customFiles: {},
+      customFileUrls: {},
+      activeSubmission: null,
     });
     expect(errors.avatar).toBeTruthy();
-    expect(errors.doc).toBeTruthy();
     expect(errors.email).toBeTruthy();
     expect(errors.dateOfBirth).toBeTruthy();
     expect(errors.city).toBeTruthy();
     expect(errors.country).toBeTruthy();
+    expect(errors.custom?.trial_venue).toBeTruthy();
+    expect(errors.custom?.id_document).toBeTruthy();
   });
 
   it('accepts a complete payload', () => {
     const errors = validateInterestForm({
-      campaign: { formFields: fields },
+      campaign: { formFields: fields, customFields },
       values: goodValues,
       needsAvatar: false,
-      needsDoc: false,
       avatarFile: null,
       avatarPreview: 'https://cdn/a.jpg',
-      docFile: null,
-      docUrl: 'https://cdn/d.pdf',
+      customFiles: { id_document: new File(['x'], 'cnic.pdf', { type: 'application/pdf' }) },
+      customFileUrls: {},
+      activeSubmission: null,
     });
     expect(errors).toEqual({});
   });

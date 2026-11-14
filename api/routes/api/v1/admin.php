@@ -168,6 +168,7 @@ Route::prefix('admin')->group(function () {
         Route::get('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'show']);
         Route::match(['put', 'patch'], 'interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'update']);
         Route::delete('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'destroy']);
+        Route::get('interest-campaigns/{campaign}/submissions/export', [TournamentInterestCampaignController::class, 'exportSubmissions']);
         Route::get('interest-submissions', [TournamentInterestSubmissionController::class, 'index']);
         Route::get('interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'show']);
         Route::match(['put', 'patch'], 'interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'update']);

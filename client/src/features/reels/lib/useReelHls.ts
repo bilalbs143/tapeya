@@ -4,7 +4,9 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import Hls from 'hls.js';
 
 import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
+import { beginActiveReelAttach, endActiveReelAttach, scheduleNeighborReelAttach } from './reelAttachPriority';
 import { attachReelHls, bindReelHls } from './reelPlaybackGate';
+import { reelLog, reelMark, reelSince } from './reelPlaybackLog';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
 /** Immediate next slide — larger buffer for hitch-free snap. */
@@ -76,7 +78,7 @@ type UseReelHlsOptions = {
 /**
  * Attach source for a reel slide.
  * Neighbors must NOT call video.play() — Android + hls.js mixes audio from every playing element.
- * Warming is HTTP prefetch + hls.js attach/startLoad only. Play ownership lives in ReelSlide.
+ * Active attaches first; next/warm wait via reelAttachPriority. Play ownership lives in ReelSlide.
  */
 export function useReelHls(
   videoRef: RefObject<HTMLVideoElement | null>,
@@ -170,22 +172,61 @@ export function useReelHls(
     let readyHandled = false;
     let removeError = () => {};
     let removeReady = () => {};
+    let holdingActive = false;
+    let cancelNeighborSchedule = () => {};
+    let attachRaf = 0;
+
+    const takeActiveHold = () => {
+      if (holdingActive || roleRef.current !== 'active') return;
+      holdingActive = true;
+      beginActiveReelAttach();
+    };
+
+    const releaseActiveHold = () => {
+      if (!holdingActive) return;
+      holdingActive = false;
+      endActiveReelAttach();
+    };
 
     const attach = () => {
       if (cancelled) return;
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) {
+        releaseActiveHold();
+        return;
+      }
+
+      const currentRole = roleRef.current;
+      // Neighbor may have been promoted to active while waiting.
+      takeActiveHold();
+
+      const markKey = `attach:${currentRole}:${sourceKey}`;
+      reelMark(markKey);
+      reelLog('attach.start', { role: currentRole, mode, url: sourceUrl, readyState: video.readyState });
 
       applyInlineVideoAttributes(video);
       setFailed(false);
       destroy();
 
-      const onError = () => markFailed();
-      const onReady = () => {
+      const onError = () => {
+        reelLog('attach.error', { role: currentRole, mode, url: sourceUrl, sinceMs: reelSince(markKey) });
+        releaseActiveHold();
+        markFailed();
+      };
+      const onReady = (via: string) => {
         if (cancelled || readyHandled) return;
         readyHandled = true;
+        reelLog('attach.ready', {
+          role: currentRole,
+          mode,
+          url: sourceUrl,
+          via,
+          sinceMs: reelSince(markKey),
+          readyState: video.readyState,
+        });
         applyResume(video);
         bumpReady();
+        releaseActiveHold();
         if (roleRef.current !== 'active') {
           setReelVideoMuted(video, true);
           try {
@@ -197,29 +238,32 @@ export function useReelHls(
       };
 
       if (mode === 'progressive') {
+        const onLoaded = () => onReady('loadeddata');
         video.src = sourceUrl;
         video.addEventListener('error', onError);
-        video.addEventListener('loadeddata', onReady, { once: true });
+        video.addEventListener('loadeddata', onLoaded, { once: true });
         removeError = () => video.removeEventListener('error', onError);
-        removeReady = () => video.removeEventListener('loadeddata', onReady);
+        removeReady = () => video.removeEventListener('loadeddata', onLoaded);
         return;
       }
 
       if (canPlayNativeHls(video)) {
+        const onLoaded = () => onReady('native-hls-loadeddata');
         video.src = sourceUrl;
         video.addEventListener('error', onError);
-        video.addEventListener('loadeddata', onReady, { once: true });
+        video.addEventListener('loadeddata', onLoaded, { once: true });
         removeError = () => video.removeEventListener('error', onError);
-        removeReady = () => video.removeEventListener('loadeddata', onReady);
+        removeReady = () => video.removeEventListener('loadeddata', onLoaded);
         return;
       }
 
       if (!Hls.isSupported()) {
+        reelLog('attach.unsupported', { role: currentRole, url: sourceUrl });
         setFailed(true);
+        releaseActiveHold();
         return;
       }
 
-      const currentRole = roleRef.current;
       const buffer = bufferForRole(currentRole);
       const hls = new Hls({
         enableWorker: true,
@@ -232,37 +276,80 @@ export function useReelHls(
       bindReelHls(video, hls);
       hls.loadSource(sourceUrl);
       hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
+        reelLog('hls.manifest', {
+          role: currentRole,
+          url: sourceUrl,
+          levels: data.levels?.length ?? 0,
+          sinceMs: reelSince(markKey),
+        });
+      });
+      let fragsLogged = 0;
+      hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
+        if (currentRole !== 'active' || fragsLogged >= 2) return;
+        fragsLogged += 1;
+        reelLog('hls.frag', {
+          role: currentRole,
+          sn: data.frag?.sn,
+          level: data.frag?.level,
+          sinceMs: reelSince(markKey),
+        });
+      });
       hls.on(Hls.Events.ERROR, (_event, data) => {
+        reelLog('hls.error', {
+          role: currentRole,
+          fatal: data.fatal,
+          type: data.type,
+          details: data.details,
+          sinceMs: reelSince(markKey),
+        });
         if (data.fatal) markFailed();
       });
 
       if (currentRole === 'active') {
-        const onFragBuffered = () => onReady();
+        const onFragBuffered = () => onReady('frag-buffered');
+        const onCanPlay = () => onReady('canplay');
+        const onLoaded = () => onReady('loadeddata');
         hls.on(Hls.Events.FRAG_BUFFERED, onFragBuffered);
-        video.addEventListener('canplay', onReady, { once: true });
-        video.addEventListener('loadeddata', onReady, { once: true });
+        video.addEventListener('canplay', onCanPlay, { once: true });
+        video.addEventListener('loadeddata', onLoaded, { once: true });
         removeReady = () => {
           hls.off(Hls.Events.FRAG_BUFFERED, onFragBuffered);
-          video.removeEventListener('canplay', onReady);
-          video.removeEventListener('loadeddata', onReady);
+          video.removeEventListener('canplay', onCanPlay);
+          video.removeEventListener('loadeddata', onLoaded);
         };
       } else {
-        hls.on(Hls.Events.MANIFEST_PARSED, onReady);
-        video.addEventListener('loadeddata', onReady, { once: true });
+        const onManifest = () => onReady('manifest-parsed');
+        const onLoaded = () => onReady('loadeddata');
+        hls.on(Hls.Events.MANIFEST_PARSED, onManifest);
+        video.addEventListener('loadeddata', onLoaded, { once: true });
         removeReady = () => {
-          hls.off(Hls.Events.MANIFEST_PARSED, onReady);
-          video.removeEventListener('loadeddata', onReady);
+          hls.off(Hls.Events.MANIFEST_PARSED, onManifest);
+          video.removeEventListener('loadeddata', onLoaded);
         };
       }
     };
 
-    const raf = requestAnimationFrame(attach);
+    const scheduleAttach = () => {
+      attachRaf = requestAnimationFrame(attach);
+    };
+
+    // Claim hold sync so neighbor microtasks in this commit see an active owner.
+    if (roleRef.current === 'active') {
+      takeActiveHold();
+      scheduleAttach();
+    } else {
+      const neighborRole = roleRef.current === 'next' ? 'next' : 'warm';
+      cancelNeighborSchedule = scheduleNeighborReelAttach(neighborRole, scheduleAttach);
+    }
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
+      cancelNeighborSchedule();
+      cancelAnimationFrame(attachRaf);
       removeError();
       removeReady();
+      releaseActiveHold();
       destroy();
     };
   }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume]);

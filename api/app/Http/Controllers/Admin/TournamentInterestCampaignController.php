@@ -8,11 +8,14 @@ use App\Http\Requests\Admin\UpdateTournamentInterestCampaignRequest;
 use App\Http\Resources\Admin\TournamentInterestCampaignResource;
 use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
+use App\Services\Interest\InterestSubmissionCsvExporter;
 use App\Support\Media\MediaDisk;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TournamentInterestCampaignController extends BaseAdminController
 {
@@ -35,6 +38,21 @@ class TournamentInterestCampaignController extends BaseAdminController
     public function show(TournamentInterestCampaign $campaign): JsonResponse
     {
         return $this->_show($campaign);
+    }
+
+    /**
+     * Excel-friendly CSV of all submissions for this campaign.
+     * Optional query filters: status, search (same semantics as the submissions list).
+     */
+    public function exportSubmissions(
+        Request $request,
+        TournamentInterestCampaign $campaign,
+        InterestSubmissionCsvExporter $exporter,
+    ): StreamedResponse {
+        return $exporter->stream($campaign, [
+            'status' => $request->query('status'),
+            'search' => $request->query('search'),
+        ]);
     }
 
     public function store(StoreTournamentInterestCampaignRequest $request): JsonResponse

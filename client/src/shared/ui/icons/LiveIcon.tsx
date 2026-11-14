@@ -14,8 +14,9 @@ export function LiveIcon({ size = 'md', className, strokeWidth = 2.1, ...props }
       className={className}
       {...iconA11yProps(props)}
     >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M6.5 6.5a8 8 0 0 0 0 11M17.5 6.5a8 8 0 0 1 0 11" />
+      <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" />
+      <path d="M8.15 7.7a5.5 5.5 0 0 0 0 8.6M15.85 7.7a5.5 5.5 0 0 1 0 8.6" />
+      <path d="M5.2 4.9a9.5 9.5 0 0 0 0 14.2M18.8 4.9a9.5 9.5 0 0 1 0 14.2" />
     </svg>
   );
 }

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
+import { PLAY_STORE_NAME } from '@/shared/native/storeLinks';
+
 import type { HomeHeroSlide } from '../model/homeSchemas';
-import { isHeroSlideInteractive, pickStoreDownloadUrl, resolveHeroSlideAction, toInAppPath } from './heroSliderCta';
+import {
+  interestCampaignSlugsFromHeroSlides,
+  isHeroSlideInteractive,
+  pickStoreDownloadUrl,
+  resolveHeroSlideAction,
+  toInAppPath,
+} from './heroSliderCta';
 
 function slide(partial: Partial<HomeHeroSlide> & Pick<HomeHeroSlide, 'id' | 'image'>): HomeHeroSlide {
   return {
@@ -37,37 +45,74 @@ describe('heroSliderCta', () => {
     expect(isHeroSlideInteractive(slide({ id: '3', image: 'a.jpg' }))).toBe(false);
   });
 
-  it('resolves interestCampaign to navigate', () => {
-    const action = resolveHeroSlideAction(
-      slide({
-        id: '1',
-        image: 'a.jpg',
-        ctaType: 'dialog',
-        ctaDialogKey: 'interestCampaign',
-        ctaDialogParam: 'summer-cup',
-      }),
-      store,
-      (slug) => `/interest/${slug}`
-    );
-    expect(action).toEqual({ kind: 'navigate', path: '/interest/summer-cup' });
+  it('resolves interestCampaign to the interest dialog', () => {
+    expect(
+      resolveHeroSlideAction(
+        slide({
+          id: '1',
+          image: 'a.jpg',
+          ctaType: 'dialog',
+          ctaDialogKey: 'interestCampaign',
+          ctaDialogParam: 'summer-cup',
+        }),
+        store
+      )
+    ).toEqual({ kind: 'dialog', key: 'interestCampaign', props: { slug: 'summer-cup' } });
   });
 
-  it('resolves downloadApp / appUpdate to store URL', () => {
+  it('collects unique interest campaign slugs from hero slides', () => {
     expect(
-      resolveHeroSlideAction(
-        slide({ id: '1', image: 'a.jpg', ctaType: 'dialog', ctaDialogKey: 'downloadApp' }),
-        store,
-        (s) => s
-      )
-    ).toEqual({ kind: 'external', url: store.iosStoreUrl });
+      interestCampaignSlugsFromHeroSlides([
+        slide({
+          id: '1',
+          image: 'a.jpg',
+          ctaType: 'dialog',
+          ctaDialogKey: 'interestCampaign',
+          ctaDialogParam: 'summer-cup',
+        }),
+        slide({
+          id: '2',
+          image: 'b.jpg',
+          ctaType: 'dialog',
+          ctaDialogKey: 'interestCampaign',
+          ctaDialogParam: ' summer-cup ',
+        }),
+        slide({ id: '3', image: 'c.jpg', ctaType: 'dialog', ctaDialogKey: 'downloadApp' }),
+        slide({
+          id: '4',
+          image: 'd.jpg',
+          ctaType: 'dialog',
+          ctaDialogKey: 'interestCampaign',
+          ctaDialogParam: 'winter-cup',
+        }),
+      ])
+    ).toEqual(['summer-cup', 'winter-cup']);
+  });
 
+  it('resolves downloadApp to the download dialog with both store URLs', () => {
     expect(
-      resolveHeroSlideAction(
-        slide({ id: '2', image: 'a.jpg', ctaType: 'dialog', ctaDialogKey: 'appUpdate' }),
-        { ...store, platform: 'android' },
-        (s) => s
-      )
-    ).toEqual({ kind: 'external', url: store.playStoreUrl });
+      resolveHeroSlideAction(slide({ id: '1', image: 'a.jpg', ctaType: 'dialog', ctaDialogKey: 'downloadApp' }), store)
+    ).toEqual({
+      kind: 'dialog',
+      key: 'downloadApp',
+      props: {
+        appStoreUrl: store.iosStoreUrl,
+        playStoreUrl: store.playStoreUrl,
+      },
+    });
+  });
+
+  it('resolves appUpdate to the update dialog for the platform store', () => {
+    expect(
+      resolveHeroSlideAction(slide({ id: '2', image: 'a.jpg', ctaType: 'dialog', ctaDialogKey: 'appUpdate' }), {
+        ...store,
+        platform: 'android',
+      })
+    ).toEqual({
+      kind: 'dialog',
+      key: 'appUpdate',
+      props: { storeUrl: store.playStoreUrl, storeName: PLAY_STORE_NAME },
+    });
   });
 
   it('opens http urls externally when target blank, else navigates', () => {
@@ -80,8 +125,7 @@ describe('heroSliderCta', () => {
           ctaUrl: 'https://example.com/promo',
           ctaTargetBlank: true,
         }),
-        store,
-        (s) => s
+        store
       )
     ).toEqual({ kind: 'external', url: 'https://example.com/promo' });
 
@@ -94,10 +138,22 @@ describe('heroSliderCta', () => {
           ctaUrl: 'https://tapeya.com/shop',
           ctaTargetBlank: false,
         }),
-        store,
-        (s) => s
+        store
       )
     ).toEqual({ kind: 'navigate', path: '/shop' });
+
+    expect(
+      resolveHeroSlideAction(
+        slide({
+          id: '3',
+          image: 'a.jpg',
+          ctaType: 'url',
+          ctaUrl: '/upcoming-tournaments',
+          ctaTargetBlank: false,
+        }),
+        store
+      )
+    ).toEqual({ kind: 'navigate', path: '/upcoming-tournaments' });
   });
 
   it('pickStoreDownloadUrl prefers native platform store', () => {

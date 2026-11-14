@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, FormFieldsSkeleton, Skeleton } from '@/shared/u
 
 import { useGetInterestCampaignQuery } from '../api/interestApi';
 import type { InterestShowPayload } from '../model/schemas';
+import { InterestCampaignBrandHeader, InterestCampaignStage } from '../ui/InterestCampaignBrand';
 import { InterestFormBody, InterestFormFooter } from '../ui/InterestFormBody';
 import { useInterestForm } from '../ui/useInterestForm';
 
@@ -46,11 +47,8 @@ export default function InterestPage() {
         </div>
       ) : isLoading ? (
         <div className="flex flex-col gap-4 px-4 pt-4" aria-busy="true" aria-label="Loading Interest Form">
-          <Skeleton className="h-3 w-2/3" />
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <Skeleton className="h-10 flex-1 rounded-panel" />
-          </div>
+          <Skeleton className="h-36 w-full rounded-panel" />
+          <Skeleton className="h-24 w-full rounded-panel" />
           <FormFieldsSkeleton rows={4} />
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
@@ -85,12 +83,23 @@ function InterestFormDock({ slug, payload }: { slug: string; payload: InterestSh
 
   return (
     <DockScreen
-      title={campaign.tournamentName}
+      title="Interest"
       subtitle="Register Your Interest"
       onBack={goBack}
       footer={<InterestFormFooter flow={flow} />}
+      body="fill"
     >
-      <InterestFormBody flow={flow} />
+      <InterestCampaignStage logoUrl={campaign.logoUrl} pageScroll>
+        <div className="flex flex-col gap-4 px-4 pt-3.5 pb-4">
+          <InterestCampaignBrandHeader
+            title={campaign.tournamentName}
+            description={campaign.description}
+            logoUrl={campaign.logoUrl}
+            status={campaign.status}
+          />
+          <InterestFormBody flow={flow} />
+        </div>
+      </InterestCampaignStage>
     </DockScreen>
   );
 }

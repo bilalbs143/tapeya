@@ -8,63 +8,107 @@ import type { useInterestForm } from './useInterestForm';
 
 type InterestFormFlow = ReturnType<typeof useInterestForm>;
 
-/** Sticky submit — page owns DockScreen. */
-export function InterestFormFooter({ flow }: { flow: InterestFormFlow }) {
-  const { actions, submitting, withdrawing } = flow;
+const DEFAULT_FORM_ID = 'interest-form';
 
-  if (!actions.showSubmit) return null;
+/** Submit / withdraw controls — shared by page sticky bar and dialog footer. */
+export function InterestFormActions({
+  flow,
+  formId = DEFAULT_FORM_ID,
+}: {
+  flow: InterestFormFlow;
+  formId?: string | undefined;
+}) {
+  const { actions, submitting, withdrawing, handleWithdraw } = flow;
+
+  if (!actions.showSubmit && !actions.showWithdraw) return null;
+
+  return (
+    <div className="flex gap-2">
+      {actions.showWithdraw ? (
+        <Button
+          type="button"
+          variant="danger"
+          className="shrink-0 px-4 font-bold"
+          loading={withdrawing}
+          disabled={submitting}
+          onClick={() => void handleWithdraw()}
+        >
+          Withdraw
+        </Button>
+      ) : null}
+      {actions.showSubmit ? (
+        <Button
+          type="submit"
+          form={formId}
+          variant="positive"
+          className="min-w-0 flex-1 font-bold"
+          loading={submitting}
+          disabled={actions.submitDisabled || withdrawing}
+        >
+          {submitting ? 'Submitting…' : actions.submitLabel}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/** Sticky submit (+ withdraw when updating) — page owns DockScreen. */
+export function InterestFormFooter({
+  flow,
+  formId = DEFAULT_FORM_ID,
+}: {
+  flow: InterestFormFlow;
+  formId?: string | undefined;
+}) {
+  const { actions } = flow;
+  if (!actions.showSubmit && !actions.showWithdraw) return null;
 
   return (
     <StickyActionBar>
-      <Button
-        type="submit"
-        form="interest-form"
-        variant="positive"
-        className="w-full"
-        loading={submitting}
-        disabled={actions.submitDisabled || withdrawing}
-      >
-        {submitting ? 'Submitting…' : actions.submitLabel}
-      </Button>
+      <InterestFormActions flow={flow} formId={formId} />
     </StickyActionBar>
   );
 }
 
-/** InterestForm fields — page owns DockScreen. */
-export function InterestFormBody({ flow }: { flow: InterestFormFlow }) {
+/** InterestForm fields — parent supplies padding; brand header owns the description. */
+export function InterestFormBody({
+  flow,
+  formId = DEFAULT_FORM_ID,
+  className,
+}: {
+  flow: InterestFormFlow;
+  formId?: string | undefined;
+  className?: string | undefined;
+}) {
   const {
     campaign,
     actions,
     values,
     onChange,
+    onCustomAnswerChange,
     avatarPreview,
     onAvatarFile,
-    docName,
-    docUrl,
-    onDocFile,
+    customFileMeta,
+    onCustomFile,
     errors,
     needsAvatar,
-    needsDoc,
     handleSubmit,
-    handleWithdraw,
   } = flow;
 
   return (
-    <Form id="interest-form" density="compact" className="px-4 pt-3.5 pb-4" onSubmit={(e) => void handleSubmit(e)}>
+    <Form id={formId} density="compact" className={className} onSubmit={(e) => void handleSubmit(e)}>
       <InterestForm
         campaign={campaign}
         actions={actions}
         values={values}
         onChange={onChange}
+        onCustomAnswerChange={onCustomAnswerChange}
         avatarPreview={avatarPreview}
         onAvatarFile={onAvatarFile}
-        docName={docName}
-        docUrl={docUrl}
-        onDocFile={onDocFile}
+        customFileMeta={customFileMeta}
+        onCustomFile={onCustomFile}
         errors={errors}
         requiredAvatar={needsAvatar}
-        requiredDoc={needsDoc}
-        onWithdraw={actions.showWithdraw ? () => void handleWithdraw() : undefined}
         onToastError={(title, description) => toast({ title, description, tone: 'error' })}
       />
     </Form>

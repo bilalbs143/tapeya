@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
-import type { InterestFormFieldKey } from 'src/app/shared/constants/interest-form-field.constants';
+import type { InterestCustomField, InterestFormFieldKey } from 'src/app/shared/constants/interest-form-field.constants';
+import { downloadBlob, filenameFromContentDisposition } from 'src/app/shared/functions/download-blob.function';
 import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
@@ -30,6 +31,7 @@ export interface InterestCampaign {
   show_in_sidebar: boolean;
   show_dialog: boolean;
   form_fields?: InterestFormFieldKey[];
+  custom_fields?: InterestCustomField[];
   status: InterestCampaignStatus;
   status_label: string;
   created_by: number | null;
@@ -61,6 +63,7 @@ export interface CreateInterestCampaignPayload {
   show_in_sidebar?: boolean;
   show_dialog?: boolean;
   form_fields?: InterestFormFieldKey[];
+  custom_fields?: InterestCustomField[];
   status?: InterestCampaignStatus | null;
 }
 
@@ -98,5 +101,40 @@ export class InterestCampaignService {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)
       .pipe(tap(() => this.messageService.success('Interest Campaign Deleted.')));
+  }
+
+  /**
+   * Download Excel-friendly CSV of campaign submissions.
+   * Optional status/search match the submissions list filters.
+   */
+  public exportSubmissionsCsv(campaignId: number, filters: { status?: string; search?: string } = {}): Observable<void> {
+    const params: Record<string, unknown> = {};
+    const status = filters.status?.trim();
+    const search = filters.search?.trim();
+    if (status) params['status'] = status;
+    if (search) params['search'] = search;
+
+    return this.http
+      .get(`${this.baseUrl}/${campaignId}/submissions/export`, {
+        params: toHttpParams(params),
+        responseType: 'blob',
+        observe: 'response',
+      })
+      .pipe(
+        map((res: HttpResponse<Blob>) => {
+          const blob = res.body;
+          if (!blob || blob.size === 0) {
+            throw new Error('Empty export');
+          }
+          // API may return JSON error as blob — detect and surface it.
+          if (blob.type.includes('application/json')) {
+            throw new Error('Export failed');
+          }
+          const fallback = `interest-submissions-${campaignId}.csv`;
+          const filename = filenameFromContentDisposition(res.headers.get('Content-Disposition'), fallback);
+          downloadBlob(blob, filename);
+        }),
+        tap(() => this.messageService.success('Submissions CSV Downloaded.'))
+      );
   }
 }

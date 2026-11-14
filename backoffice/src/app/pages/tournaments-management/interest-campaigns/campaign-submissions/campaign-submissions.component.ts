@@ -13,10 +13,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable, Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+import { CampaignDetailStateService } from '../campaign-detail/campaign-detail-state.service';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
+import { InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { type InterestSubmission, InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
 import { CommonSharedModule } from 'src/app/shared/common.module';
@@ -31,7 +35,8 @@ import {
 } from 'src/app/shared/functions/list-page-paging.function';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
-import { SubmissionDetailDialogComponent } from './submission-detail-dialog/submission-detail-dialog.component';
+import { ManageSubmissionDialogComponent } from './manage-submission-dialog/manage-submission-dialog.component';
+import { SubmissionNotesDialogComponent } from './submission-notes-dialog/submission-notes-dialog.component';
 
 const DEFAULT_FILTERS = { status: '', search: '' } as const;
 
@@ -57,8 +62,10 @@ const DEFAULT_FILTERS = { status: '', search: '' } as const;
 })
 export class CampaignSubmissionsComponent implements OnInit, OnDestroy {
   private readonly submissionService = inject(InterestSubmissionService);
+  private readonly campaignService = inject(InterestCampaignService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
+  private readonly campaignState = inject(CampaignDetailStateService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
@@ -98,6 +105,7 @@ export class CampaignSubmissionsComponent implements OnInit, OnDestroy {
   public currentPage = 0;
   public pageSize: number;
   public isLoading = false;
+  public isExporting = false;
   constructor() {
     this.searchForm = this.fb.group({
       status: [DEFAULT_FILTERS.status],
@@ -131,6 +139,22 @@ export class CampaignSubmissionsComponent implements OnInit, OnDestroy {
     resetListSearchForm(this, DEFAULT_FILTERS);
   }
 
+  public exportCsv(): void {
+    if (!this.campaignId || this.isExporting) return;
+
+    const filters = this.searchForm.value;
+    this.isExporting = true;
+    this.campaignService
+      .exportSubmissionsCsv(this.campaignId, {
+        status: filters.status ?? '',
+        search: filters.search ?? '',
+      })
+      .pipe(finalize(() => (this.isExporting = false)))
+      .subscribe({
+        error: () => this.messageService.error('Failed to Export Submissions.'),
+      });
+  }
+
   public onPaginationChange(event: PageEvent): void {
     onListPaginationChange(this, event);
   }
@@ -160,13 +184,28 @@ export class CampaignSubmissionsComponent implements OnInit, OnDestroy {
     });
   }
 
-  public openDetailDialog(submission: InterestSubmission): void {
-    this.messageService.openDialog<SubmissionDetailDialogComponent, boolean>(
-      SubmissionDetailDialogComponent,
-      { submission },
+  public openEditDialog(submission: InterestSubmission): void {
+    this.messageService.openDialog<ManageSubmissionDialogComponent, boolean>(
+      ManageSubmissionDialogComponent,
+      {
+        submission,
+        campaign: this.campaignState.campaign ?? submission.campaign ?? null,
+      },
       (saved) => saved && this.loadHttpData(),
       {
         widthSize: 'md',
+        disableClose: true,
+      }
+    );
+  }
+
+  public openNotesDialog(submission: InterestSubmission): void {
+    this.messageService.openDialog<SubmissionNotesDialogComponent, boolean>(
+      SubmissionNotesDialogComponent,
+      { submission },
+      (saved) => saved && this.loadHttpData(),
+      {
+        widthSize: 'sm',
         disableClose: true,
       }
     );

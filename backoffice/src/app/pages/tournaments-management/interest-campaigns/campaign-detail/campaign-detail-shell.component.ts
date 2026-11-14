@@ -35,6 +35,10 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
     return this.activeChild instanceof CampaignSubmissionsComponent;
   }
 
+  public get isExportingSubmissions(): boolean {
+    return this.activeChild instanceof CampaignSubmissionsComponent && this.activeChild.isExporting;
+  }
+
   public ngOnInit(): void {
     this.sub.add(
       this.route.paramMap.subscribe((params) => {
@@ -63,6 +67,12 @@ export class CampaignDetailShellComponent implements OnInit, OnDestroy {
   public runClearSubmissionSearch(): void {
     if (this.activeChild instanceof CampaignSubmissionsComponent) {
       this.activeChild.resetSearchForm();
+    }
+  }
+
+  public runExportSubmissions(): void {
+    if (this.activeChild instanceof CampaignSubmissionsComponent) {
+      this.activeChild.exportCsv();
     }
   }
 

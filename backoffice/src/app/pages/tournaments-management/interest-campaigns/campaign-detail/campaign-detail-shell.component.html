@@ -25,6 +25,14 @@
             >
               Clear Search
             </app-ui-button>
+            <app-ui-button
+              type="button"
+              variant="secondary"
+              [loading]="isExportingSubmissions"
+              (click)="runExportSubmissions()"
+            >
+              Export Excel
+            </app-ui-button>
           }
         </ng-container>
       </app-page-header>

@@ -244,12 +244,25 @@
                   <button
                     type="button"
                     class="row-action"
-                    aria-label="View Submission"
-                    matTooltip="View Submission"
-                    (click)="openDetailDialog(row)"
+                    aria-label="Edit Submission"
+                    matTooltip="Edit Submission"
+                    (click)="openEditDialog(row)"
                   >
                     <i-tabler
-                      name="eye"
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  <button
+                    type="button"
+                    class="row-action"
+                    [class.text-primary]="!!row.notes"
+                    [attr.aria-label]="row.notes ? 'Edit Notes' : 'Add Notes'"
+                    [matTooltip]="row.notes ? 'Edit Notes' : 'Add Notes'"
+                    (click)="openNotesDialog(row)"
+                  >
+                    <i-tabler
+                      name="notebook"
                       class="size-4.5!"
                     ></i-tabler>
                   </button>

@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { interestActions } from './actions';
-import { fieldEnabled, parseInterestShow, seedFormValues, toSubmitWire } from './schemas';
+import {
+  fieldEnabled,
+  interestRenderableCustomFields,
+  parseInterestDialog,
+  parseInterestShow,
+  seedFormValues,
+  toSubmitWire,
+} from './schemas';
 
 describe('interestActions', () => {
   it('opens submit for new entrants and disables when closed', () => {
@@ -43,6 +50,15 @@ describe('parseInterestShow', () => {
           slug: 'ramzan-cup-2026',
           description: 'Hello',
           form_fields: ['name', 'email', 'city'],
+          custom_fields: [
+            {
+              id: 'trial_venue',
+              type: 'select',
+              label: 'Trial Venue',
+              required: true,
+              options: ['Lahore', 'Islamabad'],
+            },
+          ],
           logo_url: null,
           status: 'open',
         },
@@ -63,14 +79,93 @@ describe('parseInterestShow', () => {
 
     expect(payload.campaign.tournamentName).toBe('Ramzan Cup');
     expect(payload.campaign.formFields).toEqual(['name', 'email', 'city']);
+    expect(payload.campaign.customFields).toEqual([
+      {
+        id: 'trial_venue',
+        type: 'select',
+        label: 'Trial Venue',
+        required: true,
+        options: ['Lahore', 'Islamabad'],
+      },
+    ]);
     expect(payload.profileDefaults?.name).toBe('Zain');
     expect(fieldEnabled(payload.campaign.formFields, 'email')).toBe(true);
     expect(fieldEnabled(payload.campaign.formFields, 'phone')).toBe(false);
   });
 });
 
+describe('parseInterestDialog', () => {
+  it('maps featured dialog campaign and null payload', () => {
+    expect(
+      parseInterestDialog({
+        data: {
+          campaign: {
+            slug: 'dialog-cup',
+            tournament_name: 'Dialog Cup',
+            logo_url: 'https://cdn.test/logo.png',
+            my_submission_status: 'pending',
+          },
+        },
+        type: 'SUCCESS',
+      })
+    ).toEqual({
+      campaign: {
+        slug: 'dialog-cup',
+        tournamentName: 'Dialog Cup',
+        logoUrl: 'https://cdn.test/logo.png',
+        mySubmissionStatus: 'pending',
+      },
+    });
+
+    expect(parseInterestDialog({ data: { campaign: null }, type: 'SUCCESS' })).toEqual({ campaign: null });
+  });
+});
+
+describe('interestRenderableCustomFields', () => {
+  it('injects CNIC when id_document is in form_fields and strips legacy custom CNIC', () => {
+    expect(
+      interestRenderableCustomFields({
+        formFields: ['name', 'id_document'],
+        customFields: [
+          {
+            id: 'trial_venue',
+            type: 'select',
+            label: 'Trial Venue',
+            required: true,
+            options: ['Lahore'],
+          },
+        ],
+      }).map((f) => f.id)
+    ).toEqual(['id_document', 'trial_venue']);
+
+    expect(
+      interestRenderableCustomFields({
+        formFields: ['name'],
+        customFields: [
+          {
+            id: 'extra_doc',
+            type: 'file',
+            label: 'Extra Doc',
+            required: false,
+            options: [],
+          },
+        ],
+      }).map((f) => f.id)
+    ).toEqual(['extra_doc']);
+  });
+});
+
 describe('seedFormValues / toSubmitWire', () => {
   it('prefers submission over profile defaults and builds wire body', () => {
+    const customFields = [
+      {
+        id: 'trial_venue',
+        type: 'select' as const,
+        label: 'Trial Venue',
+        required: true,
+        options: ['Lahore', 'Islamabad'],
+      },
+    ];
     const values = seedFormValues(
       {
         id: 9,
@@ -80,6 +175,7 @@ describe('seedFormValues / toSubmitWire', () => {
         phone: '99',
         country: 'Pakistan',
         city: 'Lahore',
+        customAnswers: { trial_venue: 'Islamabad' },
         dateOfBirth: '2000-02-02',
         profilePictureUrl: null,
         idDocumentUrl: null,
@@ -94,13 +190,16 @@ describe('seedFormValues / toSubmitWire', () => {
         city: 'Karachi',
         dateOfBirth: '1990-01-01',
         avatarUrl: null,
-      }
+      },
+      customFields
     );
     expect(values.city).toBe('Lahore');
-    expect(toSubmitWire(values, ['email', 'city', 'date_of_birth'])).toEqual({
+    expect(values.customAnswers.trial_venue).toBe('Islamabad');
+    expect(toSubmitWire(values, ['email', 'city', 'date_of_birth'], customFields)).toEqual({
       email: 'sub@x.com',
       city: 'Lahore',
       date_of_birth: '2000-02-02',
+      custom_answers: { trial_venue: 'Islamabad' },
     });
   });
 });

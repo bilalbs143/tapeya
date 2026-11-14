@@ -2,12 +2,13 @@ import { type ReactNode, Suspense, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 
+import { InterestCampaignDialogScheduler } from '@/features/interest';
 import { ReelUploadProgressDialog } from '@/features/reels';
 
 import { enumsApi } from '@/shared/api/enumsApi';
 import { systemSettingsApi } from '@/shared/api/systemSettingsApi';
 import { ThemeProvider } from '@/shared/config/theme';
-import { DialogHost } from '@/shared/dialogs';
+import { DialogHost } from '@/shared/dialogs/DialogHost';
 import { KeyboardInsetProvider } from '@/shared/native/KeyboardInsetProvider';
 import { hideNativeSplash } from '@/shared/native/splash';
 import { hydrateAuthSession } from '@/shared/store/authSession';
@@ -71,6 +72,7 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <NativeEffects />
                   <RealtimeEffects />
                   <ProgrammaticDialogPrompts />
+                  <InterestCampaignDialogScheduler />
                   <DialogHost />
                   <ReelUploadProgressDialog />
                   <ToastHost />

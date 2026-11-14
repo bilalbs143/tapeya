@@ -74,6 +74,16 @@ describe('getReelPrefetchDepth', () => {
     expect(getReelPrefetchDepth()).toBe(6);
     Object.defineProperty(navigator, 'connection', { configurable: true, value: original });
   });
+
+  it('is 2 when Network Information API is missing (iOS / Safari)', () => {
+    const original = (navigator as Navigator & { connection?: unknown }).connection;
+    Object.defineProperty(navigator, 'connection', {
+      configurable: true,
+      value: undefined,
+    });
+    expect(getReelPrefetchDepth()).toBe(2);
+    Object.defineProperty(navigator, 'connection', { configurable: true, value: original });
+  });
 });
 
 describe('pickPrefetchTarget', () => {

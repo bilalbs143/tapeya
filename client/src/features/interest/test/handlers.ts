@@ -20,6 +20,7 @@ const openCampaign = {
     'city',
     'id_document',
   ],
+  custom_fields: [],
   logo_url: null,
   show_in_sidebar: true,
   show_dialog: true,

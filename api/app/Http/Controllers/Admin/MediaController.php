@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Jobs\OptimizeDramaEpisodeVideoJob;
+use App\Models\TournamentInterestSubmission;
 use App\Support\Media\MediaDisk;
 use App\Support\MediaRegistry;
 use Illuminate\Http\JsonResponse;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
  * DELETE /admin/media/{type}/{id}/{field}  — delete
  *
  * All recognised types and fields are declared in {@see MediaRegistry}.
+ * Interest-submission custom file fields also resolve dynamically from the campaign.
  */
 class MediaController extends Controller
 {
@@ -68,6 +70,19 @@ class MediaController extends Controller
         $fileRules = $config['file_rules'] ?? ['required', 'image', 'max:5120'];
         $request->validate(['file' => $fileRules]);
 
+        $isCustomAnswer = ($config['storage'] ?? null) === 'custom_answers';
+
+        if ($isCustomAnswer && $record instanceof TournamentInterestSubmission) {
+            $oldPath = $record->customAnswerPath($field);
+            if ($oldPath) {
+                MediaDisk::delete($oldPath);
+            }
+            $path = MediaDisk::storeUploaded($request->file('file'), $config['dir']);
+            $record->setCustomAnswerPath($field, $path);
+
+            return $this->success(['url' => MediaDisk::url($path)]);
+        }
+
         $column = $config['column'];
         $oldPath = $record->getRawOriginal($column);
 
@@ -118,6 +133,16 @@ class MediaController extends Controller
 
             MediaDisk::delete($target->$pathCol);
             $target->delete();
+
+            return $this->noContent();
+        }
+
+        if (($config['storage'] ?? null) === 'custom_answers' && $record instanceof TournamentInterestSubmission) {
+            $oldPath = $record->customAnswerPath($field);
+            if ($oldPath) {
+                MediaDisk::delete($oldPath);
+            }
+            $record->setCustomAnswerPath($field, null);
 
             return $this->noContent();
         }

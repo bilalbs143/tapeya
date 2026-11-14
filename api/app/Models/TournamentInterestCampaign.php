@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
+use App\Support\Interest\InterestCustomFields;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -16,6 +17,7 @@ class TournamentInterestCampaign extends BaseModel
         'slug',
         'description',
         'form_fields',
+        'custom_fields',
         'logo_path',
         'show_in_sidebar',
         'show_dialog',
@@ -27,6 +29,7 @@ class TournamentInterestCampaign extends BaseModel
         'show_in_sidebar' => 'boolean',
         'show_dialog' => 'boolean',
         'form_fields' => 'array',
+        'custom_fields' => 'array',
         'status' => TournamentInterestCampaignStatusEnum::class,
     ];
 
@@ -68,7 +71,7 @@ class TournamentInterestCampaign extends BaseModel
     }
 
     /**
-     * Enabled public-form fields. Null/empty stored value means legacy default (all fields).
+     * Enabled user/account form fields. Null/empty stored value means legacy default (all user fields).
      *
      * @return list<string>
      */
@@ -96,5 +99,22 @@ class TournamentInterestCampaign extends BaseModel
     public function formFieldEnabled(string $field): bool
     {
         return in_array($field, $this->resolvedFormFields(), true);
+    }
+
+    /**
+     * Campaign-defined questions (text / select / file).
+     *
+     * @return list<array{id: string, type: string, label: string, required: bool, options?: list<string>}>
+     */
+    public function resolvedCustomFields(): array
+    {
+        return InterestCustomFields::resolve($this->custom_fields);
+    }
+
+    public function customFileFieldEnabled(string $fieldId): bool
+    {
+        $field = InterestCustomFields::find($this->resolvedCustomFields(), $fieldId);
+
+        return $field !== null && ($field['type'] ?? null) === 'file';
     }
 }

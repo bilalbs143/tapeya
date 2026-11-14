@@ -14,6 +14,7 @@ use App\Models\Shop\Product;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
+use App\Models\TournamentInterestSubmission;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Support\Post\PostVideoFormats;
@@ -77,6 +78,21 @@ class MediaRegistry
                 'fields' => [
                     // Form field is "logo" but DB column is "logo_path"
                     'logo' => ['dir' => 'interest-campaigns/logos', 'column' => 'logo_path'],
+                ],
+            ],
+            'interest-submission' => [
+                'model' => TournamentInterestSubmission::class,
+                'fields' => [
+                    'profile_picture' => [
+                        'dir' => 'interest/profile-pictures',
+                        'column' => 'profile_picture_path',
+                        'file_rules' => ['required', 'image', 'max:5120'],
+                    ],
+                    'id_document' => [
+                        'dir' => 'interest/id-documents',
+                        'column' => 'id_document_path',
+                        'file_rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+                    ],
                 ],
             ],
             'match' => [
@@ -176,13 +192,26 @@ class MediaRegistry
 
         $typeConfig = $types[$type];
 
-        if (! array_key_exists($field, $typeConfig['fields'])) {
-            throw new \InvalidArgumentException("Unknown field '{$field}' for type '{$type}'.");
-        }
-
         /** @var Model $record */
         $record = $typeConfig['model']::findOrFail($id);
 
-        return [$record, $typeConfig['fields'][$field]];
+        if (array_key_exists($field, $typeConfig['fields'])) {
+            return [$record, $typeConfig['fields'][$field]];
+        }
+
+        // Campaign custom file fields resolve dynamically from the submission's campaign.
+        // Fixed form file fields (profile_picture, id_document) are registered above.
+        if ($type === 'interest-submission' && $record instanceof TournamentInterestSubmission) {
+            $campaign = $record->campaign()->first();
+            if ($campaign !== null && $campaign->customFileFieldEnabled($field)) {
+                return [$record, [
+                    'dir' => 'interest/custom-files/'.$field,
+                    'storage' => 'custom_answers',
+                    'file_rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+                ]];
+            }
+        }
+
+        throw new \InvalidArgumentException("Unknown field '{$field}' for type '{$type}'.");
     }
 }

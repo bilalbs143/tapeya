@@ -8,6 +8,7 @@
 import type Hls from 'hls.js';
 
 import { setReelVideoMuted } from './inlineVideo';
+import { reelLog } from './reelPlaybackLog';
 
 const videos = new Set<HTMLVideoElement>();
 const hlsByVideo = new WeakMap<HTMLVideoElement, Hls>();
@@ -65,11 +66,16 @@ export function releaseReelPlayback(video: HTMLVideoElement): void {
 /** Reattach after detach (active about to play). */
 export function attachReelHls(video: HTMLVideoElement): void {
   const hls = hlsByVideo.get(video);
-  if (!hls) return;
+  if (!hls) {
+    // Native HLS / progressive — no hls.js instance to reattach (normal on iOS).
+    return;
+  }
   try {
-    if (!hls.media) hls.attachMedia(video);
+    const wasDetached = !hls.media;
+    if (wasDetached) hls.attachMedia(video);
     hls.startLoad(-1);
-  } catch {
-    // Ignore.
+    reelLog('gate.attach', { wasDetached, readyState: video.readyState });
+  } catch (err) {
+    reelLog('gate.attach-error', { error: err instanceof Error ? err.message : 'unknown' });
   }
 }

@@ -1,85 +1,99 @@
 import { type ChangeEvent, useRef } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { Avatar } from '@/shared/ui/Avatar';
-import { Button } from '@/shared/ui/Button';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { DatePicker } from '@/shared/ui/DatePicker';
-import { Field, FieldLabel } from '@/shared/ui/Field';
+import { Field } from '@/shared/ui/Field';
 import { FormRow } from '@/shared/ui/Form';
-import { DocumentIcon, LockIcon, PlusIcon } from '@/shared/ui/icons';
+import { DocumentIcon, PlusIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
+import { SelectField, SelectItem } from '@/shared/ui/Select';
 
 import { AVATAR_TYPES, checkInterestUpload, DOC_TYPES } from '../lib/upload';
 import type { InterestUiActions } from '../model/actions';
 import {
   fieldEnabled,
   type InterestCampaign,
+  type InterestCustomField,
   type InterestFormField,
   type InterestFormValues,
-  READ_ONLY_FIELDS,
+  interestRenderableCustomFields,
 } from '../model/schemas';
+import { InterestIdentityCard } from './InterestIdentityCard';
 
 export type InterestFormProps = {
   campaign: InterestCampaign;
   actions: InterestUiActions;
   values: InterestFormValues;
   onChange: (patch: Partial<InterestFormValues>) => void;
+  onCustomAnswerChange: (fieldId: string, value: string) => void;
   avatarPreview: string | null;
   onAvatarFile: (file: File | null) => void;
-  docName: string | null;
-  docUrl: string | null;
-  onDocFile: (file: File | null) => void;
-  errors: Partial<Record<'email' | 'avatar' | 'doc' | 'dateOfBirth' | 'city' | 'country', string>>;
-  /** Avatar required when campaign asks and none is on file yet. */
+  customFileMeta: Record<string, { name: string | null; url: string | null }>;
+  onCustomFile: (fieldId: string, file: File | null) => void;
+  errors: Partial<Record<'email' | 'avatar' | 'dateOfBirth' | 'city' | 'country', string>> & {
+    custom?: Record<string, string>;
+  };
   requiredAvatar?: boolean | undefined;
-  /** ID doc required when campaign asks and none is on file yet. */
-  requiredDoc?: boolean | undefined;
-  onWithdraw?: (() => void) | undefined;
   onToastError?: ((title: string, description: string) => void) | undefined;
 };
 
-/** Locked identity rows for name / nickname / phone; media via local file pick. Parent supplies `Form density="compact"`. */
+/** Locked identity card for name / phone / photo; editable fields below. Parent supplies `Form density="compact"`. */
 
 export function InterestForm({
   campaign,
   actions: a,
   values,
   onChange,
+  onCustomAnswerChange,
   avatarPreview,
   onAvatarFile,
-  docName,
-  docUrl,
-  onDocFile,
+  customFileMeta,
+  onCustomFile,
   errors,
   requiredAvatar = false,
-  requiredDoc = false,
-  onWithdraw,
   onToastError,
 }: InterestFormProps) {
   const has = (f: InterestFormField) => fieldEnabled(campaign.formFields, f);
   const avatarInput = useRef<HTMLInputElement>(null);
-  const docInput = useRef<HTMLInputElement>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  function pick(kind: 'avatar' | 'doc') {
+  function pickAvatar(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const bad = checkInterestUpload(file, 'avatar');
+    if (bad) {
+      onToastError?.('Picture Not Added', bad);
+      return;
+    }
+    onAvatarFile(file);
+  }
+
+  function pickCustomFile(field: InterestCustomField) {
     return (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       e.target.value = '';
       if (!file) return;
-      const bad = checkInterestUpload(file, kind);
+      const bad = checkInterestUpload(file, 'doc');
       if (bad) {
-        onToastError?.(kind === 'avatar' ? 'Picture Not Added' : 'Document Not Added', bad);
+        onToastError?.('Document Not Added', bad);
         return;
       }
-      if (kind === 'avatar') onAvatarFile(file);
-      else onDocFile(file);
+      onCustomFile(field.id, file);
     };
   }
 
+  const identityFields = {
+    avatar: has('profile_picture'),
+    name: has('name'),
+    nickname: has('nickname'),
+    phone: has('phone'),
+  };
+  const showIdentity = identityFields.avatar || identityFields.name || identityFields.nickname || identityFields.phone;
+
   return (
     <>
-      {campaign.description ? <p className="text-muted text-2xs leading-relaxed">{campaign.description}</p> : null}
-
       {a.banner ? (
         <p
           className={cn(
@@ -93,50 +107,25 @@ export function InterestForm({
         </p>
       ) : null}
 
-      {has('profile_picture') ? (
-        <Field
-          label="Profile Picture"
-          required={requiredAvatar}
-          error={errors.avatar}
-          hint={errors.avatar ? undefined : 'JPG, PNG or WebP, max 5 MB.'}
-        >
-          {({ id }) => (
-            <div className="flex items-center gap-3.5">
-              <Avatar src={avatarPreview ?? undefined} name={values.name} size="lg" className="h-14 w-14" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                {a.readOnlyAll ? (
-                  <span className="text-dim text-3xs">On file.</span>
-                ) : (
-                  <button
-                    type="button"
-                    id={id}
-                    onClick={() => avatarInput.current?.click()}
-                    className="text-brand-text self-start text-2xs font-bold"
-                  >
-                    {avatarPreview ? 'Replace Picture' : 'Add Picture'}
-                  </button>
-                )}
-              </div>
-              <input
-                ref={avatarInput}
-                type="file"
-                accept={AVATAR_TYPES.join(',')}
-                onChange={pick('avatar')}
-                className="hidden"
-              />
-            </div>
-          )}
-        </Field>
+      {showIdentity ? (
+        <InterestIdentityCard
+          name={values.name}
+          nickname={values.nickname}
+          phone={values.phone}
+          avatarPreview={avatarPreview}
+          fields={identityFields}
+          readOnly={a.readOnlyAll}
+          requiredAvatar={requiredAvatar}
+          avatarError={errors.avatar}
+          onPickAvatar={() => avatarInput.current?.click()}
+        />
+      ) : null}
+
+      {identityFields.avatar ? (
+        <input ref={avatarInput} type="file" accept={AVATAR_TYPES.join(',')} onChange={pickAvatar} className="hidden" />
       ) : null}
 
       <FormRow>
-        {READ_ONLY_FIELDS.filter(has).map((f) => {
-          const label = f === 'name' ? 'Full Name' : f === 'nickname' ? 'Nickname' : 'Phone';
-          const raw = f === 'name' ? values.name : f === 'nickname' ? values.nickname : values.phone;
-          const value = f === 'nickname' ? (raw ? `@${raw.replace(/^@/, '')}` : '—') : raw || '—';
-          return <Locked key={f} label={label} value={value} mono={f !== 'name'} />;
-        })}
-
         {has('email') ? (
           <Input
             label="Email"
@@ -181,86 +170,120 @@ export function InterestForm({
         />
       ) : null}
 
-      {has('id_document') ? (
-        <Field
-          label="CNIC or B-Form"
-          required={requiredDoc}
-          error={errors.doc}
-          hint={errors.doc ? undefined : 'Image or PDF, up to 10 MB.'}
-        >
-          {({ id }) => (
-            <>
-              {docName || docUrl ? (
-                <div className="border-border-subtle bg-surface flex items-center gap-2.5 rounded-panel border p-2.5">
-                  <span className="bg-surface-raised text-brand-text grid h-9 w-9 shrink-0 place-items-center rounded-panel">
-                    <DocumentIcon size="sm" className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-bold text-ink">{docName ?? 'Uploaded document'}</span>
-                    {docUrl ? (
-                      <a
-                        href={docUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-brand-text block text-3xs font-semibold"
+      {interestRenderableCustomFields(campaign).map((field) => {
+        const error = errors.custom?.[field.id];
+        if (field.type === 'text') {
+          return (
+            <Input
+              key={field.id}
+              label={field.label}
+              required={field.required}
+              value={values.customAnswers[field.id] ?? ''}
+              onChange={(e) => onCustomAnswerChange(field.id, e.target.value)}
+              error={error}
+              disabled={a.readOnlyAll}
+              placeholder={`Enter ${field.label}`}
+              className="h-12 rounded-panel"
+            />
+          );
+        }
+
+        if (field.type === 'select') {
+          const current = values.customAnswers[field.id] ?? '';
+          return (
+            <SelectField
+              key={field.id}
+              label={field.label}
+              required={field.required}
+              value={current || undefined}
+              onValueChange={(v) => onCustomAnswerChange(field.id, v)}
+              placeholder={`Select ${field.label}`}
+              disabled={a.readOnlyAll || field.options.length === 0}
+              error={error}
+              triggerClassName="h-12 rounded-panel"
+            >
+              {current && !field.options.includes(current) ? <SelectItem value={current}>{current}</SelectItem> : null}
+              {field.options.map((opt) => (
+                <SelectItem key={opt} value={opt}>
+                  {opt}
+                </SelectItem>
+              ))}
+            </SelectField>
+          );
+        }
+
+        const meta = customFileMeta[field.id] ?? { name: null, url: null };
+        const docName = meta.name;
+        const docUrl = meta.url;
+
+        return (
+          <Field
+            key={field.id}
+            label={field.label}
+            required={field.required}
+            error={error}
+            hint={error ? undefined : 'Image or PDF, up to 10 MB.'}
+          >
+            {({ id }) => (
+              <>
+                {docName || docUrl ? (
+                  <div className="border-border-subtle bg-surface flex items-center gap-2.5 rounded-panel border p-2.5">
+                    <span className="bg-surface-raised text-brand-text grid h-9 w-9 shrink-0 place-items-center rounded-panel">
+                      <DocumentIcon size="sm" className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-bold text-ink">
+                        {docName ?? 'Uploaded document'}
+                      </span>
+                      {docUrl ? (
+                        <a
+                          href={docUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand-text block text-3xs font-semibold"
+                        >
+                          View Uploaded Document
+                        </a>
+                      ) : (
+                        <span className="text-brand-text block text-3xs font-semibold">Ready to Upload</span>
+                      )}
+                    </span>
+                    {!a.readOnlyAll ? (
+                      <button
+                        type="button"
+                        onClick={() => onCustomFile(field.id, null)}
+                        className="text-dim hover:text-ink shrink-0 px-1 text-2xs font-bold"
                       >
-                        View Uploaded Document
-                      </a>
-                    ) : (
-                      <span className="text-brand-text block text-3xs font-semibold">Ready to Upload</span>
-                    )}
-                  </span>
-                  {!a.readOnlyAll ? (
-                    <button
-                      type="button"
-                      onClick={() => onDocFile(null)}
-                      className="text-dim hover:text-ink shrink-0 px-1 text-2xs font-bold"
-                    >
-                      Replace
-                    </button>
-                  ) : null}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  id={id}
-                  onClick={() => docInput.current?.click()}
-                  disabled={a.readOnlyAll}
-                  className="border-border text-muted hover:text-ink focus-visible:outline-brand flex h-12 w-full items-center justify-center gap-2 rounded-panel border border-dashed text-xs font-semibold disabled:opacity-40"
-                >
-                  <PlusIcon className="h-4 w-4" strokeWidth={2} />
-                  Upload CNIC or B-Form
-                </button>
-              )}
-              <input
-                ref={docInput}
-                type="file"
-                accept={DOC_TYPES.join(',')}
-                onChange={pick('doc')}
-                className="hidden"
-              />
-            </>
-          )}
-        </Field>
-      ) : null}
-
-      {a.showWithdraw && onWithdraw ? (
-        <Button type="button" variant="danger" className="self-start" onClick={onWithdraw}>
-          Withdraw
-        </Button>
-      ) : null}
+                        Replace
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    id={id}
+                    onClick={() => fileInputs.current[field.id]?.click()}
+                    disabled={a.readOnlyAll}
+                    className="border-border text-muted hover:text-ink focus-visible:outline-brand flex h-12 w-full items-center justify-center gap-2 rounded-panel border border-dashed text-xs font-semibold disabled:opacity-40"
+                  >
+                    <PlusIcon className="h-4 w-4" strokeWidth={2} />
+                    Upload {field.label}
+                  </button>
+                )}
+                <input
+                  ref={(el) => {
+                    fileInputs.current[field.id] = el;
+                  }}
+                  type="file"
+                  accept={DOC_TYPES.join(',')}
+                  onChange={pickCustomFile(field)}
+                  className="hidden"
+                />
+              </>
+            )}
+          </Field>
+        );
+      })}
     </>
-  );
-}
-
-function Locked({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel>{label}</FieldLabel>
-      <div className="border-border-subtle bg-surface flex h-12 items-center gap-2 rounded-panel border px-3.5">
-        <span className={cn('text-dim flex-1 truncate text-sm', mono ? 'font-mono' : 'font-semibold')}>{value}</span>
-        <LockIcon size="xs" className="text-dim h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-      </div>
-    </div>
   );
 }

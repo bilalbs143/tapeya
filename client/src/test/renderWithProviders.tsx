@@ -6,7 +6,7 @@ import { render } from '@testing-library/react';
 
 import { baseApi } from '@/shared/api/baseApi';
 import { ThemeProvider } from '@/shared/config/theme';
-import { DialogHost } from '@/shared/dialogs';
+import { DialogHost } from '@/shared/dialogs/DialogHost';
 import { authReducer } from '@/shared/store/authSlice';
 import { ToastHost } from '@/shared/ui/toast';
 

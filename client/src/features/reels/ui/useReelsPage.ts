@@ -22,6 +22,7 @@ import {
   useUnlikeReelMutation,
   useUnsaveReelMutation,
 } from '../api/reelsApi';
+import { reelDebugPing } from '../lib/reelPlaybackLog';
 import { useReelPrefetch } from '../lib/useReelPrefetch';
 import { useReelsTabLayout } from '../lib/useReelsTabLayout';
 import { type Reel, REEL_TAB_META, REEL_TABS, type ReelTab } from '../model/schemas';
@@ -38,6 +39,10 @@ export function useReelsPage() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   useKeepAwake(true);
+
+  useEffect(() => {
+    reelDebugPing('reels-page');
+  }, []);
 
   const [tab, setTab] = useState<ReelTab>('explore');
   const [cursor, setCursor] = useState<string | undefined>();

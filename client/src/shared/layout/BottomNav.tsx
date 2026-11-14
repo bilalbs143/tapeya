@@ -43,13 +43,13 @@ export function BottomNav({ className, overlay = false }: BottomNavProps) {
             <span
               className={cn('flex flex-col items-center gap-1.5 rounded-panel px-3.5 py-1.5', active && 'bg-brand/16')}
             >
-              <span className="relative grid h-[17px] w-[17px] place-items-center">
+              <span className="relative grid h-5 w-5 place-items-center">
                 <Glyph active={active} />
                 {dot ? (
                   <span className="bg-danger-text absolute -top-0.5 -right-1 h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_var(--c-surface)]" />
                 ) : null}
               </span>
-              <span className={cn('text-4xs leading-none', active ? 'font-bold text-ink' : 'text-dim font-semibold')}>
+              <span className={cn('text-3xs leading-none', active ? 'font-bold text-ink' : 'text-dim font-semibold')}>
                 {label}
               </span>
             </span>
