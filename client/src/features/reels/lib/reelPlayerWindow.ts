@@ -1,30 +1,18 @@
-/** Player window — 1 behind, 3 ahead (forward-biased for snap). */
+/**
+ * Live `<video>` window for reels.
+ *
+ * iOS native HLS stalls when more than ~2 masters are attached (readyState 1 +
+ * NETWORK_IDLE). Keep only the active slide and the immediate next; farther
+ * slides use HTTP prefetch only.
+ */
 
-/** Slides before the active index that keep a live player. */
-export function getReelPlayerBehind(): number {
-  return 1;
+/** Slides after active that keep a live player (always the next snap). */
+export const REEL_PLAYER_AHEAD = 1;
+
+export function isInPlayerWindow(index: number, activeIndex: number): boolean {
+  return index === activeIndex || index === activeIndex + REEL_PLAYER_AHEAD;
 }
 
-/** Slides after the active index that keep a live player. */
-export function getReelPlayerAhead(): number {
-  return 3;
-}
-
-/** Max of ahead/behind — tests and symmetric call sites. */
-export function getReelPlayerWindowRadius(): number {
-  return Math.max(getReelPlayerBehind(), getReelPlayerAhead());
-}
-
-export function isInPlayerWindow(
-  index: number,
-  activeIndex: number,
-  ahead = getReelPlayerAhead(),
-  behind = getReelPlayerBehind()
-): boolean {
-  return index >= activeIndex - behind && index <= activeIndex + ahead;
-}
-
-/** Immediate next slide — larger warm buffer (attach only; never silent-play). */
 export function isNextPlayerSlide(index: number, activeIndex: number): boolean {
-  return index === activeIndex + 1;
+  return index === activeIndex + REEL_PLAYER_AHEAD;
 }

@@ -22,7 +22,6 @@ import {
   useUnlikeReelMutation,
   useUnsaveReelMutation,
 } from '../api/reelsApi';
-import { reelDebugPing } from '../lib/reelPlaybackLog';
 import { useReelPrefetch } from '../lib/useReelPrefetch';
 import { useReelsTabLayout } from '../lib/useReelsTabLayout';
 import { type Reel, REEL_TAB_META, REEL_TABS, type ReelTab } from '../model/schemas';
@@ -39,10 +38,6 @@ export function useReelsPage() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthenticated });
   useKeepAwake(true);
-
-  useEffect(() => {
-    reelDebugPing('reels-page');
-  }, []);
 
   const [tab, setTab] = useState<ReelTab>('explore');
   const [cursor, setCursor] = useState<string | undefined>();
@@ -156,7 +151,7 @@ export function useReelsPage() {
     );
     for (const child of root.children) io.observe(child);
     return () => io.disconnect();
-  }, [ordered.length, feedTab, desk, maybeLoadMoreNearEnd]);
+  }, [ordered, feedTab, desk, maybeLoadMoreNearEnd]);
 
   const skip = useCallback(
     (dir: number) => {
@@ -168,7 +163,7 @@ export function useReelsPage() {
       setActive(next);
       maybeLoadMoreNearEnd(next);
     },
-    [active, maybeLoadMoreNearEnd, ordered.length]
+    [active, maybeLoadMoreNearEnd, ordered]
   );
 
   useEffect(() => {

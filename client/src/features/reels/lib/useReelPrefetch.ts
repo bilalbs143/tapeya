@@ -69,8 +69,19 @@ export function pickPrefetchTarget(reel: PrefetchReel | null | undefined): strin
   return null;
 }
 
+/**
+ * HLS playlists must not enter the shared HTTP cache.
+ * Chrome + gzip CDN + a later 206/Range (hls.js) yields ERR_CONTENT_DECODING_FAILED.
+ */
+const HLS_PREFETCH_INIT: RequestInit = {
+  method: 'GET',
+  mode: 'cors',
+  credentials: 'omit',
+  cache: 'no-store',
+};
+
 async function fetchText(url: string, signal: AbortSignal): Promise<string> {
-  const res = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', signal });
+  const res = await fetch(url, { ...HLS_PREFETCH_INIT, signal });
   if (!res.ok) throw new Error('prefetch');
   return res.text();
 }
@@ -126,11 +137,11 @@ export async function warmReelMedia(reel: PrefetchReel, signal: AbortSignal): Pr
       const variant = await fetchText(next, signal);
       const segment = firstM3u8Uri(variant, next);
       if (segment) {
-        await fetch(segment, { method: 'GET', mode: 'cors', credentials: 'omit', signal });
+        await fetch(segment, { ...HLS_PREFETCH_INIT, signal });
       }
       return;
     }
-    await fetch(next, { method: 'GET', mode: 'cors', credentials: 'omit', signal });
+    await fetch(next, { ...HLS_PREFETCH_INIT, signal });
     return;
   }
 

@@ -7,7 +7,6 @@ import { Spinner } from '@/shared/ui/Spinner';
 
 import { setReelVideoMuted } from '../lib/inlineVideo';
 import { attachReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from '../lib/reelPlaybackGate';
-import { reelLog, reelMark, reelSince } from '../lib/reelPlaybackLog';
 import { isReelsAudioUnlocked, relockReelsAudio, unlockReelsAudio } from '../lib/reelsAudioSession';
 import { useReelHls } from '../lib/useReelHls';
 import type { Reel } from '../model/schemas';
@@ -20,7 +19,7 @@ type ReelSlideProps = {
   active: boolean;
   /** Mount a live player (active + neighbors in the player window). */
   inPlayerWindow?: boolean | undefined;
-  /** Immediate next slide — larger warm buffer. */
+  /** Immediate next slide — attach ahead of the snap. */
   isNext?: boolean | undefined;
   isOwn: boolean;
   desk?: boolean | undefined;
@@ -75,9 +74,11 @@ export function ReelSlide({
   /** Delayed start spinner — key clears show on render when wait ends (no sync setState-in-effect). */
   const [startHint, setStartHint] = useState({ key: '', show: false });
 
-  const role = active ? 'active' : isNext ? 'next' : 'warm';
-  const { mode, failed, retry, readyToken } = useReelHls(videoRef, reel.playback, {
-    enabled: inPlayerWindow,
+  // Window is active + next only — farther slides stay poster/prefetch.
+  const playerEnabled = Boolean(inPlayerWindow && (active || isNext));
+  const role = active ? 'active' : 'next';
+  const { mode, failed, retry, readyToken, sourceUrl } = useReelHls(videoRef, reel.playback, {
+    enabled: playerEnabled,
     role,
   });
   const canPlay = mode != null && !failed;
@@ -121,39 +122,39 @@ export function ReelSlide({
     if (!el || !canPlay) return undefined;
 
     let cancelled = false;
-    let removeReadyWait = () => {};
-    const playMark = `play:${reel.id}`;
+    let removeMediaWait = () => {};
+
+    const waitForMedia = (then: () => void) => {
+      removeMediaWait();
+      if (el.readyState >= 2) {
+        then();
+        return;
+      }
+      const onReady = () => {
+        removeMediaWait();
+        then();
+      };
+      el.addEventListener('loadeddata', onReady);
+      el.addEventListener('canplay', onReady);
+      removeMediaWait = () => {
+        el.removeEventListener('loadeddata', onReady);
+        el.removeEventListener('canplay', onReady);
+      };
+    };
 
     const runPlay = () => {
       if (cancelled || !active || failed) return;
       if (!el.paused && el.readyState >= 2) return;
 
-      reelLog('play.call', {
-        reelId: reel.id,
-        readyState: el.readyState,
-        muted: preferMuted,
-        sinceAttachMs: reelSince(playMark),
-      });
       setReelVideoMuted(el, preferMuted);
       void el
         .play()
         .then(() => {
           if (cancelled) return;
-          reelLog('play.resolved', {
-            reelId: reel.id,
-            sinceAttachMs: reelSince(playMark),
-            muted: el.muted,
-            currentTime: Number(el.currentTime.toFixed(2)),
-          });
           if (!el.muted) unlockReelsAudio();
         })
         .catch((err: unknown) => {
           const name = err instanceof Error ? err.name : 'unknown';
-          reelLog('play.rejected', {
-            reelId: reel.id,
-            sinceAttachMs: reelSince(playMark),
-            error: name,
-          });
           // AbortError = superseded play(); not an autoplay policy block.
           if (cancelled || name === 'AbortError' || el.muted) return;
           setReelVideoMuted(el, true);
@@ -164,32 +165,13 @@ export function ReelSlide({
 
     const tryPlay = () => {
       if (cancelled || !active || failed) return;
-      reelMark(playMark);
-      reelLog('play.try', {
-        reelId: reel.id,
-        readyState: el.readyState,
-        readyToken,
-        networkState: el.networkState,
-      });
       claimReelPlayback(el);
       attachReelHls(el);
-      removeReadyWait();
-      if (el.readyState >= 2) {
-        runPlay();
-        return;
-      }
-      const onReady = () => {
-        removeReadyWait();
-        reelLog('play.canplay', { reelId: reel.id, sinceAttachMs: reelSince(playMark), readyState: el.readyState });
-        runPlay();
-      };
-      el.addEventListener('canplay', onReady, { once: true });
-      removeReadyWait = () => el.removeEventListener('canplay', onReady);
+      waitForMedia(runPlay);
     };
 
     if (active) {
-      // Wait until useReelHls signals attach.ready (readyToken).
-      if (readyToken > 0 || el.readyState >= 2) tryPlay();
+      tryPlay();
     } else if (wasActiveRef.current) {
       releaseReelPlayback(el);
       setProgress(0);
@@ -199,11 +181,6 @@ export function ReelSlide({
     wasActiveRef.current = active;
 
     const onPlaying = () => {
-      reelLog('play.playing', {
-        reelId: reel.id,
-        sinceAttachMs: reelSince(playMark),
-        currentTime: Number(el.currentTime.toFixed(2)),
-      });
       setVideoReady(true);
       setStalled(false);
     };
@@ -237,13 +214,13 @@ export function ReelSlide({
 
     return () => {
       cancelled = true;
-      removeReadyWait();
+      removeMediaWait();
       document.removeEventListener('visibilitychange', onVisibility);
       el.removeEventListener('playing', onPlaying);
       el.removeEventListener('waiting', onWaiting);
       el.removeEventListener('timeupdate', onTimeUpdate);
     };
-  }, [active, canPlay, readyToken, reel.id, preferMuted, failed]);
+  }, [active, canPlay, readyToken, sourceUrl, reel.id, preferMuted, failed]);
 
   // Release MSE/audio only when leaving active or unmounting — not on readyToken refresh.
   useEffect(() => {

@@ -8,7 +8,6 @@
 import type Hls from 'hls.js';
 
 import { setReelVideoMuted } from './inlineVideo';
-import { reelLog } from './reelPlaybackLog';
 
 const videos = new Set<HTMLVideoElement>();
 const hlsByVideo = new WeakMap<HTMLVideoElement, Hls>();
@@ -71,11 +70,9 @@ export function attachReelHls(video: HTMLVideoElement): void {
     return;
   }
   try {
-    const wasDetached = !hls.media;
-    if (wasDetached) hls.attachMedia(video);
+    if (!hls.media) hls.attachMedia(video);
     hls.startLoad(-1);
-    reelLog('gate.attach', { wasDetached, readyState: video.readyState });
-  } catch (err) {
-    reelLog('gate.attach-error', { error: err instanceof Error ? err.message : 'unknown' });
+  } catch {
+    // Ignore reattach failures; play path will surface a hard fail if needed.
   }
 }

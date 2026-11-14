@@ -1,4 +1,10 @@
-/** Reel HLS/progressive — roles active/next/warm; promote warm→active; upgrade progressive→HLS. */
+/**
+ * Attach HLS/progressive for a reel slide.
+ *
+ * Window is active + next only. Active owns the network until ready; next waits.
+ * Neighbors must never call play() — Android + hls.js mixes audio across elements.
+ * Play ownership lives in ReelSlide.
+ */
 
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
@@ -6,20 +12,17 @@ import Hls from 'hls.js';
 import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
 import { beginActiveReelAttach, endActiveReelAttach, scheduleNeighborReelAttach } from './reelAttachPriority';
 import { attachReelHls, bindReelHls } from './reelPlaybackGate';
-import { reelLog, reelMark, reelSince } from './reelPlaybackLog';
 
 const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
-/** Immediate next slide — larger buffer for hitch-free snap. */
 const HLS_NEXT_BUFFER = { maxBufferLength: 10, maxMaxBufferLength: 16 };
-/** Farther neighbors — light attach so we do not thrash bandwidth. */
-const HLS_WARM_BUFFER = { maxBufferLength: 3, maxMaxBufferLength: 6 };
+/** iOS native HLS can sit at HAVE_METADATA + NETWORK_IDLE forever. */
+const ACTIVE_ATTACH_WATCHDOG_MS = 3000;
+const MAX_ATTACH_RETRIES = 2;
 
-export type ReelHlsRole = 'active' | 'next' | 'warm';
+export type ReelHlsRole = 'active' | 'next';
 
 function bufferForRole(role: ReelHlsRole): { maxBufferLength: number; maxMaxBufferLength: number } {
-  if (role === 'active') return HLS_ACTIVE_BUFFER;
-  if (role === 'next') return HLS_NEXT_BUFFER;
-  return HLS_WARM_BUFFER;
+  return role === 'active' ? HLS_ACTIVE_BUFFER : HLS_NEXT_BUFFER;
 }
 
 export function isHlsUrl(url: string | null | undefined): boolean {
@@ -30,6 +33,25 @@ export function isHlsUrl(url: string | null | undefined): boolean {
 
 function canPlayNativeHls(video: HTMLVideoElement): boolean {
   return Boolean(video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL'));
+}
+
+function hardResetVideo(video: HTMLVideoElement): void {
+  try {
+    video.pause();
+  } catch {
+    // Ignore.
+  }
+  video.removeAttribute('src');
+  try {
+    video.srcObject = null;
+  } catch {
+    // Ignore.
+  }
+  try {
+    video.load();
+  } catch {
+    // Ignore load() on detached nodes.
+  }
 }
 
 export type ReelPlaybackSource = {
@@ -75,11 +97,6 @@ type UseReelHlsOptions = {
   role?: ReelHlsRole | undefined;
 };
 
-/**
- * Attach source for a reel slide.
- * Neighbors must NOT call video.play() — Android + hls.js mixes audio from every playing element.
- * Active attaches first; next/warm wait via reelAttachPriority. Play ownership lives in ReelSlide.
- */
 export function useReelHls(
   videoRef: RefObject<HTMLVideoElement | null>,
   playback: ReelPlaybackSource | null | undefined,
@@ -88,6 +105,7 @@ export function useReelHls(
   const { enabled = true, role = 'active' } = options;
   const hlsRef = useRef<Hls | null>(null);
   const roleRef = useRef(role);
+  const prevRoleRef = useRef(role);
   const resumeTimeRef = useRef<number | null>(null);
   const sourceKeyRef = useRef<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -106,14 +124,7 @@ export function useReelHls(
     if (video) bindReelHls(video, null);
     hlsRef.current?.destroy();
     hlsRef.current = null;
-    if (video) {
-      video.removeAttribute('src');
-      try {
-        video.load();
-      } catch {
-        // Ignore load() on detached nodes.
-      }
-    }
+    if (video) hardResetVideo(video);
   }, [videoRef]);
 
   const retry = useCallback(() => {
@@ -143,13 +154,11 @@ export function useReelHls(
       }
     };
 
-    if (video.readyState >= 1) {
-      seek();
-    } else {
-      video.addEventListener('loadedmetadata', seek, { once: true });
-    }
+    if (video.readyState >= 1) seek();
+    else video.addEventListener('loadedmetadata', seek, { once: true });
   }, []);
 
+  // Attach / detach for the player window.
   useEffect(() => {
     if (!enabled || !sourceUrl || !mode) {
       destroy();
@@ -175,6 +184,8 @@ export function useReelHls(
     let holdingActive = false;
     let cancelNeighborSchedule = () => {};
     let attachRaf = 0;
+    let watchdogTimer = 0;
+    const attachAttempt = retryToken;
 
     const takeActiveHold = () => {
       if (holdingActive || roleRef.current !== 'active') return;
@@ -188,6 +199,12 @@ export function useReelHls(
       endActiveReelAttach();
     };
 
+    const clearWatchdog = () => {
+      if (!watchdogTimer) return;
+      window.clearTimeout(watchdogTimer);
+      watchdogTimer = 0;
+    };
+
     const attach = () => {
       if (cancelled) return;
       const video = videoRef.current;
@@ -197,33 +214,22 @@ export function useReelHls(
       }
 
       const currentRole = roleRef.current;
-      // Neighbor may have been promoted to active while waiting.
       takeActiveHold();
-
-      const markKey = `attach:${currentRole}:${sourceKey}`;
-      reelMark(markKey);
-      reelLog('attach.start', { role: currentRole, mode, url: sourceUrl, readyState: video.readyState });
 
       applyInlineVideoAttributes(video);
       setFailed(false);
       destroy();
 
       const onError = () => {
-        reelLog('attach.error', { role: currentRole, mode, url: sourceUrl, sinceMs: reelSince(markKey) });
+        clearWatchdog();
         releaseActiveHold();
         markFailed();
       };
-      const onReady = (via: string) => {
+
+      const onReady = () => {
         if (cancelled || readyHandled) return;
         readyHandled = true;
-        reelLog('attach.ready', {
-          role: currentRole,
-          mode,
-          url: sourceUrl,
-          via,
-          sinceMs: reelSince(markKey),
-          readyState: video.readyState,
-        });
+        clearWatchdog();
         applyResume(video);
         bumpReady();
         releaseActiveHold();
@@ -237,28 +243,52 @@ export function useReelHls(
         }
       };
 
-      if (mode === 'progressive') {
-        const onLoaded = () => onReady('loadeddata');
-        video.src = sourceUrl;
+      const armActiveWatchdog = () => {
+        if (currentRole !== 'active') return;
+        watchdogTimer = window.setTimeout(() => {
+          watchdogTimer = 0;
+          if (cancelled || readyHandled) return;
+          releaseActiveHold();
+          if (attachAttempt >= MAX_ATTACH_RETRIES) {
+            markFailed();
+            return;
+          }
+          setRetryToken((n) => n + 1);
+        }, ACTIVE_ATTACH_WATCHDOG_MS);
+      };
+
+      const bindMediaReady = (extraClear?: () => void) => {
+        const onLoaded = () => onReady();
         video.addEventListener('error', onError);
         video.addEventListener('loadeddata', onLoaded, { once: true });
         removeError = () => video.removeEventListener('error', onError);
-        removeReady = () => video.removeEventListener('loadeddata', onLoaded);
+        removeReady = () => {
+          video.removeEventListener('loadeddata', onLoaded);
+          extraClear?.();
+        };
+      };
+
+      if (mode === 'progressive') {
+        video.src = sourceUrl;
+        bindMediaReady();
+        armActiveWatchdog();
         return;
       }
 
       if (canPlayNativeHls(video)) {
-        const onLoaded = () => onReady('native-hls-loadeddata');
+        // destroy() already cleared src; load() after assign so WebKit actually starts.
         video.src = sourceUrl;
-        video.addEventListener('error', onError);
-        video.addEventListener('loadeddata', onLoaded, { once: true });
-        removeError = () => video.removeEventListener('error', onError);
-        removeReady = () => video.removeEventListener('loadeddata', onLoaded);
+        try {
+          video.load();
+        } catch {
+          // Ignore.
+        }
+        bindMediaReady();
+        armActiveWatchdog();
         return;
       }
 
       if (!Hls.isSupported()) {
-        reelLog('attach.unsupported', { role: currentRole, url: sourceUrl });
         setFailed(true);
         releaseActiveHold();
         return;
@@ -276,57 +306,26 @@ export function useReelHls(
       bindReelHls(video, hls);
       hls.loadSource(sourceUrl);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
-        reelLog('hls.manifest', {
-          role: currentRole,
-          url: sourceUrl,
-          levels: data.levels?.length ?? 0,
-          sinceMs: reelSince(markKey),
-        });
-      });
-      let fragsLogged = 0;
-      hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
-        if (currentRole !== 'active' || fragsLogged >= 2) return;
-        fragsLogged += 1;
-        reelLog('hls.frag', {
-          role: currentRole,
-          sn: data.frag?.sn,
-          level: data.frag?.level,
-          sinceMs: reelSince(markKey),
-        });
-      });
       hls.on(Hls.Events.ERROR, (_event, data) => {
-        reelLog('hls.error', {
-          role: currentRole,
-          fatal: data.fatal,
-          type: data.type,
-          details: data.details,
-          sinceMs: reelSince(markKey),
-        });
         if (data.fatal) markFailed();
       });
 
       if (currentRole === 'active') {
-        const onFragBuffered = () => onReady('frag-buffered');
-        const onCanPlay = () => onReady('canplay');
-        const onLoaded = () => onReady('loadeddata');
+        const onFragBuffered = () => onReady();
+        const onCanPlay = () => onReady();
         hls.on(Hls.Events.FRAG_BUFFERED, onFragBuffered);
         video.addEventListener('canplay', onCanPlay, { once: true });
-        video.addEventListener('loadeddata', onLoaded, { once: true });
-        removeReady = () => {
+        bindMediaReady(() => {
           hls.off(Hls.Events.FRAG_BUFFERED, onFragBuffered);
           video.removeEventListener('canplay', onCanPlay);
-          video.removeEventListener('loadeddata', onLoaded);
-        };
+        });
+        armActiveWatchdog();
       } else {
-        const onManifest = () => onReady('manifest-parsed');
-        const onLoaded = () => onReady('loadeddata');
+        const onManifest = () => onReady();
         hls.on(Hls.Events.MANIFEST_PARSED, onManifest);
-        video.addEventListener('loadeddata', onLoaded, { once: true });
-        removeReady = () => {
+        bindMediaReady(() => {
           hls.off(Hls.Events.MANIFEST_PARSED, onManifest);
-          video.removeEventListener('loadeddata', onLoaded);
-        };
+        });
       }
     };
 
@@ -339,14 +338,14 @@ export function useReelHls(
       takeActiveHold();
       scheduleAttach();
     } else {
-      const neighborRole = roleRef.current === 'next' ? 'next' : 'warm';
-      cancelNeighborSchedule = scheduleNeighborReelAttach(neighborRole, scheduleAttach);
+      cancelNeighborSchedule = scheduleNeighborReelAttach(scheduleAttach);
     }
 
     return () => {
       cancelled = true;
       cancelNeighborSchedule();
       cancelAnimationFrame(attachRaf);
+      clearWatchdog();
       removeError();
       removeReady();
       releaseActiveHold();
@@ -354,9 +353,30 @@ export function useReelHls(
     };
   }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume]);
 
-  // Promote / demote buffers without destroy/recreate. Playback claim/release is ReelSlide's job.
+  // Promote next → active: refresh hls.js buffers, or re-attach if native media stalled.
   useEffect(() => {
+    if (!enabled) {
+      prevRoleRef.current = role;
+      return;
+    }
+
+    const video = videoRef.current;
     const hls = hlsRef.current;
+    const prevRole = prevRoleRef.current;
+    prevRoleRef.current = role;
+
+    const promoted = role === 'active' && prevRole !== 'active' && sourceUrl;
+    if (promoted && readyToken === 0 && video) {
+      const stalled =
+        Boolean(video.currentSrc || video.getAttribute('src')) &&
+        video.readyState < 2 &&
+        video.networkState !== HTMLMediaElement.NETWORK_LOADING;
+      if (stalled) {
+        setRetryToken((n) => n + 1);
+        return;
+      }
+    }
+
     if (!hls) return;
 
     const buffer = bufferForRole(role);
@@ -364,7 +384,6 @@ export function useReelHls(
     hls.config.maxMaxBufferLength = buffer.maxMaxBufferLength;
 
     if (role === 'active') {
-      const video = videoRef.current;
       if (video) attachReelHls(video);
       else {
         try {
@@ -375,7 +394,7 @@ export function useReelHls(
         }
       }
     }
-  }, [role, videoRef]);
+  }, [role, videoRef, readyToken, enabled, sourceUrl]);
 
   return { sourceUrl, useHls, mode, failed, retry, readyToken };
 }

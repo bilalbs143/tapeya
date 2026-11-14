@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   beginActiveReelAttach,
   endActiveReelAttach,
-  isActiveReelAttachBusyForTests,
+  getActiveReelAttachBusy,
   resetReelAttachPriorityForTests,
   scheduleNeighborReelAttach,
   whenActiveReelAttachIdle,
@@ -20,51 +20,24 @@ describe('reelAttachPriority', () => {
     vi.useRealTimers();
   });
 
-  it('holds neighbors until active releases', async () => {
+  it('holds next until active releases', async () => {
     const next = vi.fn();
-    const warm = vi.fn();
-
     beginActiveReelAttach();
-    scheduleNeighborReelAttach('next', next);
-    scheduleNeighborReelAttach('warm', warm);
+    scheduleNeighborReelAttach(next);
     await Promise.resolve();
 
     expect(next).not.toHaveBeenCalled();
-    expect(warm).not.toHaveBeenCalled();
-    expect(isActiveReelAttachBusyForTests()).toBe(true);
+    expect(getActiveReelAttachBusy()).toBe(true);
 
     endActiveReelAttach();
     await Promise.resolve();
     expect(next).toHaveBeenCalledTimes(1);
-    expect(warm).not.toHaveBeenCalled();
-
-    await vi.advanceTimersByTimeAsync(400);
-    expect(warm).toHaveBeenCalledTimes(1);
   });
 
-  it('runs next before staggered warm after release', async () => {
-    const order: string[] = [];
-    beginActiveReelAttach();
-    scheduleNeighborReelAttach('warm', () => order.push('warm-a'));
-    scheduleNeighborReelAttach('next', () => order.push('next'));
-    scheduleNeighborReelAttach('warm', () => order.push('warm-b'));
-    await Promise.resolve();
-
-    endActiveReelAttach();
-    await Promise.resolve();
-    expect(order).toEqual(['next']);
-
-    await vi.advanceTimersByTimeAsync(400);
-    expect(order).toEqual(['next', 'warm-a']);
-
-    await vi.advanceTimersByTimeAsync(400);
-    expect(order).toEqual(['next', 'warm-a', 'warm-b']);
-  });
-
-  it('does not flush neighbors when StrictMode remounts active before microtask', async () => {
+  it('does not flush next when StrictMode remounts active before microtask', async () => {
     const next = vi.fn();
     beginActiveReelAttach();
-    scheduleNeighborReelAttach('next', next);
+    scheduleNeighborReelAttach(next);
     await Promise.resolve();
 
     endActiveReelAttach();
@@ -72,22 +45,26 @@ describe('reelAttachPriority', () => {
     await Promise.resolve();
 
     expect(next).not.toHaveBeenCalled();
-    expect(isActiveReelAttachBusyForTests()).toBe(true);
+    expect(getActiveReelAttachBusy()).toBe(true);
 
     endActiveReelAttach();
     await Promise.resolve();
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back if active never releases', async () => {
+  it('keeps waiting if active never releases (does not steal the lock)', async () => {
     const next = vi.fn();
     beginActiveReelAttach();
-    scheduleNeighborReelAttach('next', next);
+    scheduleNeighborReelAttach(next);
     await Promise.resolve();
 
-    await vi.advanceTimersByTimeAsync(4000);
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(next).not.toHaveBeenCalled();
+    expect(getActiveReelAttachBusy()).toBe(true);
+
+    endActiveReelAttach();
+    await Promise.resolve();
     expect(next).toHaveBeenCalledTimes(1);
-    expect(isActiveReelAttachBusyForTests()).toBe(false);
   });
 
   it('whenActiveReelAttachIdle waits for release then runs', async () => {
@@ -103,7 +80,7 @@ describe('reelAttachPriority', () => {
 
   it('defers neighbor decision one microtask so active can begin first', async () => {
     const next = vi.fn();
-    scheduleNeighborReelAttach('next', next);
+    scheduleNeighborReelAttach(next);
     beginActiveReelAttach();
     await Promise.resolve();
 

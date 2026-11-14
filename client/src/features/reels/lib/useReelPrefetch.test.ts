@@ -161,6 +161,9 @@ describe('warmReelMedia', () => {
         'https://cdn.test/hls/720/index.m3u8',
         'https://cdn.test/hls/720/seg_000.ts',
       ]);
+      for (const call of fetchMock.mock.calls) {
+        expect((call[1] as RequestInit | undefined)?.cache).toBe('no-store');
+      }
     } finally {
       globalThis.fetch = originalFetch;
     }
