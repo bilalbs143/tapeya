@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { isHlsUrl, resolveReelPlaybackSource } from './useReelHls';
+vi.mock('@/shared/platform/platform', () => ({
+  getPlatform: vi.fn(() => 'web'),
+  isNativePlatform: vi.fn(() => false),
+}));
+
+import { getPlatform } from '@/shared/platform/platform';
+
+import { canPlayNativeHls, isHlsUrl, resolveReelPlaybackSource } from './useReelHls';
+
+const mockedGetPlatform = vi.mocked(getPlatform);
 
 describe('resolveReelPlaybackSource', () => {
   it('prefers HLS when master is present', () => {
@@ -36,5 +45,27 @@ describe('isHlsUrl', () => {
     expect(isHlsUrl('https://cdn.test/master.m3u8')).toBe(true);
     expect(isHlsUrl('https://cdn.test/hls/720/index.m3u8?x=1')).toBe(true);
     expect(isHlsUrl('https://cdn.test/clip.mp4')).toBe(false);
+  });
+});
+
+describe('canPlayNativeHls', () => {
+  beforeEach(() => {
+    mockedGetPlatform.mockReturnValue('web');
+  });
+
+  it('never uses native HLS on Android even when canPlayType claims support', () => {
+    mockedGetPlatform.mockReturnValue('android');
+    const video = {
+      canPlayType: () => 'maybe',
+    } as unknown as HTMLVideoElement;
+    expect(canPlayNativeHls(video)).toBe(false);
+  });
+
+  it('allows native HLS on iOS when the element reports support', () => {
+    mockedGetPlatform.mockReturnValue('ios');
+    const video = {
+      canPlayType: (type: string) => (type.includes('mpegurl') ? 'probably' : ''),
+    } as unknown as HTMLVideoElement;
+    expect(canPlayNativeHls(video)).toBe(true);
   });
 });

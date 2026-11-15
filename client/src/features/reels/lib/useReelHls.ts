@@ -9,6 +9,8 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 
+import { getPlatform } from '@/shared/platform/platform';
+
 import { applyInlineVideoAttributes, setReelVideoMuted } from './inlineVideo';
 import { beginActiveReelAttach, endActiveReelAttach, scheduleNeighborReelAttach } from './reelAttachPriority';
 import { attachReelHls, bindReelHls } from './reelPlaybackGate';
@@ -31,7 +33,13 @@ export function isHlsUrl(url: string | null | undefined): boolean {
   return path.endsWith('.m3u8') || path.includes('/hls/');
 }
 
-function canPlayNativeHls(video: HTMLVideoElement): boolean {
+/**
+ * Native HLS only on iOS.
+ * Android Chromium often returns a non-empty canPlayType for HLS but stalls forever
+ * at readyState 0 / networkState LOADING — use hls.js there instead.
+ */
+export function canPlayNativeHls(video: HTMLVideoElement): boolean {
+  if (getPlatform() !== 'ios') return false;
   return Boolean(video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL'));
 }
 

@@ -171,7 +171,8 @@ export function ReelSlide({
     };
 
     if (active) {
-      tryPlay();
+      // Wait for useReelHls attach.ready (readyToken) — avoid play before media is attached.
+      if (readyToken > 0 || el.readyState >= 2) tryPlay();
     } else if (wasActiveRef.current) {
       releaseReelPlayback(el);
       setProgress(0);
