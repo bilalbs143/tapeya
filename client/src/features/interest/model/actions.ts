@@ -1,12 +1,18 @@
 import type { CampaignStatus, SubmissionStatus } from './schemas';
 
+export type InterestBannerTone = 'info' | 'success' | 'warning';
+
 export type InterestUiActions = {
   showSubmit: boolean;
   submitLabel: string;
   submitDisabled: boolean;
   showWithdraw: boolean;
   readOnlyAll: boolean;
-  banner: { tone: 'muted' | 'brand' | 'positive'; text: string } | null;
+  banner: {
+    tone: InterestBannerTone;
+    title: string;
+    description: string;
+  } | null;
 };
 
 export function interestActions(input: {
@@ -25,18 +31,21 @@ export function interestActions(input: {
     readOnlyAll: confirmed,
     banner: closed
       ? {
-          tone: 'muted',
-          text: 'This interest form is closed. New submissions are not accepted.',
+          tone: 'warning',
+          title: 'Interest form closed',
+          description: 'New submissions are not accepted. Existing details stay on file.',
         }
       : confirmed
         ? {
-            tone: 'positive',
-            text: 'Your spot is confirmed. Below are the details we have on file.',
+            tone: 'success',
+            title: 'Your spot is confirmed',
+            description: 'Below are the details we have on file for this campaign.',
           }
         : active
           ? {
-              tone: 'brand',
-              text: "You're already on the interest list. Update your details below, or withdraw.",
+              tone: 'info',
+              title: "You're on the interest list",
+              description: 'Update your details below anytime, or withdraw if you change your mind.',
             }
           : null,
   };

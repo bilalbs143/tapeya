@@ -1,16 +1,16 @@
 import { type ChangeEvent, useRef } from 'react';
 
-import { cn } from '@/shared/lib/cn';
+import { Alert } from '@/shared/ui/Alert';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { Field } from '@/shared/ui/Field';
 import { FormRow } from '@/shared/ui/Form';
-import { DocumentIcon, PlusIcon } from '@/shared/ui/icons';
+import { CheckIcon, ClockIcon, DocumentIcon, LockIcon, PlusIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
 import { SelectField, SelectItem } from '@/shared/ui/Select';
 
 import { AVATAR_TYPES, checkInterestUpload, DOC_TYPES } from '../lib/upload';
-import type { InterestUiActions } from '../model/actions';
+import type { InterestBannerTone, InterestUiActions } from '../model/actions';
 import {
   fieldEnabled,
   type InterestCampaign,
@@ -95,16 +95,12 @@ export function InterestForm({
   return (
     <>
       {a.banner ? (
-        <p
-          className={cn(
-            'rounded-panel border px-3.5 py-3 text-2xs leading-relaxed',
-            a.banner.tone === 'positive' && 'border-positive/35 bg-positive/10 text-ink',
-            a.banner.tone === 'brand' && 'border-brand/35 bg-brand/10 text-ink',
-            a.banner.tone === 'muted' && 'border-border text-muted'
-          )}
-        >
-          {a.banner.text}
-        </p>
+        <Alert
+          tone={a.banner.tone}
+          title={a.banner.title}
+          description={a.banner.description}
+          icon={<InterestStatusIcon tone={a.banner.tone} />}
+        />
       ) : null}
 
       {showIdentity ? (
@@ -286,4 +282,11 @@ export function InterestForm({
       })}
     </>
   );
+}
+
+function InterestStatusIcon({ tone }: { tone: InterestBannerTone }) {
+  const iconClass = 'h-3.5 w-3.5';
+  if (tone === 'success') return <CheckIcon className={iconClass} strokeWidth={3} />;
+  if (tone === 'warning') return <LockIcon className={iconClass} strokeWidth={2.2} />;
+  return <ClockIcon className={iconClass} strokeWidth={2.2} />;
 }

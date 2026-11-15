@@ -20,7 +20,8 @@ describe('interestActions', () => {
 
     const closed = interestActions({ campaignStatus: 'closed', submissionStatus: null });
     expect(closed.submitDisabled).toBe(true);
-    expect(closed.banner?.tone).toBe('muted');
+    expect(closed.banner?.tone).toBe('warning');
+    expect(closed.banner?.title).toBe('Interest form closed');
   });
 
   it('lets pending entrants update or withdraw; confirmed is read-only', () => {
@@ -30,6 +31,8 @@ describe('interestActions', () => {
     });
     expect(pending.submitLabel).toBe('Update My Details');
     expect(pending.showWithdraw).toBe(true);
+    expect(pending.banner?.tone).toBe('info');
+    expect(pending.banner?.title).toBe("You're on the interest list");
 
     const confirmed = interestActions({
       campaignStatus: 'open',
@@ -37,6 +40,8 @@ describe('interestActions', () => {
     });
     expect(confirmed.showSubmit).toBe(false);
     expect(confirmed.readOnlyAll).toBe(true);
+    expect(confirmed.banner?.tone).toBe('success');
+    expect(confirmed.banner?.title).toBe('Your spot is confirmed');
   });
 });
 
