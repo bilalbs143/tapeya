@@ -54,17 +54,9 @@ export function InterestCampaignBrandHeader({
 
       <div className="relative flex min-h-36 items-center gap-3.5 p-3.5">
         {logoUrl ? (
-          <span className="border-white/25 bg-page-deep/50 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border shadow-card">
-            <img src={logoUrl} alt="" className="h-full w-full object-contain p-1.5" />
-          </span>
+          <img src={logoUrl} alt="" className="h-24 w-24 shrink-0 object-contain" />
         ) : (
-          <Avatar
-            crest
-            name={title}
-            size="xl"
-            className="border-white/25 h-24 w-24 border text-sm font-extrabold shadow-card"
-            aria-hidden
-          />
+          <Avatar crest name={title} size="xl" className="h-24 w-24 text-sm font-extrabold" aria-hidden />
         )}
 
         <span className="bg-white/20 h-20 w-px shrink-0" aria-hidden />

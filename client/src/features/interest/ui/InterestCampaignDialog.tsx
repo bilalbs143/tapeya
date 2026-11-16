@@ -1,14 +1,18 @@
 import { dialogStore } from '@/shared/dialogs';
 import { DialogBody, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/dialogs/BaseDialog';
+import { cn } from '@/shared/lib/cn';
 import { FormFieldsSkeleton } from '@/shared/ui/states';
 
 import { useGetInterestCampaignQuery } from '../api/interestApi';
 import type { InterestShowPayload } from '../model/schemas';
-import { InterestCampaignBrandHeader, InterestCampaignStage } from './InterestCampaignBrand';
+import { InterestCampaignBrandHeader, InterestCampaignWatermark } from './InterestCampaignBrand';
 import { InterestFormActions, InterestFormBody } from './InterestFormBody';
 import { useInterestForm } from './useInterestForm';
 
 const FORM_ID = 'interest-dialog-form';
+
+/** Same scroll contract as SellerCategory / ManageTeam — DialogBody is the flex scroller. */
+const SCROLL_BODY = 'relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain';
 
 export type InterestCampaignDialogProps = {
   slug: string;
@@ -41,7 +45,7 @@ export function InterestCampaignDialog({ slug, tournamentName }: InterestCampaig
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <DialogBody aria-busy="true" aria-label="Loading interest form">
+        <DialogBody className={SCROLL_BODY} aria-busy="true" aria-label="Loading interest form">
           <FormFieldsSkeleton rows={5} />
         </DialogBody>
       </>
@@ -75,10 +79,14 @@ function InterestCampaignDialogForm({
 
   return (
     <>
-      <DialogHeader></DialogHeader>
+      {/* Keep DialogHeader chrome so the absolute close sits above the banner, not on it. */}
+      <DialogHeader className="shrink-0 pb-2">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
+      </DialogHeader>
 
-      <InterestCampaignStage logoUrl={campaign.logoUrl}>
-        <DialogBody className="pt-0 pb-6">
+      <DialogBody className={cn(SCROLL_BODY, 'pt-0 pb-6')}>
+        <InterestCampaignWatermark logoUrl={campaign.logoUrl} />
+        <div className="relative z-10 flex flex-col gap-4">
           <InterestCampaignBrandHeader
             title={title}
             description={campaign.description}
@@ -87,8 +95,8 @@ function InterestCampaignDialogForm({
             titleAs="h2"
           />
           <InterestFormBody flow={flow} formId={FORM_ID} />
-        </DialogBody>
-      </InterestCampaignStage>
+        </div>
+      </DialogBody>
 
       {showFooter ? (
         <DialogFooter className="shrink-0">

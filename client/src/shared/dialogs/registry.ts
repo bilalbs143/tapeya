@@ -26,7 +26,8 @@ export type DialogKey = keyof DialogRegistry;
 export type DialogProps<K extends DialogKey> = ComponentProps<DialogRegistry[K]>;
 
 export const DIALOG_CONTENT_CLASS_BY_KEY: Partial<Record<DialogKey, string>> = {
-  interestCampaign: 'flex min-h-0 flex-1 flex-col',
+  // Match SellerCategory / ManageTeam: flex column + clip so DialogBody can scroll under max-h.
+  interestCampaign: 'flex min-h-0 flex-1 flex-col overflow-hidden',
 };
 
 export const DIALOG_SHELL_CLASS_BY_KEY: Partial<Record<DialogKey, string>> = {
