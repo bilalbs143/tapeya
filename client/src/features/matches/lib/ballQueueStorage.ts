@@ -13,20 +13,41 @@ export type QueuedBall = {
 
 type QueueStore = Record<string, QueuedBall[]>;
 
-function readStore(): QueueStore {
-  if (typeof localStorage === 'undefined') return {};
+/** Stable empty — `useSyncExternalStore` compares snapshots with Object.is. */
+export const EMPTY_BALL_QUEUE: QueuedBall[] = [];
+
+/** Memory is the source of truth; localStorage is persistence only (same idea as toastStore). */
+let store: QueueStore = {};
+let hydrated = false;
+
+function matchKey(matchId: number): string {
+  return String(matchId);
+}
+
+function hydrateFromDisk(): void {
+  if (hydrated || typeof localStorage === 'undefined') {
+    hydrated = true;
+    return;
+  }
+  hydrated = true;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
+    if (!raw) {
+      store = {};
+      return;
+    }
     const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    return parsed as QueueStore;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      store = {};
+      return;
+    }
+    store = parsed as QueueStore;
   } catch {
-    return {};
+    store = {};
   }
 }
 
-function writeStore(store: QueueStore) {
+function persist(): void {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
@@ -38,17 +59,27 @@ function writeStore(store: QueueStore) {
   }
 }
 
-function matchKey(matchId: number): string {
-  return String(matchId);
+function commit(next: QueueStore): void {
+  store = next;
+  persist();
+}
+
+/** Re-read disk (other tab / tests). */
+export function invalidateBallQueueCache(): void {
+  hydrated = false;
+  store = {};
+  hydrateFromDisk();
 }
 
 export function listQueuedBalls(matchId: number): QueuedBall[] {
-  return readStore()[matchKey(matchId)] ?? [];
+  hydrateFromDisk();
+  return store[matchKey(matchId)] ?? EMPTY_BALL_QUEUE;
 }
 
 export function enqueueBall(
   entry: Omit<QueuedBall, 'id' | 'createdAt'> & { id?: string | undefined; createdAt?: number | undefined }
 ): QueuedBall {
+  hydrateFromDisk();
   const ball: QueuedBall = {
     id: entry.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     matchId: entry.matchId,
@@ -56,34 +87,39 @@ export function enqueueBall(
     payload: entry.payload,
     createdAt: entry.createdAt ?? Date.now(),
   };
-  const store = readStore();
   const key = matchKey(entry.matchId);
-  store[key] = [...(store[key] ?? []), ball];
-  writeStore(store);
+  commit({ ...store, [key]: [...(store[key] ?? EMPTY_BALL_QUEUE), ball] });
   return ball;
 }
 
-function omitKey(store: QueueStore, key: string): QueueStore {
-  return Object.fromEntries(Object.entries(store).filter(([k]) => k !== key));
+function omitKey(next: QueueStore, key: string): QueueStore {
+  return Object.fromEntries(Object.entries(next).filter(([k]) => k !== key));
 }
 
 export function removeQueuedBall(matchId: number, id: string): void {
-  const store = readStore();
+  hydrateFromDisk();
   const key = matchKey(matchId);
-  const next = (store[key] ?? []).filter((b) => b.id !== id);
-  if (next.length) writeStore({ ...store, [key]: next });
-  else writeStore(omitKey(store, key));
+  const remaining = (store[key] ?? EMPTY_BALL_QUEUE).filter((b) => b.id !== id);
+  commit(remaining.length ? { ...store, [key]: remaining } : omitKey(store, key));
 }
 
 export function clearQueuedBalls(matchId: number): void {
-  writeStore(omitKey(readStore(), matchKey(matchId)));
+  hydrateFromDisk();
+  commit(omitKey(store, matchKey(matchId)));
 }
+
 export function subscribeBallQueue(onStoreChange: () => void): () => void {
   if (typeof window === 'undefined') return () => undefined;
+
+  function onExternalChange() {
+    invalidateBallQueueCache();
+    onStoreChange();
+  }
+
   window.addEventListener(BALL_QUEUE_EVENT, onStoreChange);
-  window.addEventListener('storage', onStoreChange);
+  window.addEventListener('storage', onExternalChange);
   return () => {
     window.removeEventListener(BALL_QUEUE_EVENT, onStoreChange);
-    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener('storage', onExternalChange);
   };
 }

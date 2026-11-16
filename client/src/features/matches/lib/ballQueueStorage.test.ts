@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { clearQueuedBalls, enqueueBall, listQueuedBalls, removeQueuedBall } from './ballQueueStorage';
+import {
+  clearQueuedBalls,
+  EMPTY_BALL_QUEUE,
+  enqueueBall,
+  invalidateBallQueueCache,
+  listQueuedBalls,
+  removeQueuedBall,
+} from './ballQueueStorage';
 import type { StoreBallPayload } from './storeBallPayload';
 
 const payload = {
@@ -32,6 +39,7 @@ const payload = {
 afterEach(() => {
   clearQueuedBalls(42);
   clearQueuedBalls(7);
+  invalidateBallQueueCache();
 });
 
 describe('ballQueueStorage', () => {
@@ -52,5 +60,14 @@ describe('ballQueueStorage', () => {
     expect(listQueuedBalls(42)).toHaveLength(1);
     clearQueuedBalls(42);
     expect(listQueuedBalls(42)).toHaveLength(0);
+  });
+
+  it('returns a stable snapshot for useSyncExternalStore', () => {
+    expect(listQueuedBalls(42)).toBe(EMPTY_BALL_QUEUE);
+    expect(listQueuedBalls(42)).toBe(listQueuedBalls(42));
+
+    enqueueBall({ matchId: 42, inningsId: 9, payload });
+    const first = listQueuedBalls(42);
+    expect(listQueuedBalls(42)).toBe(first);
   });
 });

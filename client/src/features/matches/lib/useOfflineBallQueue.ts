@@ -4,6 +4,7 @@ import { parseApiError } from '@/shared/api/errors';
 
 import {
   clearQueuedBalls,
+  EMPTY_BALL_QUEUE,
   enqueueBall,
   listQueuedBalls,
   type QueuedBall,
@@ -33,10 +34,12 @@ export function useOfflineBallQueue(
   storeBall: StoreBallFn,
   { enabled = true }: { enabled?: boolean | undefined } = {}
 ): OfflineBallQueue {
+  // Snapshot must be referentially stable when unchanged — fresh `[]` / JSON.parse
+  // every read caused Maximum update depth on ScoringDesk mount (TAPEYA-APP-G).
   const items = useSyncExternalStore(
     subscribeBallQueue,
-    () => (enabled && matchId > 0 ? listQueuedBalls(matchId) : []),
-    () => []
+    () => (enabled && matchId > 0 ? listQueuedBalls(matchId) : EMPTY_BALL_QUEUE),
+    () => EMPTY_BALL_QUEUE
   );
 
   const [flushing, setFlushing] = useState(false);
