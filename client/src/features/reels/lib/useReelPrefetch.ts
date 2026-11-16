@@ -70,23 +70,6 @@ export function pickPrefetchTarget(reel: PrefetchReel | null | undefined): strin
   return null;
 }
 
-/**
- * HLS playlists must not enter the shared HTTP cache.
- * Chrome + gzip CDN + a later 206/Range (hls.js) yields ERR_CONTENT_DECODING_FAILED.
- */
-const HLS_PREFETCH_INIT: RequestInit = {
-  method: 'GET',
-  mode: 'cors',
-  credentials: 'omit',
-  cache: 'no-store',
-};
-
-async function fetchText(url: string, signal: AbortSignal): Promise<string> {
-  const res = await fetch(url, { ...HLS_PREFETCH_INIT, signal });
-  if (!res.ok) throw new Error('prefetch');
-  return res.text();
-}
-
 /** Decode upcoming poster into browser image cache. */
 export function warmPoster(url: string | null | undefined, signal: AbortSignal): Promise<void> {
   if (typeof url !== 'string' || !url) return Promise.resolve();
@@ -125,26 +108,15 @@ export function warmPoster(url: string | null | undefined, signal: AbortSignal):
   });
 }
 
-/** Pull first playable media bytes into the browser cache. */
+/**
+ * Pull first playable media bytes into the browser cache.
+ * HLS is intentionally skipped — playlists use cache:'no-store' (gzip/Range clash with
+ * hls.js) so a prefetch cannot warm the player and only races CDN/QUIC with attach.
+ */
 export async function warmReelMedia(reel: PrefetchReel, signal: AbortSignal): Promise<void> {
   const target = pickPrefetchTarget(reel);
   if (!target) return;
-
-  if (isHlsPrefetchUrl(target)) {
-    const master = await fetchText(target, signal);
-    const next = firstM3u8Uri(master, target);
-    if (!next) return;
-    if (isHlsPrefetchUrl(next)) {
-      const variant = await fetchText(next, signal);
-      const segment = firstM3u8Uri(variant, next);
-      if (segment) {
-        await fetch(segment, { ...HLS_PREFETCH_INIT, signal });
-      }
-      return;
-    }
-    await fetch(next, { ...HLS_PREFETCH_INIT, signal });
-    return;
-  }
+  if (isHlsPrefetchUrl(target)) return;
 
   await fetch(target, {
     method: 'GET',
@@ -225,20 +197,8 @@ export function useReelPrefetch(reels: PrefetchReel[], activeIndex: number): voi
         }
       };
 
-      // Active: poster only for HLS. HLS prefetch uses cache:'no-store' and would
-      // race the player on the same master.m3u8 (QUIC resets). Progressive still warms bytes.
-      if (activeReel) {
-        if (cancelled || controller.signal.aborted) return;
-        try {
-          await warmPoster(activeReel.posterUrl, controller.signal);
-          const target = pickPrefetchTarget(activeReel);
-          if (target && !isHlsPrefetchUrl(target)) {
-            await warmReelMedia(activeReel, controller.signal);
-          }
-        } catch {
-          // Prefetch is best-effort.
-        }
-      }
+      // Active first (poster + progressive bytes; HLS media warm is a no-op).
+      if (activeReel) await warmOne(activeReel);
       if (cancelled || controller.signal.aborted || upcoming.length === 0) return;
 
       // Hold upcoming byte-warm until the active video attach has data.

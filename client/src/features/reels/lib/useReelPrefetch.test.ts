@@ -135,16 +135,8 @@ describe('firstM3u8Uri', () => {
 });
 
 describe('warmReelMedia', () => {
-  it('fetches master → variant → first segment', async () => {
-    const fetchMock = vi.fn(async (url: string | URL | Request) => {
-      if (String(url).endsWith('master.m3u8')) {
-        return { ok: true, text: async () => '#EXTM3U\n720/index.m3u8\n' };
-      }
-      if (String(url).includes('index.m3u8')) {
-        return { ok: true, text: async () => '#EXTM3U\n#EXTINF:2.0,\nseg_000.ts\n' };
-      }
-      return { ok: true, text: async () => '' };
-    });
+  it('does not fetch HLS masters (would race hls.js and cannot warm its cache)', async () => {
+    const fetchMock = vi.fn();
     const originalFetch = globalThis.fetch;
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     try {
@@ -156,14 +148,30 @@ describe('warmReelMedia', () => {
         },
         new AbortController().signal
       );
-      expect(fetchMock.mock.calls.map((call) => String(call[0]))).toEqual([
-        'https://cdn.test/hls/master.m3u8',
-        'https://cdn.test/hls/720/index.m3u8',
-        'https://cdn.test/hls/720/seg_000.ts',
-      ]);
-      for (const call of fetchMock.mock.calls) {
-        expect((call[1] as RequestInit | undefined)?.cache).toBe('no-store');
-      }
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('Range-warms progressive mp4', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, text: async () => '' }));
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    try {
+      await warmReelMedia(
+        {
+          playback: { type: 'original', url: 'https://cdn.test/clip.mp4', hlsUrl: null },
+          posterUrl: null,
+          videoUrl: 'https://cdn.test/clip.mp4',
+        },
+        new AbortController().signal
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(String(fetchMock.mock.calls[0]?.[0])).toBe('https://cdn.test/clip.mp4');
+      expect((fetchMock.mock.calls[0]?.[1] as RequestInit).headers).toMatchObject({
+        Range: 'bytes=0-786431',
+      });
     } finally {
       globalThis.fetch = originalFetch;
     }
