@@ -100,23 +100,24 @@ export function TournamentsListBody({ flow }: TournamentsListBodyProps) {
       }
     >
       {isEmpty ? (
-        <EmptyState
-          size="lg"
-          className="min-h-full"
-          icon={<TrophyIcon size="lg" className="text-brand-text" />}
-          title="No Tournaments Yet"
-          description="Pick the format, dates and venue. Your workspace opens as soon as you create — then add teams and fixtures."
-          action={
-            <div className="flex w-full max-w-xs flex-col gap-2">
-              <Button className="min-h-12 font-bold" onClick={goCreate}>
-                Create Tournament
-              </Button>
-              <Button variant="secondary" className="min-h-11 font-semibold" asChild>
-                <Link to={APP_PATHS.matches}>Score a Quick Match Instead</Link>
-              </Button>
-            </div>
-          }
-        />
+        <div className="px-4 py-8">
+          <EmptyState
+            size="lg"
+            icon={<TrophyIcon size="lg" className="text-brand-text" />}
+            title="No Tournaments Yet"
+            description="Pick the format, dates and venue. Your workspace opens as soon as you create — then add teams and fixtures."
+            action={
+              <div className="flex w-full max-w-xs flex-col gap-2">
+                <Button className="min-h-12 font-bold" onClick={goCreate}>
+                  Create Tournament
+                </Button>
+                <Button variant="secondary" className="min-h-11 font-semibold" asChild>
+                  <Link to={APP_PATHS.matches}>Score a Quick Match Instead</Link>
+                </Button>
+              </div>
+            }
+          />
+        </div>
       ) : null}
 
       {!isEmpty ? (

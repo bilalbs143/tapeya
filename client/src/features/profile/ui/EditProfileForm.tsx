@@ -258,7 +258,7 @@ export function EditProfileForm({ user, onSaved, onDelete, deleting }: EditProfi
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 px-4">
+        <div className="flex flex-col gap-6 px-4 pt-4">
           {gaps.length > 0 ? (
             <section
               className="border-border-subtle bg-surface rounded-card border p-3.5"

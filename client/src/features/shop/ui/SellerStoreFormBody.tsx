@@ -78,7 +78,12 @@ export function SellerStoreFormBody() {
   } = useSellerStoreFormFlow();
 
   return (
-    <Form id="seller-store" density="compact" onSubmit={(e: FormEvent) => void onSubmit(e)} className="px-4 pt-4 pb-4">
+    <Form
+      id="seller-store"
+      density="compact"
+      onSubmit={(e: FormEvent) => void onSubmit(e)}
+      className="px-4 pt-3.5 pb-4"
+    >
       <p className="text-muted text-2xs leading-relaxed">{intro}</p>
 
       <FormSection title="Store Profile">

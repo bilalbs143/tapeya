@@ -92,7 +92,7 @@ export function QuickMatchFormBody({ flow, header }: QuickMatchFormBodyProps) {
           </StickyActionBar>
         }
       >
-        <Form density="compact" className="flex flex-col px-4 pt-4 pb-4" onSubmit={(e) => e.preventDefault()}>
+        <Form density="compact" className="flex flex-col px-4 pt-3.5 pb-4" onSubmit={(e) => e.preventDefault()}>
           {/* Stacks on phone; pairs from `tab` via FormRow — no mobile class changes. */}
           <FormRow>
             <Field label="Overs" required>

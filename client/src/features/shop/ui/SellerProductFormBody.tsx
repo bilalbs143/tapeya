@@ -118,7 +118,7 @@ export function SellerProductFormBody() {
   } = form;
 
   return (
-    <Form id="seller-product-form" density="compact" onSubmit={(ev) => void onSubmit(ev)} className="px-4 pt-4 pb-4">
+    <Form id="seller-product-form" density="compact" onSubmit={(ev) => void onSubmit(ev)} className="px-4 pt-3.5 pb-4">
       {!canEdit ? (
         <p className="text-muted text-2xs leading-relaxed">
           Catalog is read-only while your account is {storeStatusLabel ?? 'not approved'}.

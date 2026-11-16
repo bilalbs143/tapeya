@@ -85,7 +85,7 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
         ) : null}
 
         {valid && isError ? (
-          <div className="px-4 pt-3.5">
+          <div className="px-4 py-8">
             <ErrorState title="Couldn't Load This Post" onRetry={() => void refetch()} />
           </div>
         ) : null}

@@ -11,7 +11,7 @@ export default function StatsPage() {
 
   return (
     <PageDock header={<ScreenBar title="Stats" subtitle="Your Batting and Bowling" onBack={() => navigate(-1)} />}>
-      <div className="px-4 pt-3.5 pb-6">
+      <div className="px-4 pt-4 pb-6">
         <ProfileStats />
       </div>
     </PageDock>

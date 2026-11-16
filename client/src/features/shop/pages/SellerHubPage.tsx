@@ -52,7 +52,7 @@ export default function SellerHubPage() {
           </div>
         </div>
       ) : needsApply ? (
-        <div className="flex min-h-full flex-col px-4">
+        <div className="flex min-h-full flex-col px-4 py-8">
           <EmptyState
             size="lg"
             title="Sell on Tapeya"

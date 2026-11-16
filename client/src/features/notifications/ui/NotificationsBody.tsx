@@ -116,7 +116,7 @@ export function NotificationsBody({ flow }: NotificationsBodyProps) {
         <>
           {groups.map((group) => (
             <section key={group.label}>
-              <h2 className="font-mono text-muted px-4 pt-3 pb-1.5 text-4xs font-bold tracking-eyebrow uppercase">
+              <h2 className="font-mono text-muted px-4 pt-3.5 pb-1.5 text-4xs font-bold tracking-eyebrow uppercase">
                 {group.label}
               </h2>
               <ul className="border-border-subtle divide-border-subtle divide-y border-y">

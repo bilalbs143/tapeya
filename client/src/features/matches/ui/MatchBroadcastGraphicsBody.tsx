@@ -84,7 +84,7 @@ export function MatchBroadcastGraphicsBody({ flow }: MatchBroadcastGraphicsBodyP
   }
 
   return (
-    <div className="px-4 pt-3 pb-4">
+    <div className="px-4 pt-3.5 pb-4">
       <SectionLabel>Theme</SectionLabel>
       <div className="mb-4 flex flex-wrap gap-2">
         {themes.map((theme) => {

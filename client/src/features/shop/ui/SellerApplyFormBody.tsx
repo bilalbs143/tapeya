@@ -55,7 +55,7 @@ export function SellerApplyFormBody({ flow }: SellerApplyFormProps) {
   } = flow;
 
   return (
-    <Form id="seller-apply" density="compact" onSubmit={(e) => void onSubmit(e)} className="px-4 pt-4 pb-4">
+    <Form id="seller-apply" density="compact" onSubmit={(e) => void onSubmit(e)} className="px-4 pt-3.5 pb-4">
       <p className="text-muted text-2xs leading-relaxed">{SELLER_APPLY_INTRO}</p>
 
       <FormSection title="Store Profile">

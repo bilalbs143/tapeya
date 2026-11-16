@@ -92,7 +92,7 @@ export function SellerOrderDetailBody() {
   } = flow;
 
   return (
-    <Form id="seller-order-form" density="compact" onSubmit={(ev) => void onSave(ev)} className="px-4 pt-4 pb-4">
+    <Form id="seller-order-form" density="compact" onSubmit={(ev) => void onSave(ev)} className="px-4 pt-3.5 pb-4">
       {!canEdit && storeStatusLabel ? (
         <p className="text-muted text-2xs leading-relaxed">
           Updates are disabled while your account is {storeStatusLabel}.

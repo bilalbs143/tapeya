@@ -49,13 +49,15 @@ export default function EditProfilePage() {
   return (
     <DockScreen title="Edit Profile" onBack={() => navigate(profileRoutes.you())}>
       {isLoading ? (
-        <div className="flex flex-col gap-4 px-4 py-6" aria-busy="true" aria-label="Loading Profile Editor">
+        <div className="flex flex-col gap-4 pb-6" aria-busy="true" aria-label="Loading Profile Editor">
           <Skeleton className="aspect-[3/1] w-full rounded-none" />
-          <div className="-mt-10 flex justify-center">
+          <div className="-mt-10 flex justify-center px-4">
             <Skeleton className="border-surface h-20 w-20 rounded-full border-4" />
           </div>
-          <FormFieldsSkeleton rows={5} />
-          <Skeleton className="h-12 w-full rounded-field" />
+          <div className="flex flex-col gap-4 px-4 pt-4">
+            <FormFieldsSkeleton rows={5} />
+            <Skeleton className="h-12 w-full rounded-field" />
+          </div>
         </div>
       ) : (
         <div className="px-4 py-8">

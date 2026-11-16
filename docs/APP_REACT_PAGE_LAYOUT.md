@@ -10,20 +10,22 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 
 ## 1. Non-negotiable rules
 
-1. **Shell owns chrome; pages own content.** `AppShell` does **not** add page gutters. Every page must apply the canonical gutters below.
-2. **Pick the right page shell** (see §2):
+1. **Shell owns chrome; pages own content.** `AppShell` / `DockScreen` / `PageDock` add **zero** body padding. The scroll pane is flush under ScreenBar — every page applies the canonical gutters on its first content child.
+2. **Consistent top gap under ScreenBar.** First non-media content uses `pt-3.5` (compact forms / dense hubs) or `pt-4` (lists, roomier hubs, multi-section edit after media). Do **not** invent `pt-3`, `pt-2`, or dock-level padding.
+3. **Full-bleed media exception.** When the first child under ScreenBar is edge-to-edge media (cover, product gallery, player, stream card), that media has **no** top padding. Field / copy blocks below return to `px-4` + `pt-3.5`|`pt-4`.
+4. **Pick the right page shell** (see §2):
    - **Docked** (most subpages): `DockScreen` or `PageDock` — fixed-height frame; middle pane scrolls.
    - **Document** (home feed only): grow with content; shell column scrolls.
    - **Immersive / auth:** bare shell or `AuthShell` — no `PageDock`.
-3. **Prefer `DockScreen`** when the header is a plain `ScreenBar`. Use raw `PageDock` for custom headers (profile, hero, wizard progress) or when the page already owns `ScreenBar` props.
-4. **One horizontal gutter for body content: `px-4`.** Do not mix `px-3`, `px-3.5`, `px-[15px]`, or `px-[18px]` in page bodies. (`px-3.5` is reserved for ScreenBar phone chrome and the desk rail.)
-5. **Use `ScreenBar` for subpages.** Do not hand-roll back + title + border. Exception: first-class types that explicitly omit it (hero detail, feed home, profile shelf, immersive, auth).
-6. **Use `StickyActionBar` for commit CTAs** — pass as `DockScreen` / `PageDock` `footer`. Sibling of the scroll body — never nested inside a `px-*` form. Never pass `-mx-*`.
-7. **Safe area is not a page concern** when BottomNav (or shell chrome) already owns the bottom inset. StickyActionBar has **no** safe-area pad on normal shell pages (`edge` only when BottomNav is hidden). Immersive surfaces own their own insets.
-8. **Empty / Error / Loading live under the header**, inside the dock body — never replace the whole shell. Keep one `PageDock` for the route; switch states as children.
-9. **No double chrome.** One title row only (ScreenBar **or** step header — not both). One footer dock only.
-10. **Tokens only.** No new hex, arbitrary `px-[Npx]` gutters, or one-off `pb-safe` utilities outside the patterns in this doc.
-11. **Full-height ancestors.** If you wrap `PageDock` (e.g. in `Tabs`), the wrapper must be `h-full min-h-0` so the dock can resolve height. Prefer `PageDock` as the outermost page root when possible.
+5. **Prefer `DockScreen`** when the header is a plain `ScreenBar`. Use raw `PageDock` for custom headers (profile, hero, wizard progress) or when the page already owns `ScreenBar` props.
+6. **One horizontal gutter for body content: `px-4`.** Do not mix `px-3`, `px-3.5`, `px-[15px]`, or `px-[18px]` in page bodies. (`px-3.5` is reserved for ScreenBar phone chrome and the desk rail.)
+7. **Use `ScreenBar` for subpages.** Do not hand-roll back + title + border. Exception: first-class types that explicitly omit it (hero detail, feed home, profile shelf, immersive, auth).
+8. **Use `StickyActionBar` for commit CTAs** — pass as `DockScreen` / `PageDock` `footer`. Sibling of the scroll body — never nested inside a `px-*` form. Never pass `-mx-*`.
+9. **Safe area is not a page concern** when BottomNav (or shell chrome) already owns the bottom inset. StickyActionBar has **no** safe-area pad on normal shell pages (`edge` only when BottomNav is hidden). Immersive surfaces own their own insets.
+10. **Empty / Error / Loading live under the header**, inside the dock body — never replace the whole shell. Keep one `PageDock` for the route; switch states as children. Empty/error wrappers use `px-4 py-8`.
+11. **No double chrome.** One title row only (ScreenBar **or** step header — not both). One footer dock only.
+12. **Tokens only.** No new hex, arbitrary `px-[Npx]` gutters, or one-off `pb-safe` utilities outside the patterns in this doc.
+13. **Full-height ancestors.** If you wrap `PageDock` (e.g. in `Tabs`), the wrapper must be `h-full min-h-0` so the dock can resolve height. Prefer `PageDock` as the outermost page root when possible.
 
 ---
 
@@ -96,8 +98,10 @@ Use **only** these roles. If you need a new step, update this table first.
 ```
 ┌─ ScreenBar (PageDock header — pinned) ─────────┐
 │  px-3.5 py-2  ·  tab: px-4 pt-5 pb-4           │
-├─ data-page-scroll (flex-1 overflow-y-auto) ────┤
-│  Body: px-4 + pt-3.5|pt-4                      │
+├─ data-page-scroll (flex-1 · NO pad) ───────────┤
+│  Default: px-4 + pt-3.5|pt-4 on first content  │
+│  Media-first: flush image/player, then px-4 +  │
+│             pt-3.5|pt-4 on the next block      │
 │  gaps: 3.5 (compact) · 5 (hub) · 6 (default)   │
 │  pb-4 if footer follows · else pb-6|pb-8       │
 ├─ StickyActionBar (PageDock footer — pinned) ───┤
@@ -105,6 +109,8 @@ Use **only** these roles. If you need a new step, update this table first.
 └────────────────────────────────────────────────┘
          ↑ above BottomNav; KeyboardInsetPad fills `--keyboard-inset`
 ```
+
+**Do not** add body padding on `DockScreen` / `PageDock` — that double-pads pages that already own `pt-*` and breaks flush media.
 
 ---
 
@@ -402,6 +408,7 @@ Do **not** double-pad: `ErrorState` already includes internal padding — the ou
 
 - [ ] Page type declared (A–J)
 - [ ] Root: `DockScreen` / `PageDock` (or Type H document / Type I `h-full` / Type J AuthShell)
+- [ ] Dock body pad is **0** — content owns `px-4` + `pt-3.5`|`pt-4` (or flush media first)
 - [ ] Body gutter `px-4` only (no ad-hoc horizontal pad)
 - [ ] Header: ScreenBar **or** documented exception (F/G/H/I/J)
 - [ ] StickyActionBar via `footer` + `min-h-12` CTAs if committing

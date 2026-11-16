@@ -26,7 +26,7 @@ export default function OrdersPage() {
           <ErrorState title="Couldn't Load Orders" onRetry={() => void refetch()} />
         </div>
       ) : !ready ? (
-        <div className="flex min-h-full flex-col px-4">
+        <div className="flex min-h-full flex-col px-4 py-8">
           <EmptyState
             size="lg"
             title="No Orders Yet"
