@@ -7,7 +7,7 @@ import {
   resetReelAttachPriorityForTests,
   scheduleNeighborReelAttach,
   whenActiveReelAttachIdle,
-} from './reelAttachPriority';
+} from './playback';
 
 describe('reelAttachPriority', () => {
   beforeEach(() => {

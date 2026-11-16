@@ -5,10 +5,8 @@ import { SpeakerIcon } from '@/shared/ui/icons';
 import { Scrubber } from '@/shared/ui/Scrubber';
 import { Spinner } from '@/shared/ui/Spinner';
 
-import { setReelVideoMuted } from '../lib/inlineVideo';
-import { attachReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from '../lib/reelPlaybackGate';
-import { isReelsAudioUnlocked, relockReelsAudio, unlockReelsAudio } from '../lib/reelsAudioSession';
-import { useReelHls } from '../lib/useReelHls';
+import { registerReelVideo, useReelAttach, useReelPlay } from '../lib/playback';
+import { unlockReelsAudio } from '../lib/reelsAudioSession';
 import type { Reel } from '../model/schemas';
 import { formatDurationMs } from '../model/schemas';
 import { ReelActions } from './ReelActions';
@@ -59,7 +57,6 @@ export function ReelSlide({
   className,
 }: ReelSlideProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const wasActiveRef = useRef(false);
   const [progress, setProgress] = useState(0);
   const [scrubbing, setScrubbing] = useState(false);
   const [scrubPreview, setScrubPreview] = useState('0:00');
@@ -77,14 +74,31 @@ export function ReelSlide({
   // Window is active + next only — farther slides stay poster/prefetch.
   const playerEnabled = Boolean(inPlayerWindow && (active || isNext));
   const role = active ? 'active' : 'next';
-  const { mode, failed, retry, readyToken, sourceUrl } = useReelHls(videoRef, reel.playback, {
+  const { mode, failed, retry, readyToken, sourceUrl } = useReelAttach(videoRef, reel.playback, {
     enabled: playerEnabled,
     role,
   });
   const canPlay = mode != null && !failed;
-  const preferMuted = active ? !isReelsAudioUnlocked() && mutedByPolicy : true;
   const needsStartHint = active && !failed && !videoReady && inPlayerWindow;
   const startHintKey = needsStartHint ? `${reel.id}:start` : '';
+
+  const { preferMuted, unmuteFromGesture: unmutePlay } = useReelPlay(videoRef, {
+    active,
+    canPlay,
+    failed,
+    readyToken,
+    sourceUrl,
+    mutedByPolicy,
+    scrubbingRef,
+    onMutedByPolicy: () => setMutedByPolicy(true),
+    onPlaying: () => {
+      setVideoReady(true);
+      setStalled(false);
+    },
+    onWaiting: () => setStalled(true),
+    onTimeUpdate: setProgress,
+    onBecameInactive: () => setProgress(0),
+  });
 
   // Reset tip / reveal when reel or attach epoch changes (render-time — avoid setState-in-effect).
   if (reel.id !== mediaEpoch.reelId || readyToken !== mediaEpoch.readyToken) {
@@ -116,135 +130,10 @@ export function ReelSlide({
     return registerReelVideo(el);
   }, [inPlayerWindow, reel.id, canPlay]);
 
-  // Only the active reel may call play().
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el || !canPlay) return undefined;
-
-    let cancelled = false;
-    let removeMediaWait = () => {};
-
-    const waitForMedia = (then: () => void) => {
-      removeMediaWait();
-      if (el.readyState >= 2) {
-        then();
-        return;
-      }
-      const onReady = () => {
-        removeMediaWait();
-        then();
-      };
-      el.addEventListener('loadeddata', onReady);
-      el.addEventListener('canplay', onReady);
-      removeMediaWait = () => {
-        el.removeEventListener('loadeddata', onReady);
-        el.removeEventListener('canplay', onReady);
-      };
-    };
-
-    const runPlay = () => {
-      if (cancelled || !active || failed) return;
-      if (!el.paused && el.readyState >= 2) return;
-
-      setReelVideoMuted(el, preferMuted);
-      void el
-        .play()
-        .then(() => {
-          if (cancelled) return;
-          if (!el.muted) unlockReelsAudio();
-        })
-        .catch((err: unknown) => {
-          const name = err instanceof Error ? err.name : 'unknown';
-          // AbortError = superseded play(); not an autoplay policy block.
-          if (cancelled || name === 'AbortError' || el.muted) return;
-          setReelVideoMuted(el, true);
-          setMutedByPolicy(true);
-          void el.play().catch(() => undefined);
-        });
-    };
-
-    const tryPlay = () => {
-      if (cancelled || !active || failed) return;
-      claimReelPlayback(el);
-      attachReelHls(el);
-      waitForMedia(runPlay);
-    };
-
-    if (active) {
-      // Wait for useReelHls attach.ready (readyToken) — avoid play before media is attached.
-      if (readyToken > 0 || el.readyState >= 2) tryPlay();
-    } else if (wasActiveRef.current) {
-      releaseReelPlayback(el);
-      setProgress(0);
-    } else {
-      setReelVideoMuted(el, true);
-    }
-    wasActiveRef.current = active;
-
-    const onPlaying = () => {
-      setVideoReady(true);
-      setStalled(false);
-    };
-    const onWaiting = () => {
-      if (el.readyState < 3) setStalled(true);
-    };
-    const onTimeUpdate = () => {
-      if (scrubbingRef.current) return;
-      if (el.currentTime > 0) {
-        setVideoReady(true);
-        setStalled(false);
-      }
-      const dur = el.duration;
-      if (!Number.isFinite(dur) || dur <= 0) return;
-      setProgress((el.currentTime / dur) * 100);
-    };
-    const onVisibility = () => {
-      if (document.hidden) {
-        if (active) releaseReelPlayback(el);
-        return;
-      }
-      tryPlay();
-    };
-
-    if (active) {
-      el.addEventListener('playing', onPlaying);
-      el.addEventListener('waiting', onWaiting);
-      el.addEventListener('timeupdate', onTimeUpdate);
-    }
-    document.addEventListener('visibilitychange', onVisibility);
-
-    return () => {
-      cancelled = true;
-      removeMediaWait();
-      document.removeEventListener('visibilitychange', onVisibility);
-      el.removeEventListener('playing', onPlaying);
-      el.removeEventListener('waiting', onWaiting);
-      el.removeEventListener('timeupdate', onTimeUpdate);
-    };
-  }, [active, canPlay, readyToken, sourceUrl, reel.id, preferMuted, failed]);
-
-  // Release MSE/audio only when leaving active or unmounting — not on readyToken refresh.
-  useEffect(() => {
-    if (!active) return undefined;
-    const el = videoRef.current;
-    return () => {
-      if (el) releaseReelPlayback(el);
-    };
-  }, [active, reel.id]);
-
   function unmuteFromGesture() {
-    const el = videoRef.current;
     unlockReelsAudio();
     setMutedByPolicy(false);
-    if (!el) return;
-    claimReelPlayback(el);
-    attachReelHls(el);
-    setReelVideoMuted(el, false);
-    void el.play().catch(() => {
-      releaseReelPlayback(el);
-      relockReelsAudio();
-      setMutedByPolicy(true);
-    });
+    unmutePlay();
   }
 
   function seekToPercent(percent: number) {

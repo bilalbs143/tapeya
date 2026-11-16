@@ -1,12 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  attachReelHls,
-  bindReelHls,
-  claimReelPlayback,
-  registerReelVideo,
-  releaseReelPlayback,
-} from './reelPlaybackGate';
+import { attachReelHls, bindReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from './playback';
 
 function fakeVideo(paused = true): HTMLVideoElement {
   const video = {

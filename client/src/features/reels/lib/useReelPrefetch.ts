@@ -3,10 +3,11 @@
 import { useEffect, useRef } from 'react';
 
 import type { Reel } from '../model/schemas';
-import { whenActiveReelAttachIdle } from './reelAttachPriority';
+import { whenActiveReelAttachIdle } from './playback';
 
 const PROGRESSIVE_WARM_RANGE = 'bytes=0-786431';
-const PREFETCH_CONCURRENCY = 3;
+/** Keep low so upcoming warm does not contend with the active player on flaky CDN/QUIC. */
+const PREFETCH_CONCURRENCY = 2;
 
 type PrefetchReel = Pick<Reel, 'posterUrl' | 'videoUrl' | 'playback'>;
 
@@ -224,8 +225,20 @@ export function useReelPrefetch(reels: PrefetchReel[], activeIndex: number): voi
         }
       };
 
-      // Active HTTP warm can share cache with the active <video>; do it first.
-      if (activeReel) await warmOne(activeReel);
+      // Active: poster only for HLS. HLS prefetch uses cache:'no-store' and would
+      // race the player on the same master.m3u8 (QUIC resets). Progressive still warms bytes.
+      if (activeReel) {
+        if (cancelled || controller.signal.aborted) return;
+        try {
+          await warmPoster(activeReel.posterUrl, controller.signal);
+          const target = pickPrefetchTarget(activeReel);
+          if (target && !isHlsPrefetchUrl(target)) {
+            await warmReelMedia(activeReel, controller.signal);
+          }
+        } catch {
+          // Prefetch is best-effort.
+        }
+      }
       if (cancelled || controller.signal.aborted || upcoming.length === 0) return;
 
       // Hold upcoming byte-warm until the active video attach has data.
