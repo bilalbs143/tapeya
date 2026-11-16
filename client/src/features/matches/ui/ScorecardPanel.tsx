@@ -164,11 +164,7 @@ export function ScorecardPanel({ faces, loading, error, onRetry }: ScorecardPane
   }
 
   if (error) {
-    return (
-      <div className="py-8">
-        <ErrorState title="Couldn't Load the Scorecard" onRetry={onRetry} />
-      </div>
-    );
+    return <ErrorState className="my-8" title="Couldn't Load the Scorecard" onRetry={onRetry} />;
   }
 
   if (!faces.length) {

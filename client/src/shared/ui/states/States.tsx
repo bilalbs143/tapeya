@@ -8,7 +8,8 @@ import { Spinner } from '@/shared/ui/Spinner';
 const EMPTY_SIZES = {
   sm: 'px-4 py-8',
   md: 'px-6 py-12',
-  lg: 'min-h-[320px] justify-center px-6 py-14',
+  /** Page-level empty under ScreenBar — owns `px-4 py-8` (no outer wrapper). Use `inset` inside a parent that already has `px-4`. */
+  lg: 'min-h-[320px] justify-center px-4 py-8',
 } as const;
 
 type EmptyStateProps = {
@@ -17,6 +18,7 @@ type EmptyStateProps = {
   description?: string | undefined;
   action?: ReactNode;
   size?: keyof typeof EMPTY_SIZES | undefined;
+  /** Drop horizontal pad when nested in a `px-4` body stack (keeps `size="lg"` min-height / vertical air). */
   inset?: boolean | undefined;
   className?: string | undefined;
 };
@@ -54,6 +56,13 @@ type ErrorStateProps = {
   description?: string | undefined;
   onRetry?: (() => void) | undefined;
   onDismiss?: (() => void) | undefined;
+  /**
+   * Page-level error under ScreenBar — wraps the card in `px-4 py-8` (no outer wrapper).
+   * Inside a parent that already has `px-4`, omit `page` and use `className="my-8"` for vertical air.
+   */
+  page?: boolean | undefined;
+  /** Extra centered CTA(s) under retry/dismiss (e.g. Browse / Go Back). */
+  action?: ReactNode | undefined;
   className?: string | undefined;
 };
 
@@ -62,16 +71,18 @@ export function ErrorState({
   description,
   onRetry,
   onDismiss,
+  page = false,
+  action,
   className,
 }: ErrorStateProps) {
-  return (
-    <div className={cn('bg-surface flex flex-col items-center rounded-card px-6 py-8 text-center', className)}>
+  const card = (
+    <div className={cn('bg-surface flex flex-col items-center rounded-card px-6 py-8 text-center', !page && className)}>
       <span className="bg-danger/14 mb-3 grid h-10 w-10 place-items-center rounded-icon">
         <InfoIcon className="text-danger-soft h-4 w-4" strokeWidth={2.2} />
       </span>
       <p className="text-ink text-sm font-bold">{title}</p>
       {description ? <p className="text-muted mt-1 text-2xs leading-relaxed">{description}</p> : null}
-      {onRetry || onDismiss ? (
+      {onRetry || onDismiss || action ? (
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {onDismiss ? (
             <Button variant="secondary" size="sm" onClick={onDismiss}>
@@ -84,10 +95,17 @@ export function ErrorState({
               Try Again
             </Button>
           ) : null}
+          {action}
         </div>
       ) : null}
     </div>
   );
+
+  if (page) {
+    return <div className={cn('px-4 py-8', className)}>{card}</div>;
+  }
+
+  return card;
 }
 
 type SkeletonProps = {

@@ -24,22 +24,18 @@ export function LiveHubBody({ flow }: LiveHubBodyProps) {
           ))}
         </ul>
       ) : isError ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            className="min-h-80 justify-center"
-            title="Could Not Load Live Matches"
-            description="The stream list didn't come back. It's usually a moment's connection trouble."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Could Not Load Live Matches"
+          description="The stream list didn't come back. It's usually a moment's connection trouble."
+          onRetry={() => void refetch()}
+        />
       ) : streams.length === 0 ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="No Live Broadcasts Right Now"
-            description="When a match or a phone camera goes on air, it lands here first."
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="No Live Broadcasts Right Now"
+          description="When a match or a phone camera goes on air, it lands here first."
+        />
       ) : (
         <ul className="flex flex-col pb-6" aria-busy={isFetching || undefined}>
           {streams.map((s) => (

@@ -89,13 +89,13 @@ export function ScorecardHubBody({ flow }: ScorecardHubBodyProps) {
             ))}
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <ErrorState title="Could Not Load Scorecards" onRetry={() => void refetch()} />
-          </div>
+          <ErrorState className="my-8" title="Could Not Load Scorecards" onRetry={() => void refetch()} />
         ) : matches.length ? (
           matches.map((m) => <ScorecardMatchRow key={m.id} match={m} />)
         ) : (
           <EmptyState
+            size="lg"
+            inset
             title="No Matches Yet"
             description="Fixtures from open tournaments show up here as they are scheduled."
           />

@@ -15,11 +15,7 @@ export default function MatchTossPage() {
   const { isLoading, isError, refetch, data } = flow;
 
   if (!valid) {
-    return (
-      <div className="px-4 py-8">
-        <ErrorState title="Match Not Found" />
-      </div>
-    );
+    return <ErrorState page title="Match Not Found" />;
   }
 
   if (isLoading) {
@@ -50,11 +46,7 @@ export default function MatchTossPage() {
   }
 
   if (isError || !data || !data.home || !data.away) {
-    return (
-      <div className="px-4 py-8">
-        <ErrorState title="Couldn't Load This Match" onRetry={() => void refetch()} />
-      </div>
-    );
+    return <ErrorState page title="Couldn't Load This Match" onRetry={() => void refetch()} />;
   }
 
   return <MatchTossBody flow={flow} />;

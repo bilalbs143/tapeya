@@ -46,13 +46,11 @@ export function RankingStatsBody({ flow }: RankingStatsBodyProps) {
         ) : null}
 
         {isError && !isLoading ? (
-          <div className="mt-4">
-            <ErrorState title="Couldn't Load Rankings" onRetry={() => void refetch()} />
-          </div>
+          <ErrorState className="my-8" title="Couldn't Load Rankings" onRetry={() => void refetch()} />
         ) : null}
 
         {!isLoading && !isError && rows.length === 0 ? (
-          <EmptyState className="mt-6" title="No Rankings Yet" description="Open-tournament stats will show up here." />
+          <EmptyState size="lg" inset title="No Rankings Yet" description="Open-tournament stats will show up here." />
         ) : null}
 
         {!isLoading && !isError && rows.length > 0 ? (

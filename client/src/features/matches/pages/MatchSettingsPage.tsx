@@ -21,9 +21,7 @@ export default function MatchSettingsPage() {
   return (
     <DockScreen title="Match Settings" subtitle={ready ? barSubtitle : 'Saves As You Go'} onBack={goBack}>
       {!valid ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Match Not Found" />
-        </div>
+        <ErrorState page title="Match Not Found" />
       ) : fixtureQuery.isLoading ? (
         <div className="flex flex-col gap-4 px-4 py-6" aria-busy="true" aria-label="Loading Match Settings">
           <Skeleton className="h-2.5 w-16" />
@@ -41,9 +39,7 @@ export default function MatchSettingsPage() {
           <FormFieldsSkeleton rows={3} />
         </div>
       ) : fixtureQuery.isError || !fixture ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Match Settings" onRetry={() => void fixtureQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Match Settings" onRetry={() => void fixtureQuery.refetch()} />
       ) : (
         <MatchSettingsBody flow={flow} />
       )}

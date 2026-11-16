@@ -19,9 +19,7 @@ export default function ShopVendorPage() {
   return (
     <DockScreen title="Store" subtitle={ready ? vendor.storeName : 'Seller Catalogue'} onBack={goHome}>
       {!vendorSlug ? (
-        <div className="px-4 py-8">
-          <EmptyState title="Store Not Found" description="That link is incomplete." />
-        </div>
+        <EmptyState size="lg" title="Store Not Found" description="That link is incomplete." />
       ) : vendorLoading && !vendor ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-24 w-full rounded-card" />
@@ -33,18 +31,16 @@ export default function ShopVendorPage() {
           </div>
         </div>
       ) : vendorError || !vendor ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="That Store Doesn’t Exist"
-            description="It may have been closed or renamed. The Shop home page still has everything else."
-            action={
-              <Button variant="secondary" onClick={onMissingStoreAction}>
-                {vendorError ? 'Try Again' : 'Back to Shop'}
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="That Store Doesn’t Exist"
+          description="It may have been closed or renamed. The Shop home page still has everything else."
+          action={
+            <Button variant="secondary" onClick={onMissingStoreAction}>
+              {vendorError ? 'Try Again' : 'Back to Shop'}
+            </Button>
+          }
+        />
       ) : (
         <ShopVendorBody flow={flow} />
       )}

@@ -76,19 +76,18 @@ export function PostDetailBody({ flow }: PostDetailBodyProps) {
     >
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-scroll-to-top="">
         {!valid ? (
-          <div className="flex flex-col items-center gap-3 px-4 py-8">
-            <ErrorState title="Couldn't Load This Post" />
-            <Button variant="secondary" size="sm" onClick={goHome}>
-              Back to Home
-            </Button>
-          </div>
+          <EmptyState
+            size="lg"
+            title="Couldn't Load This Post"
+            action={
+              <Button variant="secondary" size="sm" onClick={goHome}>
+                Back to Home
+              </Button>
+            }
+          />
         ) : null}
 
-        {valid && isError ? (
-          <div className="px-4 py-8">
-            <ErrorState title="Couldn't Load This Post" onRetry={() => void refetch()} />
-          </div>
-        ) : null}
+        {valid && isError ? <ErrorState page title="Couldn't Load This Post" onRetry={() => void refetch()} /> : null}
 
         {valid && isLoading ? (
           <div className="flex flex-col pt-3.5" aria-busy="true" aria-label="Loading Post">

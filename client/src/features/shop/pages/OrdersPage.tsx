@@ -22,22 +22,18 @@ export default function OrdersPage() {
           ))}
         </div>
       ) : isError ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Orders" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Orders" onRetry={() => void refetch()} />
       ) : !ready ? (
-        <div className="flex min-h-full flex-col px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="No Orders Yet"
-            description="Anything you buy on Tapeya shows up here, with tracking once the seller dispatches it."
-            action={
-              <Button asChild>
-                <Link to={shopPaths.home()}>Browse Shop</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="No Orders Yet"
+          description="Anything you buy on Tapeya shows up here, with tracking once the seller dispatches it."
+          action={
+            <Button asChild>
+              <Link to={shopPaths.home()}>Browse Shop</Link>
+            </Button>
+          }
+        />
       ) : (
         <OrdersPageBody flow={flow} />
       )}

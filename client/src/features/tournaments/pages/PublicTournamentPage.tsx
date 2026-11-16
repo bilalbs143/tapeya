@@ -4,7 +4,7 @@ import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { IconButton } from '@/shared/ui/IconButton';
 import { ShareIcon } from '@/shared/ui/icons';
-import { ErrorState, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, Skeleton } from '@/shared/ui/states';
 import { Tabs } from '@/shared/ui/Tabs';
 
 import { useGetTournamentQuery } from '../api/tournamentsApi';
@@ -29,14 +29,16 @@ export default function PublicTournamentPage() {
   return (
     <PageDock header={<ScreenBar title="Tournament" onBack={() => navigate(-1)} />}>
       {!validId ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
-          <div className="mt-4">
+        <EmptyState
+          size="lg"
+          title="Tournament Not Found"
+          description="That link doesn’t look right."
+          action={
             <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
               Go Back
             </Button>
-          </div>
-        </div>
+          }
+        />
       ) : isLoading ? (
         <>
           <Skeleton className="h-[196px] w-full rounded-none" />
@@ -47,13 +49,12 @@ export default function PublicTournamentPage() {
           </div>
         </>
       ) : (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Tournament Not Found"
-            description="It may have been removed, or you don’t have access."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Tournament Not Found"
+          description="It may have been removed, or you don’t have access."
+          onRetry={() => void refetch()}
+        />
       )}
     </PageDock>
   );

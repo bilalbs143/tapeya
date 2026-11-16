@@ -34,17 +34,16 @@ export default function InterestPage() {
   return (
     <DockScreen title="Interest" subtitle="Register Your Interest" onBack={() => navigate(-1)}>
       {!slug ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="Interest Form Not Found"
-            description="This campaign may have finished, or the link is out of date."
-            action={
-              <Button asChild variant="secondary">
-                <Link to={APP_PATHS.upcomingTournaments}>Browse Tournaments</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Interest Form Not Found"
+          description="This campaign may have finished, or the link is out of date."
+          action={
+            <Button asChild variant="secondary">
+              <Link to={APP_PATHS.upcomingTournaments}>Browse Tournaments</Link>
+            </Button>
+          }
+        />
       ) : isLoading ? (
         <div className="flex flex-col gap-4 px-4 pt-4" aria-busy="true" aria-label="Loading Interest Form">
           <Skeleton className="h-36 w-full rounded-panel" />
@@ -52,26 +51,24 @@ export default function InterestPage() {
           <FormFieldsSkeleton rows={4} />
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
+      ) : isNotFoundError(error) ? (
+        <EmptyState
+          size="lg"
+          title="Interest Form Not Found"
+          description="This campaign may have finished, or the link is out of date."
+          action={
+            <Button asChild variant="secondary">
+              <Link to={APP_PATHS.upcomingTournaments}>Browse Tournaments</Link>
+            </Button>
+          }
+        />
       ) : (
-        <div className="px-4 py-8">
-          {isNotFoundError(error) ? (
-            <EmptyState
-              title="Interest Form Not Found"
-              description="This campaign may have finished, or the link is out of date."
-              action={
-                <Button asChild variant="secondary">
-                  <Link to={APP_PATHS.upcomingTournaments}>Browse Tournaments</Link>
-                </Button>
-              }
-            />
-          ) : (
-            <ErrorState
-              title="Could Not Load This Interest Form"
-              description={getApiErrorMessage(error, 'Please try again.')}
-              onRetry={() => void refetch()}
-            />
-          )}
-        </div>
+        <ErrorState
+          page
+          title="Could Not Load This Interest Form"
+          description={getApiErrorMessage(error, 'Please try again.')}
+          onRetry={() => void refetch()}
+        />
       )}
     </DockScreen>
   );

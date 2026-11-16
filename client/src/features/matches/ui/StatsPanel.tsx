@@ -362,11 +362,7 @@ export function StatsPanel({ innings, match, loading, error, onRetry }: StatsPan
   }
 
   if (error) {
-    return (
-      <div className="py-8">
-        <ErrorState title="Couldn't Load Stats" onRetry={onRetry} />
-      </div>
-    );
+    return <ErrorState className="my-8" title="Couldn't Load Stats" onRetry={onRetry} />;
   }
 
   if (!innings.length) {

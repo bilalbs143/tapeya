@@ -15,9 +15,7 @@ export default function PublicProfilePage() {
   if (!parsed) {
     return (
       <PageDock>
-        <div className="px-4 py-8">
-          <ErrorState title="Profile Not Found" description="That link doesn’t look right." />
-        </div>
+        <ErrorState page title="Profile Not Found" description="That link doesn’t look right." />
       </PageDock>
     );
   }
@@ -33,9 +31,7 @@ export default function PublicProfilePage() {
   if (resolveFailed || userId == null) {
     return (
       <PageDock>
-        <div className="px-4 py-8">
-          <ErrorState title="Profile Not Found" description="No player matches that handle." />
-        </div>
+        <ErrorState page title="Profile Not Found" description="No player matches that handle." />
       </PageDock>
     );
   }

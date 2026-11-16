@@ -30,9 +30,7 @@ export default function SellerStorePage() {
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
       ) : isError || !store ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load Store" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn’t Load Store" onRetry={() => void refetch()} />
       ) : (
         <SellerStoreFormBody key={store.id} />
       )}

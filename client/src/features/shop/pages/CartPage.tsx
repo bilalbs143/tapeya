@@ -40,26 +40,23 @@ export default function CartPage() {
           </div>
         </div>
       ) : isError ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn't Load Your Cart"
-            description="Try again in a moment."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Couldn't Load Your Cart"
+          description="Try again in a moment."
+          onRetry={() => void refetch()}
+        />
       ) : !lines.length ? (
-        <div className="flex min-h-full flex-col px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="Your Cart Is Empty"
-            description="Nothing selected yet. The Special Offer rail on Shop Home is the quickest place to start."
-            action={
-              <Button asChild size="lg">
-                <Link to={shopPaths.home()}>Continue Shopping</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Your Cart Is Empty"
+          description="Nothing selected yet. The Special Offer rail on Shop Home is the quickest place to start."
+          action={
+            <Button asChild size="lg">
+              <Link to={shopPaths.home()}>Continue Shopping</Link>
+            </Button>
+          }
+        />
       ) : (
         <CartPageBody flow={flow} />
       )}

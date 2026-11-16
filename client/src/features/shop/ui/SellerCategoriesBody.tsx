@@ -66,10 +66,14 @@ export function SellerCategoriesBody({ flow }: SellerCategoriesBodyProps) {
           </ul>
         ) : null}
 
-        {isError && !isLoading ? <ErrorState title="Couldn’t Load Categories" onRetry={() => void refetch()} /> : null}
+        {isError && !isLoading ? (
+          <ErrorState className="my-8" title="Couldn’t Load Categories" onRetry={() => void refetch()} />
+        ) : null}
 
         {!isLoading && !isError && categories.length === 0 ? (
           <EmptyState
+            size="lg"
+            inset
             title="No Categories Yet"
             description="Categories are what buyers filter by on Shop."
             action={

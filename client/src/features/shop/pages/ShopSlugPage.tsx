@@ -13,7 +13,7 @@ export default function ShopSlugPage() {
   const { value, reserved, vendor, brand, resolving, goHome } = useShopSlug(slug);
 
   if (!value || reserved) {
-    return <ShopSlugBody mode="not-found" description="That shop link isn’t valid." onBack={goHome} />;
+    return <ShopSlugBody mode="not-found" emptySize="lg" description="That shop link isn’t valid." onBack={goHome} />;
   }
 
   if (vendor) {

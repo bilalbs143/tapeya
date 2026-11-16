@@ -84,9 +84,7 @@ export default function SquadEditorPage() {
   return (
     <DockScreen title="Squads" subtitle="Build Each Team’s XI" onBack={validId ? detailBack : listBack}>
       {!validId ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
-        </div>
+        <EmptyState size="lg" title="Tournament Not Found" description="That link doesn’t look right." />
       ) : tournamentQuery.isLoading || teamsQuery.isLoading ? (
         <div className="flex flex-col gap-3 px-4 py-6">
           <Skeleton className="h-10 w-full rounded-field" />
@@ -94,21 +92,18 @@ export default function SquadEditorPage() {
           <Skeleton className="h-40 w-full rounded-card" />
         </div>
       ) : tournamentQuery.isError || !tournamentQuery.data ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Tournament" onRetry={() => void tournamentQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Tournament" onRetry={() => void tournamentQuery.refetch()} />
       ) : !teams.length || !selectedTeam ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="No Team to Edit"
-            description="Attach a team to this tournament first — the squad belongs to the team, not the tournament."
-            action={
-              <Button asChild>
-                <Link to={tournamentRoutes.detail(tournamentId)}>Add Teams</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="No Team to Edit"
+          description="Attach a team to this tournament first — the squad belongs to the team, not the tournament."
+          action={
+            <Button asChild>
+              <Link to={tournamentRoutes.detail(tournamentId)}>Add Teams</Link>
+            </Button>
+          }
+        />
       ) : null}
     </DockScreen>
   );

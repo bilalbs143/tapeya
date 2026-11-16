@@ -42,19 +42,16 @@ export default function MatchCardPage() {
       }
     >
       {!validId ? (
-        <div className="px-4 py-8">
-          <EmptyState title="Match Not Found" description="This scorecard link is no longer valid." />
-        </div>
+        <EmptyState size="lg" title="Match Not Found" description="This scorecard link is no longer valid." />
       ) : fixtureQuery.isLoading ? (
         <MatchCardSkeleton />
       ) : fixtureQuery.isError || !fixture ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn't Load This Match"
-            description={getApiErrorMessage(fixtureQuery.error, 'Try again in a moment.')}
-            onRetry={() => void fixtureQuery.refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Couldn't Load This Match"
+          description={getApiErrorMessage(fixtureQuery.error, 'Try again in a moment.')}
+          onRetry={() => void fixtureQuery.refetch()}
+        />
       ) : (
         <MatchCardBody flow={flow} fixture={fixture} />
       )}

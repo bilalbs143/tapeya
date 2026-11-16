@@ -78,15 +78,20 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
           </>
         }
       >
-        <TabsContent value="reels" className="mt-0 p-4">
+        <TabsContent value="reels" className="mt-0">
           {reelsLoading ? (
-            <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
+            <div className="p-4">
+              <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
+            </div>
           ) : reelsError ? (
-            <ErrorState title="Couldn't Load Reels" onRetry={() => void refetchReels()} />
+            <ErrorState page title="Couldn't Load Reels" onRetry={() => void refetchReels()} />
           ) : reels.length ? (
-            <ReelGrid reels={reels} />
+            <div className="p-4">
+              <ReelGrid reels={reels} />
+            </div>
           ) : (
             <EmptyState
+              className="px-4 py-10"
               title="No Reels Yet"
               description="Your first one takes about a minute."
               action={<Button onClick={goCreateReel}>Upload a Reel</Button>}
@@ -102,9 +107,7 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
               ))}
             </div>
           ) : postsError ? (
-            <div className="px-4 py-8">
-              <ErrorState title="Couldn't Load Posts" onRetry={() => void refetchPosts()} />
-            </div>
+            <ErrorState page title="Couldn't Load Posts" onRetry={() => void refetchPosts()} />
           ) : posts.length ? (
             <div className="flex flex-col">
               {posts.map((post) => (
@@ -138,9 +141,7 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
               ))}
             </div>
           ) : savedError ? (
-            <div className="px-4 py-8">
-              <ErrorState title="Couldn't Load Saved" onRetry={() => void refetchSaved()} />
-            </div>
+            <ErrorState page title="Couldn't Load Saved" onRetry={() => void refetchSaved()} />
           ) : saved.length ? (
             <div className="flex flex-col">
               {saved.map((post) => (

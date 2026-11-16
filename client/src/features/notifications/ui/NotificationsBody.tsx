@@ -101,17 +101,13 @@ export function NotificationsBody({ flow }: NotificationsBodyProps) {
           ))}
         </div>
       ) : listQuery.isError && items.length === 0 ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Could Not Load Notifications" onRetry={() => void listQuery.refetch()} />
-        </div>
+        <ErrorState page title="Could Not Load Notifications" onRetry={() => void listQuery.refetch()} />
       ) : items.length === 0 ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            className="min-h-[360px] justify-center"
-            title="No Notifications Yet"
-            description="Likes, comments, follows, and order updates will show up here."
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="No Notifications Yet"
+          description="Likes, comments, follows, and order updates will show up here."
+        />
       ) : (
         <>
           {groups.map((group) => (

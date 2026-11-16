@@ -117,11 +117,7 @@ export function ScoringDesk({ matchId }: { matchId: number }) {
   }
 
   if (api.stateQuery.isError) {
-    return (
-      <div className="px-4 py-8">
-        <ErrorState title="Couldn't Load the Score" onRetry={() => void api.stateQuery.refetch()} />
-      </div>
-    );
+    return <ErrorState page title="Couldn't Load the Score" onRetry={() => void api.stateQuery.refetch()} />;
   }
 
   if (session.matchComplete || fixture.status === 'completed') {

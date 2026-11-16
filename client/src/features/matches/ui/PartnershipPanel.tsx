@@ -124,11 +124,7 @@ export function PartnershipPanel({ innings, loading, error, onRetry }: Partnersh
   }
 
   if (error) {
-    return (
-      <div className="py-8">
-        <ErrorState title="Couldn't Load Partnerships" onRetry={onRetry} />
-      </div>
-    );
+    return <ErrorState className="my-8" title="Couldn't Load Partnerships" onRetry={onRetry} />;
   }
 
   if (!innings.length) {

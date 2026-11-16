@@ -30,18 +30,14 @@ export default function TournamentDetailPage() {
   return (
     <DockScreen title="Tournament" subtitle={isLoading ? 'Loading Workspace' : undefined} onBack={goBack}>
       {tournamentId == null ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
-        </div>
+        <ErrorState page title="Tournament Not Found" description="That link doesn’t look right." />
       ) : isLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-3.5 pb-6">
           <Skeleton className="h-8 w-2/3" />
           <Skeleton className="h-24 w-full rounded-card" />
         </div>
       ) : (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Tournament" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Tournament" onRetry={() => void refetch()} />
       )}
     </DockScreen>
   );

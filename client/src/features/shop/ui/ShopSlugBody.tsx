@@ -28,18 +28,16 @@ export function ShopSlugBody({ mode, description, emptySize, onBack }: ShopSlugB
           </div>
         </div>
       ) : (
-        <div className="px-4 py-8">
-          <EmptyState
-            size={emptySize}
-            title="Page Not Found"
-            description={description ?? 'That shop link isn’t valid.'}
-            action={
-              <Button variant="secondary" onClick={onBack}>
-                Back to Shop
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size={emptySize ?? 'lg'}
+          title="Page Not Found"
+          description={description ?? 'That shop link isn’t valid.'}
+          action={
+            <Button variant="secondary" onClick={onBack}>
+              Back to Shop
+            </Button>
+          }
+        />
       )}
     </PageDock>
   );

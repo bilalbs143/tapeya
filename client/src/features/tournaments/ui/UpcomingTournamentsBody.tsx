@@ -59,13 +59,13 @@ export function UpcomingTournamentsBody({ flow }: UpcomingTournamentsBodyProps) 
             ))}
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-            <ErrorState title="Could Not Load Tournaments" onRetry={() => void refetch()} />
-          </div>
+          <ErrorState className="my-8" title="Could Not Load Tournaments" onRetry={() => void refetch()} />
         ) : upcoming.length ? (
           upcoming.map((t) => <UpcomingCard key={t.id} tournament={t} />)
         ) : (
           <EmptyState
+            size="lg"
+            inset
             title="No Upcoming Tournaments"
             description="Open tournaments with active schedules appear here."
           />

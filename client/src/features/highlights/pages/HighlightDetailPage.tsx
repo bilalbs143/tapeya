@@ -29,17 +29,16 @@ export default function HighlightDetailPage() {
   return (
     <DockScreen title="Highlight" subtitle="Match Clip" onBack={goList}>
       {!validId ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="Highlight Not Found"
-            description="The clip may have been removed since this link was shared."
-            action={
-              <Button asChild variant="secondary">
-                <Link to={highlightRoutes.list()}>Back to Highlights</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Highlight Not Found"
+          description="The clip may have been removed since this link was shared."
+          action={
+            <Button asChild variant="secondary">
+              <Link to={highlightRoutes.list()}>Back to Highlights</Link>
+            </Button>
+          }
+        />
       ) : isLoading ? (
         <>
           <Skeleton className="aspect-video w-full rounded-none" />
@@ -56,13 +55,12 @@ export default function HighlightDetailPage() {
           </div>
         </>
       ) : (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Highlight Not Found"
-            description="The clip may have been removed since this link was shared."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Highlight Not Found"
+          description="The clip may have been removed since this link was shared."
+          onRetry={() => void refetch()}
+        />
       )}
     </DockScreen>
   );

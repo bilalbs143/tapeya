@@ -57,8 +57,8 @@ export default function GoLiveOnAirPage() {
 
   if (!valid) {
     return (
-      <div className="bg-surface flex min-h-full flex-col px-4 py-8">
-        <ErrorState title="Broadcast Not Found" />
+      <div className="bg-surface flex min-h-full flex-col">
+        <ErrorState page title="Broadcast Not Found" />
       </div>
     );
   }
@@ -126,15 +126,18 @@ export default function GoLiveOnAirPage() {
     }
     const status = getHttpStatus(broadcastQuery.error);
     return (
-      <div className="bg-surface flex min-h-full flex-col gap-4 px-4 py-8">
+      <div className="bg-surface flex min-h-full flex-col">
         <ErrorState
+          page
           title={status === 403 ? 'Not Your Broadcast' : "Couldn't Load This Broadcast"}
           description={status === 403 ? 'This stream belongs to someone else.' : 'Check your connection and try again.'}
           onRetry={() => void broadcastQuery.refetch()}
+          action={
+            <Button asChild variant="secondary">
+              <Link to={liveRoutes.goLive()}>Back to Go Live</Link>
+            </Button>
+          }
         />
-        <Button asChild variant="secondary" className="mx-auto">
-          <Link to={liveRoutes.goLive()}>Back to Go Live</Link>
-        </Button>
         <GoLiveWebGate />
       </div>
     );

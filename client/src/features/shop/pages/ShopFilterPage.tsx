@@ -24,12 +24,11 @@ export default function ShopFilterPage() {
       }
     >
       {!kind ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="Unknown Collection"
-            description="That filter doesn't exist. Try Most Popular or Special Offer from Shop Home."
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Unknown Collection"
+          description="That filter doesn't exist. Try Most Popular or Special Offer from Shop Home."
+        />
       ) : (
         <ShopFilterBody flow={flow} />
       )}

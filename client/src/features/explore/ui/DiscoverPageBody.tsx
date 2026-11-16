@@ -58,31 +58,33 @@ export function DiscoverPageBody({ flow }: DiscoverPageBodyProps) {
       {isLoading ? <UserListSkeleton label={sectionLabel} /> : null}
 
       {isError ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title={searching ? "Couldn't Search Players" : "Couldn't Load Suggestions"}
-            description="Check your connection and try again."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title={searching ? "Couldn't Search Players" : "Couldn't Load Suggestions"}
+          description="Check your connection and try again."
+          onRetry={() => void refetch()}
+        />
       ) : null}
 
       {!isLoading && !isError && users.length === 0 ? (
-        <div className="px-4 py-8">
-          {searching ? (
-            <EmptyState title="No Players Found" description="Try another name or nickname — spelling can be picky." />
-          ) : (
-            <EmptyState
-              title="No Suggestions Right Now"
-              description="Follow people from Explore posts — they will show up here next time."
-              action={
-                <Button size="sm" onClick={goHome}>
-                  Back to Explore
-                </Button>
-              }
-            />
-          )}
-        </div>
+        searching ? (
+          <EmptyState
+            size="lg"
+            title="No Players Found"
+            description="Try another name or nickname — spelling can be picky."
+          />
+        ) : (
+          <EmptyState
+            size="lg"
+            title="No Suggestions Right Now"
+            description="Follow people from Explore posts — they will show up here next time."
+            action={
+              <Button size="sm" onClick={goHome}>
+                Back to Explore
+              </Button>
+            }
+          />
+        )
       ) : null}
 
       {!isLoading && !isError && users.length > 0 ? (

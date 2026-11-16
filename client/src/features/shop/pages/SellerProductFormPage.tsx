@@ -50,9 +50,7 @@ export default function SellerProductFormPage() {
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
       ) : editError ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load Product" onRetry={() => void productQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn’t Load Product" onRetry={() => void productQuery.refetch()} />
       ) : (
         <SellerProductFormBody key={validEdit ? productId : 'new'} />
       )}

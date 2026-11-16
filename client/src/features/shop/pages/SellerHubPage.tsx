@@ -52,31 +52,28 @@ export default function SellerHubPage() {
           </div>
         </div>
       ) : needsApply ? (
-        <div className="flex min-h-full flex-col px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="Sell on Tapeya"
-            description="Apply to open a store. Once approved you can list gear, fulfil orders, and track earnings here."
-            action={
-              <Button asChild size="lg">
-                <Link to={shopPaths.sellerApply()}>Become a Seller</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Sell on Tapeya"
+          description="Apply to open a store. Once approved you can list gear, fulfil orders, and track earnings here."
+          action={
+            <Button asChild size="lg">
+              <Link to={shopPaths.sellerApply()}>Become a Seller</Link>
+            </Button>
+          }
+        />
       ) : storeError || !store ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn't Load Seller Hub"
-            description="You may not have a store yet, or the connection dropped."
-            onRetry={() => void refetchStore()}
-          />
-          <div className="mt-4 flex justify-center">
+        <ErrorState
+          page
+          title="Couldn't Load Seller Hub"
+          description="You may not have a store yet, or the connection dropped."
+          onRetry={() => void refetchStore()}
+          action={
             <Button asChild variant="secondary">
               <Link to={shopPaths.sellerApply()}>Become a Seller</Link>
             </Button>
-          </div>
-        </div>
+          }
+        />
       ) : (
         <SellerHubBody flow={flow} store={store} />
       )}

@@ -16,9 +16,7 @@ export default function RankingStatsPage() {
   if (!valid) {
     return (
       <PageDock header={<ScreenBar title="Stats" subtitle="Full Ranking Table" onBack={goList} />}>
-        <div className="px-4 py-8">
-          <EmptyState title="Unknown Ranking" description="Pick a category from Top players." />
-        </div>
+        <EmptyState size="lg" title="Unknown Ranking" description="Pick a category from Top players." />
       </PageDock>
     );
   }

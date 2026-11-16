@@ -112,11 +112,14 @@ export function SellerOrdersBody({ flow }: SellerOrdersBodyProps) {
           </section>
         ) : null}
 
-        {isError && !isLoading ? <ErrorState title="Couldn’t Load Orders" onRetry={() => void refetch()} /> : null}
+        {isError && !isLoading ? (
+          <ErrorState className="my-8" title="Couldn’t Load Orders" onRetry={() => void refetch()} />
+        ) : null}
 
         {!isLoading && !isError && !current.length && !previous.length ? (
           <EmptyState
             size="lg"
+            inset
             title="No Orders Yet"
             description="Orders from your store will show up here the moment a buyer checks out."
             action={

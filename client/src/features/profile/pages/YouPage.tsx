@@ -21,13 +21,12 @@ export default function YouPage() {
   if (isError || !me) {
     return (
       <PageDock>
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn't Load Your Profile"
-            description="Check your connection and try again."
-            onRetry={() => void refetch()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Couldn't Load Your Profile"
+          description="Check your connection and try again."
+          onRetry={() => void refetch()}
+        />
       </PageDock>
     );
   }

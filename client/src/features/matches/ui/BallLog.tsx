@@ -182,11 +182,7 @@ export function BallLog({
   }
 
   if (error) {
-    return (
-      <div className="py-8">
-        <ErrorState title="Couldn't Load the Ball Log" onRetry={onRetry} />
-      </div>
-    );
+    return <ErrorState className="my-8" title="Couldn't Load the Ball Log" onRetry={onRetry} />;
   }
 
   if (!innings.length) {

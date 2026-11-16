@@ -24,17 +24,16 @@ export default function WatchPage() {
   return (
     <DockScreen title="Live" subtitle={valid ? 'Watch' : undefined} onBack={goLiveList}>
       {!valid ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="Stream Not Found"
-            description="It may have ended and been taken down."
-            action={
-              <Button asChild variant="secondary">
-                <Link to={liveRoutes.list()}>Back to Live</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Stream Not Found"
+          description="It may have ended and been taken down."
+          action={
+            <Button asChild variant="secondary">
+              <Link to={liveRoutes.list()}>Back to Live</Link>
+            </Button>
+          }
+        />
       ) : streamQuery.isLoading ? (
         <>
           <Skeleton className="aspect-video w-full rounded-none" />
@@ -44,12 +43,16 @@ export default function WatchPage() {
           </div>
         </>
       ) : (
-        <div className="flex flex-col gap-4 px-4 py-8">
-          <ErrorState title="Couldn't Load This Stream" onRetry={() => void streamQuery.refetch()} />
-          <Button asChild variant="secondary" className="mx-auto">
-            <Link to={liveRoutes.list()}>Back to Live</Link>
-          </Button>
-        </div>
+        <ErrorState
+          page
+          title="Couldn't Load This Stream"
+          onRetry={() => void streamQuery.refetch()}
+          action={
+            <Button asChild variant="secondary">
+              <Link to={liveRoutes.list()}>Back to Live</Link>
+            </Button>
+          }
+        />
       )}
     </DockScreen>
   );

@@ -60,9 +60,7 @@ export default function EditProfilePage() {
           </div>
         </div>
       ) : (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Your Profile" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Your Profile" onRetry={() => void refetch()} />
       )}
     </DockScreen>
   );

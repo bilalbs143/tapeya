@@ -60,6 +60,7 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
 
         {isError ? (
           <ErrorState
+            className="my-8"
             title="Couldn't Load Matches"
             description="Check your connection and try again."
             onRetry={() => void refetch()}
@@ -68,6 +69,8 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
 
         {!isLoading && !isError && matches.length === 0 ? (
           <EmptyState
+            size="lg"
+            inset
             title="No Matches Yet"
             description="Start a tournament fixture or a quick match — both land here."
             action={

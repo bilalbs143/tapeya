@@ -79,10 +79,14 @@ export function SellerProductsBody({ flow }: SellerProductsBodyProps) {
           </ul>
         ) : null}
 
-        {isError && !isLoading ? <ErrorState title="Couldn’t Load Products" onRetry={() => void refetch()} /> : null}
+        {isError && !isLoading ? (
+          <ErrorState className="my-8" title="Couldn’t Load Products" onRetry={() => void refetch()} />
+        ) : null}
 
         {!isLoading && !isError && products.length === 0 ? (
           <EmptyState
+            size="lg"
+            inset
             title="No Products Yet"
             description="A product needs a name, price, photo and stock — about two minutes."
             action={

@@ -32,27 +32,23 @@ export default function CheckoutPage() {
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
       ) : isError ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Checkout" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Checkout" onRetry={() => void refetch()} />
       ) : !lines.length ? (
-        <div className="flex min-h-full flex-col px-4">
-          <EmptyState
-            size="lg"
-            title="There's Nothing to Check Out"
-            description="Your cart emptied — add something and come back."
-            action={
-              <>
-                <Button asChild variant="secondary">
-                  <Link to={shopPaths.cart()}>View Cart</Link>
-                </Button>
-                <Button asChild>
-                  <Link to={shopPaths.home()}>Continue Shopping</Link>
-                </Button>
-              </>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="There's Nothing to Check Out"
+          description="Your cart emptied — add something and come back."
+          action={
+            <>
+              <Button asChild variant="secondary">
+                <Link to={shopPaths.cart()}>View Cart</Link>
+              </Button>
+              <Button asChild>
+                <Link to={shopPaths.home()}>Continue Shopping</Link>
+              </Button>
+            </>
+          }
+        />
       ) : (
         <CheckoutFormBody flow={flow} />
       )}

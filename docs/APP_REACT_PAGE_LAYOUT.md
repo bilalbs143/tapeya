@@ -22,7 +22,7 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 7. **Use `ScreenBar` for subpages.** Do not hand-roll back + title + border. Exception: first-class types that explicitly omit it (hero detail, feed home, profile shelf, immersive, auth).
 8. **Use `StickyActionBar` for commit CTAs** — pass as `DockScreen` / `PageDock` `footer`. Sibling of the scroll body — never nested inside a `px-*` form. Never pass `-mx-*`.
 9. **Safe area is not a page concern** when BottomNav (or shell chrome) already owns the bottom inset. StickyActionBar has **no** safe-area pad on normal shell pages (`edge` only when BottomNav is hidden). Immersive surfaces own their own insets.
-10. **Empty / Error / Loading live under the header**, inside the dock body — never replace the whole shell. Keep one `PageDock` for the route; switch states as children. Empty/error wrappers use `px-4 py-8`.
+10. **Empty / Error / Loading live under the header**, inside the dock body — never replace the whole shell. Keep one `PageDock` for the route; switch states as children. Page empty/error: `<EmptyState size="lg" />` / `<ErrorState page />` (primitives own gutters — no outer `px-4 py-8`).
 11. **No double chrome.** One title row only (ScreenBar **or** step header — not both). One footer dock only.
 12. **Tokens only.** No new hex, arbitrary `px-[Npx]` gutters, or one-off `pb-safe` utilities outside the patterns in this doc.
 13. **Full-height ancestors.** If you wrap `PageDock` (e.g. in `Tabs`), the wrapper must be `h-full min-h-0` so the dock can resolve height. Prefer `PageDock` as the outermost page root when possible.
@@ -31,11 +31,11 @@ Related: [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md) · [APP_REACT_FO
 
 ## 2. Shell modes (where the page lives)
 
-| Mode | Route examples | What the page gets |
-|---|---|---|
-| **Normal** | Shop, tournaments, matches list/setup, profile, go-live form, support, CMS | TopBar / SideNav, `tab:max-w-[800px]`, optional desk rail, BottomNav (phone) |
-| **Bare** | Reels, match score/toss, live watch / on-air | Full viewport; phone may overlay BottomNav; **no** max-width column; page owns height + safe areas |
-| **Auth** | Login, Register, OTP | Outside `AppShell` — use `AuthShell` only |
+| Mode       | Route examples                                                             | What the page gets                                                                                 |
+| ---------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Normal** | Shop, tournaments, matches list/setup, profile, go-live form, support, CMS | TopBar / SideNav, `tab:max-w-[800px]`, optional desk rail, BottomNav (phone)                       |
+| **Bare**   | Reels, match score/toss, live watch / on-air                               | Full viewport; phone may overlay BottomNav; **no** max-width column; page owns height + safe areas |
+| **Auth**   | Login, Register, OTP                                                       | Outside `AppShell` — use `AuthShell` only                                                          |
 
 **Hide BottomNav** (normal or bare) when:
 
@@ -47,23 +47,23 @@ Hub `/live`, form `/live/go-live`, `/highlights` list, and entertainment show pa
 
 ### Page scroll contracts (normal shell)
 
-| Contract | Primitive | Who scrolls | Use for |
-|---|---|---|---|
-| **Dock-scroll** | `DockScreen` / `PageDock` (`body="scroll"`, default) | Middle pane (`data-page-scroll`) | Forms, lists, details, gates |
-| **Dock-fill** | `PageDock body="fill"` | Children layout (`flex-1`); often no page scroll | Upload stages, success faces that pin a footer |
-| **Document** | No `PageDock` | `ShellScrollport` | **Home feed only** |
-| **Immersive** | Bare `AppShell` | Feature-owned | Reels, on-air, scoring pad |
+| Contract        | Primitive                                            | Who scrolls                                      | Use for                                        |
+| --------------- | ---------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| **Dock-scroll** | `DockScreen` / `PageDock` (`body="scroll"`, default) | Middle pane (`data-page-scroll`)                 | Forms, lists, details, gates                   |
+| **Dock-fill**   | `PageDock body="fill"`                               | Children layout (`flex-1`); often no page scroll | Upload stages, success faces that pin a footer |
+| **Document**    | No `PageDock`                                        | `ShellScrollport`                                | **Home feed only**                             |
+| **Immersive**   | Bare `AppShell`                                      | Feature-owned                                    | Reels, on-air, scoring pad                     |
 
 `PageDock` registers with the shell (`pageDockStore`) so `AppShell` uses a fixed-height frame (`overflow-hidden` on the shell column). Route changes reset shell + `[data-scroll-to-top]` panes via `scrollShellToTop`.
 
 ### Breakpoints (code, not folklore)
 
-| Token | Width | Shell effect |
-|---|---|---|
-| `sm` | ~640 | Auth card only |
-| `tab` | 900 | SideNav + DesktopTopBar; ScreenBar becomes static large title; overlay sheet → dialog |
-| `desk` | 1200 | Right rail `384px` |
-| `wide` | 1440 | Rail `424px` |
+| Token  | Width | Shell effect                                                                          |
+| ------ | ----- | ------------------------------------------------------------------------------------- |
+| `sm`   | ~640  | Auth card only                                                                        |
+| `tab`  | 900   | SideNav + DesktopTopBar; ScreenBar becomes static large title; overlay sheet → dialog |
+| `desk` | 1200  | Right rail `384px`                                                                    |
+| `wide` | 1440  | Rail `424px`                                                                          |
 
 ---
 
@@ -71,27 +71,28 @@ Hub `/live`, form `/live/go-live`, `/highlights` list, and entertainment show pa
 
 Use **only** these roles. If you need a new step, update this table first.
 
-| Role | Classes | Notes |
-|---|---|---|
-| **Page body gutter** | `px-4` | All list/form/detail bodies |
-| **ScreenBar phone** | `px-3.5 py-2` | Built into `ScreenBar` — do not duplicate |
-| **ScreenBar desk** | `tab:px-4 tab:pt-5 tab:pb-4` | Built into `ScreenBar` |
-| **Body top under ScreenBar** | `pt-3.5` | Compact forms / dense hubs |
-| **Body top (roomier)** | `pt-4` | Lists, multi-section forms |
-| **Body bottom (scroll end, no footer)** | `pb-6` or `pb-8` | Prefer `pb-6` hubs; `pb-8` long lists |
-| **Body bottom (before StickyActionBar)** | `pb-4` | Leaves air above the footer border |
-| **Section stack (hub)** | `gap-5` | Cards / bands stacked on hubs |
-| **Section stack (dense hub)** | `gap-3.5` | Live hub–style |
-| **Form density compact** | `gap-3.5` | ScreenBar + StickyActionBar screens |
-| **Form density default** | `gap-6` | Multi-section edit (e.g. Edit Profile) |
-| **Form section / row** | `gap-3` | Inside `FormSection` / `FormRow` |
-| **StickyActionBar** | `px-4 pt-3 pb-3` | Primitive owns this |
-| **Primary sticky CTA** | `min-h-12 w-full` | Full-width primary |
-| **Dual sticky CTAs** | `flex gap-2` children | Discard + Save, Back + Next |
-| **Empty / error wrapper** | `px-4 py-8` | Around `EmptyState` / `ErrorState` |
-| **Skeleton block** | `px-4 pt-4` or `px-4 py-6` | Under ScreenBar |
-| **Desk rail** | `px-3.5 py-4 gap-3.5` | Shell aside — pages do not set this |
-| **Main max width** | `tab:max-w-[800px]` | Shell — pages do not set this |
+| Role                                     | Classes                      | Notes                                                                 |
+| ---------------------------------------- | ---------------------------- | --------------------------------------------------------------------- |
+| **Page body gutter**                     | `px-4`                       | All list/form/detail bodies                                           |
+| **ScreenBar phone**                      | `px-3.5 py-2`                | Built into `ScreenBar` — do not duplicate                             |
+| **ScreenBar desk**                       | `tab:px-4 tab:pt-5 tab:pb-4` | Built into `ScreenBar`                                                |
+| **Body top under ScreenBar**             | `pt-3.5`                     | Compact forms / dense hubs                                            |
+| **Body top (roomier)**                   | `pt-4`                       | Lists, multi-section forms                                            |
+| **Body bottom (scroll end, no footer)**  | `pb-6` or `pb-8`             | Prefer `pb-6` hubs; `pb-8` long lists                                 |
+| **Body bottom (before StickyActionBar)** | `pb-4`                       | Leaves air above the footer border                                    |
+| **Section stack (hub)**                  | `gap-5`                      | Cards / bands stacked on hubs                                         |
+| **Section stack (dense hub)**            | `gap-3.5`                    | Live hub–style                                                        |
+| **Form density compact**                 | `gap-3.5`                    | ScreenBar + StickyActionBar screens                                   |
+| **Form density default**                 | `gap-6`                      | Multi-section edit (e.g. Edit Profile)                                |
+| **Form section / row**                   | `gap-3`                      | Inside `FormSection` / `FormRow`                                      |
+| **StickyActionBar**                      | `px-4 pt-3 pb-3`             | Primitive owns this                                                   |
+| **Primary sticky CTA**                   | `min-h-12 w-full`            | Full-width primary                                                    |
+| **Dual sticky CTAs**                     | `flex gap-2` children        | Discard + Save, Back + Next                                           |
+| **Empty (page)**                         | `<EmptyState size="lg" />`   | Primitive owns `px-4 py-8` + min-h; use `inset` inside a `px-4` stack |
+| **Error (page)**                         | `<ErrorState page />`        | Primitive owns `px-4 py-8`; in-stack use `className="my-8"`           |
+| **Skeleton block**                       | `px-4 pt-4` or `px-4 py-6`   | Under ScreenBar                                                       |
+| **Desk rail**                            | `px-3.5 py-4 gap-3.5`        | Shell aside — pages do not set this                                   |
+| **Main max width**                       | `tab:max-w-[800px]`          | Shell — pages do not set this                                         |
 
 ### Vertical rhythm (mental model)
 
@@ -148,9 +149,7 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
   ```tsx
   <DockScreen title="…" onBack={…}>
-    <div className="px-4 py-8">
-      <ErrorState title="…" onRetry={…} />
-    </div>
+    <ErrorState page title="…" onRetry={…} />
   </DockScreen>
   ```
 
@@ -199,7 +198,7 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 - Prefer `<ScreenBar>` / `DockScreen` over hand-rolled headers. Keep create tiles / filter chips in the **page body** under the bar (not `below=`), same as Score Card / Matches.
 - FAB / primary create: ScreenBar `action` **or** first body row — not a second floating header.
-- Empty: inside the body stack, `EmptyState` with `size="lg"` when the list is the whole page.
+- Empty: inside the body stack, `EmptyState` with `size="lg" inset` when the list is the whole page (parent already has `px-4`).
 - No StickyActionBar unless the hub itself commits (rare).
 
 **Anti-pattern:** Copying ScreenBar’s `px-3.5 py-2 tab:px-4 tab:pt-5` into a custom `<header>`.
@@ -212,10 +211,10 @@ Every new or ported screen **must** declare its type in the PR/description and f
 
 **Pick exactly one header model:**
 
-| Model | Use when |
-|---|---|
-| **ScreenBar only** | Steps are short; subtitle shows “Step 2 of 3”; progress via `below=` |
-| **Step chrome only** | Wizard owns progress UI; page does **not** also mount ScreenBar |
+| Model                | Use when                                                             |
+| -------------------- | -------------------------------------------------------------------- |
+| **ScreenBar only**   | Steps are short; subtitle shows “Step 2 of 3”; progress via `below=` |
+| **Step chrome only** | Wizard owns progress UI; page does **not** also mount ScreenBar      |
 
 ```tsx
 <PageDock
@@ -295,7 +294,7 @@ Keep success / loading inside the **same** `PageDock` (switch children / footer)
 - Sticky tabs: `px-4` (match body gutter).
 - Post cards: full-bleed horizontal (edge borders), not inset cards unless design system says so.
 - Optional `useShellRail` for desk rail content.
-- Empty states: under the tab strip, `px-4 py-8` or full EmptyState.
+- Empty states: under the tab strip, `<EmptyState size="lg" />` (or `inset` if already in a `px-4` stack).
 
 ---
 
@@ -337,21 +336,25 @@ Name is historical — on docked pages it is a **pinned footer**, not CSS `posit
 
 **Native keyboard:** `Keyboard.resize: 'none'` keeps the WebView box fixed; AppShell is `fixed inset-0` + `KeyboardInsetPad`. Same pad component in `BaseDialog`. `Keyboard.setScroll` disabled. Android: `adjustNothing` + `SystemBars.insetsHandling: 'disable'`. No `resizeOnFullScreen`.
 
-| Do | Don’t |
-|---|---|
-| Pass as `DockScreen` / `PageDock` `footer` | Nest inside `Form` or any `px-*` wrapper |
-| Let the bar own `px-4` | Pass `className="px-…"` or `-mx-4` |
-| `min-h-12` primary buttons | Random heights per screen |
+| Do                                         | Don’t                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------- |
+| Pass as `DockScreen` / `PageDock` `footer` | Nest inside `Form` or any `px-*` wrapper                            |
+| Let the bar own `px-4`                     | Pass `className="px-…"` or `-mx-4`                                  |
+| `min-h-12` primary buttons                 | Random heights per screen                                           |
 | Rely on BottomNav for home-indicator inset | Add `pb-[max(…,env(safe-area-inset-bottom))]` on normal shell pages |
-| Use `edge` only when BottomNav is hidden | Use for “View more” mid-page links |
+| Use `edge` only when BottomNav is hidden   | Use for “View more” mid-page links                                  |
 
 **Dual actions:**
 
 ```tsx
 <StickyActionBar>
   <div className="flex gap-2">
-    <Button variant="secondary" className="min-h-12 flex-1">Discard</Button>
-    <Button type="submit" form="…" className="min-h-12 flex-1">Save Changes</Button>
+    <Button variant="secondary" className="min-h-12 flex-1">
+      Discard
+    </Button>
+    <Button type="submit" form="…" className="min-h-12 flex-1">
+      Save Changes
+    </Button>
   </div>
 </StickyActionBar>
 ```
@@ -364,13 +367,13 @@ Primitive: `shared/ui/StickyActionBar.tsx`.
 
 ## 6. ScreenBar contract
 
-| Prop | Behaviour |
-|---|---|
-| `title` / `subtitle` | Title Case chrome — see copy casing doc |
-| `onBack` | Required; button `tab:hidden` |
-| `action` | Top-aligned with title (icons, text button, Post) |
-| `below` | Tabs/filters stuck with title on phone; drops title bottom border |
-| `sticky` | **Default off.** Prefer `PageDock` header for pinned chrome. Opt in only for non-dock scroll columns (legacy / media). |
+| Prop                 | Behaviour                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `title` / `subtitle` | Title Case chrome — see copy casing doc                                                                                |
+| `onBack`             | Required; button `tab:hidden`                                                                                          |
+| `action`             | Top-aligned with title (icons, text button, Post)                                                                      |
+| `below`              | Tabs/filters stuck with title on phone; drops title bottom border                                                      |
+| `sticky`             | **Default off.** Prefer `PageDock` header for pinned chrome. Opt in only for non-dock scroll columns (legacy / media). |
 
 **Do not** re-implement ScreenBar padding/typography in feature code.
 
@@ -380,27 +383,46 @@ Tap title → `scrollShellToTop` (shell + page scroll panes).
 
 ## 7. Empty / Error / Loading
 
-| State | Placement | Classes |
-|---|---|---|
-| Loading (skeletons) | Under ScreenBar / in dock body | `px-4 pt-4` or `px-4 py-6` |
-| Loading (spinner block) | Under ScreenBar | Prefer local skeletons; `LoadingState` if used |
-| Error | Under ScreenBar | Wrapper `px-4 py-8` + `<ErrorState />` |
-| Empty (page) | Under ScreenBar / in hub body | `<EmptyState size="lg" />` inside `px-4` stack |
-| Empty (tab pane) | Inside pane | `px-4 py-10` or EmptyState sm/md |
+| State                   | Placement                           | Classes                                                                     |
+| ----------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
+| Loading (skeletons)     | Under ScreenBar / in dock body      | `px-4 pt-4` or `px-4 py-6`                                                  |
+| Loading (spinner block) | Under ScreenBar                     | Prefer local skeletons; `LoadingState` if used                              |
+| Error (page)            | Under ScreenBar (direct dock child) | `<ErrorState page />` — owns `px-4 py-8`                                    |
+| Error (in `px-4` stack) | Inside hub / form body              | `<ErrorState className="my-8" />` — no wrapper                              |
+| Empty (page)            | Under ScreenBar (direct dock child) | `<EmptyState size="lg" />` — owns `px-4 py-8` + min-h                       |
+| Empty (in `px-4` stack) | Inside hub body                     | `<EmptyState size="lg" inset />` — keeps min-h / py-8, drops horizontal pad |
+| Empty (tab pane)        | Inside pane                         | `className="px-4 py-10"` or EmptyState sm/md — leave alone                  |
 
-Do **not** double-pad: `ErrorState` already includes internal padding — the outer `px-4 py-8` is the page gutter/air, not a second copy of the state padding. Avoid wrapping ErrorState in yet another `px-6`.
+**Page empty:** `<EmptyState size="lg" … />` as a direct dock child — do **not** wrap in `<div className="px-4 py-8">`. Pass CTAs via the `action` prop (centered by the primitive). Inside a parent that already has `px-4`, use `inset` so horizontal pad is not doubled.
+
+**Page error:** `<ErrorState page … />` as a direct dock child — do **not** wrap in `<div className="px-4 py-8">`. Inside a `px-4` stack, omit `page` and use `className="my-8"` (replace old `<div className="py-8">` wrappers). Extra CTAs (Browse / Go Back) go in the `action` prop — do not use sibling `mt-4 flex justify-center` wrappers:
+
+```tsx
+<ErrorState
+  page
+  title="…"
+  onRetry={…}
+  action={
+    <Button asChild variant="secondary">
+      <Link to={…}>…</Link>
+    </Button>
+  }
+/>
+```
+
+Prefer EmptyState + `action` over ErrorState for not-found gates with no `onRetry`.
 
 ---
 
 ## 8. Safe area cheat sheet
 
-| Surface | Top | Bottom |
-|---|---|---|
-| Normal shell page | Shell TopBar | BottomNav owns inset — **StickyActionBar: none** |
-| Bare + overlay BottomNav (reels phone) | Page chrome | BottomNav overlay owns inset |
-| Bare + hide BottomNav (score, on-air) | Page chrome | Page dock must include `pb-[max(…,env(safe-area-inset-bottom))]` |
-| AuthShell | AuthShell header | AuthShell body |
-| Hero floating back | `top-[max(14px,env(safe-area-inset-top))]` | n/a |
+| Surface                                | Top                                        | Bottom                                                           |
+| -------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Normal shell page                      | Shell TopBar                               | BottomNav owns inset — **StickyActionBar: none**                 |
+| Bare + overlay BottomNav (reels phone) | Page chrome                                | BottomNav overlay owns inset                                     |
+| Bare + hide BottomNav (score, on-air)  | Page chrome                                | Page dock must include `pb-[max(…,env(safe-area-inset-bottom))]` |
+| AuthShell                              | AuthShell header                           | AuthShell body                                                   |
+| Hero floating back                     | `top-[max(14px,env(safe-area-inset-top))]` | n/a                                                              |
 
 ---
 
@@ -413,7 +435,7 @@ Do **not** double-pad: `ErrorState` already includes internal padding — the ou
 - [ ] Header: ScreenBar **or** documented exception (F/G/H/I/J)
 - [ ] StickyActionBar via `footer` + `min-h-12` CTAs if committing
 - [ ] No double header / double footer; one dock per route
-- [ ] Empty/Error under header with `px-4 py-8` wrapper when needed
+- [ ] Empty/Error under header: `<EmptyState size="lg" />` / `<ErrorState page />` (or `inset` / `className="my-8"` in `px-4` stacks); extra CTAs via `action`
 - [ ] Safe area only if immersive / hide-nav
 - [ ] Copy casing follows [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md)
 - [ ] Form density: `compact` with footer CTA, `default` for multi-section edit
@@ -439,15 +461,15 @@ Track and burn down — do not copy these patterns into new screens:
 
 ## 11. Quick map: type → shell → footer
 
-| Type | Shell | Header | Body | Footer |
-|---|---|---|---|---|
-| A Subpage form | Normal + dock | `DockScreen` / ScreenBar | `Form` compact `px-4 pt-3.5 pb-4` | StickyActionBar (`footer`) |
-| B Multi-section edit | Normal + dock | `DockScreen` | `Form` default + `px-4` sections | StickyActionBar dual |
-| C Hub / list | Normal + dock | `DockScreen` (± `below`) | `gap-5 px-4 pt-4 pb-6` | BottomNav only |
-| D Wizard | Normal + dock | ScreenBar **or** step chrome | compact `px-4` | StickyActionBar |
-| E Detail | Normal + dock | `DockScreen` | `px-4` ± media | Optional StickyActionBar |
-| F Hero detail | Normal + dock | Floating back | Hero + `px-4` | None |
-| G Profile shelf | Normal + dock | ProfileHeader | Tabs `px-4` | None |
-| H Feed / home | Normal **document** | Sticky tabs | Full-bleed cards | None |
-| I Immersive | Bare | Custom + safe-area | Full viewport | Own dock |
-| J Auth | None | AuthShell | Auth gutters | AuthShell `action` |
+| Type                 | Shell               | Header                       | Body                              | Footer                     |
+| -------------------- | ------------------- | ---------------------------- | --------------------------------- | -------------------------- |
+| A Subpage form       | Normal + dock       | `DockScreen` / ScreenBar     | `Form` compact `px-4 pt-3.5 pb-4` | StickyActionBar (`footer`) |
+| B Multi-section edit | Normal + dock       | `DockScreen`                 | `Form` default + `px-4` sections  | StickyActionBar dual       |
+| C Hub / list         | Normal + dock       | `DockScreen` (± `below`)     | `gap-5 px-4 pt-4 pb-6`            | BottomNav only             |
+| D Wizard             | Normal + dock       | ScreenBar **or** step chrome | compact `px-4`                    | StickyActionBar            |
+| E Detail             | Normal + dock       | `DockScreen`                 | `px-4` ± media                    | Optional StickyActionBar   |
+| F Hero detail        | Normal + dock       | Floating back                | Hero + `px-4`                     | None                       |
+| G Profile shelf      | Normal + dock       | ProfileHeader                | Tabs `px-4`                       | None                       |
+| H Feed / home        | Normal **document** | Sticky tabs                  | Full-bleed cards                  | None                       |
+| I Immersive          | Bare                | Custom + safe-area           | Full viewport                     | Own dock                   |
+| J Auth               | None                | AuthShell                    | Auth gutters                      | AuthShell `action`         |

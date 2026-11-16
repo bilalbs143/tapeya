@@ -65,10 +65,14 @@ export function SellerBrandsBody({ flow }: SellerBrandsBodyProps) {
           </ul>
         ) : null}
 
-        {isError && !isLoading ? <ErrorState title="Couldn’t Load Brands" onRetry={() => void refetch()} /> : null}
+        {isError && !isLoading ? (
+          <ErrorState className="my-8" title="Couldn’t Load Brands" onRetry={() => void refetch()} />
+        ) : null}
 
         {!isLoading && !isError && brands.length === 0 ? (
           <EmptyState
+            size="lg"
+            inset
             title="No Brands Yet"
             description="Brands group your products by maker. Buyers use brand chips on Shop to find them."
             action={

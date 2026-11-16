@@ -19,9 +19,7 @@ export default function EntertainmentDetailPage() {
   if (serialId == null) {
     return (
       <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
-        <div className="px-4 py-8">
-          <EmptyState title="Show Not Found" description="That link looks wrong." />
-        </div>
+        <EmptyState size="lg" title="Show Not Found" description="That link looks wrong." />
       </PageDock>
     );
   }
@@ -51,9 +49,7 @@ export default function EntertainmentDetailPage() {
   if (isError || !serial) {
     return (
       <PageDock header={<ScreenBar title="Show" subtitle="Episodes" onBack={goList} />}>
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load This Show" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn’t Load This Show" onRetry={() => void refetch()} />
       </PageDock>
     );
   }

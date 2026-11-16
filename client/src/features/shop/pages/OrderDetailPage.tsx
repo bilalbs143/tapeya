@@ -19,25 +19,24 @@ export default function OrderDetailPage() {
   return (
     <DockScreen title="Order Detail" subtitle={ready ? order.orderNumber : 'Status and Tracking'} onBack={goOrders}>
       {orderId == null ? (
-        <div className="px-4 py-8">
-          <EmptyState title="Order Not Found" />
-        </div>
+        <EmptyState size="lg" title="Order Not Found" />
       ) : isLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-28 w-full rounded-card" />
           <Skeleton className="h-40 w-full rounded-card" />
         </div>
       ) : isError || !order ? (
-        <div className="flex flex-col items-center gap-4 px-4 py-8">
-          <ErrorState
-            title="Order Not Found"
-            description="That order number doesn't belong to this account, or the link is wrong."
-            onRetry={() => void refetch()}
-          />
-          <Button asChild variant="secondary">
-            <Link to={shopPaths.orders()}>All Orders</Link>
-          </Button>
-        </div>
+        <ErrorState
+          page
+          title="Order Not Found"
+          description="That order number doesn't belong to this account, or the link is wrong."
+          onRetry={() => void refetch()}
+          action={
+            <Button asChild variant="secondary">
+              <Link to={shopPaths.orders()}>All Orders</Link>
+            </Button>
+          }
+        />
       ) : (
         <OrderDetailBody flow={flow} />
       )}

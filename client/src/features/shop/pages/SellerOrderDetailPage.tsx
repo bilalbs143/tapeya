@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { DockScreen } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
-import { ErrorState, FormFieldsSkeleton, ListRowSkeleton, Skeleton } from '@/shared/ui/states';
+import { EmptyState, ErrorState, FormFieldsSkeleton, ListRowSkeleton, Skeleton } from '@/shared/ui/states';
 
 import { useGetVendorOrderQuery, useGetVendorStoreQuery } from '../api/vendorShopApi';
 import { shopPaths } from '../lib/shopPaths';
@@ -36,12 +36,15 @@ export default function SellerOrderDetailPage() {
       footer={ready ? <SellerOrderDetailFooter /> : undefined}
     >
       {!valid ? (
-        <div className="flex flex-col items-center gap-4 px-4 py-8 text-center">
-          <p className="text-sm font-bold text-ink">Order Not Found</p>
-          <Button asChild variant="secondary">
-            <Link to={shopPaths.sellerOrders()}>All Orders</Link>
-          </Button>
-        </div>
+        <EmptyState
+          size="lg"
+          title="Order Not Found"
+          action={
+            <Button asChild variant="secondary">
+              <Link to={shopPaths.sellerOrders()}>All Orders</Link>
+            </Button>
+          }
+        />
       ) : orderQuery.isLoading ? (
         <div className="flex flex-col gap-4 px-4 pt-4" aria-busy="true" aria-label="Loading Order">
           <div className="border-border-subtle rounded-card border p-4">
@@ -66,9 +69,7 @@ export default function SellerOrderDetailPage() {
           <Skeleton className="h-12 w-full rounded-field" />
         </div>
       ) : orderQuery.isError || !order ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load This Order" onRetry={() => void orderQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn’t Load This Order" onRetry={() => void orderQuery.refetch()} />
       ) : (
         <SellerOrderDetailBody key={order.id} />
       )}

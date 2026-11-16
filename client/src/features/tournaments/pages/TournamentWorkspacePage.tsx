@@ -37,9 +37,7 @@ export default function TournamentWorkspacePage() {
       footer={ready ? <TournamentWorkspaceFooter flow={flow} tournament={tournament} /> : undefined}
     >
       {!validId ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Tournament Not Found" description="That link doesn’t look right." />
-        </div>
+        <ErrorState page title="Tournament Not Found" description="That link doesn’t look right." />
       ) : tournamentQuery.isLoading || teamsQuery.isLoading ? (
         <div className="flex flex-col gap-3 px-4 py-6">
           <Skeleton className="h-8 w-2/3" />
@@ -47,16 +45,15 @@ export default function TournamentWorkspacePage() {
           <Skeleton className="h-20 w-full rounded-card" />
         </div>
       ) : tournamentQuery.isError || !tournament ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn't Load Workspace"
-            description="Check your connection and try again."
-            onRetry={() => {
-              void tournamentQuery.refetch();
-              void teamsQuery.refetch();
-            }}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Couldn't Load Workspace"
+          description="Check your connection and try again."
+          onRetry={() => {
+            void tournamentQuery.refetch();
+            void teamsQuery.refetch();
+          }}
+        />
       ) : (
         <TournamentWorkspaceBody flow={flow} tournament={tournament} />
       )}

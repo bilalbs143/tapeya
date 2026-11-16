@@ -25,17 +25,11 @@ export default function MatchBroadcastGraphicsPage() {
       footer={showForm && !readOnly ? <MatchBroadcastGraphicsFooter flow={flow} /> : undefined}
     >
       {!valid ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Match Not Found" />
-        </div>
+        <ErrorState page title="Match Not Found" />
       ) : fixtureQuery.isError || (!fixtureQuery.isLoading && !fixture) ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load This Match" onRetry={() => void fixtureQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load This Match" onRetry={() => void fixtureQuery.refetch()} />
       ) : themesQuery.isError ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load Themes" onRetry={() => void themesQuery.refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load Themes" onRetry={() => void themesQuery.refetch()} />
       ) : (
         <MatchBroadcastGraphicsBody flow={flow} />
       )}

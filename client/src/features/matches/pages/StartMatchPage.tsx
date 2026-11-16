@@ -39,13 +39,12 @@ export default function StartMatchPage() {
           <Skeleton className="h-24 w-full rounded-field" />
         </div>
       ) : tournamentsError ? (
-        <div className="px-4 py-8">
-          <ErrorState
-            title="Couldn’t Load Tournaments"
-            description="Organizer tournaments come from the server."
-            onRetry={() => void refetchTournaments()}
-          />
-        </div>
+        <ErrorState
+          page
+          title="Couldn’t Load Tournaments"
+          description="Organizer tournaments come from the server."
+          onRetry={() => void refetchTournaments()}
+        />
       ) : emptyTournaments ? (
         <div className="flex flex-col gap-3 px-4 py-8 text-center">
           <h1 className="text-title-sm leading-normal font-extrabold tracking-[-.02em] text-ink">

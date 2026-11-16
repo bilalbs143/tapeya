@@ -86,7 +86,7 @@ export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
             ))}
           </ul>
         ) : isError ? (
-          <ErrorState title="Couldn’t Load Entertainment" onRetry={() => void refetch()} />
+          <ErrorState className="my-8" title="Couldn’t Load Entertainment" onRetry={() => void refetch()} />
         ) : results ? (
           results.length ? (
             <ul className="flex flex-col gap-1.5">
@@ -100,7 +100,12 @@ export function EntertainmentPageBody({ flow }: EntertainmentPageBodyProps) {
             <EmptyState title={entertainmentSearchEmptyTitle(debounced)} />
           )
         ) : !data.length ? (
-          <EmptyState title="Nothing Here Yet" description="Shows and episodes will appear here when published." />
+          <EmptyState
+            size="lg"
+            inset
+            title="Nothing Here Yet"
+            description="Shows and episodes will appear here when published."
+          />
         ) : (
           <SerialGrid serials={data} />
         )}

@@ -89,6 +89,7 @@ export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
           )
         ) : isError ? (
           <ErrorState
+            className="my-8"
             title="Could Not Load Highlights"
             description="The clip library didn't answer. Usually a moment's connection trouble."
             onRetry={() => void refetch()}
@@ -106,7 +107,12 @@ export function HighlightsPageBody({ flow }: HighlightsPageBodyProps) {
             <EmptyState title={highlightsSearchEmptyTitle(debounced)} />
           )
         ) : !clips.length ? (
-          <EmptyState title="No Highlights Yet" description="Highlights will appear here when available." />
+          <EmptyState
+            size="lg"
+            inset
+            title="No Highlights Yet"
+            description="Highlights will appear here when available."
+          />
         ) : (
           <HighlightGrid clips={clips} />
         )}

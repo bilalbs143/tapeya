@@ -15,11 +15,7 @@ export default function MatchScorePage() {
   const fixtureQuery = useGetScoringFixtureQuery(matchId, { skip: !valid });
 
   if (!valid) {
-    return (
-      <div className="px-4 py-8">
-        <ErrorState title="Match Not Found" />
-      </div>
-    );
+    return <ErrorState page title="Match Not Found" />;
   }
 
   if (fixtureQuery.isLoading) {
@@ -27,11 +23,7 @@ export default function MatchScorePage() {
   }
 
   if (fixtureQuery.isError || !fixtureQuery.data) {
-    return (
-      <div className="px-4 py-8">
-        <ErrorState title="Couldn't Load This Match" onRetry={() => void fixtureQuery.refetch()} />
-      </div>
-    );
+    return <ErrorState page title="Couldn't Load This Match" onRetry={() => void fixtureQuery.refetch()} />;
   }
 
   if (!tossRecorded(fixtureQuery.data)) {

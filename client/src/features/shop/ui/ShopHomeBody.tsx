@@ -114,6 +114,7 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
               </div>
             ) : searchError ? (
               <ErrorState
+                className="my-8"
                 title="Couldn't Load Products"
                 description="Try again in a moment."
                 onRetry={() => void refetchSearch()}
@@ -132,10 +133,16 @@ export function ShopHomeBody({ flow }: ShopHomeBodyProps) {
             ))}
           </div>
         ) : railsError ? (
-          <ErrorState title="Couldn't Load the Shop" description="Featured rails didn't answer." onRetry={retryRails} />
+          <ErrorState
+            className="my-8"
+            title="Couldn't Load the Shop"
+            description="Featured rails didn't answer."
+            onRetry={retryRails}
+          />
         ) : bare ? (
           <EmptyState
-            className="py-16"
+            size="lg"
+            inset
             title="No Products Yet"
             description="The catalogue is empty. Featured rails will appear here as sellers list their gear."
           />

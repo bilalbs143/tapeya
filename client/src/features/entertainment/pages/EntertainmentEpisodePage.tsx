@@ -35,17 +35,16 @@ export default function EntertainmentEpisodePage() {
   return (
     <DockScreen title="Episode" subtitle="Entertainment" onBack={episodeBack}>
       {!valid ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            title="Episode Not Found"
-            description="That link looks wrong."
-            action={
-              <Button asChild variant="secondary">
-                <Link to={entertainmentPaths.list()}>Back to Entertainment</Link>
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="Episode Not Found"
+          description="That link looks wrong."
+          action={
+            <Button asChild variant="secondary">
+              <Link to={entertainmentPaths.list()}>Back to Entertainment</Link>
+            </Button>
+          }
+        />
       ) : isLoading ? (
         <>
           <Skeleton className="aspect-video w-full rounded-none" />
@@ -62,9 +61,7 @@ export default function EntertainmentEpisodePage() {
           </div>
         </>
       ) : (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load This Episode" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn’t Load This Episode" onRetry={() => void refetch()} />
       )}
     </DockScreen>
   );

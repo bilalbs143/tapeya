@@ -97,6 +97,8 @@ export function ProfileStats({ userId: userIdProp, className }: ProfileStatsProp
   if (userId == null) {
     return (
       <EmptyState
+        size="lg"
+        inset
         className={className}
         title="Sign In to See Stats"
         description="Your career batting, bowling, and fielding stats live here."

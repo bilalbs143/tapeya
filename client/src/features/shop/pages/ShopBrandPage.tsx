@@ -29,9 +29,7 @@ export default function ShopBrandPage() {
       }
     >
       {!brandSlug ? (
-        <div className="px-4 py-8">
-          <EmptyState title="Brand Not Found" description="That link is incomplete." />
-        </div>
+        <EmptyState size="lg" title="Brand Not Found" description="That link is incomplete." />
       ) : brandsLoading ? (
         <div className="flex flex-col gap-3 px-4 pt-4">
           <Skeleton className="h-11 w-full rounded-panel" />
@@ -43,22 +41,18 @@ export default function ShopBrandPage() {
           </div>
         </div>
       ) : brandsError ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn’t Load Brands" onRetry={() => void refetchBrands()} />
-        </div>
+        <ErrorState page title="Couldn’t Load Brands" onRetry={() => void refetchBrands()} />
       ) : !brand ? (
-        <div className="px-4 py-8">
-          <EmptyState
-            size="lg"
-            title="That Brand Doesn’t Exist"
-            description="It may have been closed or renamed. The Shop home page still has everything else."
-            action={
-              <Button variant="secondary" onClick={goHome}>
-                Back to Shop
-              </Button>
-            }
-          />
-        </div>
+        <EmptyState
+          size="lg"
+          title="That Brand Doesn’t Exist"
+          description="It may have been closed or renamed. The Shop home page still has everything else."
+          action={
+            <Button variant="secondary" onClick={goHome}>
+              Back to Shop
+            </Button>
+          }
+        />
       ) : (
         <ShopBrandBody flow={flow} />
       )}

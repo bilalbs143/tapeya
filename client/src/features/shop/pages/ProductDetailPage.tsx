@@ -33,9 +33,7 @@ export default function ProductDetailPage() {
       footer={ready ? <ProductDetailFooter flow={flow} /> : undefined}
     >
       {!productSlug ? (
-        <div className="px-4 py-8">
-          <EmptyState title="This Product Is Gone" description="The link is wrong." />
-        </div>
+        <EmptyState size="lg" title="This Product Is Gone" description="The link is wrong." />
       ) : isLoading ? (
         <>
           <Skeleton className="aspect-shop-product w-full rounded-none" />
@@ -45,16 +43,17 @@ export default function ProductDetailPage() {
           </div>
         </>
       ) : isError || !product ? (
-        <div className="flex flex-col items-center gap-4 px-4 py-8">
-          <ErrorState
-            title="This Product Is Gone"
-            description="It was delisted or the link is wrong."
-            onRetry={() => void refetch()}
-          />
-          <Button asChild variant="secondary">
-            <Link to={shopPaths.home()}>Back to Shop</Link>
-          </Button>
-        </div>
+        <ErrorState
+          page
+          title="This Product Is Gone"
+          description="It was delisted or the link is wrong."
+          onRetry={() => void refetch()}
+          action={
+            <Button asChild variant="secondary">
+              <Link to={shopPaths.home()}>Back to Shop</Link>
+            </Button>
+          }
+        />
       ) : (
         <ProductDetailBody flow={flow} />
       )}

@@ -84,9 +84,7 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
       {isLoading ? <ProfileHeaderSkeleton /> : null}
 
       {isError || (!isLoading && !profile) ? (
-        <div className="px-4 py-8">
-          <ErrorState title="Couldn't Load This Profile" onRetry={() => void refetch()} />
-        </div>
+        <ErrorState page title="Couldn't Load This Profile" onRetry={() => void refetch()} />
       ) : null}
 
       {profile ? (
