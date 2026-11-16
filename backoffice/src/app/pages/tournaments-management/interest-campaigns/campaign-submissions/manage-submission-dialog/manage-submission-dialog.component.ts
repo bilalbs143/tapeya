@@ -192,7 +192,7 @@ export class ManageSubmissionDialogComponent implements OnInit, OnDestroy {
     fieldId: string
   ): string | null {
     if (fieldId === 'id_document') {
-      return submission.id_document_url?.trim() || submission.custom_answers?.id_document?.trim() || null;
+      return submission.id_document_url?.trim() || submission.custom_answers?.['id_document']?.trim() || null;
     }
     return submission.custom_answers?.[fieldId]?.trim() || null;
   }
