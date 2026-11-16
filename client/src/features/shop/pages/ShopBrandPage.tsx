@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { DockScreen } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState, ErrorState, SKELETON, Skeleton } from '@/shared/ui/states';
 
@@ -20,11 +20,13 @@ export default function ShopBrandPage() {
   const subtitle = ready || (brandSlug && (brandsLoading || brandsError)) ? 'Products in This Brand' : 'Gear and Kits';
 
   return (
-    <DockScreen
-      title={title}
-      subtitle={subtitle}
-      onBack={goHome}
-      below={ready ? <ShopBrandHeaderBelow flow={flow} /> : undefined}
+    <PageDock
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title={title} subtitle={subtitle} onBack={goHome} />
+          {ready ? <ShopBrandHeaderBelow flow={flow} /> : null}
+        </div>
+      }
     >
       {!brandSlug ? (
         <div className="px-4 py-8">
@@ -60,6 +62,6 @@ export default function ShopBrandPage() {
       ) : (
         <ShopBrandBody flow={flow} />
       )}
-    </DockScreen>
+    </PageDock>
   );
 }

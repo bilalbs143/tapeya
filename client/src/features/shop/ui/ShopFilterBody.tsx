@@ -9,7 +9,7 @@ type ShopFilterBodyProps = {
   flow: ShopFilterFlow;
 };
 
-/** Search for DockScreen `below` — page owns header. */
+/** Search — pinned under ScreenBar (same pattern as Shop home). */
 export function ShopFilterHeaderBelow({ flow }: ShopFilterBodyProps) {
   const { query, setQuery } = flow;
 
@@ -28,7 +28,7 @@ export function ShopFilterHeaderBelow({ flow }: ShopFilterBodyProps) {
   );
 }
 
-/** Product grid — page owns DockScreen. */
+/** Product grid — page owns PageDock. */
 export function ShopFilterBody({ flow }: ShopFilterBodyProps) {
   const { debounced, products, status, showFeatured, refetch } = flow;
 

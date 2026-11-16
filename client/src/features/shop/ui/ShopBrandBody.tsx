@@ -10,7 +10,7 @@ type ShopBrandBodyProps = {
   flow: ShopBrandFlow;
 };
 
-/** Search + category chips for DockScreen `below` — page owns header. */
+/** Search + category chips — pinned under ScreenBar (same pattern as Shop home). */
 export function ShopBrandHeaderBelow({ flow }: ShopBrandBodyProps) {
   const { query, setQuery, categoryId, setCategoryId, chipCategories } = flow;
 
@@ -30,7 +30,7 @@ export function ShopBrandHeaderBelow({ flow }: ShopBrandBodyProps) {
   );
 }
 
-/** Product grid — page owns DockScreen. */
+/** Product grid — page owns PageDock. */
 export function ShopBrandBody({ flow }: ShopBrandBodyProps) {
   const { brand, debounced, products, gridStatus, refetchProducts } = flow;
 

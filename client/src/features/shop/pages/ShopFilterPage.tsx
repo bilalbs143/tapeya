@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { DockScreen } from '@/shared/layout';
+import { PageDock, ScreenBar } from '@/shared/layout';
 import { EmptyState } from '@/shared/ui/states';
 
 import { ShopFilterBody, ShopFilterHeaderBelow } from '../ui/ShopFilterBody';
@@ -15,11 +15,13 @@ export default function ShopFilterPage() {
   const ready = Boolean(kind);
 
   return (
-    <DockScreen
-      title="Shop"
-      subtitle={ready ? (title ?? 'Gear and Kits') : 'Gear and Kits'}
-      onBack={goHome}
-      below={ready ? <ShopFilterHeaderBelow flow={flow} /> : undefined}
+    <PageDock
+      header={
+        <div className="bg-surface shrink-0">
+          <ScreenBar title="Shop" subtitle={ready ? (title ?? 'Gear and Kits') : 'Gear and Kits'} onBack={goHome} />
+          {ready ? <ShopFilterHeaderBelow flow={flow} /> : null}
+        </div>
+      }
     >
       {!kind ? (
         <EmptyState
@@ -30,6 +32,6 @@ export default function ShopFilterPage() {
       ) : (
         <ShopFilterBody flow={flow} />
       )}
-    </DockScreen>
+    </PageDock>
   );
 }
