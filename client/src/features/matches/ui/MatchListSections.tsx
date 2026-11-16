@@ -8,12 +8,12 @@ import { TossPendingCard } from './TossPendingCard';
 
 type MatchListSectionsProps = {
   matches: Match[];
-  onResume: (match: Match) => void;
+  onScore: (match: Match) => void;
   onSaveToss: (match: Match) => void;
   onOpen: (match: Match) => void;
 };
 
-export function MatchListSections({ matches, onResume, onSaveToss, onOpen }: MatchListSectionsProps) {
+export function MatchListSections({ matches, onScore, onSaveToss, onOpen }: MatchListSectionsProps) {
   return (
     <>
       {MATCH_SECTIONS.map((section) => {
@@ -25,7 +25,7 @@ export function MatchListSections({ matches, onResume, onSaveToss, onOpen }: Mat
             <SectionBody
               section={section.key}
               rows={rows}
-              onResume={onResume}
+              onScore={onScore}
               onSaveToss={onSaveToss}
               onOpen={onOpen}
             />
@@ -55,13 +55,13 @@ function SectionHeading({ id, section, label }: { id: string; section: MatchSect
 function SectionBody({
   section,
   rows,
-  onResume,
+  onScore,
   onSaveToss,
   onOpen,
 }: {
   section: MatchSection;
   rows: Match[];
-  onResume: (match: Match) => void;
+  onScore: (match: Match) => void;
   onSaveToss: (match: Match) => void;
   onOpen: (match: Match) => void;
 }) {
@@ -70,7 +70,7 @@ function SectionBody({
       <ul className="flex flex-col gap-2.5">
         {rows.map((m) => (
           <li key={m.id}>
-            <ScorerLiveCard match={m} onResume={() => onResume(m)} />
+            <ScorerLiveCard match={m} onResume={() => onScore(m)} />
           </li>
         ))}
       </ul>
@@ -91,16 +91,13 @@ function SectionBody({
 
   if (section === 'scheduled') {
     return (
-      <div className="border-border-subtle bg-surface overflow-hidden rounded-panel border">
-        {rows.map((m, i) => (
-          <ScheduledMatchRow
-            key={m.id}
-            match={m}
-            onOpen={() => onOpen(m)}
-            className={i < rows.length - 1 ? 'border-border-subtle border-b' : undefined}
-          />
+      <ul className="flex flex-col gap-2.5">
+        {rows.map((m) => (
+          <li key={m.id}>
+            <ScheduledMatchRow match={m} onScore={() => onScore(m)} />
+          </li>
         ))}
-      </div>
+      </ul>
     );
   }
 

@@ -153,6 +153,6 @@ export function toDomain(wire: QuickMatchWire): Match {
 export const MATCH_SECTIONS: { key: MatchSection; label: string }[] = [
   { key: 'live', label: 'Scoring now' },
   { key: 'toss', label: 'Starts soon · toss owed' },
-  { key: 'scheduled', label: 'Scheduled' },
+  { key: 'scheduled', label: 'Ready to score' },
   { key: 'done', label: 'Done' },
 ];

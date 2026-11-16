@@ -19,7 +19,8 @@ export function useMatchesList() {
   const subtitle = matchesListSubtitle(scorer);
   const matches = filterSectionedMatches(data?.items);
 
-  function onResume(match: Match) {
+  /** Live resume + scheduled start — same scoring desk. */
+  function onScore(match: Match) {
     navigate(matchRoutes.score(match.id));
   }
 
@@ -41,7 +42,7 @@ export function useMatchesList() {
     isLoading,
     isError,
     refetch,
-    onResume,
+    onScore,
     onSaveToss,
     onOpen,
     goHome,

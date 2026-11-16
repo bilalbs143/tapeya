@@ -17,7 +17,7 @@ type MatchesListBodyProps = {
 
 /** Create tiles + sectioned match list for the scorer hub. */
 export function MatchesListBody({ flow }: MatchesListBodyProps) {
-  const { subtitle, matches, isLoading, isError, refetch, onResume, onSaveToss, onOpen, goHome } = flow;
+  const { subtitle, matches, isLoading, isError, refetch, onScore, onSaveToss, onOpen, goHome } = flow;
 
   return (
     <PageDock header={<ScreenBar title="Matches" subtitle={subtitle} onBack={goHome} />}>
@@ -79,7 +79,7 @@ export function MatchesListBody({ flow }: MatchesListBodyProps) {
         ) : null}
 
         {!isLoading && !isError && matches.length > 0 ? (
-          <MatchListSections matches={matches} onResume={onResume} onSaveToss={onSaveToss} onOpen={onOpen} />
+          <MatchListSections matches={matches} onScore={onScore} onSaveToss={onSaveToss} onOpen={onOpen} />
         ) : null}
       </div>
     </PageDock>
