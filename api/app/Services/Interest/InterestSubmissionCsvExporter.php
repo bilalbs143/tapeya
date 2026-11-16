@@ -241,7 +241,8 @@ final class InterestSubmissionCsvExporter
         }
 
         // Mitigate CSV formula injection when opened in Excel.
-        if (preg_match('/^[=+\-@]/', $text) === 1) {
+        // Do not prefix phones (`+92…`) — the leading `'` shows up as a visible character.
+        if (preg_match('/^[=@\-]/', $text) === 1) {
             return "'".$text;
         }
 

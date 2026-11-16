@@ -372,8 +372,8 @@ class TournamentInterestFormFieldsTest extends TestCase
         $this->assertMatchesRegularExpression('/\n1,"Export Player"/', $csv);
         $this->assertStringContainsString('Export Player', $csv);
         $this->assertStringContainsString('export@example.com', $csv);
-        // Leading + is formula-escaped for Excel (`'+92…`).
-        $this->assertStringContainsString("'+923001112233", $csv);
+        $this->assertStringContainsString('+923001112233', $csv);
+        $this->assertStringNotContainsString("'+923001112233", $csv);
         $this->assertStringContainsString('Lahore', $csv);
         $this->assertStringContainsString('interest/id-documents/sample.pdf', $csv);
         $this->assertStringContainsString('VIP applicant', $csv);
