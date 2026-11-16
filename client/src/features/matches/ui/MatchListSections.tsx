@@ -22,13 +22,7 @@ export function MatchListSections({ matches, onScore, onSaveToss, onOpen }: Matc
         return (
           <section key={section.key} aria-labelledby={`matches-section-${section.key}`}>
             <SectionHeading id={`matches-section-${section.key}`} section={section.key} label={section.label} />
-            <SectionBody
-              section={section.key}
-              rows={rows}
-              onScore={onScore}
-              onSaveToss={onSaveToss}
-              onOpen={onOpen}
-            />
+            <SectionBody section={section.key} rows={rows} onScore={onScore} onSaveToss={onSaveToss} onOpen={onOpen} />
           </section>
         );
       })}
