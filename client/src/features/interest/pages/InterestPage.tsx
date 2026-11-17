@@ -82,9 +82,7 @@ function InterestScreen({ slug, payload }: { slug: string; payload: InterestShow
   if (mySubmission) {
     return (
       <DockScreen title="Interest" subtitle="Your Status" onBack={() => navigate(-1)} body="fill">
-        <InterestCampaignStage logoUrl={campaign.logoUrl} pageScroll>
-          <InterestStatusView campaign={campaign} submission={mySubmission} onDone={() => navigate(-1)} />
-        </InterestCampaignStage>
+        <InterestStatusView campaign={campaign} submission={mySubmission} />
       </DockScreen>
     );
   }

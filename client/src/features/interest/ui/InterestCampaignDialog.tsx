@@ -1,4 +1,3 @@
-import { dialogStore } from '@/shared/dialogs';
 import { DialogBody, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/dialogs/BaseDialog';
 import { cn } from '@/shared/lib/cn';
 import { FormFieldsSkeleton } from '@/shared/ui/states';
@@ -79,14 +78,7 @@ function InterestCampaignDialogBody({
           <DialogTitle className="sr-only">{title}</DialogTitle>
         </DialogHeader>
         <DialogBody className={cn(SCROLL_BODY, 'pt-0 pb-6')}>
-          <InterestCampaignWatermark logoUrl={payload.campaign.logoUrl} />
-          <div className="relative z-10">
-            <InterestStatusView
-              campaign={payload.campaign}
-              submission={payload.mySubmission}
-              onDone={() => dialogStore.close()}
-            />
-          </div>
+          <InterestStatusView campaign={payload.campaign} submission={payload.mySubmission} compact />
         </DialogBody>
       </>
     );

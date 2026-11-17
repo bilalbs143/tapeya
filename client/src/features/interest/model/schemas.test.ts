@@ -33,12 +33,12 @@ describe('interestFormActions', () => {
 describe('interestStatusCopy', () => {
   it('describes pending and confirmed clearly', () => {
     const pending = interestStatusCopy('pending');
-    expect(pending.title).toBe('Interest Submitted');
-    expect(pending.badge).toBe('Under Review');
+    expect(pending.title).toBe('Request Submitted');
+    expect(pending.description).toContain('We will update you soon.');
 
     const confirmed = interestStatusCopy('confirmed');
     expect(confirmed.title).toBe('Your Spot Is Confirmed');
-    expect(confirmed.badgeVariant).toBe('positive');
+    expect(confirmed.description).toContain('We will update you soon.');
   });
 });
 

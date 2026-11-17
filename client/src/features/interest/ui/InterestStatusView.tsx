@@ -1,6 +1,4 @@
 import { Avatar } from '@/shared/ui/Avatar';
-import { Badge } from '@/shared/ui/Badge';
-import { Button } from '@/shared/ui/Button';
 
 import { interestStatusCopy } from '../model/actions';
 import type { InterestCampaign, InterestSubmission } from '../model/schemas';
@@ -8,35 +6,38 @@ import type { InterestCampaign, InterestSubmission } from '../model/schemas';
 type InterestStatusViewProps = {
   campaign: InterestCampaign;
   submission: InterestSubmission;
-  onDone: () => void;
-  /** Dialog uses a quieter Done; page uses full-width sticky feel via parent. */
-  doneLabel?: string | undefined;
+  /** Dialog body is shorter — keep padding tighter. */
+  compact?: boolean | undefined;
 };
 
-/** Post-submit status — logo, title, status. No form fields. */
-export function InterestStatusView({ campaign, submission, onDone, doneLabel = 'Done' }: InterestStatusViewProps) {
+/** Post-submit status — title, support line, campaign name + full logo. */
+export function InterestStatusView({ campaign, submission, compact = false }: InterestStatusViewProps) {
   const copy = interestStatusCopy(submission.status);
 
   return (
-    <div className="flex flex-col items-center px-4 pt-10 pb-8 text-center" role="status">
-      {campaign.logoUrl ? (
-        <img src={campaign.logoUrl} alt="" className="h-24 w-24 object-contain" />
-      ) : (
-        <Avatar crest name={campaign.tournamentName} size="xl" className="h-24 w-24 text-sm font-extrabold" />
-      )}
+    <div
+      className={
+        compact
+          ? 'flex flex-col items-center px-4 py-8 text-center'
+          : 'flex min-h-full flex-col items-center justify-center gap-6 px-4 py-8 text-center'
+      }
+      role="status"
+    >
+      <div>
+        <h1 className="text-title leading-snug font-extrabold tracking-tight text-ink">{copy.title}</h1>
+        <p className="text-muted mx-auto mt-2.5 max-w-[33ch] text-xs leading-relaxed">{copy.description}</p>
+      </div>
 
-      <h1 className="mt-5 text-title-sm font-extrabold tracking-tight text-ink">{campaign.tournamentName}</h1>
-
-      <Badge variant={copy.badgeVariant} className="mt-3.5 h-6 px-2.5 text-2xs">
-        {copy.badge}
-      </Badge>
-
-      <p className="mt-4 text-body-sm font-extrabold tracking-tight text-ink">{copy.title}</p>
-      <p className="text-muted mt-1.5 max-w-xs text-2xs leading-relaxed">{copy.description}</p>
-
-      <Button type="button" variant="secondary" className="mt-8 w-full max-w-xs font-bold" onClick={onDone}>
-        {doneLabel}
-      </Button>
+      <div
+        className={compact ? 'mt-8 flex w-full flex-col items-center gap-3' : 'flex w-full flex-col items-center gap-3'}
+      >
+        <p className="text-body-sm font-extrabold tracking-tight text-ink">{campaign.tournamentName}</p>
+        {campaign.logoUrl ? (
+          <img src={campaign.logoUrl} alt="" className="h-24 w-24 object-contain" />
+        ) : (
+          <Avatar crest name={campaign.tournamentName} size="xl" className="h-24 w-24 text-sm font-extrabold" />
+        )}
+      </div>
     </div>
   );
 }

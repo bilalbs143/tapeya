@@ -1,5 +1,3 @@
-import type { BadgeVariant } from '@/shared/ui/Badge';
-
 import type { CampaignStatus, SubmissionStatus } from './schemas';
 
 export type InterestFormActions = {
@@ -25,8 +23,6 @@ export function interestFormActions(input: {
 }
 
 export type InterestStatusCopy = {
-  badge: string;
-  badgeVariant: BadgeVariant;
   title: string;
   description: string;
 };
@@ -35,17 +31,13 @@ export type InterestStatusCopy = {
 export function interestStatusCopy(status: SubmissionStatus): InterestStatusCopy {
   if (status === 'confirmed') {
     return {
-      badge: 'Confirmed',
-      badgeVariant: 'positive',
       title: 'Your Spot Is Confirmed',
-      description: 'Our team has accepted your interest. We will be in touch with next steps.',
+      description: 'Our team has accepted your interest. We will update you soon.',
     };
   }
 
   return {
-    badge: 'Under Review',
-    badgeVariant: 'warning',
-    title: 'Interest Submitted',
-    description: 'Your interest is submitted and under review. We will update you when there is news.',
+    title: 'Request Submitted',
+    description: 'Your request is submitted and under review. We will update you soon.',
   };
 }

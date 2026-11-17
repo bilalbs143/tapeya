@@ -189,7 +189,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
       }
 
       toast({
-        title: 'Interest submitted.',
+        title: 'Request submitted.',
         description: 'Our team will see your name shortly.',
         tone: 'success',
       });
