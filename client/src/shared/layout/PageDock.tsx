@@ -1,8 +1,13 @@
-import { type ReactNode, useLayoutEffect } from 'react';
+import { type ReactNode, useLayoutEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/cn';
+import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 
 import { retainPageDock } from './pageDockStore';
+import { isPullToRefreshPath } from './pullToRefresh';
+import { PullToRefreshIndicator } from './PullToRefreshIndicator';
+import { usePullToRefresh } from './usePullToRefresh';
 
 export const PAGE_SCROLL_ATTR = 'data-page-scroll';
 
@@ -33,6 +38,17 @@ type PageDockProps = {
  */
 export function PageDock({ children, header, footer, className, body = 'scroll', padKeyboard = true }: PageDockProps) {
   const fill = body === 'fill';
+  const { pathname } = useLocation();
+  const keyboardInset = useKeyboardInset();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const ptrEnabled = !fill && isPullToRefreshPath(pathname) && keyboardInset <= 0;
+  const { pull, refreshing } = usePullToRefresh({
+    scrollerRef,
+    contentRef,
+    enabled: ptrEnabled,
+  });
 
   // Layout effect so AppShell flips to fixed-frame / keyboard policy before paint.
   useLayoutEffect(() => retainPageDock({ padKeyboard }), [padKeyboard]);
@@ -41,13 +57,21 @@ export function PageDock({ children, header, footer, className, body = 'scroll',
     <div data-page-dock="" className={cn('bg-surface flex h-full min-h-0 flex-col overflow-hidden', className)}>
       {header}
       <div
+        ref={scrollerRef}
         {...(fill ? { 'data-page-stage': '' } : { 'data-page-scroll': '', 'data-scroll-to-top': '' })}
         className={cn(
-          'min-h-0 flex-1',
+          'relative min-h-0 flex-1',
           fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto overscroll-y-contain'
         )}
       >
-        {children}
+        {ptrEnabled ? <PullToRefreshIndicator pull={pull} refreshing={refreshing} /> : null}
+        {fill ? (
+          children
+        ) : (
+          <div ref={contentRef} className="will-change-transform">
+            {children}
+          </div>
+        )}
       </div>
       {footer}
     </div>

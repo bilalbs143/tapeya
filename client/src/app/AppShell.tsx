@@ -24,6 +24,7 @@ import {
   SideNav,
   SideRail,
   SideRailFooter,
+  useContentRefreshKey,
   usePageDockActive,
   useShellKeyboardPadEnabled,
   useShellRailValue,
@@ -64,6 +65,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   const keyboardInset = useKeyboardInset();
   const pageDockActive = usePageDockActive();
   const shellKeyboardPad = useShellKeyboardPadEnabled();
+  const contentRefreshKey = useContentRefreshKey();
 
   const sideUser = me
     ? {
@@ -104,7 +106,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           <div className="flex h-full min-h-0 flex-1">
             {isAuthenticated ? <SideNav user={sideUser} /> : null}
             <div className="relative min-w-0 flex-1">
-              <Outlet />
+              <Outlet key={contentRefreshKey} />
             </div>
           </div>
         ) : (
@@ -116,7 +118,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
               reelsPhoneDark && 'bg-page text-ink'
             )}
           >
-            <Outlet />
+            <Outlet key={contentRefreshKey} />
             {showBottomNav ? <BottomNav overlay /> : null}
           </div>
         )}
@@ -158,7 +160,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
                       fixedFrame ? 'h-full min-h-0 overflow-hidden' : 'min-h-full flex-1'
                     )}
                   >
-                    <Outlet />
+                    <Outlet key={contentRefreshKey} />
                   </div>
                 </main>
               </ShellScrollport>

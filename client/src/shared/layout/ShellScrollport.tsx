@@ -5,7 +5,10 @@ import { cn } from '@/shared/lib/cn';
 import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 
 import { ensureShellFocusedFieldVisible } from './ensureShellFocusedFieldVisible';
+import { isPullToRefreshPath } from './pullToRefresh';
+import { PullToRefreshIndicator } from './PullToRefreshIndicator';
 import { scrollShellToTop } from './shellScroll';
+import { usePullToRefresh } from './usePullToRefresh';
 
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
@@ -27,6 +30,16 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
   const routeKey = `${pathname}${search}`;
   const prevRouteKey = useRef(routeKey);
   const keyboardInset = useKeyboardInset();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Document scroll only — when `fill`, PageDock owns the scroller + PTR.
+  const ptrEnabled = !fill && isPullToRefreshPath(pathname) && keyboardInset <= 0;
+  const { pull, refreshing } = usePullToRefresh({
+    scrollerRef,
+    contentRef,
+    enabled: ptrEnabled,
+  });
 
   useLayoutEffect(() => {
     const pathChanged = prevRouteKey.current !== routeKey;
@@ -76,10 +89,16 @@ export function ShellScrollport({ children, className, fill = false }: ShellScro
   }, [keyboardInset, fill]);
 
   return (
-    <div data-shell-scrollport className={cn(className)}>
+    <div ref={scrollerRef} data-shell-scrollport className={cn('relative', className)}>
+      {ptrEnabled ? <PullToRefreshIndicator pull={pull} refreshing={refreshing} /> : null}
       {/* Flex stays on the inner wrapper — sticky ScreenBar breaks if the overflow
           scroller itself is `display: flex`. `fill` caps height for PageDock scroll. */}
-      <div className={cn('flex w-full flex-col', fill ? 'h-full min-h-0' : 'min-h-full')}>{children}</div>
+      <div
+        ref={contentRef}
+        className={cn('flex w-full flex-col will-change-transform', fill ? 'h-full min-h-0' : 'min-h-full')}
+      >
+        {children}
+      </div>
     </div>
   );
 }

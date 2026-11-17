@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { attachReelHls, bindReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from './playback';
+import { attachReelHls, bindReelHls, claimReelPlayback, registerReelVideo, releaseReelPlayback } from './ownerGate';
 
 function fakeVideo(paused = true): HTMLVideoElement {
   const video = {
@@ -32,7 +32,7 @@ function fakeHls(media: HTMLVideoElement | null) {
   };
 }
 
-describe('reelPlaybackGate', () => {
+describe('playback ownerGate', () => {
   const cleanups: Array<() => void> = [];
 
   afterEach(() => {

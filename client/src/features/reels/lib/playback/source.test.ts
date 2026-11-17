@@ -7,7 +7,8 @@ vi.mock('@/shared/platform/platform', () => ({
 
 import { getPlatform } from '@/shared/platform/platform';
 
-import { canPlayNativeHls, isHlsUrl, resolveReelPlaybackSource } from './playback';
+import { canPlayNativeHls } from './ios/canNative';
+import { isHlsUrl, resolveReelPlaybackSource } from './source';
 
 const mockedGetPlatform = vi.mocked(getPlatform);
 

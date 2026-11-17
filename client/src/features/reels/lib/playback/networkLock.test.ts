@@ -7,9 +7,9 @@ import {
   resetReelAttachPriorityForTests,
   scheduleNeighborReelAttach,
   whenActiveReelAttachIdle,
-} from './playback';
+} from './networkLock';
 
-describe('reelAttachPriority', () => {
+describe('playback networkLock', () => {
   beforeEach(() => {
     resetReelAttachPriorityForTests();
     vi.useFakeTimers();

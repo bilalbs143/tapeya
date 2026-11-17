@@ -56,6 +56,21 @@ Hub `/live`, form `/live/go-live`, `/highlights` list, and entertainment show pa
 
 `PageDock` registers with the shell (`pageDockStore`) so `AppShell` uses a fixed-height frame (`overflow-hidden` on the shell column). Route changes reset shell + `[data-scroll-to-top]` panes via `scrollShellToTop`.
 
+### Pull-to-refresh (shell-owned)
+
+Facebook-style touch pull at the top of the active scroller. **Do not** reimplement per feature.
+
+| Surface | Host | When |
+|---|---|---|
+| Document (home feed) | `ShellScrollport` | `fill={false}` |
+| Dock-scroll | `PageDock` middle pane | `body="scroll"` |
+| Dock-fill / immersive | — | **Off** (reels, scoring, live on-air) |
+
+- **Devices:** touch / coarse pointer only — no mouse-desktop drag.
+- **Action:** soft content refresh — invalidate RTK Query tags + remount shell `<Outlet>` (chrome stays; no `location.reload()`).
+- **Guards:** path via `isPullToRefreshPath`; skipped while the soft keyboard is open.
+- Indicator + resistance + `softRefreshContent` / `useContentRefreshKey` live in `shared/layout`.
+
 ### Breakpoints (code, not folklore)
 
 | Token  | Width | Shell effect                                                                          |
@@ -439,6 +454,7 @@ Prefer EmptyState + `action` over ErrorState for not-found gates with no `onRetr
 - [ ] Safe area only if immersive / hide-nav
 - [ ] Copy casing follows [APP_REACT_COPY_CASING.md](./APP_REACT_COPY_CASING.md)
 - [ ] Form density: `compact` with footer CTA, `default` for multi-section edit
+- [ ] No feature-local pull-to-refresh — shell / `PageDock` own it (immersive excluded)
 
 ---
 
