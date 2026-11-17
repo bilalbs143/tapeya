@@ -30,7 +30,6 @@ class TournamentInterestSubmissionResource extends JsonResource
             'id_document_url' => $this->idDocumentUrlForApi(),
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
-            'withdrawn_at' => $this->withdrawn_at?->toIso8601String(),
             'notes' => $this->notes,
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
             'campaign' => $this->whenLoaded(

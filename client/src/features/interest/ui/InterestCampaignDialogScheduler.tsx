@@ -41,7 +41,7 @@ export function InterestCampaignDialogScheduler() {
   });
   const campaign = dialogPayload?.campaign ?? null;
   const slug = campaign?.slug ?? null;
-  const hasActiveSubmission = campaign?.mySubmissionStatus != null && campaign.mySubmissionStatus !== 'withdrawn';
+  const hasActiveSubmission = campaign?.mySubmissionStatus != null;
   const sessionBlocked =
     userId != null &&
     slug != null &&

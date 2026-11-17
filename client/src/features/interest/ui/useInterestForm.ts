@@ -1,18 +1,18 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { getApiErrorMessage } from '@/shared/api/errors';
+import { getApiErrorMessage, isNetworkError } from '@/shared/api/errors';
 import { useUploadMediaMutation } from '@/shared/api/mediaApi';
 import { toast } from '@/shared/ui/toast';
 
-import { useSubmitInterestMutation, useWithdrawInterestMutation } from '../api/interestApi';
+import { useSubmitInterestMutation } from '../api/interestApi';
 import {
   clearCustomFieldError,
   type InterestFormFieldErrors,
   interestNeedsAvatar,
   validateInterestForm,
 } from '../lib/interestForm';
-import { interestActions } from '../model/actions';
+import { interestFormActions } from '../model/actions';
 import {
   existingCustomFileUrl,
   fieldEnabled,
@@ -22,6 +22,16 @@ import {
   seedFormValues,
   toSubmitWire,
 } from '../model/schemas';
+
+/** One automatic retry for flaky mobile connections — no backoff, no queues. */
+async function onceWithNetworkRetry<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (err) {
+    if (!isNetworkError(err)) throw err;
+    return await run();
+  }
+}
 
 function seedCustomFileMeta(
   campaign: InterestShowPayload['campaign'],
@@ -40,35 +50,31 @@ type UseInterestFormOptions = {
   onSubmitted?: (() => void) | undefined;
 };
 
-/** Form state, media picks, submit + withdraw for InterestPage / dialog. */
+/** Form state, media picks, and one-shot submit for InterestPage / dialog. */
 export function useInterestForm(slug: string, payload: InterestShowPayload, options: UseInterestFormOptions = {}) {
   const navigate = useNavigate();
   const { onSubmitted } = options;
   const { campaign, mySubmission, profileDefaults } = payload;
-
-  const activeSubmission = mySubmission && mySubmission.status !== 'withdrawn' ? mySubmission : null;
-  const submissionStatus = activeSubmission?.status ?? null;
+  const hasSubmission = mySubmission != null;
 
   const actions = useMemo(
-    () => interestActions({ campaignStatus: campaign.status, submissionStatus }),
-    [campaign.status, submissionStatus]
+    () => interestFormActions({ campaignStatus: campaign.status, hasSubmission }),
+    [campaign.status, hasSubmission]
   );
 
   const [values, setValues] = useState<InterestFormValues>(() =>
-    seedFormValues(activeSubmission, profileDefaults, campaign.customFields)
+    seedFormValues(null, profileDefaults, campaign.customFields)
   );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    () => activeSubmission?.profilePictureUrl ?? profileDefaults?.avatarUrl ?? null
-  );
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(() => profileDefaults?.avatarUrl ?? null);
   const [customFiles, setCustomFiles] = useState<Record<string, File | null>>({});
-  const [customFileMeta, setCustomFileMeta] = useState(() => seedCustomFileMeta(campaign, activeSubmission));
+  const [customFileMeta, setCustomFileMeta] = useState(() => seedCustomFileMeta(campaign, null));
   const renderableCustomFields = useMemo(() => interestRenderableCustomFields(campaign), [campaign]);
   const [errors, setErrors] = useState<InterestFormFieldErrors>({});
 
   const [submitInterest, { isLoading: submitting }] = useSubmitInterestMutation();
-  const [withdrawInterest, { isLoading: withdrawing }] = useWithdrawInterestMutation();
   const [uploadMedia] = useUploadMediaMutation();
+  const submitLock = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -76,7 +82,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
     };
   }, [avatarPreview]);
 
-  const needsAvatar = interestNeedsAvatar(campaign, activeSubmission, profileDefaults?.avatarUrl);
+  const needsAvatar = interestNeedsAvatar(campaign, null, profileDefaults?.avatarUrl);
 
   function onChange(patch: Partial<InterestFormValues>) {
     setValues((v) => ({ ...v, ...patch }));
@@ -93,9 +99,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
   function onAvatarFile(file: File | null) {
     setAvatarPreview((prev) => {
       if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
-      return file
-        ? URL.createObjectURL(file)
-        : (activeSubmission?.profilePictureUrl ?? profileDefaults?.avatarUrl ?? null);
+      return file ? URL.createObjectURL(file) : (profileDefaults?.avatarUrl ?? null);
     });
     setAvatarFile(file);
     setErrors((e) => {
@@ -112,7 +116,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
       ...prev,
       [fieldId]: {
         name: file?.name ?? null,
-        url: file ? null : existingCustomFileUrl(activeSubmission, fieldId),
+        url: null,
       },
     }));
     setErrors((e) => clearCustomFieldError(e, fieldId));
@@ -120,7 +124,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
 
   async function handleSubmit(e?: FormEvent) {
     e?.preventDefault();
-    if (actions.submitDisabled || submitting) return;
+    if (actions.submitDisabled || submitting || submitLock.current) return;
 
     const customFileUrls = Object.fromEntries(Object.entries(customFileMeta).map(([id, meta]) => [id, meta.url]));
 
@@ -132,30 +136,33 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
       avatarPreview,
       customFiles,
       customFileUrls,
-      activeSubmission,
+      activeSubmission: null,
     });
     setErrors(next);
     if (Object.keys(next).length) return;
 
-    const updating = submissionStatus === 'pending';
+    submitLock.current = true;
     try {
-      const result = await submitInterest({
-        slug,
-        body: toSubmitWire(values, campaign.formFields, campaign.customFields),
-      }).unwrap();
+      const result = await onceWithNetworkRetry(() =>
+        submitInterest({
+          slug,
+          body: toSubmitWire(values, campaign.formFields, campaign.customFields),
+        }).unwrap()
+      );
       const submissionId = result.data?.id;
 
       if (submissionId) {
         if (fieldEnabled(campaign.formFields, 'profile_picture') && avatarFile) {
           try {
-            const { url } = await uploadMedia({
-              type: 'interest-submission',
-              id: submissionId,
-              field: 'profile_picture',
-              file: avatarFile,
-            }).unwrap();
+            await onceWithNetworkRetry(() =>
+              uploadMedia({
+                type: 'interest-submission',
+                id: submissionId,
+                field: 'profile_picture',
+                file: avatarFile,
+              }).unwrap()
+            );
             setAvatarFile(null);
-            setAvatarPreview(url);
           } catch {
             toast({ title: 'Profile picture upload failed. Please try again.', tone: 'error' });
           }
@@ -165,12 +172,14 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
           const file = field.type === 'file' ? customFiles[field.id] : null;
           if (!file) continue;
           try {
-            const { url } = await uploadMedia({
-              type: 'interest-submission',
-              id: submissionId,
-              field: field.id,
-              file,
-            }).unwrap();
+            const { url } = await onceWithNetworkRetry(() =>
+              uploadMedia({
+                type: 'interest-submission',
+                id: submissionId,
+                field: field.id,
+                file,
+              }).unwrap()
+            );
             setCustomFiles((prev) => ({ ...prev, [field.id]: null }));
             setCustomFileMeta((prev) => ({ ...prev, [field.id]: { name: null, url } }));
           } catch {
@@ -180,8 +189,8 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
       }
 
       toast({
-        title: updating ? 'Your interest details have been updated.' : 'Interest submitted.',
-        ...(updating ? {} : { description: 'Our team will see your name shortly.' }),
+        title: 'Interest submitted.',
+        description: 'Our team will see your name shortly.',
         tone: 'success',
       });
       onSubmitted?.();
@@ -190,19 +199,8 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
         title: getApiErrorMessage(err, 'Could not submit your interest. Please try again.'),
         tone: 'error',
       });
-    }
-  }
-
-  async function handleWithdraw() {
-    if (withdrawing) return;
-    try {
-      await withdrawInterest(slug).unwrap();
-      toast({ title: 'Interest Withdrawn', tone: 'neutral' });
-    } catch (err) {
-      toast({
-        title: getApiErrorMessage(err, 'Could not withdraw your interest.'),
-        tone: 'error',
-      });
+    } finally {
+      submitLock.current = false;
     }
   }
 
@@ -219,9 +217,7 @@ export function useInterestForm(slug: string, payload: InterestShowPayload, opti
     errors,
     needsAvatar,
     submitting,
-    withdrawing,
     handleSubmit,
-    handleWithdraw,
     goBack: () => navigate(-1),
   };
 }

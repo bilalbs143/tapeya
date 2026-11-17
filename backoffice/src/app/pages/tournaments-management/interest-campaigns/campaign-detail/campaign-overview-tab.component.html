@@ -6,11 +6,11 @@
 } @else if (campaign) {
   <div>
     <section
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+      class="grid grid-cols-1 sm:grid-cols-3"
       aria-label="Submission Totals"
     >
       <a
-        class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 text-inherit no-underline transition-colors hover:bg-light-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2 sm:border-r lg:border-b-0"
+        class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 text-inherit no-underline transition-colors hover:bg-light-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2 sm:border-r sm:border-b-0"
         routerLink="../submissions"
       >
         <div class="min-w-0 flex flex-col gap-0.5">
@@ -30,7 +30,7 @@
       </a>
 
       <div
-        class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 sm:border-r-0 lg:border-b-0 lg:border-r"
+        class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 sm:border-r sm:border-b-0"
       >
         <div class="min-w-0 flex flex-col gap-0.5">
           <span class="text-xs font-medium text-muted">Pending</span>
@@ -48,7 +48,7 @@
         </span>
       </div>
 
-      <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-4 sm:border-r lg:border-b-0">
+      <div class="flex items-start justify-between gap-3 px-5 py-4">
         <div class="min-w-0 flex flex-col gap-0.5">
           <span class="text-xs font-medium text-muted">Confirmed</span>
           <span class="text-[28px] font-semibold leading-tight tracking-tight tabular-nums">{{ stats.confirmed }}</span>
@@ -60,23 +60,6 @@
         >
           <i-tabler
             name="circle-check"
-            class="size-5"
-          />
-        </span>
-      </div>
-
-      <div class="flex items-start justify-between gap-3 px-5 py-4">
-        <div class="min-w-0 flex flex-col gap-0.5">
-          <span class="text-xs font-medium text-muted">Withdrawn</span>
-          <span class="text-[28px] font-semibold leading-tight tracking-tight tabular-nums">{{ stats.withdrawn }}</span>
-          <span class="mt-0.5 text-[11.5px] leading-snug text-muted">Players Who Pulled Out</span>
-        </div>
-        <span
-          class="bg-light-error text-error flex size-9! shrink-0 items-center justify-center rounded-sm"
-          aria-hidden="true"
-        >
-          <i-tabler
-            name="x"
             class="size-5"
           />
         </span>

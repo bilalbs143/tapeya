@@ -33,7 +33,7 @@ export type InterestCustomField = {
 export const READ_ONLY_FIELDS: InterestFormField[] = ['name', 'nickname', 'phone'];
 
 export type CampaignStatus = 'open' | 'closed';
-export type SubmissionStatus = 'pending' | 'confirmed' | 'withdrawn';
+export type SubmissionStatus = 'pending' | 'confirmed';
 
 const customFieldWireSchema = z.object({
   id: z.string(),
@@ -72,9 +72,8 @@ export const submissionWireSchema = z.object({
   date_of_birth: z.string().nullable().optional(),
   profile_picture_url: z.string().nullable().optional(),
   id_document_url: z.string().nullable().optional(),
-  status: z.enum(['pending', 'confirmed', 'withdrawn']),
+  status: z.enum(['pending', 'confirmed']),
   status_label: z.string().nullable().optional(),
-  withdrawn_at: z.string().nullable().optional(),
 });
 
 const profileDefaultsWireSchema = z.object({
@@ -141,7 +140,7 @@ const dialogCampaignWireSchema = z.object({
   slug: z.string(),
   tournament_name: z.string(),
   logo_url: z.string().nullable().optional(),
-  my_submission_status: z.enum(['pending', 'confirmed', 'withdrawn']).optional(),
+  my_submission_status: z.enum(['pending', 'confirmed']).optional(),
 });
 
 const dialogPayloadWireSchema = z.object({

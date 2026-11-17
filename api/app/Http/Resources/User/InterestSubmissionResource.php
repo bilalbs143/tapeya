@@ -28,7 +28,6 @@ class InterestSubmissionResource extends JsonResource
             'id_document_url' => $this->idDocumentUrlForApi(),
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
-            'withdrawn_at' => $this->withdrawn_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

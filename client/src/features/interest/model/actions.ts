@@ -1,52 +1,51 @@
+import type { BadgeVariant } from '@/shared/ui/Badge';
+
 import type { CampaignStatus, SubmissionStatus } from './schemas';
 
-export type InterestBannerTone = 'info' | 'success' | 'warning';
-
-export type InterestUiActions = {
+export type InterestFormActions = {
   showSubmit: boolean;
   submitLabel: string;
   submitDisabled: boolean;
-  showWithdraw: boolean;
-  readOnlyAll: boolean;
-  banner: {
-    tone: InterestBannerTone;
-    title: string;
-    description: string;
-  } | null;
+  /** Closed campaign with no submission yet. */
+  closedBanner: boolean;
 };
 
-export function interestActions(input: {
+/** Submit-once form chrome — no update / withdraw. */
+export function interestFormActions(input: {
   campaignStatus: CampaignStatus;
-  submissionStatus: SubmissionStatus | null;
-}): InterestUiActions {
-  const active = input.submissionStatus === 'pending';
-  const confirmed = input.submissionStatus === 'confirmed';
+  hasSubmission: boolean;
+}): InterestFormActions {
   const closed = input.campaignStatus === 'closed';
+  return {
+    showSubmit: !input.hasSubmission,
+    submitLabel: "I'm Interested",
+    submitDisabled: closed || input.hasSubmission,
+    closedBanner: closed && !input.hasSubmission,
+  };
+}
+
+export type InterestStatusCopy = {
+  badge: string;
+  badgeVariant: BadgeVariant;
+  title: string;
+  description: string;
+};
+
+/** Status page copy after a submission exists. */
+export function interestStatusCopy(status: SubmissionStatus): InterestStatusCopy {
+  if (status === 'confirmed') {
+    return {
+      badge: 'Confirmed',
+      badgeVariant: 'positive',
+      title: 'Your Spot Is Confirmed',
+      description: 'Our team has accepted your interest. We will be in touch with next steps.',
+    };
+  }
 
   return {
-    showSubmit: !confirmed,
-    submitLabel: active ? 'Update My Details' : "I'm Interested",
-    submitDisabled: closed,
-    showWithdraw: active,
-    readOnlyAll: confirmed,
-    banner: closed
-      ? {
-          tone: 'warning',
-          title: 'Interest form closed',
-          description: 'New submissions are not accepted. Existing details stay on file.',
-        }
-      : confirmed
-        ? {
-            tone: 'success',
-            title: 'Your spot is confirmed',
-            description: 'Below are the details we have on file for this campaign.',
-          }
-        : active
-          ? {
-              tone: 'info',
-              title: "You're on the interest list",
-              description: 'Update your details below anytime, or withdraw if you change your mind.',
-            }
-          : null,
+    badge: 'Under Review',
+    badgeVariant: 'warning',
+    title: 'Interest Submitted',
+    description: 'Your interest is submitted and under review. We will update you when there is news.',
   };
 }

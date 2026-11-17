@@ -10,6 +10,7 @@ import { useGetInterestCampaignQuery } from '../api/interestApi';
 import type { InterestShowPayload } from '../model/schemas';
 import { InterestCampaignBrandHeader, InterestCampaignStage } from '../ui/InterestCampaignBrand';
 import { InterestFormBody, InterestFormFooter } from '../ui/InterestFormBody';
+import { InterestStatusView } from '../ui/InterestStatusView';
 import { useInterestForm } from '../ui/useInterestForm';
 
 /** Submit scalars via POST, then media via `/media/interest-submission/...`. */
@@ -23,7 +24,7 @@ export default function InterestPage() {
 
   if (slug && !isLoading && !isError && data) {
     return (
-      <InterestFormDock
+      <InterestScreen
         key={`${data.campaign.slug}-${data.mySubmission?.id ?? 'new'}-${data.mySubmission?.status ?? 'none'}`}
         slug={slug}
         payload={data}
@@ -72,6 +73,23 @@ export default function InterestPage() {
       )}
     </DockScreen>
   );
+}
+
+function InterestScreen({ slug, payload }: { slug: string; payload: InterestShowPayload }) {
+  const navigate = useNavigate();
+  const { campaign, mySubmission } = payload;
+
+  if (mySubmission) {
+    return (
+      <DockScreen title="Interest" subtitle="Your Status" onBack={() => navigate(-1)} body="fill">
+        <InterestCampaignStage logoUrl={campaign.logoUrl} pageScroll>
+          <InterestStatusView campaign={campaign} submission={mySubmission} onDone={() => navigate(-1)} />
+        </InterestCampaignStage>
+      </DockScreen>
+    );
+  }
+
+  return <InterestFormDock slug={slug} payload={payload} />;
 }
 
 function InterestFormDock({ slug, payload }: { slug: string; payload: InterestShowPayload }) {

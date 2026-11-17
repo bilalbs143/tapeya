@@ -25,14 +25,12 @@ class TournamentInterestSubmission extends BaseModel
         'profile_picture_path',
         'id_document_path',
         'status',
-        'withdrawn_at',
         'notes',
     ];
 
     protected $casts = [
         'status' => TournamentInterestSubmissionStatusEnum::class,
         'date_of_birth' => 'date',
-        'withdrawn_at' => 'datetime',
         'custom_answers' => 'array',
     ];
 

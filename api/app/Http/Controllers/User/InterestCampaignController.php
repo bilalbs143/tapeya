@@ -125,6 +125,15 @@ class InterestCampaignController extends Controller
         $user = $request->user();
         $payload = $request->validated();
 
+        $existing = TournamentInterestSubmission::query()
+            ->where('campaign_id', $campaign->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing !== null) {
+            return $this->failure('You have already submitted interest for this campaign.', 'ALREADY_SUBMITTED');
+        }
+
         $defaults = [
             'name' => $user->name,
             'nickname' => $user->nickname,
@@ -137,7 +146,6 @@ class InterestCampaignController extends Controller
 
         $data = [
             'status' => TournamentInterestSubmissionStatusEnum::PENDING->value,
-            'withdrawn_at' => null,
             // Always stored — submissions.name is NOT NULL and mirrors the signed-in account.
             'name' => $user->name,
         ];
@@ -152,71 +160,32 @@ class InterestCampaignController extends Controller
             $data[$field] = $payload[$field] ?? $defaults[$field] ?? null;
         }
 
-        $submission = TournamentInterestSubmission::query()
-            ->where('campaign_id', $campaign->id)
-            ->where('user_id', $user->id)
-            ->first();
-
         $mergedAnswers = InterestCustomFields::mergeScalarAnswers(
             $campaign->resolvedCustomFields(),
-            $submission?->rawCustomAnswers() ?? [],
+            [],
             is_array($payload['custom_answers'] ?? null) ? $payload['custom_answers'] : [],
         );
         $data['custom_answers'] = $mergedAnswers === [] ? null : $mergedAnswers;
 
-        // On first submission, seed profile picture from the user's existing avatar
-        // when they haven't uploaded one yet (upload happens via the media endpoint).
+        // Seed profile picture from the user's avatar when they haven't uploaded one yet.
         if (
-            $submission === null
-            && $user->avatar
+            $user->avatar
             && $campaign->formFieldEnabled(TournamentInterestFormFieldEnum::PROFILE_PICTURE->value)
         ) {
             $data['profile_picture_path'] = $user->avatar;
         }
 
-        $isNew = $submission === null;
-        if ($isNew) {
-            $submission = TournamentInterestSubmission::create(array_merge($data, [
-                'campaign_id' => $campaign->id,
-                'user_id' => $user->id,
-            ]));
-        } else {
-            $submission->update($data);
-            $submission = $submission->fresh();
-        }
+        $submission = TournamentInterestSubmission::create(array_merge($data, [
+            'campaign_id' => $campaign->id,
+            'user_id' => $user->id,
+        ]));
 
         $this->backfillUserProfile($user, $payload);
 
         return $this->success(
             new InterestSubmissionResource($submission),
-            $isNew ? 'Interest submitted.' : 'Interest updated.',
-            $isNew ? 'CREATED' : 'OK',
-        );
-    }
-
-    public function destroy(Request $request, string $slug): JsonResponse
-    {
-        $campaign = TournamentInterestCampaign::query()
-            ->where('slug', $slug)
-            ->firstOrFail();
-
-        $submission = TournamentInterestSubmission::query()
-            ->where('campaign_id', $campaign->id)
-            ->where('user_id', $request->user()?->id)
-            ->first();
-
-        if ($submission === null) {
-            return $this->success(null, 'No active interest to withdraw.');
-        }
-
-        $submission->update([
-            'status' => TournamentInterestSubmissionStatusEnum::WITHDRAWN->value,
-            'withdrawn_at' => now(),
-        ]);
-
-        return $this->success(
-            new InterestSubmissionResource($submission->fresh()),
-            'Interest withdrawn.',
+            'Interest submitted.',
+            'CREATED',
         );
     }
 

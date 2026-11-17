@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { interestActions } from './actions';
+import { interestFormActions, interestStatusCopy } from './actions';
 import {
   fieldEnabled,
   interestRenderableCustomFields,
@@ -10,38 +10,35 @@ import {
   toSubmitWire,
 } from './schemas';
 
-describe('interestActions', () => {
+describe('interestFormActions', () => {
   it('opens submit for new entrants and disables when closed', () => {
-    const open = interestActions({ campaignStatus: 'open', submissionStatus: null });
+    const open = interestFormActions({ campaignStatus: 'open', hasSubmission: false });
     expect(open.showSubmit).toBe(true);
     expect(open.submitLabel).toBe("I'm Interested");
     expect(open.submitDisabled).toBe(false);
-    expect(open.showWithdraw).toBe(false);
+    expect(open.closedBanner).toBe(false);
 
-    const closed = interestActions({ campaignStatus: 'closed', submissionStatus: null });
+    const closed = interestFormActions({ campaignStatus: 'closed', hasSubmission: false });
     expect(closed.submitDisabled).toBe(true);
-    expect(closed.banner?.tone).toBe('warning');
-    expect(closed.banner?.title).toBe('Interest form closed');
+    expect(closed.closedBanner).toBe(true);
   });
 
-  it('lets pending entrants update or withdraw; confirmed is read-only', () => {
-    const pending = interestActions({
-      campaignStatus: 'open',
-      submissionStatus: 'pending',
-    });
-    expect(pending.submitLabel).toBe('Update My Details');
-    expect(pending.showWithdraw).toBe(true);
-    expect(pending.banner?.tone).toBe('info');
-    expect(pending.banner?.title).toBe("You're on the interest list");
+  it('hides submit once a submission exists', () => {
+    const pending = interestFormActions({ campaignStatus: 'open', hasSubmission: true });
+    expect(pending.showSubmit).toBe(false);
+    expect(pending.submitDisabled).toBe(true);
+  });
+});
 
-    const confirmed = interestActions({
-      campaignStatus: 'open',
-      submissionStatus: 'confirmed',
-    });
-    expect(confirmed.showSubmit).toBe(false);
-    expect(confirmed.readOnlyAll).toBe(true);
-    expect(confirmed.banner?.tone).toBe('success');
-    expect(confirmed.banner?.title).toBe('Your spot is confirmed');
+describe('interestStatusCopy', () => {
+  it('describes pending and confirmed clearly', () => {
+    const pending = interestStatusCopy('pending');
+    expect(pending.title).toBe('Interest Submitted');
+    expect(pending.badge).toBe('Under Review');
+
+    const confirmed = interestStatusCopy('confirmed');
+    expect(confirmed.title).toBe('Your Spot Is Confirmed');
+    expect(confirmed.badgeVariant).toBe('positive');
   });
 });
 
@@ -99,112 +96,72 @@ describe('parseInterestShow', () => {
   });
 });
 
-describe('parseInterestDialog', () => {
-  it('maps featured dialog campaign and null payload', () => {
-    expect(
-      parseInterestDialog({
-        data: {
-          campaign: {
-            slug: 'dialog-cup',
-            tournament_name: 'Dialog Cup',
-            logo_url: 'https://cdn.test/logo.png',
-            my_submission_status: 'pending',
-          },
-        },
-        type: 'SUCCESS',
-      })
-    ).toEqual({
-      campaign: {
-        slug: 'dialog-cup',
-        tournamentName: 'Dialog Cup',
-        logoUrl: 'https://cdn.test/logo.png',
-        mySubmissionStatus: 'pending',
-      },
-    });
-
-    expect(parseInterestDialog({ data: { campaign: null }, type: 'SUCCESS' })).toEqual({ campaign: null });
-  });
-});
-
 describe('interestRenderableCustomFields', () => {
   it('injects CNIC when id_document is in form_fields and strips legacy custom CNIC', () => {
-    expect(
-      interestRenderableCustomFields({
-        formFields: ['name', 'id_document'],
-        customFields: [
-          {
-            id: 'trial_venue',
-            type: 'select',
-            label: 'Trial Venue',
-            required: true,
-            options: ['Lahore'],
-          },
-        ],
-      }).map((f) => f.id)
-    ).toEqual(['id_document', 'trial_venue']);
-
-    expect(
-      interestRenderableCustomFields({
-        formFields: ['name'],
-        customFields: [
-          {
-            id: 'extra_doc',
-            type: 'file',
-            label: 'Extra Doc',
-            required: false,
-            options: [],
-          },
-        ],
-      }).map((f) => f.id)
-    ).toEqual(['extra_doc']);
+    const fields = interestRenderableCustomFields({
+      id: 1,
+      slug: 'x',
+      tournamentName: 'T',
+      description: null,
+      formFields: ['name', 'id_document'],
+      customFields: [
+        { id: 'id_document', type: 'file', label: 'Old CNIC', required: true, options: [] },
+        { id: 'trial_venue', type: 'select', label: 'Venue', required: true, options: ['A'] },
+      ],
+      logoUrl: null,
+      status: 'open',
+    });
+    expect(fields.map((f) => f.id)).toEqual(['id_document', 'trial_venue']);
+    expect(fields[0]?.label).toBe('CNIC / B-Form');
   });
 });
 
 describe('seedFormValues / toSubmitWire', () => {
-  it('prefers submission over profile defaults and builds wire body', () => {
-    const customFields = [
-      {
-        id: 'trial_venue',
-        type: 'select' as const,
-        label: 'Trial Venue',
-        required: true,
-        options: ['Lahore', 'Islamabad'],
-      },
-    ];
+  it('seeds defaults and only sends enabled fields', () => {
     const values = seedFormValues(
+      null,
       {
-        id: 9,
-        name: 'Sub Name',
-        nickname: 'sub',
-        email: 'sub@x.com',
-        phone: '99',
-        country: 'Pakistan',
-        city: 'Lahore',
-        customAnswers: { trial_venue: 'Islamabad' },
-        dateOfBirth: '2000-02-02',
-        profilePictureUrl: null,
-        idDocumentUrl: null,
-        status: 'pending',
-      },
-      {
-        name: 'Def',
-        nickname: 'def',
-        email: 'def@x.com',
+        name: 'Zain',
+        nickname: 'z',
+        email: 'z@x.com',
         phone: '1',
         country: 'Pakistan',
         city: 'Karachi',
-        dateOfBirth: '1990-01-01',
+        dateOfBirth: '1998-01-01',
         avatarUrl: null,
       },
-      customFields
+      [{ id: 'trial_venue', type: 'select', label: 'Venue', required: true, options: ['Lahore'] }]
     );
-    expect(values.city).toBe('Lahore');
-    expect(values.customAnswers.trial_venue).toBe('Islamabad');
-    expect(toSubmitWire(values, ['email', 'city', 'date_of_birth'], customFields)).toEqual({
-      email: 'sub@x.com',
+    expect(values.country).toBe('Pakistan');
+    expect(values.customAnswers.trial_venue).toBe('');
+
+    const wire = toSubmitWire(
+      { ...values, city: 'Lahore', customAnswers: { trial_venue: 'Lahore' } },
+      ['email', 'city', 'country'],
+      [{ id: 'trial_venue', type: 'select', label: 'Venue', required: true, options: ['Lahore'] }]
+    );
+    expect(wire).toEqual({
+      email: 'z@x.com',
       city: 'Lahore',
-      date_of_birth: '2000-02-02',
-      custom_answers: { trial_venue: 'Islamabad' },
+      country: 'Pakistan',
+      custom_answers: { trial_venue: 'Lahore' },
     });
+  });
+});
+
+describe('parseInterestDialog', () => {
+  it('maps dialog campaign and submission status', () => {
+    const payload = parseInterestDialog({
+      data: {
+        campaign: {
+          slug: 'junior',
+          tournament_name: 'Junior',
+          my_submission_status: 'pending',
+        },
+      },
+      type: 'SUCCESS',
+    });
+    expect(payload.campaign?.slug).toBe('junior');
+    expect(payload.campaign?.mySubmissionStatus).toBe('pending');
   });
 });

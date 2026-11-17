@@ -99,29 +99,6 @@ export const interestHandlers = [
     );
   }),
 
-  http.delete(`${env.VITE_API_URL}/interest-campaigns/:slug/submissions/me`, () => {
-    return HttpResponse.json({
-      data: {
-        id: 55,
-        campaign_id: 1,
-        name: profileDefaults.name,
-        nickname: profileDefaults.nickname,
-        email: profileDefaults.email,
-        phone: profileDefaults.phone,
-        country: profileDefaults.country,
-        city: profileDefaults.city,
-        date_of_birth: profileDefaults.date_of_birth,
-        profile_picture_url: null,
-        id_document_url: null,
-        status: 'withdrawn',
-        status_label: 'Withdrawn',
-        withdrawn_at: new Date().toISOString(),
-      },
-      message: 'Interest withdrawn.',
-      type: 'SUCCESS',
-    });
-  }),
-
   http.post(`${env.VITE_API_URL}/media/:type/:id/:field`, () => {
     return HttpResponse.json({
       data: { url: 'https://cdn.example.com/interest/doc.pdf' },

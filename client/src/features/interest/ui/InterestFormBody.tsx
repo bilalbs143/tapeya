@@ -10,7 +10,7 @@ type InterestFormFlow = ReturnType<typeof useInterestForm>;
 
 const DEFAULT_FORM_ID = 'interest-form';
 
-/** Submit / withdraw controls — shared by page sticky bar and dialog footer. */
+/** Submit control — shared by page sticky bar and dialog footer. */
 export function InterestFormActions({
   flow,
   formId = DEFAULT_FORM_ID,
@@ -18,41 +18,25 @@ export function InterestFormActions({
   flow: InterestFormFlow;
   formId?: string | undefined;
 }) {
-  const { actions, submitting, withdrawing, handleWithdraw } = flow;
+  const { actions, submitting } = flow;
 
-  if (!actions.showSubmit && !actions.showWithdraw) return null;
+  if (!actions.showSubmit) return null;
 
   return (
-    <div className="flex gap-2">
-      {actions.showWithdraw ? (
-        <Button
-          type="button"
-          variant="danger"
-          className="shrink-0 px-4 font-bold"
-          loading={withdrawing}
-          disabled={submitting}
-          onClick={() => void handleWithdraw()}
-        >
-          Withdraw
-        </Button>
-      ) : null}
-      {actions.showSubmit ? (
-        <Button
-          type="submit"
-          form={formId}
-          variant="positive"
-          className="min-w-0 flex-1 font-bold"
-          loading={submitting}
-          disabled={actions.submitDisabled || withdrawing}
-        >
-          {submitting ? 'Submitting…' : actions.submitLabel}
-        </Button>
-      ) : null}
-    </div>
+    <Button
+      type="submit"
+      form={formId}
+      variant="positive"
+      className="w-full font-bold"
+      loading={submitting}
+      disabled={actions.submitDisabled}
+    >
+      {submitting ? 'Submitting…' : actions.submitLabel}
+    </Button>
   );
 }
 
-/** Sticky submit (+ withdraw when updating) — page owns DockScreen. */
+/** Sticky submit — page owns DockScreen. */
 export function InterestFormFooter({
   flow,
   formId = DEFAULT_FORM_ID,
@@ -60,8 +44,7 @@ export function InterestFormFooter({
   flow: InterestFormFlow;
   formId?: string | undefined;
 }) {
-  const { actions } = flow;
-  if (!actions.showSubmit && !actions.showWithdraw) return null;
+  if (!flow.actions.showSubmit) return null;
 
   return (
     <StickyActionBar>
@@ -99,7 +82,7 @@ export function InterestFormBody({
     <Form id={formId} density="compact" className={className} onSubmit={(e) => void handleSubmit(e)}>
       <InterestForm
         campaign={campaign}
-        actions={actions}
+        closedBanner={actions.closedBanner}
         values={values}
         onChange={onChange}
         onCustomAnswerChange={onCustomAnswerChange}

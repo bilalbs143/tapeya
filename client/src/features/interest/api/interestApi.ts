@@ -1,6 +1,6 @@
 import { baseApi } from '@/shared/api/baseApi';
 import type { MutationResult } from '@/shared/api/types';
-import { unwrapMessage, unwrapMutation } from '@/shared/api/unwrap';
+import { unwrapMutation } from '@/shared/api/unwrap';
 
 import {
   type InterestDialogPayload,
@@ -61,15 +61,6 @@ export const interestApi = baseApi.injectEndpoints({
       },
       invalidatesTags: (_r, _e, { slug }) => interestCampaignTags(slug),
     }),
-
-    withdrawInterest: builder.mutation<string | undefined, string>({
-      query: (slug) => ({
-        url: `/interest-campaigns/${slug}/submissions/me`,
-        method: 'DELETE',
-      }),
-      transformResponse: (raw: unknown) => unwrapMessage()(raw),
-      invalidatesTags: (_r, _e, slug) => interestCampaignTags(slug),
-    }),
   }),
 });
 
@@ -78,5 +69,4 @@ export const {
   useGetDialogInterestCampaignQuery,
   useGetInterestCampaignQuery,
   useSubmitInterestMutation,
-  useWithdrawInterestMutation,
 } = interestApi;

@@ -328,7 +328,6 @@ Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::get('interest-campaigns/dialog', [InterestCampaignController::class, 'dialog']);
     Route::get('interest-campaigns/{slug}', [InterestCampaignController::class, 'show'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::post('interest-campaigns/{slug}/submissions', [InterestCampaignController::class, 'store'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
-    Route::delete('interest-campaigns/{slug}/submissions/me', [InterestCampaignController::class, 'destroy'])->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
 

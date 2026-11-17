@@ -206,10 +206,6 @@ final class InterestSubmissionCsvExporter
             'header' => 'Submitted At',
             'value' => fn (TournamentInterestSubmission $s, array $_): string => $this->cell($s->created_at?->format('Y-m-d H:i:s')),
         ];
-        $columns[] = [
-            'header' => 'Withdrawn At',
-            'value' => fn (TournamentInterestSubmission $s, array $_): string => $this->cell($s->withdrawn_at?->format('Y-m-d H:i:s')),
-        ];
 
         return $columns;
     }

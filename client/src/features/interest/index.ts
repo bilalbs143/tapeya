@@ -4,9 +4,8 @@ export {
   useGetInterestCampaignQuery,
   useGetSidebarInterestCampaignQuery,
   useSubmitInterestMutation,
-  useWithdrawInterestMutation,
 } from './api/interestApi';
-export { interestActions } from './model/actions';
+export { interestFormActions, interestStatusCopy } from './model/actions';
 export type {
   InterestCampaign,
   InterestDialogPayload,

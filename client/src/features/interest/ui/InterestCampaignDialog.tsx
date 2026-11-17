@@ -7,6 +7,7 @@ import { useGetInterestCampaignQuery } from '../api/interestApi';
 import type { InterestShowPayload } from '../model/schemas';
 import { InterestCampaignBrandHeader, InterestCampaignWatermark } from './InterestCampaignBrand';
 import { InterestFormActions, InterestFormBody } from './InterestFormBody';
+import { InterestStatusView } from './InterestStatusView';
 import { useInterestForm } from './useInterestForm';
 
 const FORM_ID = 'interest-dialog-form';
@@ -53,13 +54,45 @@ export function InterestCampaignDialog({ slug, tournamentName }: InterestCampaig
   }
 
   return (
-    <InterestCampaignDialogForm
+    <InterestCampaignDialogBody
       key={`${data.campaign.slug}-${data.mySubmission?.id ?? 'new'}-${data.mySubmission?.status ?? 'none'}`}
       slug={slug}
       title={tournamentName?.trim() || data.campaign.tournamentName}
       payload={data}
     />
   );
+}
+
+function InterestCampaignDialogBody({
+  slug,
+  title,
+  payload,
+}: {
+  slug: string;
+  title: string;
+  payload: InterestShowPayload;
+}) {
+  if (payload.mySubmission) {
+    return (
+      <>
+        <DialogHeader className="shrink-0 pb-2">
+          <DialogTitle className="sr-only">{title}</DialogTitle>
+        </DialogHeader>
+        <DialogBody className={cn(SCROLL_BODY, 'pt-0 pb-6')}>
+          <InterestCampaignWatermark logoUrl={payload.campaign.logoUrl} />
+          <div className="relative z-10">
+            <InterestStatusView
+              campaign={payload.campaign}
+              submission={payload.mySubmission}
+              onDone={() => dialogStore.close()}
+            />
+          </div>
+        </DialogBody>
+      </>
+    );
+  }
+
+  return <InterestCampaignDialogForm slug={slug} title={title} payload={payload} />;
 }
 
 function InterestCampaignDialogForm({
@@ -71,11 +104,9 @@ function InterestCampaignDialogForm({
   title: string;
   payload: InterestShowPayload;
 }) {
-  const flow = useInterestForm(slug, payload, {
-    onSubmitted: () => dialogStore.close(),
-  });
+  // Stay open — tag invalidation remounts into InterestStatusView.
+  const flow = useInterestForm(slug, payload);
   const { actions, campaign } = flow;
-  const showFooter = actions.showSubmit || actions.showWithdraw;
 
   return (
     <>
@@ -98,7 +129,7 @@ function InterestCampaignDialogForm({
         </div>
       </DialogBody>
 
-      {showFooter ? (
+      {actions.showSubmit ? (
         <DialogFooter className="shrink-0">
           <InterestFormActions flow={flow} formId={FORM_ID} />
         </DialogFooter>

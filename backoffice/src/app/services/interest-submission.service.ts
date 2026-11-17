@@ -9,7 +9,7 @@ import type { InterestCampaign } from './interest-campaign.service';
 import { MessageService } from './message.service';
 import type { UserSearchRow } from './users.service';
 
-export type InterestSubmissionStatus = 'pending' | 'confirmed' | 'withdrawn';
+export type InterestSubmissionStatus = 'pending' | 'confirmed';
 
 export interface InterestSubmission {
   id: number;
@@ -27,7 +27,6 @@ export interface InterestSubmission {
   id_document_url: string | null;
   status: InterestSubmissionStatus;
   status_label: string;
-  withdrawn_at: string | null;
   notes?: string | null;
   user?: UserSearchRow | null;
   campaign?: InterestCampaign | null;

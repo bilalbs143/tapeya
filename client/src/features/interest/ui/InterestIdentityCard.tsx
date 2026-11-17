@@ -1,3 +1,5 @@
+import type { ChangeEvent, InputHTMLAttributes } from 'react';
+
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/Avatar';
 import { CameraIcon, LockIcon, PhoneIcon } from '@/shared/ui/icons';
@@ -18,7 +20,9 @@ type InterestIdentityCardProps = {
   readOnly: boolean;
   requiredAvatar?: boolean | undefined;
   avatarError?: string | undefined;
-  onPickAvatar: () => void;
+  /** Native file input attrs — real tap hits the input (Android WebView-safe). */
+  avatarAccept?: string | undefined;
+  onAvatarChange?: ((e: ChangeEvent<HTMLInputElement>) => void) | undefined;
 };
 
 /**
@@ -34,13 +38,14 @@ export function InterestIdentityCard({
   readOnly,
   requiredAvatar = false,
   avatarError,
-  onPickAvatar,
+  avatarAccept,
+  onAvatarChange,
 }: InterestIdentityCardProps) {
   const handle = nickname.trim().replace(/^@/, '');
   const displayName = name.trim() || '—';
   const displayPhone = phone.trim() || '—';
   const hasPhoto = Boolean(avatarPreview);
-  const canEditAvatar = fields.avatar && !readOnly;
+  const canEditAvatar = fields.avatar && !readOnly && onAvatarChange;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -53,12 +58,10 @@ export function InterestIdentityCard({
       >
         {fields.avatar ? (
           canEditAvatar ? (
-            <button
-              type="button"
-              onClick={onPickAvatar}
+            <label
               aria-label={hasPhoto ? 'Replace Picture' : requiredAvatar ? 'Add Picture (Required)' : 'Add Picture'}
               className={cn(
-                'relative shrink-0 rounded-full focus-visible:outline-brand',
+                'relative shrink-0 cursor-pointer rounded-full focus-within:outline-brand',
                 !hasPhoto &&
                   cn(
                     'border-border text-muted hover:border-brand/45 hover:bg-brand/8 hover:text-brand-text grid h-20 w-20 place-items-center border border-dashed transition-colors',
@@ -74,14 +77,15 @@ export function InterestIdentityCard({
                     size="xl"
                     className="ring-brand-hover/70 ring-offset-page h-20 w-20 ring-2 ring-offset-2"
                   />
-                  <span className="bg-brand absolute right-0 bottom-0 grid h-6 w-6 place-items-center rounded-full text-white shadow-card">
+                  <span className="bg-brand absolute right-0 bottom-0 z-10 grid h-6 w-6 place-items-center rounded-full text-white shadow-card">
                     <CameraIcon className="h-3 w-3" strokeWidth={2.2} />
                   </span>
                 </>
               ) : (
                 <CameraIcon className="h-6 w-6" strokeWidth={1.85} />
               )}
-            </button>
+              <NativeFileInput accept={avatarAccept} onChange={onAvatarChange} />
+            </label>
           ) : (
             <Avatar src={avatarPreview ?? undefined} name={displayName} size="xl" className="h-20 w-20" />
           )
@@ -120,5 +124,12 @@ export function InterestIdentityCard({
         <p className="text-dim px-0.5 text-3xs leading-relaxed">JPG, PNG or WebP, max 5 MB.</p>
       ) : null}
     </div>
+  );
+}
+
+/** Full-hit-target file input — avoids programmatic `.click()` (flaky in Android WebView). */
+function NativeFileInput({ accept, onChange }: Pick<InputHTMLAttributes<HTMLInputElement>, 'accept' | 'onChange'>) {
+  return (
+    <input type="file" accept={accept} onChange={onChange} className="absolute inset-0 z-20 cursor-pointer opacity-0" />
   );
 }

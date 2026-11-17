@@ -19,7 +19,6 @@ interface SubmissionStats {
   total: number;
   pending: number;
   confirmed: number;
-  withdrawn: number;
 }
 
 @Component({
@@ -38,7 +37,7 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
   private readonly sub = new Subscription();
 
   public campaign: InterestCampaign | null = null;
-  public stats: SubmissionStats = { total: 0, pending: 0, confirmed: 0, withdrawn: 0 };
+  public stats: SubmissionStats = { total: 0, pending: 0, confirmed: 0 };
   public formFieldLabels: string[] = [];
   public customFieldsSummary = '';
   public isLoading = true;
@@ -71,10 +70,9 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
       campaign: campaign$,
       pending: this.countByStatus('pending'),
       confirmed: this.countByStatus('confirmed'),
-      withdrawn: this.countByStatus('withdrawn'),
       formFieldOptions: this.enumsService.getOptions('tournament_interest_form_field'),
     }).subscribe({
-      next: ({ campaign, pending, confirmed, withdrawn, formFieldOptions }) => {
+      next: ({ campaign, pending, confirmed, formFieldOptions }) => {
         this.campaign = campaign.data;
         const keys = campaign.data.form_fields?.length ? campaign.data.form_fields : DEFAULT_INTEREST_FORM_FIELDS;
         const byValue = new Map(formFieldOptions.map((opt) => [String(opt.value), opt.label]));
@@ -85,12 +83,11 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
             return `${f.label}${opts}`;
           })
           .join(' · ');
-        const sum = pending + confirmed + withdrawn;
+        const sum = pending + confirmed;
         const fromApi = campaign.data.submissions_count;
         this.stats = {
           pending,
           confirmed,
-          withdrawn,
           total: typeof fromApi === 'number' ? fromApi : sum,
         };
         this.isLoading = false;
@@ -102,7 +99,7 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
     });
   }
 
-  private countByStatus(status: 'pending' | 'confirmed' | 'withdrawn'): Observable<number> {
+  private countByStatus(status: 'pending' | 'confirmed'): Observable<number> {
     return this.submissionService
       .getList({
         page: 1,

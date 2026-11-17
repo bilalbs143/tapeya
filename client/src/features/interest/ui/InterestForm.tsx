@@ -1,16 +1,15 @@
-import { type ChangeEvent, useRef } from 'react';
+import { type ChangeEvent } from 'react';
 
 import { Alert } from '@/shared/ui/Alert';
 import { CountryCityFields } from '@/shared/ui/CountryCityFields';
 import { DatePicker } from '@/shared/ui/DatePicker';
 import { Field } from '@/shared/ui/Field';
 import { FormRow } from '@/shared/ui/Form';
-import { CheckIcon, ClockIcon, DocumentIcon, LockIcon, PlusIcon } from '@/shared/ui/icons';
+import { DocumentIcon, PlusIcon } from '@/shared/ui/icons';
 import { Input } from '@/shared/ui/Input';
 import { SelectField, SelectItem } from '@/shared/ui/Select';
 
 import { AVATAR_TYPES, checkInterestUpload, DOC_TYPES } from '../lib/upload';
-import type { InterestBannerTone, InterestUiActions } from '../model/actions';
 import {
   fieldEnabled,
   type InterestCampaign,
@@ -23,7 +22,7 @@ import { InterestIdentityCard } from './InterestIdentityCard';
 
 export type InterestFormProps = {
   campaign: InterestCampaign;
-  actions: InterestUiActions;
+  closedBanner?: boolean | undefined;
   values: InterestFormValues;
   onChange: (patch: Partial<InterestFormValues>) => void;
   onCustomAnswerChange: (fieldId: string, value: string) => void;
@@ -42,7 +41,7 @@ export type InterestFormProps = {
 
 export function InterestForm({
   campaign,
-  actions: a,
+  closedBanner = false,
   values,
   onChange,
   onCustomAnswerChange,
@@ -55,8 +54,7 @@ export function InterestForm({
   onToastError,
 }: InterestFormProps) {
   const has = (f: InterestFormField) => fieldEnabled(campaign.formFields, f);
-  const avatarInput = useRef<HTMLInputElement>(null);
-  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const readOnly = closedBanner;
 
   function pickAvatar(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -94,13 +92,8 @@ export function InterestForm({
 
   return (
     <>
-      {a.banner ? (
-        <Alert
-          tone={a.banner.tone}
-          title={a.banner.title}
-          description={a.banner.description}
-          icon={<InterestStatusIcon tone={a.banner.tone} />}
-        />
+      {closedBanner ? (
+        <Alert tone="warning" title="Interest Form Closed" description="New submissions are not accepted." />
       ) : null}
 
       {showIdentity ? (
@@ -110,15 +103,12 @@ export function InterestForm({
           phone={values.phone}
           avatarPreview={avatarPreview}
           fields={identityFields}
-          readOnly={a.readOnlyAll}
+          readOnly={readOnly}
           requiredAvatar={requiredAvatar}
           avatarError={errors.avatar}
-          onPickAvatar={() => avatarInput.current?.click()}
+          avatarAccept={AVATAR_TYPES.join(',')}
+          onAvatarChange={readOnly ? undefined : pickAvatar}
         />
-      ) : null}
-
-      {identityFields.avatar ? (
-        <input ref={avatarInput} type="file" accept={AVATAR_TYPES.join(',')} onChange={pickAvatar} className="hidden" />
       ) : null}
 
       <FormRow>
@@ -130,7 +120,7 @@ export function InterestForm({
             value={values.email}
             onChange={(e) => onChange({ email: e.target.value })}
             error={errors.email}
-            disabled={a.readOnlyAll}
+            disabled={readOnly}
             placeholder="Enter Email"
             className="h-12 rounded-panel"
           />
@@ -143,7 +133,7 @@ export function InterestForm({
             value={values.dateOfBirth}
             onChange={(dateOfBirth) => onChange({ dateOfBirth })}
             error={errors.dateOfBirth}
-            disabled={a.readOnlyAll}
+            disabled={readOnly}
             className="h-12 rounded-panel"
           />
         ) : null}
@@ -156,7 +146,7 @@ export function InterestForm({
           onCountryChange={(country) => onChange({ country })}
           onCityChange={(city) => onChange({ city })}
           required
-          readOnly={a.readOnlyAll}
+          readOnly={readOnly}
           showCountry={has('country')}
           showCity={has('city')}
           {...(errors.country ? { countryError: errors.country } : {})}
@@ -177,7 +167,7 @@ export function InterestForm({
               value={values.customAnswers[field.id] ?? ''}
               onChange={(e) => onCustomAnswerChange(field.id, e.target.value)}
               error={error}
-              disabled={a.readOnlyAll}
+              disabled={readOnly}
               placeholder={`Enter ${field.label}`}
               className="h-12 rounded-panel"
             />
@@ -194,7 +184,7 @@ export function InterestForm({
               value={current || undefined}
               onValueChange={(v) => onCustomAnswerChange(field.id, v)}
               placeholder={`Select ${field.label}`}
-              disabled={a.readOnlyAll || field.options.length === 0}
+              disabled={readOnly || field.options.length === 0}
               error={error}
               triggerClassName="h-12 rounded-panel"
             >
@@ -244,7 +234,7 @@ export function InterestForm({
                         <span className="text-brand-text block text-3xs font-semibold">Ready to Upload</span>
                       )}
                     </span>
-                    {!a.readOnlyAll ? (
+                    {!readOnly ? (
                       <button
                         type="button"
                         onClick={() => onCustomFile(field.id, null)}
@@ -254,27 +244,29 @@ export function InterestForm({
                       </button>
                     ) : null}
                   </div>
-                ) : (
-                  <button
-                    type="button"
+                ) : readOnly ? (
+                  <div
                     id={id}
-                    onClick={() => fileInputs.current[field.id]?.click()}
-                    disabled={a.readOnlyAll}
-                    className="border-border text-muted hover:text-ink focus-visible:outline-brand flex h-12 w-full items-center justify-center gap-2 rounded-panel border border-dashed text-xs font-semibold disabled:opacity-40"
+                    className="border-border text-muted flex h-12 w-full items-center justify-center gap-2 rounded-panel border border-dashed text-xs font-semibold opacity-40"
                   >
                     <PlusIcon className="h-4 w-4" strokeWidth={2} />
                     Upload {field.label}
-                  </button>
+                  </div>
+                ) : (
+                  <label
+                    id={id}
+                    className="border-border text-muted hover:text-ink focus-within:outline-brand relative flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-panel border border-dashed text-xs font-semibold"
+                  >
+                    <PlusIcon className="h-4 w-4" strokeWidth={2} />
+                    Upload {field.label}
+                    <input
+                      type="file"
+                      accept={DOC_TYPES.join(',')}
+                      onChange={pickCustomFile(field)}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                    />
+                  </label>
                 )}
-                <input
-                  ref={(el) => {
-                    fileInputs.current[field.id] = el;
-                  }}
-                  type="file"
-                  accept={DOC_TYPES.join(',')}
-                  onChange={pickCustomFile(field)}
-                  className="hidden"
-                />
               </>
             )}
           </Field>
@@ -282,11 +274,4 @@ export function InterestForm({
       })}
     </>
   );
-}
-
-function InterestStatusIcon({ tone }: { tone: InterestBannerTone }) {
-  const iconClass = 'h-3.5 w-3.5';
-  if (tone === 'success') return <CheckIcon className={iconClass} strokeWidth={3} />;
-  if (tone === 'warning') return <LockIcon className={iconClass} strokeWidth={2.2} />;
-  return <ClockIcon className={iconClass} strokeWidth={2.2} />;
 }
