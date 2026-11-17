@@ -10,7 +10,7 @@ export type PrimaryNavItem = {
   to: string;
   label: string;
   Glyph: ComponentType<NavGlyphProps>;
-  /** Live tab red dot — auth BottomNav/SideNav. */
+  /** Live tab — red dot when `useHasLiveStreams()` is true (BottomNav). */
   dot?: boolean;
   /** Exact match only (Home). */
   end?: boolean;

@@ -39,11 +39,7 @@ function disarm(armed: { current: boolean }, tracking: { current: boolean }): vo
  * Touch-only pull-to-refresh on a scroll root.
  * At top, pull past threshold → soft content refresh (invalidate + remount Outlet).
  */
-export function usePullToRefresh({
-  scrollerRef,
-  contentRef,
-  enabled,
-}: UsePullToRefreshOptions): PullToRefreshState {
+export function usePullToRefresh({ scrollerRef, contentRef, enabled }: UsePullToRefreshOptions): PullToRefreshState {
   const onRefresh = useSoftContentRefresh();
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);

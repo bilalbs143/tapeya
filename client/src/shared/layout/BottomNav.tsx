@@ -1,5 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 
+import { useHasLiveStreams } from '@/features/live';
+
 import { cn } from '@/shared/lib/cn';
 
 import { BOTTOM_NAV } from './navConfig';
@@ -18,6 +20,7 @@ type BottomNavProps = {
 /** Primary bottom tabs — re-tap root scrolls to top. */
 export function BottomNav({ className, overlay = false }: BottomNavProps) {
   const { pathname } = useLocation();
+  const liveOn = useHasLiveStreams();
 
   return (
     <nav
@@ -31,6 +34,7 @@ export function BottomNav({ className, overlay = false }: BottomNavProps) {
     >
       {BOTTOM_NAV.map(({ id, to, label, Glyph, dot, isActive }) => {
         const active = isActive(pathname);
+        const showDot = Boolean(dot && liveOn);
         return (
           <NavLink
             key={id}
@@ -45,8 +49,11 @@ export function BottomNav({ className, overlay = false }: BottomNavProps) {
             >
               <span className="relative grid h-5 w-5 place-items-center">
                 <Glyph active={active} />
-                {dot ? (
-                  <span className="bg-danger-text absolute -top-0.5 -right-1 h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_var(--c-surface)]" />
+                {showDot ? (
+                  <span
+                    className="bg-danger-text absolute -top-0.5 -right-1 h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_var(--c-surface)]"
+                    aria-hidden
+                  />
                 ) : null}
               </span>
               <span className={cn('text-3xs leading-none', active ? 'font-bold text-ink' : 'text-dim font-semibold')}>

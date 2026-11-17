@@ -12,6 +12,7 @@ export {
   useUploadBroadcastThumbnailMutation,
 } from './api/liveApi';
 export { buildDirectYoutubeEmbedUrl, extractYoutubeVideoId, resolveYoutubeEmbed } from './lib/playback';
+export { useHasLiveStreams } from './lib/useHasLiveStreams';
 export { useLiveHubChannel } from './lib/useLiveHubChannel';
 export type { LiveComment, LiveStream } from './model/schemas';
 export { liveGoLiveFormRouteObjects, liveImmersiveRouteObjects, liveRoutes, liveShellRouteObjects } from './routes';
