@@ -3,6 +3,7 @@ import { App } from '@capacitor/app';
 
 import { useAppDeepLink, usePushNotifications } from '@/features/notifications';
 
+import { usePlatformTracking } from '@/shared/hooks/usePlatformTracking';
 import { reapplyAndroidSystemNavHidden, startAndroidSystemNavHidden } from '@/shared/native/androidSystemNav';
 import { reapplyKeepAwake } from '@/shared/native/keepAwake';
 import { orientationSession } from '@/shared/native/orientationSession';
@@ -13,6 +14,7 @@ import { getPlatform, isNativePlatform } from '@/shared/platform/platform';
 export function NativeEffects() {
   useAppDeepLink();
   usePushNotifications();
+  usePlatformTracking();
 
   useEffect(() => {
     if (!isNativePlatform()) return undefined;
