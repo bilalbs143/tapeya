@@ -118,6 +118,8 @@ npx cap add android
 
 Always open **`ios/App/App.xcworkspace`** (Pods + app). Opening `App.xcodeproj` alone will not link pods. After clone or `Podfile` / lock changes: `npm run ios:pods`.
 
+**App Store (before April 2027):** uploads must be built with the **iOS 27 SDK (Xcode 27+)**. Xcode 26.5 is fine until then; version/build bumps alone do not clear the App Store Connect SDK warning. See `docs/DEPLOYMENT.md`.
+
 ```bash
 npm run cap:ios                    # prod web build → sync → pod install → open workspace
 npm run cap:ios:staging

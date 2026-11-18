@@ -115,7 +115,9 @@ npm run cap:android
 # npm run cap:android:staging
 ```
 
-For iOS, archive in Xcode as usual.
+For iOS, archive in Xcode as usual (`client/` Capacitor project: open `client/ios/App/App.xcworkspace`).
+
+**App Store SDK deadline (do before April 2027):** App Store Connect already warns that uploads built with the iOS 26.5 SDK (Xcode 26.5) will be rejected after **April 2027**. Builds today are fine. Before that date: install **Xcode 27+** (iOS 27 SDK), rebuild/archive from that Xcode, then upload. Bumping `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` alone does not satisfy this — the **build-machine SDK** must be 27+.
 
 For a **Play-uploadable Android AAB, no Android Studio needed** — builds web assets, syncs Capacitor, and runs `:app:bundleRelease` signed with the upload key:
 
