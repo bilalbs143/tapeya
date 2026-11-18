@@ -320,8 +320,11 @@ class SelfServeBroadcastTest extends TestCase
         $this->assertDatabaseHas('live_streams', ['id' => $streamId, 'status' => 'idle']);
     }
 
-    public function test_start_marks_idle_stream_live_for_hub_and_chat(): void
+    public function test_start_marks_idle_stream_starting_until_provider_live(): void
     {
+        // Do not promote on the immediate post-start sync — mimics YouTube ingest lag.
+        $this->fakeProvider->syncToStatus = 'starting';
+
         $user = $this->eligibleUser();
 
         $streamId = $this->actingAs($user, 'api')
@@ -331,16 +334,34 @@ class SelfServeBroadcastTest extends TestCase
         $this->actingAs($user, 'api')
             ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
             ->assertOk()
-            ->assertJsonPath('data.status', 'live');
+            ->assertJsonPath('data.status', 'starting');
 
         $stream = LiveStream::find($streamId);
-        $this->assertSame('live', $stream->status);
+        $this->assertSame('starting', $stream->status);
         $this->assertNotNull($stream->started_at);
         $this->assertNotNull($stream->provider_metadata['owner_publishing_since'] ?? null);
 
+        // Chat is allowed while starting (same as OBS warm-up).
         $this->actingAs($user, 'api')
             ->postJson("/api/v1/live/streams/{$streamId}/live-comments", ['body' => 'Hello from broadcaster'])
             ->assertCreated();
+    }
+
+    public function test_start_promotes_to_live_when_provider_already_active(): void
+    {
+        $user = $this->eligibleUser();
+
+        $streamId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Mine'])
+            ->json('data.stream_id');
+
+        // Default fake syncToStatus=live — immediate sync after markPublishing flips to live.
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'live');
+
+        $this->assertSame('live', LiveStream::find($streamId)->status);
     }
 
     public function test_start_rejected_for_non_owner(): void

@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
+import { cn } from '@/shared/lib/cn';
+import { isNativePlatform } from '@/shared/platform/platform';
 import { Button } from '@/shared/ui/Button';
 
 import { formatBroadcastElapsed } from '../lib/playback';
@@ -15,10 +17,11 @@ type GoLiveEndedViewProps = {
 /** Post-broadcast summary on phone; web gate on wider viewports. */
 export function GoLiveEndedView({ durationSec, peakViewers = 0, reason }: GoLiveEndedViewProps) {
   const navigate = useNavigate();
+  const native = isNativePlatform();
 
   return (
-    <div className="bg-page flex min-h-[100dvh] flex-col">
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-3.5 px-5 py-8 tab:hidden">
+    <div className="bg-page flex min-h-dvh flex-col">
+      <div className={cn('flex min-h-0 flex-1 flex-col justify-center gap-3.5 px-5 py-8', !native && 'tab:hidden')}>
         <h1 className="text-title-sm leading-normal font-extrabold text-ink">Broadcast Ended</h1>
         <p className="text-muted text-3xs leading-relaxed">
           {reason === 'backgrounded'

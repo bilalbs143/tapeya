@@ -123,6 +123,21 @@ class LiveStreamStatusTransitionTest extends TestCase
         $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'idle'));
     }
 
+    public function test_owner_publishing_grace_keeps_starting_while_ingest_warms(): void
+    {
+        $stream = $this->stream([
+            'status' => 'starting',
+            'owner_user_id' => 42,
+            'started_at' => now(),
+            'provider_metadata' => [
+                'owner_publishing_since' => now()->subMinute()->toIso8601String(),
+            ],
+        ]);
+
+        // YouTube often reports idle/ready until RTMP is active — stay on starting.
+        $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'idle'));
+    }
+
     public function test_owner_publishing_grace_expires_allows_idle_downgrade(): void
     {
         $stream = $this->stream([

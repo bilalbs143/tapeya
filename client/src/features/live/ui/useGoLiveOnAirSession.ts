@@ -226,7 +226,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
         setLocalPublishActive(false);
         setLocalLiveAt(null);
         if (serverStarted) {
-          // POST …/start already marked the row live — roll back so the hub is not stuck.
+          // POST …/start already marked publishing — roll back so the hub is not stuck.
           try {
             await endSession(streamId).unwrap();
           } catch {

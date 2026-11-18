@@ -169,8 +169,8 @@ export const STATUS_BADGE: Record<string, string> = {
 
 export const STATUS_SLATE: Record<string, { title: string; body: string }> = {
   starting: {
-    title: 'Stream is starting',
-    body: 'The broadcaster is getting ready. This usually takes a moment.',
+    title: 'Connecting to the video…',
+    body: 'This usually takes under 30 to 40 seconds.',
   },
   ended: {
     title: 'This stream has ended',

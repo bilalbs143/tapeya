@@ -50,6 +50,15 @@ export function StreamPlayer({
   const active = ['live', 'ended'].includes(status) && Boolean(playback);
   useKeepAwake(active);
 
+  if (status === 'starting') {
+    const slate = STATUS_SLATE.starting ?? PLAYBACK_ERROR_SLATE;
+    return (
+      <div className={cn(box, 'overflow-hidden')}>
+        <StreamVideoLoading visible label={slate.title} hint={slate.body} posterUrl={posterUrl} />
+      </div>
+    );
+  }
+
   if (!['live', 'ended'].includes(status) || !playback) {
     const slate = STATUS_SLATE[status] ?? STATUS_SLATE.idle ?? PLAYBACK_ERROR_SLATE;
     return (

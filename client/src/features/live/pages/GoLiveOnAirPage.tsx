@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 
 import { getHttpStatus, isGoneError } from '@/shared/api/errors';
+import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ErrorState, Skeleton } from '@/shared/ui/states';
 
@@ -67,11 +68,7 @@ export default function GoLiveOnAirPage() {
 
   if (showLoading) {
     return (
-      <div
-        className="relative flex min-h-[100dvh] flex-col bg-transparent"
-        aria-busy="true"
-        aria-label="Loading Broadcast"
-      >
+      <div className="relative flex min-h-dvh flex-col bg-transparent" aria-busy="true" aria-label="Loading Broadcast">
         <div className="relative z-10 flex flex-col gap-2 px-3.5 pt-[max(10px,env(safe-area-inset-top))]">
           <Skeleton className="h-[22px] w-16 rounded-chip bg-white/15" />
           <Skeleton className="h-2.5 w-24 bg-white/10" />
@@ -86,9 +83,9 @@ export default function GoLiveOnAirPage() {
 
   if (phase === 'permission_denied') {
     return (
-      <div className="bg-surface flex min-h-[100dvh] flex-col">
+      <div className="bg-surface flex min-h-dvh flex-col">
         <GoLiveWebGate />
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8 tab:hidden">
+        <div className={cn('flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8', !native && 'tab:hidden')}>
           <ErrorState
             title="Camera Access Needed"
             description="Allow camera and microphone to preview and go live."
@@ -104,9 +101,9 @@ export default function GoLiveOnAirPage() {
 
   if (phase === 'plugin_unavailable') {
     return (
-      <div className="bg-surface flex min-h-[100dvh] flex-col">
+      <div className="bg-surface flex min-h-dvh flex-col">
         <GoLiveWebGate />
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8 tab:hidden">
+        <div className={cn('flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8', !native && 'tab:hidden')}>
           <ErrorState
             title="Broadcast Engine Missing"
             description="This build of Tapeya can’t open the camera yet. Update the app, or reinstall a native build that includes Go Live."
@@ -156,9 +153,9 @@ export default function GoLiveOnAirPage() {
 
   if (phase === 'error') {
     return (
-      <div className="bg-surface flex min-h-[100dvh] flex-col">
+      <div className="bg-surface flex min-h-dvh flex-col">
         <GoLiveWebGate />
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8 tab:hidden">
+        <div className={cn('flex min-h-0 flex-1 flex-col justify-center gap-3 px-5 py-8', !native && 'tab:hidden')}>
           <ErrorState
             title="Broadcast Error"
             description="Something went wrong with the camera or stream. Try again."

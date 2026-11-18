@@ -89,7 +89,8 @@ class LiveBroadcastController extends Controller
     }
 
     /**
-     * Owner tapped "Go live" — mark live immediately; optional provider poll for faster embed readiness.
+     * Owner tapped "Go live" — mark publishing (`starting`), then poll YouTube once so we
+     * flip to `live` immediately when ingest is already active (OBS-like: loader until frames).
      */
     public function start(Request $request, LiveStream $stream): JsonResponse
     {

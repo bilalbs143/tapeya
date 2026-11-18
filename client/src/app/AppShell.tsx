@@ -32,6 +32,7 @@ import {
 } from '@/shared/layout';
 import { cn } from '@/shared/lib/cn';
 import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
+import { isNativePlatform } from '@/shared/platform/platform';
 import { selectIsAuthenticated } from '@/shared/store/authSlice';
 import { useAppSelector } from '@/shared/store/hooks';
 
@@ -85,10 +86,16 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
   const keyboardOpen = keyboardInset > 0;
   const showBottomNav = isAuthenticated && !hideBottomNav && !keyboardOpen;
   const fixedFrame = isFixedHeightShellPath(pathname) || pageDockActive;
+  const liveImmersive = isLiveImmersivePath(pathname);
+  // Native go-live must stay phone chrome. iOS can flip `(min-width: 900px)` true during
+  // landscape lock / rotation (seen with innerWidth still ~428), which would mount SideNav
+  // and hide the camera stage behind the web-only gate.
+  const liveImmersiveNative = liveImmersive && isNativePlatform();
+  const deskBare = isTab && !liveImmersiveNative;
 
   if (bare) {
-    // Go-live on-air needs a transparent phone shell so the native camera underlay shows through.
-    const immersiveTransparent = isLiveImmersivePath(pathname);
+    // Native go-live: transparent shell for camera underlay. Web stays opaque.
+    const immersiveTransparent = liveImmersiveNative;
     // Phone reels: dark tokens for page bg + Suspense/skeleton before the player paints
     // (same scoped `data-theme` pattern as overlay BottomNav). Desk SideNav stays app theme.
     const reelsPhoneDark = isReelsImmersivePath(pathname);
@@ -102,7 +109,7 @@ function AppShellChrome({ bare = false, className }: AppShellProps) {
           className
         )}
       >
-        {isTab ? (
+        {deskBare ? (
           <div className="flex h-full min-h-0 flex-1">
             {isAuthenticated ? <SideNav user={sideUser} /> : null}
             <div className="relative min-w-0 flex-1">

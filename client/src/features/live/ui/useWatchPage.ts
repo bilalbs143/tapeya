@@ -43,7 +43,8 @@ export function useWatchPage(streamId: number, valid: boolean) {
   const myUserId = useAppSelector(selectUserId);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthed });
 
-  const streamQuery = useGetLiveStreamQuery({ streamId, authed: isAuthed }, { skip: !valid, pollingInterval: 30_000 });
+  // 5s so starting→live (YouTube ingest) is picked up without a long empty LIVE embed.
+  const streamQuery = useGetLiveStreamQuery({ streamId, authed: isAuthed }, { skip: !valid, pollingInterval: 5_000 });
   const commentsQuery = useGetLiveCommentsQuery(streamId, {
     skip: !valid || !isAuthed,
   });

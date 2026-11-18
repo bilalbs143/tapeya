@@ -232,9 +232,10 @@ class LiveStreamService
     }
 
     /**
-     * Owner began RTMP publish — mark live immediately for hub/backoffice/playback.
-     * YouTube sync still runs on schedule (and via manual Sync Status) to reconcile.
-     * Re-calling while already live refreshes the owner publishing grace (resume / reconnect).
+     * Owner began RTMP publish — stay on `starting` until YouTube ingest is active (same as OBS),
+     * so watchers see a connecting slate instead of a LIVE badge on an empty embed.
+     * `streams:sync` / start()'s immediate sync promote to `live` + push when ingest is ready.
+     * Re-calling while already live only refreshes the owner publishing grace (resume / reconnect).
      */
     public function markPublishing(LiveStream $stream): void
     {
@@ -247,18 +248,20 @@ class LiveStreamService
         $metadata['owner_publishing_since'] = now()->toIso8601String();
 
         $wasLive = $stream->status === 'live';
+        // First publish waits on ingest; reconnect keeps live so hub/chat do not flicker.
+        $status = $wasLive ? 'live' : 'starting';
 
         $stream->update([
-            'status' => 'live',
+            'status' => $status,
             'started_at' => $stream->started_at ?? now(),
             'provider_metadata' => $metadata,
         ]);
         $stream->refresh();
 
-        // Resume only needs grace refresh — avoid duplicate hub/status/push when already live.
+        // Resume only needs grace refresh — avoid duplicate hub/status when already live.
+        // Went-live push waits for reconcileStatusChange once provider reports live.
         if (! $wasLive) {
             $this->broadcastStatusChange($stream);
-            $this->notifyWentLive($stream);
         }
     }
 

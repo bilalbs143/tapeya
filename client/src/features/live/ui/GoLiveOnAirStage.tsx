@@ -118,7 +118,9 @@ export function GoLiveOnAirStage({
 
       <div
         className={cn(
-          'relative flex min-h-0 flex-1 flex-col overflow-hidden text-white tab:hidden',
+          'relative flex min-h-0 flex-1 flex-col overflow-hidden text-white',
+          // Web only: hide phone chrome at tab+. Native always shows camera chrome.
+          !native && 'tab:hidden',
           native ? 'bg-transparent' : 'bg-black'
         )}
         style={{ paddingBottom: keyboardInset }}
