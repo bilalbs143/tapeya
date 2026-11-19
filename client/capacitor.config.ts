@@ -6,6 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
+    // `cap:*:local` sets CAP_LOCAL_DEVICE=1 so the phone can hit http://LAN:8000.
+    ...(process.env.CAP_LOCAL_DEVICE === '1' ? { cleartext: true } : {}),
   },
   ios: {
     contentInset: 'never',
@@ -30,8 +32,6 @@ const config: CapacitorConfig = {
       insetsHandling: 'disable',
     },
   },
-  // Do not enable android.allowMixedContent — cleartext / mixed HTTP is a
-  // store-policy and security risk. Point native builds at HTTPS APIs only.
 };
 
 export default config;

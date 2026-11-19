@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\Ad\AdCampaignController;
+use App\Http\Controllers\Admin\Ad\AdCreativeController;
+use App\Http\Controllers\Admin\Ad\BrandPartnerController;
+use App\Http\Controllers\Admin\Ad\LiveAdTakeController;
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CricketDashboardController;
@@ -96,6 +100,20 @@ Route::prefix('admin')->group(function () {
 
         Route::apiResource('hero-sliders', HeroSliderController::class);
         Route::apiResource('static-pages', StaticPageController::class);
+
+        Route::apiResource('brand-partners', BrandPartnerController::class);
+        Route::post('brand-partners/{brand_partner}/compose-post', [BrandPartnerController::class, 'composePost']);
+        Route::apiResource('ad-campaigns', AdCampaignController::class);
+        Route::get('ad-campaigns/{ad_campaign}/eligibility-preview', [AdCampaignController::class, 'eligibilityPreview']);
+        Route::get('ad-campaigns/{ad_campaign}/stats', [AdCampaignController::class, 'stats']);
+        Route::apiResource('ad-creatives', AdCreativeController::class);
+        Route::post('ad-creatives/{ad_creative}/approve', [AdCreativeController::class, 'approve']);
+        Route::post('ad-creatives/{ad_creative}/reject', [AdCreativeController::class, 'reject']);
+        Route::post('ad-creatives/{ad_creative}/pause', [AdCreativeController::class, 'pause']);
+        Route::get('live-ad-takes', [LiveAdTakeController::class, 'index']);
+        Route::post('live-ad-takes', [LiveAdTakeController::class, 'store']);
+        Route::post('live-ad-takes/end-all', [LiveAdTakeController::class, 'endAll']);
+        Route::post('live-ad-takes/{live_ad_take}/end', [LiveAdTakeController::class, 'end']);
         Route::get('system-settings', [SystemSettingController::class, 'index']);
         Route::get('system-settings/{key}', [SystemSettingController::class, 'show'])->where('key', '[a-z0-9_]+');
         Route::patch('system-settings/{key}', [SystemSettingController::class, 'patch'])->where('key', '[a-z0-9_]+');

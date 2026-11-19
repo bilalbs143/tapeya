@@ -87,7 +87,7 @@ export function ReelActions({
         <BookmarkIcon size="lg" filled={reel.saved} strokeWidth={1.8} />
       </button>
 
-      {!isOwn ? (
+      {!isOwn && !reel.isSponsored ? (
         <button type="button" aria-label="Report Reel" className="text-danger-text" onClick={onReport}>
           <FlagIcon size="lg" strokeWidth={1.8} />
         </button>

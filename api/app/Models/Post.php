@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Post\PostDistributionEnum;
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
 use App\Services\Post\PostPlaybackUrlService;
@@ -32,6 +33,7 @@ class Post extends BaseModel
         'body',
         'background_id',
         'status',
+        'distribution',
         'repost_of_post_id',
         'cover_path',
         'likes_count',
@@ -52,6 +54,7 @@ class Post extends BaseModel
         return [
             'type' => PostTypeEnum::class,
             'status' => PostStatusEnum::class,
+            'distribution' => PostDistributionEnum::class,
             'likes_count' => 'integer',
             'comments_count' => 'integer',
             'views_count' => 'integer',
@@ -147,6 +150,11 @@ class Post extends BaseModel
         return $this->hasMany(self::class, 'repost_of_post_id');
     }
 
+    public function adCreatives(): HasMany
+    {
+        return $this->hasMany(AdCreative::class);
+    }
+
     /** Published posts eligible for explore / Home Explore tab. */
     public function scopeExplore(Builder $query): Builder
     {
@@ -158,6 +166,11 @@ class Post extends BaseModel
                 PostStatusEnum::Rejected,
                 PostStatusEnum::Removed,
             ])
+            ->where(function (Builder $q) {
+                $q->where('distribution', PostDistributionEnum::Organic)
+                    ->orWhereNull('distribution')
+                    ->orWhere('distribution', '');
+            })
             ->withDiscoveryPoster();
     }
 

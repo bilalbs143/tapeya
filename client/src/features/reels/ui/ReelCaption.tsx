@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { SponsoredCtaButton, SponsoredLabel, trackSponsoredClick } from '@/features/ads';
 
 import { UserIdentity, userProfilePath } from '@/entities/user';
 
@@ -18,6 +20,7 @@ type ReelCaptionProps = {
 
 /** Creator + caption — collapse at ~100 chars; match chip when wire includes `match`. */
 export function ReelCaption({ reel, className }: ReelCaptionProps) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const caption = reel.caption.trim();
   const needsCollapse = caption.length > CAPTION_COLLAPSE_LIMIT;
@@ -28,6 +31,7 @@ export function ReelCaption({ reel, className }: ReelCaptionProps) {
   const handle = reel.author.handle.startsWith('@') ? reel.author.handle : `@${reel.author.handle}`;
   const showHandle = Boolean(reel.author.nickname);
   const match = reel.match;
+  const sponsorship = reel.sponsorship;
 
   return (
     <div className={cn('min-w-0 text-white', className)}>
@@ -42,9 +46,16 @@ export function ReelCaption({ reel, className }: ReelCaptionProps) {
         to={profileHref}
         nameClassName="text-body-sm font-extrabold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]"
         meta={
-          showHandle ? (
+          sponsorship || showHandle ? (
             <p className="mt-0.5 truncate text-2xs font-medium text-white/75 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
-              {handle}
+              {sponsorship ? (
+                <>
+                  <SponsoredLabel label={sponsorship.disclosureLabel} tone="reel" />
+                  {showHandle ? <span> · {handle}</span> : null}
+                </>
+              ) : (
+                handle
+              )}
             </p>
           ) : null
         }
@@ -71,6 +82,15 @@ export function ReelCaption({ reel, className }: ReelCaptionProps) {
             </>
           ) : null}
         </p>
+      ) : null}
+
+      {sponsorship?.cta ? (
+        <SponsoredCtaButton
+          cta={sponsorship.cta}
+          tone="reel"
+          className="mt-2.5"
+          onClick={() => trackSponsoredClick(sponsorship, 'reels_feed', navigate)}
+        />
       ) : null}
 
       {reel.hashtags.length ? (

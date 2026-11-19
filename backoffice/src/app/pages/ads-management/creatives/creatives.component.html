@@ -1,0 +1,279 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content>
+    <app-page-header
+      title="Ad Creatives"
+      subtitle="Post-backed creatives and approval gate"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <app-ui-button
+          type="button"
+          (click)="resetSearchForm()"
+          variant="secondary"
+        >
+          Clear Search
+        </app-ui-button>
+        <app-ui-button
+          variant="primary"
+          type="button"
+          (click)="openCreateDialog()"
+        >
+          Add Creative
+        </app-ui-button>
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content>
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter Form"
+    >
+      <app-search-filter-bar>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              type="search"
+              placeholder="Search by Name"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </app-search-filter-bar>
+    </form>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Creatives"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            matSort
+            aria-label="Ad Creatives List"
+            matSortActive="created_at"
+            matSortStart="desc"
+            matSortDirection="desc"
+            [dataSource]="dataSource"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                class="font-semibold"
+              >
+                Name
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="campaign">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Campaign
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.campaign?.name ?? '#' + row.campaign_id }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="post_id">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Post ID
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.post_id }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="cta">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                CTA
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.cta_label }}
+                <span class="text-muted">({{ ctaTypeLabel(row.cta_type) }})</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Status
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                <app-status-chip
+                  [status]="row.status"
+                  [label]="statusLabel(row.status)"
+                />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action"
+                    aria-label="Edit Creative"
+                    (click)="openEditDialog(row)"
+                  >
+                    <i-tabler
+                      name="edit"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                  @if (canApprove(row)) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Approve Creative"
+                      [disabled]="actionBusyId === row.id"
+                      (click)="approve(row)"
+                    >
+                      <i-tabler
+                        name="check"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  @if (canReject(row)) {
+                    <button
+                      type="button"
+                      class="row-action row-action--danger"
+                      aria-label="Reject Creative"
+                      [disabled]="actionBusyId === row.id"
+                      (click)="reject(row)"
+                    >
+                      <i-tabler
+                        name="x"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                  @if (canPause(row)) {
+                    <button
+                      type="button"
+                      class="row-action"
+                      aria-label="Pause Creative"
+                      [disabled]="actionBusyId === row.id"
+                      (click)="pause(row)"
+                    >
+                      <i-tabler
+                        name="player-pause"
+                        class="size-4.5!"
+                      ></i-tabler>
+                    </button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
+    <app-paginator
+      [loading]="isLoading"
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

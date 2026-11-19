@@ -56,6 +56,10 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   idle: 'bg-light-secondary text-muted',
   ended: 'bg-light-secondary text-muted',
   streaming: 'bg-light-primary text-primary',
+  draft: 'bg-light-secondary text-muted',
+  paused: 'bg-light-warning text-warning',
+  archived: 'bg-light-secondary text-muted',
+  pending_review: 'bg-light-warning text-warning',
   /** Neutral pill for non-status labels (e.g. tournament type). */
   generic: 'bg-light-secondary text-muted',
 };

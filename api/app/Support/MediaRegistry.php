@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\BrandPartner;
 use App\Models\DramaEpisode;
 use App\Models\DramaSerial;
 use App\Models\HeroSlider;
@@ -45,6 +46,12 @@ class MediaRegistry
                 'model' => Brand::class,
                 'fields' => [
                     'logo' => ['dir' => 'shop/brands', 'column' => 'logo'],
+                ],
+            ],
+            'brand-partner' => [
+                'model' => BrandPartner::class,
+                'fields' => [
+                    'logo' => ['dir' => 'ads/brand-partners', 'column' => 'logo_path'],
                 ],
             ],
             'category' => [

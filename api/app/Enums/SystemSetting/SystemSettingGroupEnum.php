@@ -44,6 +44,9 @@ enum SystemSettingGroupEnum: string
     /** Live match chat (rate limits, kill switch). */
     case LIVE_CHAT = 'live_chat';
 
+    /** Sponsored feed + live take ads (kill switch + density defaults). */
+    case ADS = 'ads';
+
     /** Push notification provider credentials and kill switch. */
     case PUSH_NOTIFICATIONS = 'push_notifications';
 
@@ -68,6 +71,7 @@ enum SystemSettingGroupEnum: string
             self::WHATSAPP => 'WhatsApp',
             self::STREAMING => 'Live Streaming',
             self::LIVE_CHAT => 'Live Match Chat',
+            self::ADS => 'Sponsored Ads',
             self::PUSH_NOTIFICATIONS => 'Push Notifications',
             self::REELS => 'Reels',
             self::MEDIA_CDN => 'Media & CDN',

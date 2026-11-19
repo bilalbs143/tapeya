@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useSponsoredReelMetrics } from '@/features/ads';
+
 import { cn } from '@/shared/lib/cn';
 import { SpeakerIcon } from '@/shared/ui/icons';
 import { Scrubber } from '@/shared/ui/Scrubber';
@@ -98,6 +100,13 @@ export function ReelSlide({
     onWaiting: () => setStalled(true),
     onTimeUpdate: setProgress,
     onBecameInactive: () => setProgress(0),
+  });
+
+  useSponsoredReelMetrics({
+    active,
+    sponsorship: reel.sponsorship,
+    videoRef,
+    mediaEpoch: `${reel.id}:${readyToken}:${inPlayerWindow ? 1 : 0}`,
   });
 
   // Reset tip / reveal when reel or attach epoch changes (render-time — avoid setState-in-effect).

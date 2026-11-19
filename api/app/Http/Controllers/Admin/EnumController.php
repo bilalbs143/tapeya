@@ -2,11 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Ad\AdCampaignObjectiveEnum;
+use App\Enums\Ad\AdCampaignStatusEnum;
+use App\Enums\Ad\AdCreativeStatusEnum;
+use App\Enums\Ad\AdCtaTypeEnum;
+use App\Enums\Ad\AdEventTypeEnum;
+use App\Enums\Ad\AdSurfaceEnum;
+use App\Enums\Ad\BrandPartnerStatusEnum;
+use App\Enums\Ad\LiveAdTakeModeEnum;
+use App\Enums\Ad\LiveAdTakeStatusEnum;
 use App\Enums\Common\StatusEnum;
 use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
+use App\Enums\Post\PostDistributionEnum;
 use App\Enums\Push\PushNotificationStatusEnum;
 use App\Enums\Push\PushTargetTypeEnum;
 use App\Enums\Push\PushTriggeredByEnum;
@@ -47,7 +57,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v22', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v23', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -63,6 +73,16 @@ class EnumController extends Controller
             'active_platform' => $this->toOptions(ActivePlatformEnum::cases()),
             'status' => $this->toOptions(StatusEnum::cases()),
             'hero_slider_cta_type' => $this->toOptions(HeroSliderCtaTypeEnum::cases()),
+            'post_distribution' => $this->toOptions(PostDistributionEnum::cases()),
+            'brand_partner_status' => $this->toOptions(BrandPartnerStatusEnum::cases()),
+            'ad_campaign_status' => $this->toOptions(AdCampaignStatusEnum::cases()),
+            'ad_campaign_objective' => $this->toOptions(AdCampaignObjectiveEnum::cases()),
+            'ad_creative_status' => $this->toOptions(AdCreativeStatusEnum::cases()),
+            'ad_cta_type' => $this->toOptions(AdCtaTypeEnum::cases()),
+            'ad_event_type' => $this->toOptions(AdEventTypeEnum::cases()),
+            'ad_surface' => $this->toOptions(AdSurfaceEnum::cases()),
+            'live_ad_take_mode' => $this->toOptions(LiveAdTakeModeEnum::cases()),
+            'live_ad_take_status' => $this->toOptions(LiveAdTakeStatusEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),

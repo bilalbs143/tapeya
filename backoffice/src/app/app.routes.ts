@@ -63,6 +63,10 @@ export const routes: Routes = [
           import('./pages/live-streams-management/live-streams-management.routes').then((m) => m.LiveStreamsManagementRoutes),
       },
       {
+        path: 'ads-management',
+        loadChildren: () => import('./pages/ads-management/ads-management.routes').then((m) => m.AdsManagementRoutes),
+      },
+      {
         path: 'settings',
         loadChildren: () => import('./pages/settings/settings.routes').then((m) => m.SettingsRoutes),
       },

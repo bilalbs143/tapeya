@@ -94,6 +94,11 @@
 		<string>fbapi</string>
 		<string>fb-messenger-share-api</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Allow Tapeya to use your device identifier to measure ad performance and show you more relevant ads.</string>
 	<key>NSCameraUsageDescription</key>

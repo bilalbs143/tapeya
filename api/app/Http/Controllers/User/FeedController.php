@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Ad\AdSurfaceEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Post\StoreComposePostRequest;
@@ -9,6 +10,7 @@ use App\Http\Requests\User\Post\StoreRepostRequest;
 use App\Http\Resources\User\PostResource;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\Ad\AdFeedInjector;
 use App\Services\Post\PostFeedService;
 use App\Services\Post\PostInteractionService;
 use App\Services\Post\PostRepostService;
@@ -42,6 +44,7 @@ class FeedController extends Controller
         private readonly PostInteractionService $interactions,
         private readonly PostService $postService,
         private readonly PostRepostService $repostService,
+        private readonly AdFeedInjector $adInjector,
     ) {}
 
     /** Home Explore — mixed public posts. */
@@ -54,7 +57,7 @@ class FeedController extends Controller
             viewerId: (int) $request->user()->id,
         );
 
-        return $this->cursorSuccess($paginator, $request);
+        return $this->cursorSuccess($paginator, $request, injectAds: true);
     }
 
     /** Home Following — mixed posts from followed authors (public + followers). */
@@ -233,12 +236,25 @@ class FeedController extends Controller
     /**
      * @param  CursorPaginator<int, Post>  $paginator
      */
-    private function cursorSuccess($paginator, Request $request): JsonResponse
+    private function cursorSuccess($paginator, Request $request, bool $injectAds = false): JsonResponse
     {
-        $items = $this->interactions->attachViewerStateMany(
-            $paginator->items(),
-            $request->user(),
-        );
+        $items = $paginator->items();
+
+        if ($injectAds) {
+            $platform = strtolower((string) ($request->header('X-Platform') ?: $request->query('platform', 'android')));
+            $country = $request->query('country')
+                ?: $request->header('X-Country')
+                ?: $request->user()?->country;
+            $items = $this->adInjector->inject(
+                $items,
+                $request->user(),
+                AdSurfaceEnum::HomeFeed,
+                $platform,
+                is_string($country) ? $country : null,
+            );
+        }
+
+        $items = $this->interactions->attachViewerStateMany($items, $request->user());
 
         /** @var AnonymousResourceCollection $collection */
         $collection = PostResource::collection($items);

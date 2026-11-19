@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\User\AdditionalRunsController;
+use App\Http\Controllers\User\AdEventController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
 use App\Http\Controllers\User\DramaEpisodeCommentController;
@@ -118,6 +119,8 @@ Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::put('active-platform', [UserActivePlatformController::class, 'update']);
     Route::delete('profile', [ProfileController::class, 'destroy']);
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
+
+    Route::post('ads/events', [AdEventController::class, 'store'])->middleware('throttle:120,1');
 
     Route::get('feed', [FeedController::class, 'explore']);
     Route::get('feed/following', [FeedController::class, 'following']);

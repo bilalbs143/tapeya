@@ -123,11 +123,13 @@ Always open **`ios/App/App.xcworkspace`** (Pods + app). Opening `App.xcodeproj` 
 ```bash
 npm run cap:ios                    # prod web build → sync → pod install → open workspace
 npm run cap:ios:staging
+npm run cap:ios:local              # phone → Mac LAN API (`artisan serve --host=0.0.0.0`)
 npm run cap:sync:ios               # web assets + Capacitor pods + pod install (no open)
 npm run cap:open:ios               # open App.xcworkspace (prefer over `cap open ios`)
 npm run ios:pods                   # CocoaPods only
 npm run cap:android                # prod web build → sync → open Android Studio
 npm run cap:android:staging
+npm run cap:android:local          # phone → Mac LAN API (`artisan serve --host=0.0.0.0`)
 npm run cap:android:apk            # signed release APK (device sideload / testing)
 npm run cap:android:apk:staging
 npm run cap:android:bundle         # release AAB (Play upload; needs android/ signing)

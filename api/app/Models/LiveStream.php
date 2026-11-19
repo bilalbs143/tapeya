@@ -36,6 +36,7 @@ class LiveStream extends BaseModel
         'playback_url',
         'embed_url',
         'provider_metadata',
+        'ads_allowed',
         'started_at',
         'ended_at',
     ];
@@ -49,6 +50,7 @@ class LiveStream extends BaseModel
             'orientation' => StreamOrientationEnum::class,
             'provider_metadata' => 'array',
             'stream_thumbnail' => AsFile::class.':match-stream-thumbnails,false,media',
+            'ads_allowed' => 'boolean',
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
         ];

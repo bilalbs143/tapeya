@@ -1,5 +1,6 @@
 import { setupServer } from 'msw/node';
 
+import { adsHandlers } from '@/features/ads/test/handlers';
 import { authHandlers } from '@/features/auth/test/handlers';
 import { entertainmentHandlers } from '@/features/entertainment/test/handlers';
 import { exploreHandlers } from '@/features/explore/test/handlers';
@@ -25,6 +26,7 @@ export const server = setupServer(
   ...enumsHandlers,
   ...locationHandlers,
   ...authHandlers,
+  ...adsHandlers,
   ...exploreHandlers,
   ...profileHandlers,
   ...reelsHandlers,

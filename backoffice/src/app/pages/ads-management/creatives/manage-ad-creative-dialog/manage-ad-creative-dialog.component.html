@@ -1,0 +1,187 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Ad Creative Form"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Campaign</mat-label>
+            <mat-select formControlName="campaign_id">
+              @for (c of campaigns; track c.id) {
+                <mat-option [value]="c.id">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('campaign_id')?.invalid && form.get('campaign_id')?.touched) {
+              <mat-error>Campaign Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Creative Name"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Name Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Post ID</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="post_id"
+              min="1"
+              placeholder="Sponsored Post ID"
+            />
+            <mat-hint>Existing Post That Supplies The Ad Image/Video Body.</mat-hint>
+            @if (form.get('post_id')?.invalid && form.get('post_id')?.touched) {
+              <mat-error>Post ID Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>CTA Bar Title</mat-label>
+            <input
+              matInput
+              formControlName="headline"
+              placeholder="E.G. Pepsi — Refresh Your Game Day"
+            />
+            <mat-hint>Optional. Shown Next To The CTA Button. Leave Blank To Use The Brand Name.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>CTA Type</mat-label>
+            <mat-select formControlName="cta_type">
+              @for (opt of ctaTypeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>CTA Label</mat-label>
+            <input
+              matInput
+              formControlName="cta_label"
+              [placeholder]="form.get('cta_type')?.value === 'whatsapp' ? 'E.G. Message Us' : 'E.G. Learn More'"
+            />
+            <mat-hint>
+              @if (form.get('cta_type')?.value === 'whatsapp') {
+                Button Text — WhatsApp Keeps The Green Style And Icon.
+              } @else {
+                Button Text Shown On The Ad.
+              }
+            </mat-hint>
+            @if (form.get('cta_label')?.invalid && form.get('cta_label')?.touched) {
+              <mat-error>CTA Label Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>
+              @if (form.get('cta_type')?.value === 'whatsapp') {
+                WhatsApp Number
+              } @else if (form.get('cta_type')?.value === 'deep_link') {
+                Deep Link
+              } @else {
+                CTA URL
+              }
+            </mat-label>
+            <input
+              matInput
+              formControlName="cta_url"
+              [placeholder]="
+                form.get('cta_type')?.value === 'whatsapp'
+                  ? '+92 300 1234567 Or https://wa.me/923001234567'
+                  : form.get('cta_type')?.value === 'deep_link'
+                    ? '/shop Or tapeya://…'
+                    : 'https://example.com'
+              "
+            />
+            <mat-hint>
+              @if (form.get('cta_type')?.value === 'whatsapp') {
+                Phone With Country Code, Or A wa.me Link.
+              } @else if (form.get('cta_type')?.value === 'deep_link') {
+                In-App Path Or App Deep Link.
+              } @else {
+                Public HTTPS Link.
+              }
+            </mat-hint>
+            @if (form.get('cta_url')?.invalid && form.get('cta_url')?.touched) {
+              <mat-error>CTA Value Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Disclosure Label</mat-label>
+            <input
+              matInput
+              formControlName="disclosure_label"
+              placeholder="Sponsored"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+      >
+        Cancel
+      </app-ui-button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="data.mode === 'edit' ? 'Save Creative' : 'Add Creative'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

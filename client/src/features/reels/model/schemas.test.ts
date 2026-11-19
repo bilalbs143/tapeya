@@ -64,4 +64,29 @@ describe('toDomain', () => {
     });
     expect(domain.match && matchChipLabel(domain.match)).toBe('CB 142/4 · KK —');
   });
+
+  it('maps sponsorship envelope for sponsored reels', () => {
+    const wire: ReelWire = {
+      id: 3,
+      distribution: 'sponsored_only',
+      sponsorship: {
+        is_sponsored: true,
+        campaign_id: 7,
+        creative_id: 8,
+        disclosure_label: 'Sponsored',
+        title: 'Pepsi Moments',
+        cta: { label: 'Shop Pepsi', url: 'https://www.pepsi.com', type: 'url' },
+        brand: { name: 'Pepsi', logo_url: null, partner_id: 1 },
+      },
+    };
+    const domain = toDomain(wire);
+    expect(domain.isSponsored).toBe(true);
+    expect(domain.sponsorship).toEqual({
+      campaignId: 7,
+      creativeId: 8,
+      disclosureLabel: 'Sponsored',
+      title: 'Pepsi Moments',
+      cta: { label: 'Shop Pepsi', url: 'https://www.pepsi.com', type: 'url' },
+    });
+  });
 });

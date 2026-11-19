@@ -43,6 +43,8 @@
   --c-debug: #da9811; /* QA-only affordances. NOT a product warning colour. */
   --c-warning: #c4891a;
   --c-warning-soft: #e6b84d;
+  /* Paid placement disclosure — AA on feed chrome + reel overlays. */
+  --c-sponsored: #e6b84d;
 
   --c-page: #13131b;
   --c-page-deep: #0e0e14;
@@ -151,6 +153,7 @@
   --c-debug: #8a6100;
   --c-warning: #9a6b00;
   --c-warning-soft: #8a6100;
+  --c-sponsored: #8a6100;
 
   --c-page: #f3f4f8;
   --c-page-deep: #e8eaf0;
@@ -200,6 +203,7 @@
   --color-debug: var(--c-debug);
   --color-warning: var(--c-warning);
   --color-warning-soft: var(--c-warning-soft);
+  --color-sponsored: var(--c-sponsored);
 
   --color-page: var(--c-page);
   --color-page-deep: var(--c-page-deep);

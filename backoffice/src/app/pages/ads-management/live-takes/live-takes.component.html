@@ -1,0 +1,271 @@
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content>
+    <app-page-header
+      title="Live Ad Takes"
+      subtitle="Push approved creatives live on selected streams"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <app-ui-button
+          type="button"
+          variant="secondary"
+          (click)="reloadAll()"
+        >
+          Refresh
+        </app-ui-button>
+        <app-ui-button
+          type="button"
+          variant="secondary"
+          [disabled]="isEndingAll || dataSource.data.length === 0"
+          (click)="endAll()"
+        >
+          End All
+        </app-ui-button>
+        <app-ui-button
+          type="button"
+          variant="primary"
+          [disabled]="!canMakeLive"
+          (click)="makeLive()"
+        >
+          {{ isSubmitting ? 'Making Live…' : 'Make Live' }}
+        </app-ui-button>
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content>
+    <form
+      [formGroup]="makeLiveForm"
+      (ngSubmit)="makeLive()"
+      aria-label="Make Live Form"
+    >
+      <app-search-filter-bar>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Approved Creative</mat-label>
+            <mat-select formControlName="creative_id">
+              @for (c of approvedCreatives; track c.id) {
+                <mat-option [value]="c.id">{{ c.name }} (#{{ c.id }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Mode</mat-label>
+            <mat-select formControlName="mode">
+              @for (opt of modeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Live Streams</mat-label>
+            <mat-select
+              formControlName="stream_ids"
+              multiple
+            >
+              @for (s of liveStreams; track s.id) {
+                <mat-option [value]="s.id">{{ streamLabel(s) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Note</mat-label>
+            <input
+              matInput
+              formControlName="note"
+              placeholder="E.g. Halftime Pepsi"
+              autocomplete="off"
+            />
+          </mat-form-field>
+        </div>
+        <div class="self-start pt-5">
+          <mat-checkbox formControlName="replace">Replace Existing Take</mat-checkbox>
+        </div>
+      </app-search-filter-bar>
+    </form>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
+    @if (isLoading) {
+      <app-table-skeleton
+        [columns]="displayedColumns.length"
+        label="Loading Live Takes"
+      />
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper>
+          <table
+            mat-table
+            [dataSource]="dataSource"
+            aria-label="On Air Ad Takes"
+            class="min-w-full text-sm"
+          >
+            <ng-container matColumnDef="sr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                #
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row; let i = index"
+              >
+                {{ totalRecords - currentPage * pageSize - i }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="creative">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Creative
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.creative?.name ?? '#' + row.creative_id }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="mode">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Mode
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ modeLabel(row.mode) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="streams">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Streams
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ takeStreamsLabel(row) }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="started_at">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Started At
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="whitespace-nowrap"
+              >
+                {{ row.started_at ? (row.started_at | date: 'yyyy-MM-dd HH:mm:ss') : emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="note">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Note
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.note || emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="font-semibold"
+              >
+                Action
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="action-link whitespace-nowrap"
+              >
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-action row-action--danger"
+                    aria-label="End Take"
+                    [disabled]="endingId === row.id"
+                    (click)="endTake(row)"
+                  >
+                    <i-tabler
+                      name="player-pause"
+                      class="size-4.5!"
+                    ></i-tabler>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns; sticky: true"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+
+    <app-paginator
+      [loading]="isLoading"
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      noRecMessage="No Ad Takes On Air"
+      noRecDescription="Use the form above to push an approved creative live."
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

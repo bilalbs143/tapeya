@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Settings\AdsSettings;
 use App\Settings\GeneralSettings;
 use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
@@ -69,6 +70,16 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'burstMax' => 20,
                         'burstWindowSec' => 600,
                         'bodyMax' => 200,
+                        default => 0,
+                    };
+                }
+
+                if ($settingsClass === AdsSettings::class) {
+                    return match ($name) {
+                        'enabled' => 0,
+                        'slotEveryN' => 8,
+                        'minOrganicBeforeAd' => 3,
+                        'maxAdsPerResponse' => 1,
                         default => 0,
                     };
                 }

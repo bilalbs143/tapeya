@@ -1,6 +1,7 @@
-import { type ReactNode, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { type ReactNode, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { SponsoredCtaButton, SponsoredLabel, trackSponsoredClick, useSponsoredFeedMetrics } from '@/features/ads';
 import { confirmBlockUser, useFollowUserMutation, useUnfollowUserMutation } from '@/features/explore';
 
 import { UserIdentity, userProfilePath } from '@/entities/user';
@@ -43,7 +44,9 @@ export function PostCard({
   className,
 }: PostCardProps) {
   const dispatch = useAppDispatch();
-  const { author, age, body, kind, background, counts, liked, saved } = post;
+  const navigate = useNavigate();
+  const articleRef = useRef<HTMLElement>(null);
+  const { author, age, body, kind, background, counts, liked, saved, sponsorship, isSponsored } = post;
   const textBg = kind === 'text' ? getFeedTextBackground(background) : null;
   const href = kind === 'video' ? feedRoutes.reel(post.id) : feedRoutes.post(post.id);
   const commentsHref = `${href}#comments`;
@@ -53,6 +56,13 @@ export function PostCard({
   const followBusy = following || unfollowing;
   const [isFollowing, setIsFollowing] = useState(author.following);
   const [reportOpen, setReportOpen] = useState(false);
+
+  useSponsoredFeedMetrics(articleRef, {
+    sponsorship,
+    surface: 'home_feed',
+    // Video posters open on reels — measure views there, not as feed dwell.
+    trackView: kind !== 'video',
+  });
 
   async function toggleFollow() {
     const next = !isFollowing;
@@ -86,7 +96,10 @@ export function PostCard({
   }
 
   return (
-    <article className={cn('border-border-subtle bg-surface overflow-hidden rounded-card border', className)}>
+    <article
+      ref={articleRef}
+      className={cn('border-border-subtle bg-surface overflow-hidden rounded-card border', className)}
+    >
       {kind === 'repost' && post.reposter ? (
         <p className="text-dim flex items-center gap-1.5 px-3.5 pt-3 text-3xs font-semibold">
           <RepostIcon size="xs" strokeWidth={2} className="h-[13px] w-[13px]" aria-hidden />
@@ -107,8 +120,17 @@ export function PostCard({
           avatarSize="md"
           meta={
             <p className="text-dim text-4xs font-medium">
-              {age}
-              {isOwn ? ' · You' : null}
+              {sponsorship ? (
+                <>
+                  <SponsoredLabel label={sponsorship.disclosureLabel} />
+                  {age ? <span className="text-dim"> · {age}</span> : null}
+                </>
+              ) : (
+                <>
+                  {age}
+                  {isOwn ? ' · You' : null}
+                </>
+              )}
             </p>
           }
         />
@@ -130,20 +152,22 @@ export function PostCard({
                 Follow
               </Button>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label="Post Options"
-                className="text-muted hover:bg-surface-raised hover:text-ink grid h-8 w-8 place-items-center rounded-icon"
-              >
-                <MoreIcon size="sm" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setReportOpen(true)}>Report Post</DropdownMenuItem>
-                <DropdownMenuItem destructive onSelect={() => void blockAuthor()}>
-                  Block {author.name?.trim() || 'User'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {!isSponsored ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Post Options"
+                  className="text-muted hover:bg-surface-raised hover:text-ink grid h-8 w-8 place-items-center rounded-icon"
+                >
+                  <MoreIcon size="sm" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => setReportOpen(true)}>Report Post</DropdownMenuItem>
+                  <DropdownMenuItem destructive onSelect={() => void blockAuthor()}>
+                    Block {author.name?.trim() || 'User'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
           </div>
         ) : null}
       </header>
@@ -194,6 +218,14 @@ export function PostCard({
 
       {kind === 'repost' ? <RepostedPostEmbed original={post.original} /> : null}
 
+      {sponsorship?.cta ? (
+        <SponsoredCtaButton
+          cta={sponsorship.cta}
+          title={sponsorship.title ?? author.name}
+          onClick={() => trackSponsoredClick(sponsorship, 'home_feed', navigate)}
+        />
+      ) : null}
+
       <footer className="border-border-subtle flex items-center justify-between border-t px-2 py-1">
         <div className="flex items-center gap-0.5" role="group" aria-label="Post Actions">
           <ActionIcon
@@ -219,9 +251,11 @@ export function PostCard({
         </div>
 
         <div className="flex items-center gap-0.5">
-          <ActionIcon onClick={onRepost} label="Repost" disabled={repostBusy}>
-            <RepostIcon size="sm" strokeWidth={1.9} className="h-[18px] w-[18px]" />
-          </ActionIcon>
+          {!isSponsored ? (
+            <ActionIcon onClick={onRepost} label="Repost" disabled={repostBusy}>
+              <RepostIcon size="sm" strokeWidth={1.9} className="h-[18px] w-[18px]" />
+            </ActionIcon>
+          ) : null}
           <ActionIcon
             active={saved}
             activeClass="text-ink"
@@ -233,7 +267,7 @@ export function PostCard({
         </div>
       </footer>
 
-      {!isOwn ? (
+      {!isOwn && !isSponsored ? (
         <ReportSheet
           subject={kind === 'video' ? 'reel' : 'post'}
           postId={post.id}

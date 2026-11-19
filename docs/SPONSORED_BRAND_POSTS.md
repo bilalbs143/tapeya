@@ -2,7 +2,7 @@
 
 **Status:** finalized plan (not implemented)  
 **Audience:** product + API + app + backoffice  
-**Related:** [`SOCIAL_FEED_ARCHITECTURE.md`](./SOCIAL_FEED_ARCHITECTURE.md) §6.7, [`OFFICIAL_ACCOUNT_BADGE.md`](./OFFICIAL_ACCOUNT_BADGE.md), [`SHOP_ECOMMERCE_DESIGN.md`](./SHOP_ECOMMERCE_DESIGN.md)
+**Related:** [`FEED_AND_LIVE_ADS_DESIGN.md`](./FEED_AND_LIVE_ADS_DESIGN.md) (umbrella: feed + live image/video ads), [`SOCIAL_FEED_ARCHITECTURE.md`](./SOCIAL_FEED_ARCHITECTURE.md) §6.7, [`OFFICIAL_ACCOUNT_BADGE.md`](./OFFICIAL_ACCOUNT_BADGE.md), [`SHOP_ECOMMERCE_DESIGN.md`](./SHOP_ECOMMERCE_DESIGN.md)
 
 This doc is the locked end-to-end design. Phase checklists below are implementation gates, not open product questions.
 
@@ -64,11 +64,10 @@ Reusing a real post also inherits **repost, organic ranking, and Trending**. Res
 
 ### 4.2 Card anatomy
 
-- Creator row: brand account avatar/name + optional official tick + **Sponsored** disclosure (see §11).
+- Creator row: brand account avatar/name + optional official tick + **Sponsored** label (see §11).
 - Body: text / image / video via normal post media.
-- CTA: label + URL under caption or reel end-card (`cta_type`: `url` \| `deep_link` only in Phase 1).
-- ⋯ menu Phase 1: **Why am I seeing this?**, **Report ad** (wires to existing report flow with `reason=sponsored` or dedicated report type).
-- ⋯ menu Phase 2: **Hide this ad**.
+- CTA: label + destination under caption or reel end-card (`cta_type`: `url` \| `whatsapp` \| `deep_link`).
+- ⋯ menu: **Report ad** only (existing report flow with `reason=sponsored` or dedicated report type). No “Why am I seeing this?” sheet, no Hide ad.
 
 ### 4.3 Brand account (required for Phase 1 compose)
 
@@ -128,10 +127,6 @@ On-delete: unchanged for existing FKs. New ad tables: see §5.8.
 | `slot_every_n` | unsigned int, default 8, min 3 |
 | `max_ads_per_response` | unsigned int, default 1 — **stateless** (replaces “per session”) |
 | `targeting_json` | see §5.6 — validated write-time |
-| `daily_impression_cap` | nullable — **Phase 2**; column may exist but ignored in Phase 1 |
-| `total_impression_cap` | nullable — Phase 2 |
-| `frequency_cap_per_user` | nullable — Phase 2 |
-| `frequency_window_hours` | default 24 — Phase 2 |
 | `budget_notes` | nullable text |
 | `created_by_admin_id` | FK users `nullOnDelete` |
 | timestamps | |
@@ -162,7 +157,7 @@ servable = partner.active
 | `name` | |
 | `cta_label` | required |
 | `cta_url` | required, URL validated |
-| `cta_type` | `url` \| `deep_link` only (Phase 1) |
+| `cta_type` | `url` \| `whatsapp` \| `deep_link` |
 | `disclosure_label` | default `Sponsored` |
 | `status` | `pending_review` \| `approved` \| `rejected` \| `paused` |
 | `weight` | unsigned int default 1 — **reserved**; Phase 1 selection ignores weight |
@@ -179,8 +174,7 @@ servable = partner.active
 ```json
 {
   "platforms": ["ios", "android", "web"],
-  "countries": ["PK", "AE"],
-  "languages": ["en", "ur"]
+  "countries": ["PK", "AE"]
 }
 ```
 
@@ -188,13 +182,13 @@ servable = partner.active
 
 - Unknown keys → 422.
 - `platforms` ⊆ `{ios,android,web}`.
-- `countries` ⊆ ISO-3166-1 alpha-2 allowlist we maintain (start with `PK`, `AE`).
-- `languages` ⊆ app locale allowlist.
+- `countries` ⊆ ISO-3166-1 alpha-2 codes (any valid 2-letter code).
 - Empty array for a key means “no restriction” on that dimension.
+- No language targeting.
 
-Empty / null `targeting_json` → match all (still subject to auth + caps).
+Empty / null `targeting_json` → match all (still subject to auth + density rules).
 
-Audience segments (teams, interests) = **Phase 2**; when they ship, revisit §11 transparency (“Why am I seeing this?”).
+Audience segments (teams, interests) = **later** if needed — not required for first flights.
 
 ### 5.7 `ad_events` (append-only)
 
@@ -205,7 +199,7 @@ Audience segments (teams, interests) = **Phase 2**; when they ship, revisit §11
 | `creative_id` | indexed |
 | `post_id` | |
 | `brand_partner_id` | denormalized |
-| `event_type` | `impression` \| `view` \| `click` \| `hide` \| `report` |
+| `event_type` | `impression` \| `view` \| `click` \| `report` |
 | `user_id` | NOT NULL in Phase 1 |
 | `viewer_key` | HMAC of user id (stable); kept for Phase 2 device path |
 | `surface` | `home_feed` \| `reels_feed` |
@@ -222,7 +216,7 @@ Indexes:
 - `unique(client_event_id)`
 - `(campaign_id, event_type, occurred_at)`
 - `(creative_id, occurred_at)`
-- `(user_id, creative_id, event_type, occurred_at)` — frequency / unique reach
+- `(user_id, creative_id, event_type, occurred_at)` — unique reach / dashboards
 
 ### 5.8 `ad_stats_daily`
 
@@ -251,21 +245,11 @@ Unique key: `(date, campaign_id, creative_id)` — rollup upsert is idempotent.
 | `before` / `after` | JSON snapshots |
 | `created_at` | |
 
-### 5.10 Phase 2: `ad_user_suppressions`
-
-| Column | Notes |
-|--------|--------|
-| `user_id` | |
-| `grain` | `creative` \| `campaign` \| `brand_partner` |
-| `grain_id` | |
-| `created_at` | |
-| unique `(user_id, grain, grain_id)` | |
-
-Default Hide action grain: **`campaign`** (hiding one Pepsi flight hides that campaign’s creatives, not every Nestlé ad).
-
-### 5.11 Intentionally deferred tables
+### 5.10 Intentionally deferred / out of scope
 
 - `ad_placements` — folded into campaign columns.
+- `ad_user_suppressions` / Hide ad — **out of scope** (keep UX simple).
+- Per-user frequency caps / daily·total impression caps — **out of scope**; use `slot_every_n` + flight windows.
 - Inline creative assets — never in Phase 1–2.
 - Billing / invoices.
 
@@ -335,11 +319,7 @@ Phase 1: query servable campaigns with indexes; no Redis cache required at demo 
 
 Phase 2: cache active campaign snapshot in Redis (TTL 30–60s) invalidated on audit-logged mutations.
 
-### 6.7 Frequency caps (Phase 2)
-
-- Counter advances at **injection time** (synchronous), not on confirmed impression.
-- Key: `(user_id, campaign_id, window)`.
-- Confirmed impressions remain the dashboard truth; injection caps are pacing.
+Pacing is **density only** (`slot_every_n`, `max_ads_per_response`, `min_organic_before_ad`) plus campaign `starts_at` / `ends_at` — no per-user frequency counters.
 
 ---
 
@@ -506,13 +486,11 @@ Every pause/end/edit/approve/reject writes `ad_audit_logs`.
 
 | Area | Work |
 |------|------|
-| Feed / Reels | Sponsored disclosure + CTA; honor `sponsorship` envelope |
+| Feed / Reels | **Sponsored** label + CTA; honor `sponsorship` envelope |
 | Impression | Feed + Reels both use ≥50% / ≥1s (Reels: active + 1s dwell) |
 | View | Video → threshold via `/ads/events`; image/text → 2s dwell view |
 | Click | CTA → event → open URL / deep link |
-| Report ad | Phase 1 ⋯ action → report API |
-| Why am I seeing this? | Phase 1 static sheet (objective + “based on general app usage / region”) |
-| Hide ad | Phase 2 + `ad_user_suppressions` |
+| Report ad | ⋯ action → report API |
 | Comments | Normal comment UI (enabled) |
 
 Keep social layout — no banner-style AdCard.
@@ -521,36 +499,31 @@ Keep social layout — no banner-style AdCard.
 
 ## 11. Disclosure, privacy, legal
 
-### 11.1 Disclosure UI (Phase 1 requirements)
+### 11.1 Sponsored label (Phase 1)
 
-Mirror the rigor of the Official badge pattern:
+Keep disclosure minimal:
 
 - Label text: default **Sponsored** (localizable).
 - Placement: adjacent to creator name (feed + reels overlay), always visible without opening ⋯.
 - Contrast: use a dedicated token (e.g. `--color-sponsored-label`) meeting WCAG AA against the chrome behind it; do not rely on low-contrast gray-on-video.
-- Size: at least the Official tick’s touch/readability floor.
+- Size: at least the Official tick’s readability floor.
 - Timing: visible for the entire time the card/reel is on screen (not a 1s toast).
+- **No** “Why am I seeing this?” sheet, Hide ad, or suppressions.
 
-### 11.2 “Why am I seeing this?”
-
-Phase 1: static copy — paid partnership; may use coarse factors (country/platform/language) when targeting is set; no per-user interest dossier.
-
-**Phase 2:** when audience segments ship, **revisit this section** — transparency must name segment-style reasons, not only geo/platform.
-
-### 11.3 Consent / attribution
+### 11.2 Consent / attribution
 
 - Phase 1: **authenticated users only** for injection + events (advertising purpose).
 - Do not reuse anonymous `X-Device-Id` organic view keys for ads in Phase 1.
-- Phase 2 device-level ads: separate consent/copy review for AE/PK before enabling.
+- Later device-level ads: separate consent/copy review for AE/PK before enabling.
 
-### 11.4 Age / region interim constraint (Phase 1)
+### 11.3 Age / region interim constraint (Phase 1)
 
 - **No age targeting** in `targeting_json` for Phase 1 (even though `users.date_of_birth` exists).
 - Creatives must be **general audience** (suitable for the app’s minimum age). Ops approval checklist includes “general audience OK for PK + AE”.
 - Market-specific restricted categories (alcohol, etc.): ops rejects at `pending_review`; no automated classifier in Phase 1.
-- Full legal matrix for PK vs AE ad labeling → tracked outside this eng plan; eng ships Sponsored disclosure + approval gate as the interim control.
+- Full legal matrix for PK vs AE ad labeling → tracked outside this eng plan; eng ships Sponsored label + approval gate as the interim control.
 
-### 11.5 Retention
+### 11.4 Retention
 
 See §8.3 — enforced by purge command when built.
 
@@ -610,22 +583,17 @@ Metric definitions, creative-as-post package, no dual-write, surfaces, disclosur
 - Schema: partners, campaigns (with surfaces/density), creatives (approval), `ad_events`, `ad_stats_daily`, `ad_audit_logs`, posts.distribution
 - Organic exclusion + repost guard
 - Injector (deterministic pick, cursor-safe)
-- Client: disclosure, CTA, impression (1s both surfaces), view (video thresholds / image 2s dwell), click, report ad, why-this-ad sheet
+- Client: Sponsored label, CTA, impression (1s both surfaces), view (video thresholds / image 2s dwell), click, report ad
 - Backoffice: partner (user required), compose-as-brand, campaign, creative pending→approved, internal dashboard, eligibility dry-run
 - Crons: flight reconcile + hourly rollup
 - Feature flag `ads_enabled`
-- Phase 2 columns may exist but **UI-disabled**
 
 **Success:** One approved Pepsi creative injects into Home/Reels for a logged-in user; impressions/clicks appear on admin dashboard within one rollup hour (or immediate raw query).
 
-### Phase 2 — Controls
+### Phase 2 — Ops polish
 
-- Frequency / daily / total caps (injection-time counting)
-- Targeting enforced beyond write-validation (already stored in Phase 1)
-- Hide ad + `ad_user_suppressions` (campaign grain default)
 - CSV export
 - Optional following-feed injection
-- **Revisit §11.2** when audience segments are designed
 - Caching for eligible campaigns
 - Device-level ads only after consent review
 
@@ -652,12 +620,12 @@ Metric definitions, creative-as-post package, no dual-write, surfaces, disclosur
 1. **Organic brand posts without a campaign?** Yes — `distribution=organic` on the official account.  
 2. **Same post in organic Explore while also an ad?** No for Phase 1 creatives (`sponsored_only`).  
 3. **Money / CPM in-product?** No — external contracts; dashboard is delivery proof.  
-4. **Age/region legal?** Interim: general-audience creatives + Sponsored disclosure + human approval; no age targeting; PK/AE ops checklist. Deeper legal matrix outside eng Phase 1.  
+4. **Age/region legal?** Interim: general-audience creatives + Sponsored label + human approval; no age targeting; PK/AE ops checklist. Deeper legal matrix outside eng Phase 1.  
 5. **Likes / comments notify brand user?** Yes (normal post notifications). Comments stay enabled.  
 6. **Repost sponsored creative?** Blocked.  
 7. **View for image/text?** 2s dwell at ≥50% visible — not equal to impression.  
 8. **Dual-write views_count?** No.  
-9. **Frequency-cap counter?** Injection-time (Phase 2).  
+9. **Frequency caps / Hide ad / Why this ad?** Out of scope — density + flight windows only.  
 10. **max_per_session?** Replaced by `max_ads_per_response`.
 
 ---
@@ -672,6 +640,9 @@ Metric definitions, creative-as-post package, no dual-write, surfaces, disclosur
 - Inline creatives without `posts`  
 - Anonymous ad tracking in Phase 1  
 - Automated age-gated creative policies  
+- “Why am I seeing this?” sheets  
+- Hide ad / `ad_user_suppressions`  
+- Per-user frequency caps / daily·total impression caps  
 
 ---
 

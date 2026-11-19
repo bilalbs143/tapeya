@@ -2,6 +2,9 @@
 
 namespace App\Http\Resources\User;
 
+use App\Events\Broadcast\LiveAdTakeStarted;
+use App\Services\Ad\AdEligibilityService;
+use App\Services\Ad\LiveAdTakeService;
 use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -15,6 +18,12 @@ class LiveStreamResource extends JsonResource
     {
         $stream = $this->resource;
         $canWatch = $request->user('api') !== null;
+        $adsEnabled = app(AdEligibilityService::class)->adsEnabled();
+        $activeTake = null;
+        if ($adsEnabled && $canWatch) {
+            $take = app(LiveAdTakeService::class)->activeTakeForStream((int) $stream->id);
+            $activeTake = $take ? LiveAdTakeStarted::payload($take) : null;
+        }
 
         return [
             'id' => $stream->id,
@@ -37,6 +46,7 @@ class LiveStreamResource extends JsonResource
                     'is_official' => (bool) $stream->owner->is_official,
                 ],
             ),
+            'active_take' => $this->when($canWatch, $activeTake),
             'stream' => [
                 'status' => $stream->status,
                 'provider' => $this->when($canWatch, $stream->provider),

@@ -1,0 +1,168 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Brand Partner Form"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>User <span class="text-error">*</span></mat-label>
+            <mat-chip-grid
+              #userChipGrid
+              aria-label="Brand Partner User"
+            >
+              @if (selectedUser) {
+                <mat-chip-row
+                  (removed)="removeUser()"
+                  class="text-sm"
+                >
+                  {{ userChipLabel(selectedUser) }}
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove user ' + userChipLabel(selectedUser)"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                [formControl]="userSearch"
+                [matChipInputFor]="userChipGrid"
+                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                (matChipInputTokenEnd)="onUserChipInputTokenEnd($event)"
+                [matAutocomplete]="userAuto"
+                [placeholder]="selectedUser ? 'Search To Replace…' : 'Search To Assign…'"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #userAuto="matAutocomplete"
+              (optionSelected)="onUserSelected($event)"
+            >
+              @for (c of userCandidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (form.get('user_id')?.invalid && form.get('user_id')?.touched) {
+            <p class="text-error text-sm m-0 mt-1">Select A User From The Suggestions.</p>
+          }
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Brand Partner Name"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Name Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Slug</mat-label>
+            <input
+              matInput
+              formControlName="slug"
+              placeholder="Auto-Generated From Name"
+              readonly
+            />
+            @if (form.get('slug')?.invalid && form.get('slug')?.touched) {
+              <mat-error>Slug Is Required (Enter A Name To Generate)</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Contact Email</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="contact_email"
+              placeholder="ops@brand.com"
+            />
+            @if (form.get('contact_email')?.invalid && form.get('contact_email')?.touched) {
+              <mat-error>Enter A Valid Email</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Shop Brand (Optional)</mat-label>
+            <mat-select formControlName="shop_brand_id">
+              <mat-option [value]="null">None</mat-option>
+              @for (b of shopBrands; track b.id) {
+                <mat-option [value]="b.id">{{ b.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="logo"
+            label="Logo"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            [recommendedSize]="logoAspect"
+            [maxSizeMb]="2"
+          ></app-file-upload>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+      >
+        Cancel
+      </app-ui-button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="data.mode === 'edit' ? 'Save Brand Partner' : 'Add Brand Partner'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

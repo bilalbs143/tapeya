@@ -37,6 +37,41 @@ describe('toDomain', () => {
       following: true,
     });
     expect(post.background).toBeNull();
+    expect(post.isSponsored).toBe(false);
+    expect(post.sponsorship).toBeNull();
+    expect(post.distribution).toBe('organic');
+  });
+
+  it('maps sponsorship envelope for injected ads', () => {
+    const wire: PostWire = {
+      id: 99,
+      type: 'image',
+      body: 'Taste the feeling',
+      distribution: 'sponsored_only',
+      sponsorship: {
+        is_sponsored: true,
+        campaign_id: 3,
+        creative_id: 7,
+        disclosure_label: 'Sponsored',
+        cta: { label: 'Learn More', url: 'https://brand.example', type: 'url' },
+        brand: { name: 'Brand', logo_url: null, partner_id: 1 },
+      },
+      media: [{ id: 1, kind: 'image', url: 'https://cdn.example/ad.jpg' }],
+      counts: { likes: 0, comments: 0, shares: 0, reposts: 0 },
+      viewer: { liked: false, saved: false },
+      creator: { id: 8, name: 'Brand', nickname: 'brand', avatar_url: null, is_official: true },
+    };
+
+    const post = toDomain(wire);
+    expect(post.isSponsored).toBe(true);
+    expect(post.distribution).toBe('sponsored_only');
+    expect(post.sponsorship).toMatchObject({
+      campaignId: 3,
+      creativeId: 7,
+      disclosureLabel: 'Sponsored',
+      title: 'Brand',
+      cta: { label: 'Learn More', url: 'https://brand.example', type: 'url' },
+    });
   });
 
   it('keeps API background_id and maps image type alias', () => {

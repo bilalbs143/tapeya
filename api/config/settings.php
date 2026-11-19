@@ -1,6 +1,7 @@
 <?php
 
 use App\Settings\AdminNotificationSettings;
+use App\Settings\AdsSettings;
 use App\Settings\AppStoreSettings;
 use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
@@ -43,6 +44,7 @@ return [
         WhatsAppSettings::class,
         StreamingSettings::class,
         LiveChatSettings::class,
+        AdsSettings::class,
         PushSettings::class,
         PostsSettings::class,
         MediaCdnSettings::class,

@@ -45,6 +45,8 @@ class PostResource extends JsonResource
             'title' => $this->title,
             'body' => $this->body,
             'background_id' => $this->background_id,
+            'distribution' => $this->distribution?->value ?? 'organic',
+            'sponsorship' => $this->sponsorship ?? null,
             'status' => $this->status?->value ?? PostStatusEnum::Uploading->value,
             'duration_ms' => $video?->duration_ms,
             'width' => $video?->width,

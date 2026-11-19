@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+import {
+  type PostDistribution,
+  postDistributionSchema,
+  type PostSponsorship,
+  sponsorshipWireSchema,
+  toSponsorship,
+} from '@/features/ads';
+
 import type { PostBackgroundId } from '../lib/composeBackgrounds';
 import { isPostBackgroundId } from '../lib/composeBackgrounds';
 
@@ -71,6 +79,8 @@ export const postWireSchema = z.object({
   viewer: viewerWireSchema,
   creator: creatorWireSchema.optional(),
   hashtags: z.array(z.string()).optional(),
+  distribution: postDistributionSchema.optional(),
+  sponsorship: sponsorshipWireSchema,
   published_at: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),
 });
@@ -118,6 +128,9 @@ export type Post = {
   reposter: { name: string } | null;
   /** Nested original inside a repost card (`repost_of`). */
   original: RepostOriginal | null;
+  distribution: PostDistribution;
+  sponsorship: PostSponsorship | null;
+  isSponsored: boolean;
 };
 
 /** Compact original embedded in a repost — richer than a text stub. */
@@ -282,6 +295,9 @@ export function toDomain(wire: PostWire): Post {
     original = mapRepostOriginal(wire.repost_of);
   }
 
+  const sponsorship = toSponsorship(wire.sponsorship ?? null);
+  const distribution = wire.distribution ?? 'organic';
+
   return {
     id: wire.id,
     kind: mapKind(wire.type),
@@ -303,6 +319,9 @@ export function toDomain(wire: PostWire): Post {
     saved: wire.viewer.saved,
     reposter,
     original,
+    distribution,
+    sponsorship,
+    isSponsored: sponsorship != null || distribution === 'sponsored_only',
   };
 }
 

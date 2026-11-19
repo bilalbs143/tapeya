@@ -105,10 +105,10 @@ export default function ReelsPage() {
       <ReportSheet
         subject="reel"
         postId={current?.id ?? null}
-        open={reportForId != null && reportForId === current?.id}
+        open={reportForId != null && reportForId === current?.id && !current?.isSponsored}
         onOpenChange={(open) => {
           if (!open) setReportForId(null);
-          else if (current) setReportForId(current.id);
+          else if (current && !current.isSponsored) setReportForId(current.id);
         }}
       />
     </div>

@@ -2,10 +2,12 @@
 
 namespace App\Services\Post;
 
+use App\Enums\Post\PostDistributionEnum;
 use App\Enums\Post\PostStatusEnum;
 use App\Enums\Post\PostTypeEnum;
 use App\Events\PostPublished;
 use App\Events\PostReposted;
+use App\Models\AdCreative;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,13 @@ class PostRepostService
         }
 
         $original = $this->rootOriginal($visible);
+
+        if ($original->distribution === PostDistributionEnum::SponsoredOnly
+            || AdCreative::query()->where('post_id', $original->id)->exists()) {
+            throw ValidationException::withMessages([
+                'post' => ['Sponsored posts cannot be reposted.'],
+            ]);
+        }
 
         if ($original->user_id === $actor->id && $original->id === $visible->id && $visible->type !== PostTypeEnum::Repost) {
             // Allow quoting own posts; still fine.

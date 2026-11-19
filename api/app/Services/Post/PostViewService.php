@@ -2,6 +2,7 @@
 
 namespace App\Services\Post;
 
+use App\Enums\Post\PostDistributionEnum;
 use App\Models\Post;
 use App\Models\PostView;
 use App\Models\User;
@@ -22,6 +23,15 @@ class PostViewService
      */
     public function record(Post $post, ?User $user, array $payload, Request $request): array
     {
+        // Sponsored creatives must not inflate organic views_count / Trending.
+        if ($post->distribution === PostDistributionEnum::SponsoredOnly) {
+            return [
+                'counted' => false,
+                'views_count' => (int) $post->views_count,
+                'already_counted' => false,
+            ];
+        }
+
         if ($post->status->isUnavailable() || $post->published_at === null) {
             throw ValidationException::withMessages([
                 'reel' => ['Post not found.'],

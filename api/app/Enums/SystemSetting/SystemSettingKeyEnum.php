@@ -77,6 +77,11 @@ enum SystemSettingKeyEnum: string
     case LIVE_CHAT_BURST_WINDOW_SEC = 'live_chat_burst_window_sec';
     case LIVE_CHAT_BODY_MAX = 'live_chat_body_max';
 
+    case ADS_ENABLED = 'ads_enabled';
+    case ADS_SLOT_EVERY_N = 'ads_slot_every_n';
+    case ADS_MIN_ORGANIC_BEFORE_AD = 'ads_min_organic_before_ad';
+    case ADS_MAX_ADS_PER_RESPONSE = 'ads_max_ads_per_response';
+
     case PUSH_ENABLED = 'push_enabled';
     case PUSH_PROVIDER = 'push_provider';
     case PUSH_FCM_PROJECT_ID = 'push_fcm_project_id';

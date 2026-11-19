@@ -233,6 +233,18 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::LIVE_CHAT_BODY_MAX => [
                 'value' => ['required', 'integer', 'min:50', 'max:500'],
             ],
+            SystemSettingKeyEnum::ADS_ENABLED => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
+            SystemSettingKeyEnum::ADS_SLOT_EVERY_N => [
+                'value' => ['required', 'integer', 'min:3', 'max:50'],
+            ],
+            SystemSettingKeyEnum::ADS_MIN_ORGANIC_BEFORE_AD => [
+                'value' => ['required', 'integer', 'min:1', 'max:50'],
+            ],
+            SystemSettingKeyEnum::ADS_MAX_ADS_PER_RESPONSE => [
+                'value' => ['required', 'integer', 'min:1', 'max:5'],
+            ],
             SystemSettingKeyEnum::PUSH_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
@@ -765,6 +777,42 @@ final class SystemSettingRegistry
                 'description' => 'Maximum comment length in characters.',
                 'settings_class' => LiveChatSettings::class,
                 'property' => 'bodyMax',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::ADS_ENABLED->value => [
+                'group' => SystemSettingGroupEnum::ADS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Ads Enabled',
+                'description' => '1 = feed injection + live takes on, 0 = global kill switch.',
+                'settings_class' => AdsSettings::class,
+                'property' => 'enabled',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::ADS_SLOT_EVERY_N->value => [
+                'group' => SystemSettingGroupEnum::ADS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Slot Every N',
+                'description' => 'Default organic-item stride before inserting a sponsored post (campaigns may override).',
+                'settings_class' => AdsSettings::class,
+                'property' => 'slotEveryN',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::ADS_MIN_ORGANIC_BEFORE_AD->value => [
+                'group' => SystemSettingGroupEnum::ADS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Min Organic Before Ad',
+                'description' => 'Skip ads when the organic page has fewer than this many items.',
+                'settings_class' => AdsSettings::class,
+                'property' => 'minOrganicBeforeAd',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::ADS_MAX_ADS_PER_RESPONSE->value => [
+                'group' => SystemSettingGroupEnum::ADS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Max Ads Per Response',
+                'description' => 'Default max sponsored items merged into one feed response (campaigns may override).',
+                'settings_class' => AdsSettings::class,
+                'property' => 'maxAdsPerResponse',
                 'nullable_string' => false,
             ],
             SystemSettingKeyEnum::PUSH_ENABLED->value => [

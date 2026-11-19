@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Settings\AdminNotificationSettings;
+use App\Settings\AdsSettings;
 use App\Settings\AppStoreSettings;
 use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
@@ -36,6 +37,7 @@ class SystemSettingsSeeder extends Seeder
         $this->seedWhatsApp();
         $this->seedStreaming();
         $this->seedLiveChat();
+        $this->seedAds();
         $this->seedPush();
         $this->seedReels();
         $this->seedMediaCdn();
@@ -158,6 +160,16 @@ class SystemSettingsSeeder extends Seeder
         $chat->burstWindowSec ??= 600;
         $chat->bodyMax ??= 200;
         $chat->save();
+    }
+
+    private function seedAds(): void
+    {
+        $ads = app(AdsSettings::class);
+        $ads->enabled ??= 0;
+        $ads->slotEveryN ??= 8;
+        $ads->minOrganicBeforeAd ??= 3;
+        $ads->maxAdsPerResponse ??= 1;
+        $ads->save();
     }
 
     private function seedPush(): void

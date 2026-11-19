@@ -1,0 +1,258 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Ad Campaign Form"
+  >
+    <mat-dialog-content>
+      <div class="dialog-form">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Brand Partner</mat-label>
+            <mat-select formControlName="brand_partner_id">
+              @for (p of brandPartners; track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('brand_partner_id')?.invalid && form.get('brand_partner_id')?.touched) {
+              <mat-error>Brand Partner Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Campaign Name"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Name Is Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Priority</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="priority"
+              min="0"
+            />
+            <mat-hint>Higher Wins When Multiple Campaigns Compete For A Feed Slot.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <div class="flex flex-wrap gap-2 items-start">
+            <mat-form-field
+              appearance="outline"
+              class="flex-1 min-w-[120px]"
+            >
+              <mat-label>Starts At</mat-label>
+              <input
+                matInput
+                [matDatepicker]="startsAtPicker"
+                formControlName="starts_at_date"
+                placeholder="Date"
+              />
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="startsAtPicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #startsAtPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field
+              appearance="outline"
+              class="w-24"
+            >
+              <mat-label>Time</mat-label>
+              <input
+                matInput
+                type="time"
+                formControlName="starts_at_time"
+              />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <div class="flex flex-wrap gap-2 items-start">
+            <mat-form-field
+              appearance="outline"
+              class="flex-1 min-w-[120px]"
+            >
+              <mat-label>Ends At</mat-label>
+              <input
+                matInput
+                [matDatepicker]="endsAtPicker"
+                formControlName="ends_at_date"
+                placeholder="Date"
+              />
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="endsAtPicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #endsAtPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field
+              appearance="outline"
+              class="w-24"
+            >
+              <mat-label>Time</mat-label>
+              <input
+                matInput
+                type="time"
+                formControlName="ends_at_time"
+              />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Surfaces</mat-label>
+            <mat-select
+              formControlName="surfaces"
+              multiple
+            >
+              @for (opt of surfaceOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('surfaces')?.invalid && form.get('surfaces')?.touched) {
+              <mat-error>Select At Least One Surface</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Slot Every N</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="slot_every_n"
+              min="3"
+            />
+            <mat-hint>Insert An Ad About Every N Organic Posts.</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Max Ads Per Response</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="max_ads_per_response"
+              min="1"
+            />
+            <mat-hint>Max Sponsored Items In One Feed Page (Usually 1).</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Platforms</mat-label>
+            <mat-select
+              formControlName="platforms"
+              multiple
+              placeholder="All Platforms"
+            >
+              @for (opt of platformOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>Leave Empty To Target All Platforms.</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Countries</mat-label>
+            <mat-select
+              formControlName="countries"
+              multiple
+              placeholder="All Countries"
+            >
+              @for (c of countriesList; track c.country_code) {
+                <mat-option [value]="c.country_code">{{ c.name }} ({{ c.country_code }})</mat-option>
+              }
+            </mat-select>
+            <mat-hint>Leave Empty To Target All Countries.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Budget Notes</mat-label>
+            <textarea
+              matInput
+              formControlName="budget_notes"
+              rows="2"
+              placeholder="Internal Notes"
+            ></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="dialog-actions">
+      <app-ui-button
+        type="button"
+        [mat-dialog-close]="false"
+        variant="secondary"
+      >
+        Cancel
+      </app-ui-button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="data.mode === 'edit' ? 'Save Campaign' : 'Add Campaign'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

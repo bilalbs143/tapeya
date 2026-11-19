@@ -29,3 +29,9 @@ Schedule::command('posts:flush-view-counters')->everyMinute()->withoutOverlappin
 Schedule::command('posts:process-auto-engagement')->everyTenMinutes()->withoutOverlapping();
 
 Schedule::command('posts:process-auto-comments')->hourly()->withoutOverlapping(55);
+
+Schedule::command('ads:reconcile-flights')->everyMinute()->withoutOverlapping()->runInBackground();
+
+Schedule::command('ads:rollup-stats')->hourly()->withoutOverlapping();
+
+Schedule::command('ads:purge-expired-events')->dailyAt('04:45')->withoutOverlapping();

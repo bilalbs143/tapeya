@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+import {
+  type PostDistribution,
+  postDistributionSchema,
+  type PostSponsorship,
+  sponsorshipWireSchema,
+  toSponsorship,
+} from '@/features/ads';
+
 export const REEL_TABS = ['explore', 'following', 'mine', 'saved'] as const;
 export type ReelTab = (typeof REEL_TABS)[number];
 
@@ -63,6 +71,8 @@ export const reelWireSchema = z.object({
     })
     .optional(),
   hashtags: z.array(z.string()).optional(),
+  distribution: postDistributionSchema.optional(),
+  sponsorship: sponsorshipWireSchema,
   /** Optional match deep-link — absent on PostResource today. Parsed when present so the caption chip can light up without a schema break. */
   match: z
     .object({
@@ -122,6 +132,9 @@ export type Reel = {
   author: ReelAuthor;
   hashtags: string[];
   match: ReelMatch | null;
+  distribution: PostDistribution;
+  sponsorship: PostSponsorship | null;
+  isSponsored: boolean;
 };
 
 export function formatDurationMs(ms: number | null | undefined): string {
@@ -152,6 +165,8 @@ export function toDomain(wire: ReelWire): Reel {
   const hlsUrl = playback.hls_url ?? null;
   const progressiveUrl = playback.url ?? null;
   const matchWire = wire.match ?? null;
+  const sponsorship = toSponsorship(wire.sponsorship ?? null);
+  const distribution = wire.distribution ?? 'organic';
 
   return {
     id: wire.id,
@@ -192,5 +207,8 @@ export function toDomain(wire: ReelWire): Reel {
           awayScore: matchWire.away_score ?? null,
         }
       : null,
+    distribution,
+    sponsorship,
+    isSponsored: sponsorship != null || distribution === 'sponsored_only',
   };
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\User\LiveBroadcastController;
 use App\Jobs\FinalizeEndedBroadcastJob;
 use App\Models\LiveStream;
 use App\Models\TournamentMatch;
+use App\Services\Ad\LiveAdTakeService;
 use App\Services\Push\PushNotificationService;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
@@ -280,6 +281,8 @@ class LiveStreamService
                 'provider_metadata' => $metadata,
             ]);
             $stream->refresh();
+
+            app(LiveAdTakeService::class)->endAllForStream((int) $stream->id);
         }
 
         FinalizeEndedBroadcastJob::dispatch($stream->id, notifyClients: $wasActive);

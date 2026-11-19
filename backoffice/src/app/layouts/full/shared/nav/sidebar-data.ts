@@ -106,6 +106,28 @@ export const navItems: NavItem[] = [
     ],
   },
   {
+    displayName: 'Ads Management',
+    iconName: 'solar:advertising-line-duotone',
+    children: [
+      {
+        displayName: 'Brand Partners',
+        route: '/ads-management/brand-partners',
+      },
+      {
+        displayName: 'Campaigns',
+        route: '/ads-management/campaigns',
+      },
+      {
+        displayName: 'Creatives',
+        route: '/ads-management/creatives',
+      },
+      {
+        displayName: 'Live Takes',
+        route: '/ads-management/live-takes',
+      },
+    ],
+  },
+  {
     displayName: 'Shop',
     iconName: 'solar:cart-large-2-line-duotone',
     children: [
