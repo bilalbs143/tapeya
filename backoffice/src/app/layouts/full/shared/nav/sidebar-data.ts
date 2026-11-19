@@ -107,7 +107,7 @@ export const navItems: NavItem[] = [
   },
   {
     displayName: 'Ads Management',
-    iconName: 'solar:advertising-line-duotone',
+    iconName: 'solar:megaphone-line-duotone',
     children: [
       {
         displayName: 'Brand Partners',
