@@ -285,7 +285,7 @@ final class SystemSettingRegistry
                 'value' => ['required', 'integer', 'min:0', 'max:10000'],
             ],
             SystemSettingKeyEnum::REELS_ENGAGEMENT_PER_DAY => [
-                'value' => ['required', 'integer', 'min:0', 'max:50'],
+                'value' => ['required', 'integer', 'min:0', 'max:200'],
             ],
         };
     }
@@ -945,7 +945,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Auto Engagement Enabled',
-                'description' => '1 = drip likes/views (10 min) plus sparse auto comments (hourly) from dormant accounts. 0 = off.',
+                'description' => '1 = drip likes/views (10 min) plus sparse auto comments (~30 min) from dormant accounts in the 80% actor pool. Auto likes use combined digests. 0 = off.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'autoEngagementEnabled',
                 'nullable_string' => false,
@@ -954,7 +954,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Auto Engagement Daily Max',
-                'description' => 'Max likes/day for hot reels ≤10 days (0–50). Spread across 24h every 10 min: at most 1 like per post per tick, and at most 1 like per creator per tick (natural drip, no notification stacks). Hot posts are processed before older ones. Views stay slightly above likes (~1.2×). Hot daily band ~80–100% of this; mature (>10d) ~30%. Soft lifetime = daily × 30. Simple posts ~60% likes only.',
+                'description' => 'Max likes/day for hot reels ≤10 days (0–200). Spread across 24h every 10 min: at most 1 like per post per tick, up to 2 likes per creator per tick. High-volume + recent posters are preferred; mature posts still drip. Views stay above likes (~1.5×). Hot daily band ~80–100% of this; mature (>10d) ~50%. Soft lifetime = daily × 30. Simple posts ~60% likes only. Auto like notifies are combined digests.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'reelsEngagementPerDay',
                 'nullable_string' => false,

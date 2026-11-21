@@ -28,7 +28,12 @@ Schedule::command('posts:flush-view-counters')->everyMinute()->withoutOverlappin
 
 Schedule::command('posts:process-auto-engagement')->everyTenMinutes()->withoutOverlapping();
 
-Schedule::command('posts:process-auto-comments')->hourly()->withoutOverlapping(55);
+Schedule::command('posts:flush-auto-like-digests')->everyTenMinutes()->withoutOverlapping();
+
+// Sweep any leftover digests that never crossed the 30-minute window cleanly.
+Schedule::command('posts:flush-auto-like-digests --force')->dailyAt('23:55')->withoutOverlapping();
+
+Schedule::command('posts:process-auto-comments')->everyThirtyMinutes()->withoutOverlapping(25);
 
 Schedule::command('ads:reconcile-flights')->everyMinute()->withoutOverlapping()->runInBackground();
 

@@ -56,9 +56,9 @@ class PostsSettings extends Settings
 
     /**
      * Mature posts (> hot window) use this fraction of the daily max as their slow ceiling.
-     * Example: daily 50 → mature daily max 15.
+     * Example: daily 200 → mature daily max 100.
      */
-    public const AUTO_ENGAGEMENT_MATURE_DAILY_RATIO = 0.3;
+    public const AUTO_ENGAGEMENT_MATURE_DAILY_RATIO = 0.5;
 
     /** Aggressive (hot) boost window in days — pace + auto-comment freshness. */
     public const AUTO_ENGAGEMENT_HOT_DAYS = 10;
@@ -74,21 +74,21 @@ class PostsSettings extends Settings
 
     /**
      * Soft lifetime / daily view room vs likes for reels (likes must stay strictly below views).
-     * Example: like lifetime 1500 → view lifetime 1800.
+     * Example: like lifetime 6000 → view lifetime 9000.
      */
-    public const AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO = 1.2;
+    public const AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO = 1.5;
 
     /** Simple posts get this fraction of the reel daily max (likes only). */
     public const AUTO_ENGAGEMENT_SIMPLE_RATIO = 0.6;
 
     /**
      * Daily auto-comment cap vs daily like max (comments stay far below likes).
-     * Example: 50 likes/day → 2 comments/day.
+     * Example: 200 likes/day → 20 comments/day.
      */
-    public const AUTO_COMMENT_DAILY_RATIO = 0.04;
+    public const AUTO_COMMENT_DAILY_RATIO = 0.1;
 
     /** Comments must stay below this fraction of likes on the post. */
-    public const AUTO_COMMENT_TO_LIKE_RATIO = 0.08;
+    public const AUTO_COMMENT_TO_LIKE_RATIO = 0.15;
 
     public static function group(): string
     {
@@ -103,13 +103,13 @@ class PostsSettings extends Settings
     /** Max auto likes/views per reel per calendar day. */
     public function reelsDailyMax(): int
     {
-        return max(0, min(50, (int) $this->reelsEngagementPerDay));
+        return max(0, min(200, (int) $this->reelsEngagementPerDay));
     }
 
     /** Max auto likes per simple post per calendar day. */
     public function simpleDailyMax(): int
     {
-        return max(0, min(30, (int) round($this->reelsDailyMax() * self::AUTO_ENGAGEMENT_SIMPLE_RATIO)));
+        return max(0, min(120, (int) round($this->reelsDailyMax() * self::AUTO_ENGAGEMENT_SIMPLE_RATIO)));
     }
 
     /**

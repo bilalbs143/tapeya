@@ -90,6 +90,9 @@ class PushNotificationTemplate extends BaseModel
             ],
             'post_liked' => [
                 'actor_name' => 'Alex',
+                'others_clause' => ' and 3 others',
+                'others_count' => '3',
+                'content_type' => 'video',
                 'post_id' => '42',
                 'deep_link' => '/reels/42',
             ],

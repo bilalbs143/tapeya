@@ -42,8 +42,16 @@ class PushNotificationTemplateSeeder extends Seeder
                 'key' => 'post_liked',
                 'name' => 'Post Liked',
                 'title_template' => 'New Like',
-                'body_template' => '{{actor_name}} liked your post',
-                'available_variables' => ['actor_name', 'post_id', 'deep_link', 'actor_id'],
+                'body_template' => '{{actor_name}}{{others_clause}} liked your {{content_type}}',
+                'available_variables' => [
+                    'actor_name',
+                    'others_clause',
+                    'others_count',
+                    'content_type',
+                    'post_id',
+                    'deep_link',
+                    'actor_id',
+                ],
             ],
             [
                 'key' => 'post_commented',

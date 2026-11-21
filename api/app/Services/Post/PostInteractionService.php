@@ -28,7 +28,7 @@ class PostInteractionService
 
     /**
      * @param  bool  $notify  When false, skips PostLiked (push + in-app).
-     * @return array{liked: bool, likes_count: int}
+     * @return array{liked: bool, created: bool, likes_count: int}
      */
     public function like(Post $post, User $user, bool $notify = true): array
     {
@@ -54,6 +54,7 @@ class PostInteractionService
 
         return [
             'liked' => true,
+            'created' => $wasCreated,
             'likes_count' => (int) $post->likes_count,
         ];
     }

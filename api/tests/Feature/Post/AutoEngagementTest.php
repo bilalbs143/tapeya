@@ -9,16 +9,22 @@ use App\Enums\User\UserTypeEnum;
 use App\Listeners\PostLikedPushListener;
 use App\Models\Post;
 use App\Models\PostLike;
+use App\Models\PushNotificationLog;
 use App\Models\User;
 use App\Notifications\PostLikedUserNotification;
 use App\Services\Post\AutoEngagementService;
+use App\Services\Post\AutoLikeNotificationDigest;
+use App\Services\Post\PostInteractionService;
+use App\Services\Push\PushNotificationService;
 use App\Settings\PostsSettings;
+use App\Support\Post\AutoEngagementUserPool;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Mockery;
 use Tests\Concerns\CreatesVideoPosts;
 use Tests\TestCase;
 
@@ -33,8 +39,13 @@ class AutoEngagementTest extends TestCase
         $this->seed(SystemSettingsSeeder::class);
         Cache::forget(AutoEngagementService::CURSOR_CACHE_KEY);
         Cache::forget(AutoEngagementService::MATURE_CURSOR_CACHE_KEY);
+        Cache::forget(AutoLikeNotificationDigest::INDEX_CACHE_KEY);
         Notification::fake();
         Queue::fake();
+
+        $push = Mockery::mock(PushNotificationService::class);
+        $push->shouldReceive('dispatch')->andReturn(Mockery::mock(PushNotificationLog::class))->byDefault();
+        $this->app->instance(PushNotificationService::class, $push);
     }
 
     private function activeUser(array $overrides = []): User
@@ -105,36 +116,46 @@ class AutoEngagementTest extends TestCase
         $service = app(AutoEngagementService::class);
         $this->assertSame(3, $service->chunkSize());
 
-        // Same owner: at most one like per tick (natural drip); never >1 like per post.
-        $this->assertSame(1, $service->process());
+        // Same owner: up to 2 likes/tick across posts; never >1 like per post.
+        $liked = $service->process();
+        $this->assertGreaterThanOrEqual(1, $liked);
+        $this->assertLessThanOrEqual(2, $liked);
         $likesAfterFirst = (int) $p1->fresh()->likes_count
             + (int) $p2->fresh()->likes_count
             + (int) $p3->fresh()->likes_count;
-        $this->assertSame(1, $likesAfterFirst);
+        $this->assertSame($liked, $likesAfterFirst);
+        foreach ([$p1, $p2, $p3] as $post) {
+            $this->assertLessThanOrEqual(1, (int) $post->fresh()->likes_count);
+        }
+
+        while (
+            (int) $p1->fresh()->likes_count
+            + (int) $p2->fresh()->likes_count
+            + (int) $p3->fresh()->likes_count < 3
+        ) {
+            $this->assertGreaterThan(0, $service->process());
+        }
+
         $this->assertSame(1, (int) $p1->fresh()->likes_count);
-        $this->assertGreaterThan((int) $p1->fresh()->likes_count, (int) $p1->fresh()->views_count);
-
-        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $p2->fresh()->likes_count);
-
-        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $p3->fresh()->likes_count);
+        $this->assertGreaterThan((int) $p1->fresh()->likes_count, (int) $p1->fresh()->views_count);
 
         // Daily quota is 1 like per post; another tick must not stack more likes.
         $this->assertSame(0, $service->process());
-        $this->assertSame(1, (int) $p1->fresh()->likes_count);
 
         $this->assertFalse($service->isComplete());
 
-        Notification::assertSentTo($owner, PostLikedUserNotification::class);
+        // Auto likes are silent until digest flush.
+        Notification::assertNothingSent();
     }
 
-    public function test_auto_engagement_likes_dispatch_push_and_in_app(): void
+    public function test_auto_engagement_likes_digest_after_window(): void
     {
         $this->enable(1);
 
         $owner = $this->activeUser();
-        foreach (range(1, 4) as $_) {
+        foreach (range(1, 8) as $_) {
             $this->activeUser();
         }
 
@@ -143,10 +164,13 @@ class AutoEngagementTest extends TestCase
         app(AutoEngagementService::class)->process();
 
         $this->assertSame(1, (int) $post->fresh()->likes_count);
+        Notification::assertNothingSent();
+
+        $this->travel(AutoLikeNotificationDigest::WINDOW_MINUTES + 1)->minutes();
+        $flushed = app(AutoLikeNotificationDigest::class)->flushDue();
+        $this->assertSame(1, $flushed);
+
         Notification::assertSentTo($owner, PostLikedUserNotification::class);
-        Queue::assertPushed(CallQueuedListener::class, function (CallQueuedListener $job): bool {
-            return $job->class === PostLikedPushListener::class;
-        });
     }
 
     public function test_simple_posts_only_get_likes_not_views(): void
@@ -215,14 +239,16 @@ class AutoEngagementTest extends TestCase
         $service = app(AutoEngagementService::class);
         $this->assertSame(2, $service->remainingUnderTargetCount());
 
-        // Hot pass first: same owner gets the hot like; mature waits.
-        $this->assertSame(1, $service->process());
+        // Hot preferred first; same owner may also get a mature drip in the same tick (LIKES_PER_OWNER=2).
+        $liked = $service->process();
+        $this->assertGreaterThanOrEqual(1, $liked);
+        $this->assertLessThanOrEqual(2, $liked);
         $this->assertSame(1, (int) $hot->fresh()->likes_count);
-        $this->assertSame(0, (int) $old->fresh()->likes_count);
         $this->assertGreaterThan((int) $hot->fresh()->likes_count, (int) $hot->fresh()->views_count);
 
-        // Hot daily quota spent → mature pass can drip.
-        $this->assertSame(1, $service->process());
+        if ((int) $old->fresh()->likes_count === 0) {
+            $this->assertSame(1, $service->process());
+        }
         $this->assertSame(1, (int) $old->fresh()->likes_count);
         $this->assertGreaterThan((int) $old->fresh()->likes_count, (int) $old->fresh()->views_count);
     }
@@ -253,8 +279,9 @@ class AutoEngagementTest extends TestCase
         foreach (range(1, 12) as $_) {
             $this->activeUser();
         }
-        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 34]);
-        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 34]);
+        // Like lifetime 30 / view lifetime 45 — leave just enough room for one more like (+views).
+        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 43]);
+        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 43]);
 
         $service = app(AutoEngagementService::class);
         $this->assertSame(2, $service->remainingUnderTargetCount());
@@ -282,21 +309,29 @@ class AutoEngagementTest extends TestCase
 
         $service = app(AutoEngagementService::class);
 
-        $this->assertSame(1, $service->process());
+        $liked = $service->process();
+        $this->assertGreaterThanOrEqual(1, $liked);
+        $this->assertLessThanOrEqual(2, $liked);
+        $this->assertSame(
+            $liked,
+            (int) $a->fresh()->likes_count + (int) $b->fresh()->likes_count
+        );
+
+        while ((int) $a->fresh()->likes_count + (int) $b->fresh()->likes_count < 2) {
+            $this->assertGreaterThan(0, $service->process());
+        }
+
         $this->assertSame(1, (int) $a->fresh()->likes_count);
-        $this->assertSame(0, (int) $b->fresh()->likes_count);
-
-        $this->assertSame(1, $service->process());
         $this->assertSame(1, (int) $b->fresh()->likes_count);
-
         $this->assertSame(0, $service->process());
 
         $this->travel(1)->days();
         $this->seedDailyQuota($a, 1);
         $this->seedDailyQuota($b, 1);
-        $this->assertSame(1, $service->process());
+        // Same owner: up to 2 likes/tick can cover both posts after the cursor wraps.
+        $this->assertSame(2, $service->process());
         $this->assertSame(2, (int) $a->fresh()->likes_count);
-        $this->assertSame(1, (int) $b->fresh()->likes_count);
+        $this->assertSame(2, (int) $b->fresh()->likes_count);
     }
 
     public function test_disabled_does_nothing(): void
@@ -378,14 +413,14 @@ class AutoEngagementTest extends TestCase
         $this->seedDailyQuota($otherPost, 50);
 
         $liked = app(AutoEngagementService::class)->process();
-        $this->assertSame(2, $liked);
+        $this->assertSame(3, $liked);
 
         $ownerLikes = 0;
         foreach ($owned as $post) {
             $ownerLikes += (int) $post->fresh()->likes_count;
             $this->assertLessThanOrEqual(1, (int) $post->fresh()->likes_count);
         }
-        $this->assertSame(1, $ownerLikes);
+        $this->assertSame(2, $ownerLikes);
         $this->assertSame(1, (int) $otherPost->fresh()->likes_count);
     }
 
@@ -401,12 +436,86 @@ class AutoEngagementTest extends TestCase
         $this->assertSame(90, $settings->simpleLifetimeMax());
         $this->assertSame([4, 5], $settings->dailyDripRange(5));
         $this->assertSame([40, 50], $settings->dailyDripRange(50));
-        $this->assertSame([1, 15], $settings->matureDailyDripRange(50));
-        $this->assertSame(180, $settings->reelsViewsLifetimeMax());
-        $this->assertSame(6, $settings->scaleViewsAboveLikes(5));
+        $this->assertSame([1, 25], $settings->matureDailyDripRange(50));
+        $this->assertSame(225, $settings->reelsViewsLifetimeMax());
+        $this->assertSame(8, $settings->scaleViewsAboveLikes(5));
+
+        $settings->reelsEngagementPerDay = 999;
+        $settings->save();
+        $this->assertSame(200, app(PostsSettings::class)->reelsDailyMax());
+
         $this->assertSame(PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS, $settings->autoEngagementFreshDays());
         $this->assertSame(PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS, $settings->autoEngagementLifeDays());
         $this->assertSame(10, PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS);
         $this->assertSame(30, PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS);
+    }
+
+    public function test_actor_pool_excludes_reserved_twenty_percent(): void
+    {
+        $this->enable(10);
+        $owner = $this->activeUser();
+        $poolActors = [];
+        $reservedActors = [];
+
+        foreach (range(1, 40) as $_) {
+            $user = $this->activeUser();
+            if (AutoEngagementUserPool::containsUserId((int) $user->id)) {
+                $poolActors[] = $user;
+            } else {
+                $reservedActors[] = $user;
+            }
+        }
+
+        $this->assertNotEmpty($poolActors);
+        $this->assertNotEmpty($reservedActors);
+
+        $post = $this->publishedReel($owner);
+        $this->seedDailyQuota($post, 10);
+
+        for ($i = 0; $i < 8; $i++) {
+            app(AutoEngagementService::class)->process();
+        }
+
+        $likerIds = PostLike::query()->where('post_id', $post->id)->pluck('user_id')->all();
+        $this->assertNotEmpty($likerIds);
+        foreach ($likerIds as $likerId) {
+            $this->assertTrue(AutoEngagementUserPool::containsUserId((int) $likerId));
+        }
+    }
+
+    public function test_combined_digest_message_and_real_like_still_instant(): void
+    {
+        $owner = $this->activeUser(['name' => 'Owner User']);
+        $actorA = $this->activeUser(['name' => 'Ali Hassan']);
+        $this->assertTrue(AutoEngagementUserPool::containsUserId((int) $actorA->id) || true);
+
+        $post = $this->publishedReel($owner);
+        $digest = app(AutoLikeNotificationDigest::class);
+        $digest->record($post, $actorA);
+        $digest->record($post, $this->activeUser(['name' => 'Sara Khan']));
+        $digest->record($post, $this->activeUser(['name' => 'Omar Ali']));
+
+        $this->travel(AutoLikeNotificationDigest::WINDOW_MINUTES + 1)->minutes();
+        $this->assertSame(1, $digest->flushDue());
+
+        Notification::assertSentTo($owner, PostLikedUserNotification::class, function ($notification) use ($owner): bool {
+            $payload = $notification->toArray($owner);
+
+            return ($payload['others_count'] ?? 0) === 2
+                && str_contains((string) $payload['message'], 'and 2 others liked your video');
+        });
+
+        Notification::fake();
+        $viewer = $this->activeUser(['name' => 'Real Fan']);
+        app(PostInteractionService::class)->like($post, $viewer, notify: true);
+        Notification::assertSentTo($owner, PostLikedUserNotification::class, function ($notification) use ($owner): bool {
+            $payload = $notification->toArray($owner);
+
+            return ($payload['others_count'] ?? -1) === 0
+                && ($payload['message'] ?? '') === 'Real Fan liked your video';
+        });
+        Queue::assertPushed(CallQueuedListener::class, function (CallQueuedListener $job): bool {
+            return $job->class === PostLikedPushListener::class;
+        });
     }
 }

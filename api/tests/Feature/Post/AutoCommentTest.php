@@ -137,16 +137,17 @@ class AutoCommentTest extends TestCase
             $this->dormantUser();
         }
 
-        // 12 likes → floor(12 * 0.08) = 0 room
-        $blocked = $this->publishedReel($owner, ['likes_count' => 12, 'views_count' => 20]);
+        // 6 likes → floor(6 * 0.15) = 0 room
+        $blocked = $this->publishedReel($owner, ['likes_count' => 6, 'views_count' => 20]);
         $this->assertFalse(app(AutoCommentService::class)->commentOnPost($blocked));
 
-        // 25 likes → floor(2.0) = 2
-        $open = $this->publishedReel($owner, ['likes_count' => 25, 'views_count' => 40]);
+        // 20 likes → floor(20 * 0.15) = 3
+        $open = $this->publishedReel($owner, ['likes_count' => 20, 'views_count' => 40]);
         $this->assertTrue(app(AutoCommentService::class)->commentOnPost($open));
         $this->assertTrue(app(AutoCommentService::class)->commentOnPost($open->fresh()));
+        $this->assertTrue(app(AutoCommentService::class)->commentOnPost($open->fresh()));
         $this->assertFalse(app(AutoCommentService::class)->commentOnPost($open->fresh()));
-        $this->assertSame(2, (int) $open->fresh()->comments_count);
+        $this->assertSame(3, (int) $open->fresh()->comments_count);
         $this->assertLessThan((int) $open->fresh()->likes_count, (int) $open->fresh()->comments_count);
         $this->assertLessThan((int) $open->fresh()->views_count, (int) $open->fresh()->comments_count);
     }
@@ -335,10 +336,11 @@ class AutoCommentTest extends TestCase
         $settings->reelsEngagementPerDay = 50;
         $settings->save();
 
-        $this->assertSame(2, $settings->reelsCommentDailyMax());
-        $this->assertSame(1, $settings->simpleCommentDailyMax());
-        $this->assertSame(60, $settings->reelsCommentLifetimeMax());
-        $this->assertSame(2, $settings->commentCapFromLikes(25));
+        // 50 likes/day × 0.1 comment ratio → 5 comments/day; simple ≈ 30 × 0.1 → 3
+        $this->assertSame(5, $settings->reelsCommentDailyMax());
+        $this->assertSame(3, $settings->simpleCommentDailyMax());
+        $this->assertSame(150, $settings->reelsCommentLifetimeMax());
+        $this->assertSame(3, $settings->commentCapFromLikes(25));
         $this->assertSame(0, $settings->commentCapFromLikes(0));
     }
 }

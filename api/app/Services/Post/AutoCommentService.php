@@ -11,13 +11,14 @@ use App\Models\PostComment;
 use App\Models\User;
 use App\Settings\PostsSettings;
 use App\Support\Post\AutoCommentPhrases;
+use App\Support\Post\AutoEngagementUserPool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Sparse top-level comments from dormant accounts (never active or inactive 30+ days).
+ * Sparse top-level comments from dormant accounts in the 80% actor pool.
  *
  * Separate from likes/views. Comments stay far below likes (and views on reels).
  */
@@ -27,12 +28,16 @@ class AutoCommentService
 
     public const DORMANT_DAYS = 30;
 
-    /** Skip most hourly visits so comments do not land every hour. */
-    private const SKIP_TICK_PERCENT = 70;
+    /** Skip chance on hot posts each 30-minute tick. */
+    private const SKIP_TICK_PERCENT = 40;
 
-    private const TICKS_PER_DAY = 24;
+    /** Skip chance on mature posts. */
+    private const SKIP_TICK_PERCENT_MATURE = 60;
 
-    private const TARGET_PASSES_PER_DAY = 2;
+    /** Keep in sync with routes/console.php (everyThirtyMinutes). */
+    private const TICKS_PER_DAY = 48;
+
+    private const TARGET_PASSES_PER_DAY = 4;
 
     private const MAX_CHUNK = 80;
 
@@ -223,7 +228,7 @@ class AutoCommentService
 
         $skipPercent = $this->isWithinFreshWindow($post)
             ? self::SKIP_TICK_PERCENT
-            : 90;
+            : self::SKIP_TICK_PERCENT_MATURE;
 
         return random_int(1, 100) <= $skipPercent;
     }
@@ -297,14 +302,16 @@ class AutoCommentService
 
     private function randomDormantUserExceptOwner(int $ownerId, int $postId): ?User
     {
-        return User::query()
+        $query = User::query()
             ->where('type', UserTypeEnum::USER)
             ->where('status', UserStatusEnum::ACTIVE)
             ->where('id', '!=', $ownerId)
             ->inactiveDays((string) self::DORMANT_DAYS)
-            ->whereNotIn('id', PostComment::query()->where('post_id', $postId)->select('user_id'))
-            ->inRandomOrder()
-            ->first();
+            ->whereNotIn('id', PostComment::query()->where('post_id', $postId)->select('user_id'));
+
+        AutoEngagementUserPool::constrain($query);
+
+        return $query->inRandomOrder()->first();
     }
 
     private function creatorFirstName(Post $post): ?string

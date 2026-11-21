@@ -234,6 +234,34 @@ class AutoCommentPhrases
         '🤍',
         '😊',
         '🙏',
+        '👍',
+        '🤩',
+        '💥',
+        '🥰',
+        '👌',
+        '😄',
+        '🌟',
+        '💙',
+    ];
+
+    /** Emoji-only / emoji-heavy short reactions. */
+    /** @var list<string> */
+    private const EMOJI_READY = [
+        '🔥🔥',
+        '❤️❤️',
+        '👏👏',
+        '💯🔥',
+        '😍🔥',
+        '🙌❤️',
+        '👍👍',
+        '✨🔥',
+        '💪🔥',
+        '❤️🔥👏',
+        '🤩💯',
+        '🥰❤️',
+        '🔥💯✨',
+        '😊👍',
+        '🤍❤️',
     ];
 
     public static function random(?string $creatorFirstName = null): string
@@ -242,26 +270,27 @@ class AutoCommentPhrases
         $roll = random_int(1, 100);
 
         $body = match (true) {
-            $name !== null && $roll <= 20 => self::namedLine($name),
-            $roll <= 30 => self::withOptionalCreatorName(self::pick(self::READY), $name),
-            $roll <= 38 => self::withOptionalCreatorName(self::originLine(), $name),
-            $roll <= 48 => self::withOptionalEmoji(self::withOptionalCreatorName(
+            $name !== null && $roll <= 16 => self::namedLine($name),
+            $roll <= 26 => self::withOptionalCreatorName(self::pick(self::READY), $name),
+            $roll <= 32 => self::withOptionalCreatorName(self::originLine(), $name),
+            $roll <= 40 => self::withOptionalEmoji(self::withOptionalCreatorName(
                 self::withOptionalAddress(self::pick(self::BLESSINGS)),
                 $name,
             )),
-            $roll <= 56 => self::withOptionalEmoji(self::withOptionalCreatorName(
+            $roll <= 46 => self::withOptionalEmoji(self::withOptionalCreatorName(
                 self::withOptionalAddress(self::pick(self::PRAISE)),
                 $name,
             )),
-            $roll <= 62 => self::withOptionalEmoji(self::withOptionalCreatorName(self::join(
+            $roll <= 50 => self::withOptionalEmoji(self::withOptionalCreatorName(self::join(
                 self::pick(self::BLESSINGS),
                 self::pick(self::PRAISE),
                 self::maybeAddress(),
             ), $name)),
-            $roll <= 66 => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::CHAT), $name)),
-            $roll <= 82 => self::withOptionalCreatorName(self::longLine(), $name),
-            $roll <= 96 => self::withOptionalCreatorName(self::composedLine(), $name),
-            $roll <= 98 => self::pick(self::EMOJI),
+            $roll <= 54 => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::CHAT), $name)),
+            $roll <= 66 => self::withOptionalCreatorName(self::longLine(), $name),
+            $roll <= 76 => self::withOptionalCreatorName(self::composedLine(), $name),
+            $roll <= 90 => self::pick(self::EMOJI_READY),
+            $roll <= 96 => self::pick(self::EMOJI),
             default => self::withOptionalEmoji(self::withOptionalCreatorName(self::pick(self::BLESSINGS), $name)),
         };
 
@@ -432,7 +461,8 @@ class AutoCommentPhrases
 
     private static function withOptionalEmoji(string $line): string
     {
-        if (random_int(1, 5) !== 1) {
+        // ~50% chance to append an emoji.
+        if (random_int(1, 2) !== 1) {
             return $line;
         }
 

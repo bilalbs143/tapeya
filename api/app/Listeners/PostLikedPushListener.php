@@ -5,8 +5,7 @@ namespace App\Listeners;
 use App\Enums\Push\NotificationEventEnum;
 use App\Events\PostLiked;
 use App\Services\Push\PushNotificationService;
-use App\Support\Notifications\ActorLabel;
-use App\Support\Post\PostPaths;
+use App\Support\Notifications\PostLikedNotifyCopy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
@@ -30,12 +29,7 @@ class PostLikedPushListener implements ShouldQueue
 
             $this->pushService->dispatch(
                 NotificationEventEnum::POST_LIKED,
-                [
-                    'post_id' => $post->id,
-                    'deep_link' => PostPaths::deepLink($post),
-                    'actor_id' => $actor->id,
-                    'actor_name' => ActorLabel::for($actor),
-                ],
+                PostLikedNotifyCopy::pushVars($post, $actor),
                 (int) $post->user_id,
             );
         } catch (\Throwable $e) {

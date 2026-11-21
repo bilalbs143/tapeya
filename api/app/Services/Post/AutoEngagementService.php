@@ -11,23 +11,21 @@ use App\Models\PostLike;
 use App\Models\PostView;
 use App\Models\User;
 use App\Settings\PostsSettings;
+use App\Support\Post\AutoEngagementUserPool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Drip silent likes/views onto public ready posts from random active users.
+ * Drip silent likes/views onto public ready posts from the 80% actor pool.
  *
  * Admin: enabled + daily max. Hot posts (≤ {@see PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS})
- * use an aggressive daily band; older posts stay eligible under soft lifetime but drip slowly.
+ * use an aggressive daily band and prefer high-volume + recent owners; mature posts still drip.
  * Soft like lifetime = dailyMax × {@see PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS}; reel views lead likes.
  *
  * Pace: every 10 minutes, at most one like (and matching views) per post,
- * and at most one like per post owner (natural drip, no notification stack).
- * Each tick processes hot under-target posts first, then mature if capacity remains.
- * Owners with many posts rotate which reel gets the like within the active pass.
- * Reels keep likes_count < views_count; simple posts get likes only.
+ * and at most two likes per post owner per tick. Auto likes notify via combined digests.
  *
  * Cursors: {@see self::CURSOR_CACHE_KEY} (hot), {@see self::MATURE_CURSOR_CACHE_KEY}.
  * Daily state: {@see self::dailyStateCacheKey()}.
@@ -49,16 +47,17 @@ class AutoEngagementService
     /** Never stack likes on the same post in one tick. */
     private const LIKE_PER_TICK = 1;
 
-    /** Max likes across different posts for the same creator in one tick (keeps notifications natural). */
-    private const LIKES_PER_OWNER_PER_TICK = 1;
+    /** Max likes across different posts for the same creator in one tick. */
+    private const LIKES_PER_OWNER_PER_TICK = 2;
 
     /** Extra viewers beyond the liker so reel likes stay strictly below views. */
-    private const EXTRA_VIEWS_PER_AUTO_LIKE = 1;
+    private const EXTRA_VIEWS_PER_AUTO_LIKE = 2;
 
     public function __construct(
         private PostsSettings $settings,
         private readonly PostInteractionService $interactions,
         private readonly PostViewService $views,
+        private readonly AutoLikeNotificationDigest $likeDigest,
     ) {}
 
     /** Process the next chunk of eligible posts. Returns posts touched. */
@@ -184,10 +183,31 @@ class AutoEngagementService
     ): void {
         $wrapped = false;
 
+        $prioritize = $cursorKey === self::CURSOR_CACHE_KEY;
+
         while ($likedThisTick < $chunk && $scanned < $maxScan) {
             $query = $ageScope($this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax))
-                ->where('id', '>', $this->cursorFor($cursorKey))
-                ->orderBy('id');
+                ->where('id', '>', $this->cursorFor($cursorKey));
+
+            if ($prioritize) {
+                $hotCutoff = now()->subDays($this->settings->autoEngagementFreshDays());
+                $postsTable = (new Post)->getTable();
+                $query
+                    ->addSelect([
+                        $postsTable.'.*',
+                        'owner_recent_post_count' => Post::query()
+                            ->selectRaw('count(*)')
+                            ->whereColumn('user_id', $postsTable.'.user_id')
+                            ->where('status', PostStatusEnum::Ready)
+                            ->whereNotNull('published_at')
+                            ->where('published_at', '>=', $hotCutoff),
+                    ])
+                    ->orderByDesc('owner_recent_post_count')
+                    ->orderByDesc('published_at')
+                    ->orderBy('id');
+            } else {
+                $query->orderBy('id');
+            }
 
             $post = $query->first();
 
@@ -211,7 +231,7 @@ class AutoEngagementService
 
             $ownerId = (int) $post->user_id;
             if ($ownerId > 0 && ($ownerLikesThisTick[$ownerId] ?? 0) >= self::LIKES_PER_OWNER_PER_TICK) {
-                // One like per creator per tick — natural drip, no notification stacks.
+                // Cap likes per creator per tick so drip stays spread across the day.
                 continue;
             }
 
@@ -362,21 +382,10 @@ class AutoEngagementService
         if (! $this->isVideo($post)) {
             while ($likesAdded < $dripLikes && (int) $post->likes_count < $likeMax) {
                 $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forLikeOnPostId: (int) $post->id);
-                if (! $actor) {
+                if (! $actor || ! $this->applySilentLike($post, $actor)) {
                     break;
                 }
-
-                try {
-                    $this->interactions->like($post, $actor);
-                    $likesAdded++;
-                } catch (Throwable $e) {
-                    Log::warning('auto_engagement.like_failed', [
-                        'post_id' => $post->id,
-                        'message' => $e->getMessage(),
-                    ]);
-                    break;
-                }
-
+                $likesAdded++;
                 $post = $post->fresh() ?? $post;
             }
 
@@ -389,39 +398,34 @@ class AutoEngagementService
         }
 
         while ($likesAdded < $dripLikes && (int) $post->likes_count < $likeMax) {
-            $viewsNeeded = 1 + self::EXTRA_VIEWS_PER_AUTO_LIKE;
-            if (($dripViews - $viewsAdded) < $viewsNeeded || ((int) $post->views_count + $viewsNeeded) > $viewMax) {
+            // Prefer EXTRA_VIEWS extras, but allow a like whenever we can keep views > likes.
+            $available = $dripViews - $viewsAdded;
+            $roomToLifetime = $viewMax - (int) $post->views_count;
+            $minViewsForLike = 2; // liker view + at least one ahead
+            if ($available < $minViewsForLike || $roomToLifetime < $minViewsForLike) {
                 break;
             }
+
+            $viewsBudget = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $available, $roomToLifetime);
 
             $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forLikeOnPostId: (int) $post->id);
-            if (! $actor) {
+            if (! $actor || ! $this->applySilentLike($post, $actor)) {
                 break;
             }
+            $likesAdded++;
 
             try {
-                $this->interactions->like($post, $actor);
-                $likesAdded++;
-
-                try {
-                    $this->views->recordCountedForUser($post->fresh() ?? $post, $actor);
-                    $viewsAdded++;
-                } catch (Throwable $e) {
-                    Log::warning('auto_engagement.view_after_like_failed', [
-                        'post_id' => $post->id,
-                        'message' => $e->getMessage(),
-                    ]);
-                }
-
-                $post = $post->fresh() ?? $post;
-                if (! $this->ensureViewsAhead($post, $viewsAdded, $dripViews, $viewMax)) {
-                    break;
-                }
+                $this->views->recordCountedForUser($post->fresh() ?? $post, $actor);
+                $viewsAdded++;
             } catch (Throwable $e) {
-                Log::warning('auto_engagement.like_failed', [
+                Log::warning('auto_engagement.view_after_like_failed', [
                     'post_id' => $post->id,
                     'message' => $e->getMessage(),
                 ]);
+            }
+
+            $post = $post->fresh() ?? $post;
+            if (! $this->ensureViewsAhead($post, $viewsAdded, $viewsBudget, $viewMax)) {
                 break;
             }
 
@@ -675,6 +679,8 @@ class AutoEngagementService
             ->where('status', UserStatusEnum::ACTIVE)
             ->where('id', '!=', $ownerId);
 
+        AutoEngagementUserPool::constrain($query);
+
         if ($forLikeOnPostId !== null) {
             $query->whereNotIn('id', PostLike::query()->where('post_id', $forLikeOnPostId)->select('user_id'));
         }
@@ -693,13 +699,32 @@ class AutoEngagementService
         return $query->inRandomOrder()->first();
     }
 
+    /**
+     * Silent like + digest buffer. Returns true only when a new like row was created.
+     */
+    private function applySilentLike(Post $post, User $actor): bool
+    {
+        try {
+            $result = $this->interactions->like($post, $actor, notify: false);
+            if (! ($result['created'] ?? false)) {
+                return false;
+            }
+            $this->likeDigest->record($post, $actor);
+
+            return true;
+        } catch (Throwable $e) {
+            Log::warning('auto_engagement.like_failed', [
+                'post_id' => $post->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
     private function isVideo(Post $post): bool
     {
-        $type = $post->type instanceof PostTypeEnum
-            ? $post->type
-            : PostTypeEnum::tryFrom((string) $post->type);
-
-        return $type === PostTypeEnum::Video;
+        return $post->type === PostTypeEnum::Video;
     }
 
     private function cursorFor(string $cursorKey): int
