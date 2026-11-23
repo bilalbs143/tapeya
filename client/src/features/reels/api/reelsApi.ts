@@ -31,19 +31,25 @@ function mapReel(raw: unknown): Reel {
 
 export const reelsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getReels: builder.query<CursorPage<Reel>, { tab: ReelTab; cursor?: string }>({
-      query: ({ tab, cursor }) => ({
+    getReels: builder.query<
+      CursorPage<Reel>,
+      { tab: ReelTab; cursor?: string | undefined; perPage?: number | undefined }
+    >({
+      query: ({ tab, cursor, perPage = 10 }) => ({
         url: REEL_TAB_PATH[tab],
         params: {
-          per_page: 10,
+          per_page: perPage,
           ...(cursor ? { cursor } : {}),
         },
       }),
       transformResponse: mapReelPage,
+      // One cache entry per tab (same as feed) — perPage is request-only.
       serializeQueryArgs: ({ endpointName, queryArgs }) => `${endpointName}(${queryArgs.tab})`,
       merge: mergeCursorPages,
       forceRefetch: ({ currentArg, previousArg }) =>
-        currentArg?.tab !== previousArg?.tab || currentArg?.cursor !== previousArg?.cursor,
+        currentArg?.tab !== previousArg?.tab ||
+        currentArg?.cursor !== previousArg?.cursor ||
+        (currentArg?.perPage ?? 10) !== (previousArg?.perPage ?? 10),
       providesTags: (result, _err, arg) =>
         result
           ? [...result.items.map((r) => ({ type: 'Reel' as const, id: r.id })), { type: 'Reel', id: `LIST-${arg.tab}` }]
@@ -60,7 +66,7 @@ export const reelsApi = baseApi.injectEndpoints({
       CursorPage<Reel>,
       { userId: number; cursor?: string | undefined; perPage?: number | undefined }
     >({
-      query: ({ userId, cursor, perPage = 18 }) => ({
+      query: ({ userId, cursor, perPage = 50 }) => ({
         url: `/users/${userId}/reels`,
         params: { cursor: cursor ?? undefined, per_page: perPage },
       }),
@@ -68,7 +74,9 @@ export const reelsApi = baseApi.injectEndpoints({
       serializeQueryArgs: ({ endpointName, queryArgs }) => `${endpointName}(${queryArgs.userId})`,
       merge: mergeCursorPages,
       forceRefetch: ({ currentArg, previousArg }) =>
-        currentArg?.userId !== previousArg?.userId || currentArg?.cursor !== previousArg?.cursor,
+        currentArg?.userId !== previousArg?.userId ||
+        currentArg?.cursor !== previousArg?.cursor ||
+        (currentArg?.perPage ?? 50) !== (previousArg?.perPage ?? 50),
       providesTags: (result, _e, arg) =>
         result
           ? [

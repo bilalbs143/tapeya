@@ -43,6 +43,9 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
     setReportOpen,
     reelsPage,
     reelsLoading,
+    canLoadMoreReels,
+    loadingMoreReels,
+    loadMoreReelsRef,
     postsPage,
     postsLoading,
     following,
@@ -120,13 +123,23 @@ export function PublicProfileBody({ flow }: PublicProfileBodyProps) {
             </TabsList>
           </div>
 
-          <TabsContent value="reels" className="mt-0 p-4">
+          <TabsContent value="reels" className="mt-0">
             {reelsLoading ? (
-              <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
+              <div className="p-4">
+                <ReelGridSkeleton count={reelCount} className="gap-1.5 [&>*]:rounded-icon" />
+              </div>
             ) : reelsPage?.items.length ? (
-              <ReelGrid reels={reelsPage.items} />
+              <ReelGrid
+                className="p-4"
+                reels={reelsPage.items}
+                loadMoreRef={loadMoreReelsRef}
+                canLoadMore={canLoadMoreReels}
+                loadingMore={loadingMoreReels}
+              />
             ) : (
-              <EmptyState title="No Reels Yet" description="This player hasn’t posted a reel." />
+              <div className="p-4">
+                <EmptyState title="No Reels Yet" description="This player hasn’t posted a reel." />
+              </div>
             )}
           </TabsContent>
 

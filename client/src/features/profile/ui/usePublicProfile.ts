@@ -10,11 +10,13 @@ import { userHandle } from '@/entities/user';
 
 import { getApiErrorMessage } from '@/shared/api/errors';
 import { APP_PATHS } from '@/shared/config/paths';
+import { useCursorLoadMore } from '@/shared/hooks/useCursorLoadMore';
 import { shareLink } from '@/shared/native/share';
 import { useAppDispatch } from '@/shared/store/hooks';
 import { toast } from '@/shared/ui/toast';
 
 import { useGetUserProfileQuery, useLookupUsersQuery } from '../api/profileApi';
+import { PROFILE_REELS_PER_PAGE } from '../lib/profileShelves';
 import { publicProfileShareTitle, type PublicProfileTab } from '../lib/publicProfile';
 import { parseProfileHandle } from '../lib/resolveHandle';
 import { profileRoutes } from '../routes';
@@ -26,6 +28,7 @@ export function usePublicProfile() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [tab, setTab] = useState<PublicProfileTab>('reels');
+  const [reelsCursor, setReelsCursor] = useState<string | undefined>();
   const [reportOpen, setReportOpen] = useState(false);
 
   const lookupSearch = parsed?.kind === 'nickname' ? parsed.nickname : '';
@@ -56,10 +59,33 @@ export function usePublicProfile() {
     refetch,
   } = useGetUserProfileQuery(userId ?? 0, { skip: userId == null || isOwn });
 
-  const { data: reelsPage, isLoading: reelsLoading } = useGetUserReelsQuery(
-    { userId: userId ?? 0 },
-    { skip: userId == null || isOwn || tab !== 'reels' }
+  const reelsActive = userId != null && !isOwn && tab === 'reels';
+  const {
+    data: reelsPage,
+    isLoading: reelsLoading,
+    isFetching: reelsFetching,
+    refetch: refetchReels,
+  } = useGetUserReelsQuery(
+    { userId: userId ?? 0, cursor: reelsCursor, perPage: PROFILE_REELS_PER_PAGE },
+    { skip: !reelsActive }
   );
+
+  const reels = reelsPage?.items ?? [];
+  const {
+    canLoadMore: canLoadMoreReels,
+    loadingMore: loadingMoreReels,
+    loadMoreRef: loadMoreReelsRef,
+  } = useCursorLoadMore({
+    enabled: reelsActive,
+    cursor: reelsCursor,
+    onCursorChange: setReelsCursor,
+    page: reelsPage,
+    itemCount: reels.length,
+    isFetching: reelsFetching,
+    refetch: refetchReels,
+    pageRoot: true,
+  });
+
   const { data: postsPage, isLoading: postsLoading } = useGetUserPostsQuery(
     { userId: userId ?? 0 },
     { skip: userId == null || isOwn || tab !== 'posts' }
@@ -105,6 +131,7 @@ export function usePublicProfile() {
 
   function selectTab(next: string) {
     setTab(next as PublicProfileTab);
+    setReelsCursor(undefined);
   }
 
   return {
@@ -122,7 +149,10 @@ export function usePublicProfile() {
     reportOpen,
     setReportOpen,
     reelsPage,
-    reelsLoading,
+    reelsLoading: reelsLoading && !reelsPage,
+    canLoadMoreReels,
+    loadingMoreReels,
+    loadMoreReelsRef,
     postsPage,
     postsLoading,
     following,

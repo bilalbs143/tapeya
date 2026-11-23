@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react';
 
-import { getShellScrollRoot } from '@/shared/layout/shellScroll';
+import { getPageScrollRoot, getShellScrollRoot } from '@/shared/layout/shellScroll';
 
 type Options = {
   enabled: boolean;
   onIntersect: () => void;
   rootMargin?: string | undefined;
-  /** Explicit IO root. Ignored when `shellRoot` is true. */
+  /** Explicit IO root. Ignored when `shellRoot` or `pageRoot` is true. */
   root?: Element | null | undefined;
   /** Resolve AppShell scrollport when observing (home feed). */
   shellRoot?: boolean | undefined;
+  /** Resolve PageDock middle scroller when observing (profile shelves). */
+  pageRoot?: boolean | undefined;
   /** Remount observer when this changes (e.g. after a fetch settles). */
   recheckKey?: string | number | undefined;
 };
@@ -21,6 +23,7 @@ export function useCursorSentinel({
   rootMargin = '240px 0px',
   root = null,
   shellRoot = false,
+  pageRoot = false,
   recheckKey,
 }: Options) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -34,7 +37,7 @@ export function useCursorSentinel({
     const el = sentinelRef.current;
     if (!enabled || !el || typeof IntersectionObserver === 'undefined') return undefined;
 
-    const observeRoot = shellRoot ? getShellScrollRoot() : root;
+    const observeRoot = shellRoot ? getShellScrollRoot() : pageRoot ? getPageScrollRoot() : root;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -44,7 +47,7 @@ export function useCursorSentinel({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [enabled, root, shellRoot, rootMargin, recheckKey]);
+  }, [enabled, root, shellRoot, pageRoot, rootMargin, recheckKey]);
 
   return sentinelRef;
 }

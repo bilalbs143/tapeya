@@ -32,6 +32,9 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
     reelsLoading,
     reelsError,
     refetchReels,
+    canLoadMoreReels,
+    loadingMoreReels,
+    loadMoreReelsRef,
     posts,
     postsLoading,
     postsError,
@@ -86,9 +89,13 @@ export function YouPageBody({ flow }: YouPageBodyProps) {
           ) : reelsError ? (
             <ErrorState page title="Couldn't Load Reels" onRetry={() => void refetchReels()} />
           ) : reels.length ? (
-            <div className="p-4">
-              <ReelGrid reels={reels} />
-            </div>
+            <ReelGrid
+              className="p-4"
+              reels={reels}
+              loadMoreRef={loadMoreReelsRef}
+              canLoadMore={canLoadMoreReels}
+              loadingMore={loadingMoreReels}
+            />
           ) : (
             <EmptyState
               className="px-4 py-10"

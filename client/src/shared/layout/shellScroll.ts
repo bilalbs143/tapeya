@@ -12,6 +12,12 @@ export function getShellScrollRoot(): HTMLElement | null {
   return document.querySelector<HTMLElement>(`[${SHELL_SCROLLPORT_ATTR}]`);
 }
 
+/** PageDock middle scroller — IntersectionObserver root for profile shelves. */
+export function getPageScrollRoot(): HTMLElement | null {
+  if (typeof document === 'undefined') return null;
+  return document.querySelector<HTMLElement>('[data-page-scroll]');
+}
+
 /** Scroll shell + `[data-scroll-to-top]` regions to top. */
 export function scrollShellToTop(behavior: ScrollBehavior = 'smooth'): void {
   if (typeof document === 'undefined') return;
