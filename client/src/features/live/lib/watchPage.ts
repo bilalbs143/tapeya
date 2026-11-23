@@ -32,7 +32,7 @@ export function watchPosterUrl(stream: LiveStream): string | null {
   return stream.thumbnailUrl || youtubeStreamThumbnail(stream.playback?.embedId ?? stream.embedId);
 }
 
-/** Hide `0` until presence is ported — vanity ranges are always ≥1 when active. */
+/** Hide empty counts — real presence or vanity must be > 0 before showing a badge. */
 export function watchViewerLabel(presenceEnabled: boolean, viewerCount: number | null | undefined): string | null {
   if (!presenceEnabled || viewerCount == null || viewerCount <= 0) return null;
   return formatVanityViewerCount(viewerCount);

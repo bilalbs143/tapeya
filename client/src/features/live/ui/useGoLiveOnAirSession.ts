@@ -48,6 +48,7 @@ import { useBroadcastOrientationLock } from '../lib/useBroadcastOrientationLock'
 import { useFloatingHearts } from '../lib/useFloatingHearts';
 import { useLiveStreamChannel } from '../lib/useLiveStreamChannel';
 import { type HeartEventPayload, useStreamChatChannel } from '../lib/useStreamChatChannel';
+import { useStreamPresenceChannel } from '../lib/useStreamPresenceChannel';
 import { useVanityViewerCount } from '../lib/useVanityViewerCount';
 import { watchLiveChatGloballyEnabled, watchViewerLabel } from '../lib/watchPage';
 import type { OwnerBroadcast } from '../model/schemas';
@@ -171,7 +172,8 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     onHeart: onHeartEvent,
   });
 
-  const viewerCount = useVanityViewerCount(0, {
+  const realViewerCount = useStreamPresenceChannel(valid ? streamId : null, presenceEnabled);
+  const viewerCount = useVanityViewerCount(realViewerCount, {
     enabled: Boolean(presenceEnabled && (!publicStream || !publicStream.isSelfServe || vanitySelfServe)),
     settingsReady: settingsRows != null,
     streamId: valid ? streamId : null,

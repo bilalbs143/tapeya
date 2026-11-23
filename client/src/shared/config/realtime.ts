@@ -12,10 +12,19 @@ export type RealtimeChannel = {
   stopListening: (event: string) => RealtimeChannel;
 };
 
+/** Presence membership — Echo `join()`; requires bearer auth. */
+export type RealtimePresenceChannel = {
+  here: (callback: (members: unknown[]) => void) => RealtimePresenceChannel;
+  joining: (callback: (member: unknown) => void) => RealtimePresenceChannel;
+  leaving: (callback: (member: unknown) => void) => RealtimePresenceChannel;
+};
+
 export type RealtimeClient = {
   /** Public channel (no auth). */
   channel: (name: string) => RealtimeChannel;
   private: (channel: string) => RealtimeChannel;
+  /** Presence channel (requires auth). */
+  join: (name: string) => RealtimePresenceChannel;
   leave: (channel: string) => void;
   disconnect: () => void;
   /** Pusher connection state changes. Returns unsubscribe. */
@@ -93,6 +102,7 @@ type PusherConnection = {
 type EchoLike = {
   channel: (name: string) => unknown;
   private: (channel: string) => unknown;
+  join: (name: string) => unknown;
   leave: (channel: string) => void;
   disconnect: () => void;
   connector?: { pusher?: { connection: PusherConnection } };
@@ -118,6 +128,9 @@ function wrapEcho(echo: EchoLike): RealtimeClient {
     },
     private(channel) {
       return echo.private(channel) as RealtimeChannel;
+    },
+    join(name) {
+      return echo.join(name) as RealtimePresenceChannel;
     },
     leave(channel) {
       echo.leave(channel);

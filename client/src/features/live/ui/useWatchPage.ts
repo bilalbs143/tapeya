@@ -23,6 +23,7 @@ import { STATUS_BADGE } from '../lib/playback';
 import { useFloatingHearts } from '../lib/useFloatingHearts';
 import { useLiveStreamChannel } from '../lib/useLiveStreamChannel';
 import { type HeartEventPayload, useStreamChatChannel } from '../lib/useStreamChatChannel';
+import { useStreamPresenceChannel } from '../lib/useStreamPresenceChannel';
 import { useVanityViewerCount } from '../lib/useVanityViewerCount';
 import {
   watchAllowRotate,
@@ -88,10 +89,11 @@ export function useWatchPage(streamId: number, valid: boolean) {
     onHeart: onHeartEvent,
   });
 
-  /** Vanity/presence gate — live/starting + authed; presence not wired yet (realCount 0). */
+  /** Presence + vanity gate — live/starting + authed (same channel backoffice occupancy reads). */
   const presenceEnabled = Boolean(isAuthed && chatLive);
+  const realViewerCount = useStreamPresenceChannel(valid ? streamId : null, presenceEnabled);
   const vanitySelfServe = settingsMap.stream_vanity_viewer_self_serve === '1';
-  const viewerCount = useVanityViewerCount(0, {
+  const viewerCount = useVanityViewerCount(realViewerCount, {
     enabled: Boolean(presenceEnabled && stream && (!stream.isSelfServe || vanitySelfServe)),
     settingsReady: settingsRows != null,
     streamId: valid ? streamId : null,
