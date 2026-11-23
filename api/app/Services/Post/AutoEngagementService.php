@@ -183,13 +183,31 @@ class AutoEngagementService
     ): void {
         $wrapped = false;
 
+        // Hot pass prioritizes high-volume + recent owners. An id-cursor is incompatible with
+        // that ordering (wrap lands on the newest/max id, then id > cursor ends the pass after
+        // one like). Mature keeps a stable id cursor; hot excludes already-attempted rows instead.
         $prioritize = $cursorKey === self::CURSOR_CACHE_KEY;
+        /** @var array<int, true> posts already considered in this prioritize pass */
+        $postsAttemptedThisPass = [];
 
         while ($likedThisTick < $chunk && $scanned < $maxScan) {
-            $query = $ageScope($this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax))
-                ->where('id', '>', $this->cursorFor($cursorKey));
+            $query = $ageScope($this->underTargetQuery($reelsMax, $simpleMax, $reelsViewMax));
 
             if ($prioritize) {
+                $excludeIds = array_keys($postsAttemptedThisPass + $postsLikedThisTick);
+                if ($excludeIds !== []) {
+                    $query->whereNotIn('id', $excludeIds);
+                }
+                $cappedOwners = [];
+                foreach ($ownerLikesThisTick as $ownerId => $count) {
+                    if ($count >= self::LIKES_PER_OWNER_PER_TICK) {
+                        $cappedOwners[] = $ownerId;
+                    }
+                }
+                if ($cappedOwners !== []) {
+                    $query->whereNotIn('user_id', $cappedOwners);
+                }
+
                 $hotCutoff = now()->subDays($this->settings->autoEngagementFreshDays());
                 $postsTable = (new Post)->getTable();
                 $query
@@ -206,13 +224,15 @@ class AutoEngagementService
                     ->orderByDesc('published_at')
                     ->orderBy('id');
             } else {
-                $query->orderBy('id');
+                $query
+                    ->where('id', '>', $this->cursorFor($cursorKey))
+                    ->orderBy('id');
             }
 
             $post = $query->first();
 
             if ($post === null) {
-                if ($wrapped) {
+                if ($prioritize || $wrapped) {
                     break;
                 }
                 $this->storeCursorFor($cursorKey, 0);
@@ -224,6 +244,9 @@ class AutoEngagementService
             $scanned++;
             $postId = (int) $post->id;
             $this->storeCursorFor($cursorKey, $postId);
+            if ($prioritize) {
+                $postsAttemptedThisPass[$postId] = true;
+            }
 
             if (isset($postsLikedThisTick[$postId])) {
                 continue;

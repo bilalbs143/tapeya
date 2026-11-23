@@ -253,6 +253,38 @@ class AutoEngagementTest extends TestCase
         $this->assertGreaterThan((int) $old->fresh()->likes_count, (int) $old->fresh()->views_count);
     }
 
+    public function test_hot_pass_does_not_stall_after_cursor_reaches_newest_id(): void
+    {
+        $this->enable(50);
+
+        foreach (range(1, 30) as $_) {
+            $this->activeUser();
+        }
+
+        $owners = [];
+        $hotPosts = [];
+        foreach (range(1, 6) as $_) {
+            $owner = $this->activeUser();
+            $owners[] = $owner;
+            $post = $this->publishedReel($owner, ['published_at' => now()->subDay()]);
+            $this->seedDailyQuota($post, 10);
+            $hotPosts[] = $post;
+        }
+
+        // Simulate production failure mode: hot cursor already at the newest post id.
+        $newestId = (int) collect($hotPosts)->max(fn (Post $p) => $p->id);
+        Cache::forever(AutoEngagementService::CURSOR_CACHE_KEY, $newestId);
+
+        $liked = app(AutoEngagementService::class)->process();
+        $this->assertGreaterThanOrEqual(6, $liked);
+
+        $hotLikes = 0;
+        foreach ($hotPosts as $post) {
+            $hotLikes += (int) $post->fresh()->likes_count;
+        }
+        $this->assertGreaterThanOrEqual(6, $hotLikes);
+    }
+
     public function test_reel_likes_stay_strictly_below_views(): void
     {
         $this->enable(10);
