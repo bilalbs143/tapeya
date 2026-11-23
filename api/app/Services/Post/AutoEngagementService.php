@@ -22,9 +22,10 @@ use Throwable;
  *
  * Admin: enabled + daily max. Hot posts (≤ {@see PostsSettings::AUTO_ENGAGEMENT_HOT_DAYS})
  * use an aggressive daily band and prefer high-volume + recent owners; mature posts still drip.
- * Soft like lifetime = dailyMax × {@see PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS}; reel views lead likes.
+ * Soft like lifetime = dailyMax × {@see PostsSettings::AUTO_ENGAGEMENT_LIFE_DAYS}.
+ * Reel views target ~5× likes (likes ≈20% of views) with randomized bursts so feed counts diverge.
  *
- * Pace: every 10 minutes, at most one like (and matching views) per post,
+ * Pace: every 10 minutes, at most one like (and a random view burst) per post,
  * and at most two likes per post owner per tick. Auto likes notify via combined digests.
  *
  * Cursors: {@see self::CURSOR_CACHE_KEY} (hot), {@see self::MATURE_CURSOR_CACHE_KEY}.
@@ -50,8 +51,18 @@ class AutoEngagementService
     /** Max likes across different posts for the same creator in one tick. */
     private const LIKES_PER_OWNER_PER_TICK = 2;
 
-    /** Extra viewers beyond the liker so reel likes stay strictly below views. */
-    private const EXTRA_VIEWS_PER_AUTO_LIKE = 2;
+    /**
+     * Extra viewers beyond the liker (randomized per drip).
+     * 1 liker + 3…7 extras → ~4–8 views/like ≈ 12–25% likes (center ~20%).
+     */
+    private const EXTRA_VIEWS_MIN = 3;
+
+    private const EXTRA_VIEWS_MAX = 7;
+
+    /** When likes are done for the day, catch-up views still vary per tick. */
+    private const VIEW_ONLY_BURST_MIN = 2;
+
+    private const VIEW_ONLY_BURST_MAX = 5;
 
     public function __construct(
         private PostsSettings $settings,
@@ -301,10 +312,15 @@ class AutoEngagementService
             $dripViews = 0;
             if ($video) {
                 if ($applyLike) {
-                    $dripViews = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $viewRoom);
-                } elseif ($likeRoom <= 0 && (int) $post->views_count <= (int) $post->likes_count) {
-                    // Silent view repair only when likes are done for the day.
-                    $dripViews = min(1, $viewRoom);
+                    $dripViews = min($this->viewsBudgetForLike(), $viewRoom);
+                } elseif ($viewRoom > 0 && (
+                    $likeRoom <= 0
+                    || (int) $post->views_count < $this->settings->scaleViewsAboveLikes((int) $post->likes_count)
+                )) {
+                    // Catch-up / ratio repair with a small random burst (not a fixed +1).
+                    if ($this->shouldApplyViewOnlyThisTick($viewRoom)) {
+                        $dripViews = min($this->viewOnlyBurst(), $viewRoom);
+                    }
                 }
             }
 
@@ -421,15 +437,15 @@ class AutoEngagementService
         }
 
         while ($likesAdded < $dripLikes && (int) $post->likes_count < $likeMax) {
-            // Prefer EXTRA_VIEWS extras, but allow a like whenever we can keep views > likes.
+            // Need liker view + enough extras to keep likes well below views.
             $available = $dripViews - $viewsAdded;
             $roomToLifetime = $viewMax - (int) $post->views_count;
-            $minViewsForLike = 2; // liker view + at least one ahead
+            $minViewsForLike = 1 + self::EXTRA_VIEWS_MIN;
             if ($available < $minViewsForLike || $roomToLifetime < $minViewsForLike) {
                 break;
             }
 
-            $viewsBudget = min(1 + self::EXTRA_VIEWS_PER_AUTO_LIKE, $available, $roomToLifetime);
+            $viewsBudget = min($this->viewsBudgetForLike(), $available, $roomToLifetime);
 
             $actor = $this->randomActiveUserExceptOwner((int) $post->user_id, forLikeOnPostId: (int) $post->id);
             if (! $actor || ! $this->applySilentLike($post, $actor)) {
@@ -559,6 +575,46 @@ class AutoEngagementService
         $chance = max(1, min(100, $chance));
 
         return random_int(1, 100) <= $chance;
+    }
+
+    /**
+     * View-only catch-up is paced softer than likes so views climb without locking every scan.
+     */
+    private function shouldApplyViewOnlyThisTick(int $viewRoom): bool
+    {
+        if ($viewRoom <= 0) {
+            return false;
+        }
+
+        if (app()->environment('testing')) {
+            return true;
+        }
+
+        $ticksLeft = $this->remainingTicksToday();
+        $chance = (int) ceil(($viewRoom / max(1, $ticksLeft * 2)) * 100);
+        $chance = max(1, min(80, $chance));
+
+        return random_int(1, 100) <= $chance;
+    }
+
+    /** Total views to attach to one auto-like (liker + random extras). */
+    private function viewsBudgetForLike(): int
+    {
+        // Deterministic floor in tests so small actor pools stay reliable.
+        if (app()->environment('testing')) {
+            return 1 + self::EXTRA_VIEWS_MIN;
+        }
+
+        return 1 + random_int(self::EXTRA_VIEWS_MIN, self::EXTRA_VIEWS_MAX);
+    }
+
+    private function viewOnlyBurst(): int
+    {
+        if (app()->environment('testing')) {
+            return self::VIEW_ONLY_BURST_MIN;
+        }
+
+        return random_int(self::VIEW_ONLY_BURST_MIN, self::VIEW_ONLY_BURST_MAX);
     }
 
     private function remainingTicksToday(): int

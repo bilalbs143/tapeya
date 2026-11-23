@@ -954,7 +954,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Auto Engagement Daily Max',
-                'description' => 'Max likes/day for hot reels ≤10 days (0–200). Spread across 24h every 10 min: at most 1 like per post per tick, up to 2 likes per creator per tick. High-volume + recent posters are preferred; mature posts still drip. Views stay above likes (~1.5×). Hot daily band ~80–100% of this; mature (>10d) ~50%. Soft lifetime = daily × 30. Simple posts ~60% likes only. Auto like notifies are combined digests.',
+                'description' => 'Max likes/day for hot reels ≤10 days (0–200). Spread across 24h every 10 min: at most 1 like per post per tick, up to 2 likes per creator per tick. High-volume + recent posters are preferred; mature posts still drip. Views target ~5× likes (likes ≈20% of views) with per-tick variance so counts do not look identical. Hot daily band ~80–100% of this; mature (>10d) ~50%. Soft lifetime = daily × 30. Simple posts ~60% likes only. Auto like notifies are combined digests.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'reelsEngagementPerDay',
                 'nullable_string' => false,

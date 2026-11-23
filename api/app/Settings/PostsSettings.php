@@ -73,10 +73,11 @@ class PostsSettings extends Settings
     public const AUTO_ENGAGEMENT_FRESH_DAYS = self::AUTO_ENGAGEMENT_HOT_DAYS;
 
     /**
-     * Soft lifetime / daily view room vs likes for reels (likes must stay strictly below views).
-     * Example: like lifetime 6000 → view lifetime 9000.
+     * Soft lifetime / daily view room vs likes for reels.
+     * Target: likes ≈ 20% of views → views ≈ 5× likes (likes stay well below views).
+     * Example: like lifetime 6000 → view lifetime 30000.
      */
-    public const AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO = 1.5;
+    public const AUTO_ENGAGEMENT_VIEW_TO_LIKE_RATIO = 5.0;
 
     /** Simple posts get this fraction of the reel daily max (likes only). */
     public const AUTO_ENGAGEMENT_SIMPLE_RATIO = 0.6;
@@ -127,8 +128,8 @@ class PostsSettings extends Settings
     }
 
     /**
-     * Scale a like count into a slightly higher view budget (likes must stay below views).
-     * Example: 1500 → 1800 at ratio 1.2.
+     * Scale a like count into the matching view budget (~5× so likes stay ≈20% of views).
+     * Example: 20 likes → 100 views.
      */
     public function scaleViewsAboveLikes(int $likes): int
     {

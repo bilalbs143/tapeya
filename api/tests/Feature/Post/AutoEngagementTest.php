@@ -210,14 +210,16 @@ class AutoEngagementTest extends TestCase
 
         $service->process();
         $service->process();
+        $this->assertSame(2, (int) $post->fresh()->likes_count);
+        // Daily like quota exhausted — further ticks must not stack more likes.
         $service->process();
-        $this->assertSame(1, (int) $post->fresh()->likes_count);
+        $this->assertSame(2, (int) $post->fresh()->likes_count);
 
         $this->travel(1)->days();
         $this->seedDailyQuota($post, 2);
         $service->resetCursor();
         $service->process();
-        $this->assertSame(2, (int) $post->fresh()->likes_count);
+        $this->assertSame(3, (int) $post->fresh()->likes_count);
     }
 
     public function test_hot_posts_preferred_over_mature_same_owner(): void
@@ -302,18 +304,57 @@ class AutoEngagementTest extends TestCase
         $fresh = $post->fresh();
         $this->assertSame(1, (int) $fresh->likes_count);
         $this->assertGreaterThan((int) $fresh->likes_count, (int) $fresh->views_count);
+        // ~20% likes → views should be several× likes (test floor = 1+3 extras).
+        $this->assertGreaterThanOrEqual(4, (int) $fresh->views_count);
+    }
+
+    public function test_new_reels_keep_likes_near_twenty_percent_of_views(): void
+    {
+        $this->enable(20);
+
+        foreach (range(1, 50) as $_) {
+            $this->activeUser();
+        }
+
+        $posts = [];
+        foreach ([1, 3, 5, 8] as $seedViews) {
+            $owner = $this->activeUser();
+            // Different starting views so the feed does not open on identical counters.
+            $post = $this->publishedReel($owner, ['views_count' => $seedViews]);
+            $this->seedDailyQuota($post, 3);
+            $posts[] = $post;
+        }
+
+        $service = app(AutoEngagementService::class);
+        $service->process();
+        $service->process();
+
+        $viewCounts = [];
+        foreach ($posts as $post) {
+            $fresh = $post->fresh();
+            $likes = (int) $fresh->likes_count;
+            $views = (int) $fresh->views_count;
+            $this->assertGreaterThan($likes, $views);
+            if ($likes > 0) {
+                // Floor budget is 4 views/like in tests; production randomizes 4–8.
+                $this->assertGreaterThanOrEqual($likes * 4, $views);
+            }
+            $viewCounts[] = $views;
+        }
+
+        $this->assertGreaterThan(1, count(array_unique($viewCounts)));
     }
 
     public function test_remaining_count_tracks_progress(): void
     {
-        $this->enable(1); // like lifetime 30, view lifetime 36
+        $this->enable(1); // like lifetime 30, view lifetime 150 (5×)
         $owner = $this->activeUser();
         foreach (range(1, 12) as $_) {
             $this->activeUser();
         }
-        // Like lifetime 30 / view lifetime 45 — leave just enough room for one more like (+views).
-        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 43]);
-        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 43]);
+        // Near like lifetime; views one like-burst under the 5× ceiling so one tick can finish.
+        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 146]);
+        $this->publishedReel($owner, ['likes_count' => 29, 'views_count' => 146]);
 
         $service = app(AutoEngagementService::class);
         $this->assertSame(2, $service->remainingUnderTargetCount());
@@ -469,8 +510,9 @@ class AutoEngagementTest extends TestCase
         $this->assertSame([4, 5], $settings->dailyDripRange(5));
         $this->assertSame([40, 50], $settings->dailyDripRange(50));
         $this->assertSame([1, 25], $settings->matureDailyDripRange(50));
-        $this->assertSame(225, $settings->reelsViewsLifetimeMax());
-        $this->assertSame(8, $settings->scaleViewsAboveLikes(5));
+        // Views target ~5× likes (likes ≈20% of views).
+        $this->assertSame(750, $settings->reelsViewsLifetimeMax());
+        $this->assertSame(25, $settings->scaleViewsAboveLikes(5));
 
         $settings->reelsEngagementPerDay = 999;
         $settings->save();
