@@ -8,21 +8,17 @@ import { APP_PATHS } from '@/shared/config/paths';
 import { buildLiveBroadcastShareUrl, shareLink } from '@/shared/native/share';
 import { useImmersiveLandscape } from '@/shared/native/useImmersiveLandscape';
 import { selectIsAuthenticated, selectUserId } from '@/shared/store/authSlice';
-import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
+import { useAppSelector } from '@/shared/store/hooks';
 import { toast } from '@/shared/ui/toast';
 
-import {
-  useGetLiveCommentsQuery,
-  useGetLiveStreamQuery,
-  useSendLiveCommentMutation,
-  useSendLiveHeartMutation,
-} from '../api/liveApi';
-import { appendLiveComment, sanitizeLiveCommentBody } from '../lib/appendLiveComment';
+import { useGetLiveStreamQuery, useSendLiveCommentMutation, useSendLiveHeartMutation } from '../api/liveApi';
+import { sanitizeLiveCommentBody } from '../lib/appendLiveComment';
 import { displayInitials } from '../lib/displayInitials';
 import { STATUS_BADGE } from '../lib/playback';
 import { useFloatingHearts } from '../lib/useFloatingHearts';
 import { useLiveStreamChannel } from '../lib/useLiveStreamChannel';
-import { type HeartEventPayload, useStreamChatChannel } from '../lib/useStreamChatChannel';
+import { type HeartEventPayload } from '../lib/useStreamChatChannel';
+import { useStreamComments } from '../lib/useStreamComments';
 import { useStreamPresenceChannel } from '../lib/useStreamPresenceChannel';
 import { useVanityViewerCount } from '../lib/useVanityViewerCount';
 import {
@@ -39,16 +35,12 @@ import { liveRoutes } from '../routes';
 /** Watch session — stream/chat channels, landscape, hearts, comment send. */
 export function useWatchPage(streamId: number, valid: boolean) {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const isAuthed = useAppSelector(selectIsAuthenticated);
   const myUserId = useAppSelector(selectUserId);
   const { data: me } = useMeQuery(undefined, { skip: !isAuthed });
 
   // 5s so starting→live (YouTube ingest) is picked up without a long empty LIVE embed.
   const streamQuery = useGetLiveStreamQuery({ streamId, authed: isAuthed }, { skip: !valid, pollingInterval: 5_000 });
-  const commentsQuery = useGetLiveCommentsQuery(streamId, {
-    skip: !valid || !isAuthed,
-  });
   const [sendComment] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
@@ -84,7 +76,7 @@ export function useWatchPage(streamId: number, valid: boolean) {
   const liveChatGloballyEnabled = watchLiveChatGloballyEnabled(settingsMap.live_chat_enabled);
   const chatEnabled = Boolean(chatLive && liveChatGloballyEnabled);
 
-  useStreamChatChannel(valid ? streamId : null, {
+  const { messages: comments, addMessage } = useStreamComments(valid ? streamId : null, {
     enabled: valid && isAuthed && chatEnabled,
     onHeart: onHeartEvent,
   });
@@ -107,7 +99,6 @@ export function useWatchPage(streamId: number, valid: boolean) {
   }, [landscape, clearHearts]);
 
   const canChat = chatEnabled;
-  const comments = commentsQuery.data ?? [];
   const poster = stream ? watchPosterUrl(stream) : null;
   const isLive = stream?.status === 'live';
   const statusLabel = stream ? STATUS_BADGE[String(stream.status)] : undefined;
@@ -145,7 +136,7 @@ export function useWatchPage(streamId: number, valid: boolean) {
         try {
           // Append locally after POST — own comment may not echo on WS.
           const result = await sendComment({ streamId, body: text }).unwrap();
-          appendLiveComment(dispatch, streamId, {
+          addMessage({
             id: result.id || String(Date.now()),
             name: me?.nickname?.trim() || me?.name?.trim() || 'Viewer',
             text,

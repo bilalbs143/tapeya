@@ -4,7 +4,7 @@ import { acquireRealtimeClient, isRealtimeConfigured, releaseRealtimeClient } fr
 import { selectAccessToken } from '@/shared/store/authSlice';
 import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
 
-import { liveCommentWireSchema, toLiveComment } from '../model/schemas';
+import { type LiveComment, liveCommentWireSchema, toLiveComment } from '../model/schemas';
 import { appendLiveComment } from './appendLiveComment';
 import { type HeartEventPayload, parseHeartEventPayload } from './heartEvent';
 
@@ -12,18 +12,33 @@ export type { HeartEventPayload };
 
 type Options = {
   enabled?: boolean | undefined;
+  /** Local feed callback (legacy-style). Cache is still patched for RTK consumers. */
+  onMessage?: ((comment: LiveComment) => void) | undefined;
   onHeart?: ((payload: HeartEventPayload) => void) | undefined;
+  /** Fired when the socket reconnects after a drop — refetch history to close gaps. */
+  onReconnect?: (() => void) | undefined;
 };
 
-/** Public `live-stream.{id}.chat` — comments + hearts; heart callback ref-held across landscape toggles. */
-export function useStreamChatChannel(streamId: number | null, { enabled = true, onHeart }: Options = {}) {
+/** Public `live-stream.{id}.chat` — comments + hearts; callbacks ref-held across landscape toggles. */
+export function useStreamChatChannel(
+  streamId: number | null,
+  { enabled = true, onMessage, onHeart, onReconnect }: Options = {}
+) {
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector(selectAccessToken);
   const configured = isRealtimeConfigured();
+  const messageRef = useRef(onMessage);
   const heartRef = useRef(onHeart);
+  const reconnectRef = useRef(onReconnect);
+  useEffect(() => {
+    messageRef.current = onMessage;
+  }, [onMessage]);
   useEffect(() => {
     heartRef.current = onHeart;
   }, [onHeart]);
+  useEffect(() => {
+    reconnectRef.current = onReconnect;
+  }, [onReconnect]);
 
   useEffect(() => {
     if (!enabled || !streamId || !configured) return;
@@ -37,14 +52,29 @@ export function useStreamChatChannel(streamId: number | null, { enabled = true, 
     channel.listen('.live-stream.chat.message', (raw) => {
       const parsed = liveCommentWireSchema.safeParse(raw);
       if (!parsed.success) return;
-      appendLiveComment(dispatch, streamId, toLiveComment(parsed.data));
+      const comment = toLiveComment(parsed.data);
+      appendLiveComment(dispatch, streamId, comment);
+      messageRef.current?.(comment);
     });
 
     channel.listen('.live-stream.chat.heart', (raw) => {
       heartRef.current?.(parseHeartEventPayload(raw));
     });
 
+    let hadDisconnect = false;
+    const unsubConnection = client.onConnectionChange((status) => {
+      if (status === 'disconnected' || status === 'unavailable' || status === 'failed') {
+        hadDisconnect = true;
+        return;
+      }
+      if (status === 'connected' && hadDisconnect) {
+        hadDisconnect = false;
+        reconnectRef.current?.();
+      }
+    });
+
     return () => {
+      unsubConnection();
       client.leave(channelName);
       releaseRealtimeClient(client);
     };

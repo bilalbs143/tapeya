@@ -21,19 +21,18 @@ import { useKeepAwake } from '@/shared/native/useKeepAwake';
 import { useKeyboardInset } from '@/shared/native/useKeyboardInset';
 import { isNativePlatform } from '@/shared/platform/platform';
 import { selectUserId } from '@/shared/store/authSlice';
-import { useAppDispatch, useAppSelector } from '@/shared/store/hooks';
+import { useAppSelector } from '@/shared/store/hooks';
 import { toast } from '@/shared/ui/toast';
 
 import {
   useEndBroadcastMutation,
   useGetBroadcastQuery,
-  useGetLiveCommentsQuery,
   useGetLiveStreamQuery,
   useSendLiveCommentMutation,
   useSendLiveHeartMutation,
   useStartBroadcastSessionMutation,
 } from '../api/liveApi';
-import { appendLiveComment, sanitizeLiveCommentBody } from '../lib/appendLiveComment';
+import { sanitizeLiveCommentBody } from '../lib/appendLiveComment';
 import {
   type BroadcastPhase,
   isBroadcastLivePhase,
@@ -47,7 +46,8 @@ import { useBroadcastNativePreview } from '../lib/useBroadcastNativePreview';
 import { useBroadcastOrientationLock } from '../lib/useBroadcastOrientationLock';
 import { useFloatingHearts } from '../lib/useFloatingHearts';
 import { useLiveStreamChannel } from '../lib/useLiveStreamChannel';
-import { type HeartEventPayload, useStreamChatChannel } from '../lib/useStreamChatChannel';
+import { type HeartEventPayload } from '../lib/useStreamChatChannel';
+import { useStreamComments } from '../lib/useStreamComments';
 import { useStreamPresenceChannel } from '../lib/useStreamPresenceChannel';
 import { useVanityViewerCount } from '../lib/useVanityViewerCount';
 import { watchLiveChatGloballyEnabled, watchViewerLabel } from '../lib/watchPage';
@@ -57,7 +57,6 @@ import { liveRoutes } from '../routes';
 /** Native + RTMP session lifecycle for GoLiveOnAirPage. */
 export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const native = isNativePlatform();
   const myUserId = useAppSelector(selectUserId);
   const { data: me } = useMeQuery();
@@ -156,7 +155,6 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
   const presenceEnabled = Boolean(isLivePhase || streamChatActive || publishSessionActive);
   const vanitySelfServe = settingsMap.stream_vanity_viewer_self_serve === '1';
 
-  const commentsQuery = useGetLiveCommentsQuery(streamId, { skip: !valid || !chatEnabled });
   const { hearts: floatingHearts, spawnBurst, removeHeart } = useFloatingHearts();
 
   const onHeartEvent = useCallback(
@@ -167,7 +165,12 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     [myUserId, spawnBurst]
   );
 
-  useStreamChatChannel(valid ? streamId : null, {
+  const {
+    messages: comments,
+    addMessage,
+    replaceOptimistic,
+    removeMessage,
+  } = useStreamComments(valid ? streamId : null, {
     enabled: valid && chatEnabled,
     onHeart: onHeartEvent,
   });
@@ -451,7 +454,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     lastSend.current = now;
     const optimisticId = `local-${now}`;
     const name = me?.nickname?.trim() || me?.name?.trim() || 'You';
-    appendLiveComment(dispatch, streamId, {
+    addMessage({
       id: optimisticId,
       name,
       text: body,
@@ -461,7 +464,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     setDraft('');
     try {
       const result = await sendComment({ streamId, body }).unwrap();
-      appendLiveComment(dispatch, streamId, {
+      replaceOptimistic(optimisticId, {
         id: result.id,
         name,
         text: body,
@@ -469,6 +472,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
         avatarUrl: me?.avatarUrl ?? null,
       });
     } catch (error) {
+      removeMessage(optimisticId);
       toast({ title: getApiErrorMessage(error, 'Could not send comment.'), tone: 'error' });
     }
   }
@@ -517,7 +521,7 @@ export function useGoLiveOnAirSession(streamId: number, valid: boolean) {
     startState,
     endState,
     publishSessionActive,
-    comments: commentsQuery.data ?? [],
+    comments,
     draft,
     setDraft,
     commentsVisible,

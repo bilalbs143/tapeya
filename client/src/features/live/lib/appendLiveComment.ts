@@ -1,9 +1,8 @@
-import type { AppDispatch } from '@/shared/store/store';
+import type { AppDispatch, RootState } from '@/shared/store/store';
 
 import { liveApi } from '../api/liveApi';
 import type { LiveComment } from '../model/schemas';
-
-const MAX_COMMENTS = 80;
+import { upsertLiveComment } from './mergeLiveComments';
 
 /** Strip/trim/clamp chat body (default 500; server may clamp further). */
 export function sanitizeLiveCommentBody(raw: string, maxLen = 500): string {
@@ -13,17 +12,22 @@ export function sanitizeLiveCommentBody(raw: string, maxLen = 500): string {
     .slice(0, maxLen);
 }
 
-/** Upsert a chat row into the `getLiveComments` cache. Same id from WS replaces a local optimistic row (canonical server text wins). */
+/**
+ * Upsert a chat row into the `getLiveComments` cache.
+ * Uses upsert when the query entry is missing so early WS events are not dropped.
+ */
 export function appendLiveComment(dispatch: AppDispatch, streamId: number, comment: LiveComment) {
-  dispatch(
-    liveApi.util.updateQueryData('getLiveComments', streamId, (draft) => {
-      const idx = draft.findIndex((c) => c.id === comment.id);
-      if (idx >= 0) {
-        draft[idx] = comment;
-        return;
-      }
-      draft.push(comment);
-      if (draft.length > MAX_COMMENTS) draft.splice(0, draft.length - MAX_COMMENTS);
-    })
-  );
+  dispatch((innerDispatch, getState) => {
+    const cached = liveApi.endpoints.getLiveComments.select(streamId)(getState() as RootState);
+    if (cached.data == null) {
+      innerDispatch(liveApi.util.upsertQueryData('getLiveComments', streamId, [comment]));
+      return;
+    }
+    innerDispatch(
+      liveApi.util.updateQueryData('getLiveComments', streamId, (draft) => {
+        const next = upsertLiveComment(draft, comment);
+        draft.splice(0, draft.length, ...next);
+      })
+    );
+  });
 }
