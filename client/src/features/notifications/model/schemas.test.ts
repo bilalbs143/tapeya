@@ -23,7 +23,7 @@ describe('notification schemas', () => {
           id: 'abc',
           type: 'post_liked',
           data: {
-            message: 'Like: Sara liked your post.',
+            message: 'liked your post.',
             actor_name: 'Sara Ali',
             deep_link: '/feed/8',
           },
@@ -44,11 +44,46 @@ describe('notification schemas', () => {
     expect(page.meta.lastPage).toBe(2);
     expect(page.items[0]).toMatchObject({
       id: 'abc',
-      kind: 'Like',
-      message: 'Sara liked your post.',
+      kind: null,
+      actorName: 'Sara Ali',
+      message: 'liked your post.',
       href: '/feed/8',
       unread: true,
       dayGroup: 'Today',
+    });
+  });
+
+  it('keeps kind prefix and verb phrase without embedding actor name', () => {
+    const comment = toAppNotification({
+      id: 'c1',
+      type: 'post_commented',
+      data: {
+        message: 'New comment: commented on your post',
+        actor_name: 'Muhammad naeem',
+      },
+      created_at: new Date().toISOString(),
+    });
+    expect(comment).toMatchObject({
+      kind: 'New comment',
+      actorName: 'Muhammad naeem',
+      message: 'commented on your post',
+    });
+
+    const follow = toAppNotification({
+      id: 'f1',
+      type: 'user_followed',
+      data: {
+        message: 'New follower: started following you',
+        actor_name: 'Moynul Haque',
+        actor_id: 11,
+      },
+      created_at: new Date().toISOString(),
+    });
+    expect(follow).toMatchObject({
+      kind: 'New follower',
+      actorName: 'Moynul Haque',
+      message: 'started following you',
+      href: '/users/11',
     });
   });
 
@@ -78,7 +113,8 @@ describe('notification schemas', () => {
       id: '2',
       type: 'user_followed',
       data: {
-        message: 'Follow: Ahmed started following you.',
+        message: 'New follower: started following you',
+        actor_name: 'Ahmed',
         actor_id: 11,
         deep_link: '/notification-center',
       },

@@ -56,7 +56,8 @@ function mapApiNotificationToCard(notification) {
   }
 
   const nameSource = data.actor_name || data.customer_name || data.user_name || data.tournament_name || '';
-  const fallback = nameSource ? getInitials(nameSource) : 'N';
+  const actorName = typeof nameSource === 'string' && nameSource.trim() ? nameSource.trim() : null;
+  const fallback = actorName ? getInitials(actorName) : 'N';
   const avatar = data.actor_avatar_url || data.avatar_url || null;
 
   let href = null;
@@ -84,6 +85,7 @@ function mapApiNotificationToCard(notification) {
     type,
     avatar,
     fallback,
+    actorName,
     message,
     kind,
     createdAt: notification.created_at ?? null,
@@ -113,8 +115,9 @@ function groupNotifications(notifications) {
 }
 
 function NotificationCard({ notification, onOpen }) {
-  const { avatar, fallback, message, kind, timestamp, unread } = notification;
+  const { avatar, fallback, actorName, message, kind, timestamp, unread } = notification;
   const interactive = Boolean(onOpen);
+  const spoken = `${actorName ? `${actorName} ` : ''}${message}`;
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -130,14 +133,17 @@ function NotificationCard({ notification, onOpen }) {
       }`}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
-      aria-label={`${message}${unread ? ', unread' : ''}`}
+      aria-label={`${spoken}${unread ? ', unread' : ''}`}
       onClick={interactive ? () => onOpen(notification) : undefined}
       onKeyDown={interactive ? handleKeyDown : undefined}
     >
       <UserAvatar src={avatar} fallback={fallback} size="md" />
 
       <div className="min-w-0 flex-1">
-        <p className="text-[12px] leading-[1.35] text-white/90">{message}</p>
+        <p className="text-[12px] leading-[1.35] text-white/90">
+          {actorName ? <b className="font-semibold">{actorName} </b> : null}
+          {message}
+        </p>
         <p className="text-muted mt-0.5 text-[10px]">
           {timestamp}
           {kind ? <span aria-hidden> · </span> : null}

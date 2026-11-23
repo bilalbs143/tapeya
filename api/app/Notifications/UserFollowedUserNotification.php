@@ -32,7 +32,8 @@ class UserFollowedUserNotification extends Notification
             'actor_id' => $this->follower->id,
             'actor_name' => $actorName,
             'deep_link' => '/notification-center',
-            'message' => 'New follower: '.$actorName.' started following you',
+            // Inbox clients bold `actor_name`; keep verb phrase only.
+            'message' => 'New follower: started following you',
         ];
     }
 }

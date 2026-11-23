@@ -40,9 +40,10 @@ class PostMentionedUserNotification extends Notification
             'deep_link' => PostPaths::deepLink($this->post),
             'actor_id' => $this->actor->id,
             'actor_name' => $actorName,
+            // Inbox clients bold `actor_name`; keep verb phrase only.
             'message' => $inComment
-                ? 'Mention: '.$actorName.' mentioned you in a comment'
-                : 'Mention: '.$actorName.' mentioned you in a post',
+                ? 'Mention: mentioned you in a comment'
+                : 'Mention: mentioned you in a post',
         ];
     }
 }

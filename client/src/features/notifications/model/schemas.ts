@@ -113,6 +113,7 @@ export function toAppNotification(wire: NotificationWire): AppNotification {
     if (detail) message = detail;
   }
 
+  // API stores verb phrase only; UI bolds `actor_name` (see NotificationsBody).
   const actorName =
     asString(data.actor_name) ||
     asString(data.customer_name) ||

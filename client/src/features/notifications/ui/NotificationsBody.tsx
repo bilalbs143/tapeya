@@ -30,6 +30,7 @@ function NotificationAvatar({ n }: { n: AppNotification }) {
 
 function NotificationRow({ notification: n, onOpen }: { notification: AppNotification; onOpen: () => void }) {
   const interactive = Boolean(n.href) || n.unread;
+  const spoken = `${n.actorName ? `${n.actorName} ` : ''}${n.message}`;
   const body = (
     <>
       <NotificationAvatar n={n} />
@@ -58,7 +59,7 @@ function NotificationRow({ notification: n, onOpen }: { notification: AppNotific
           onOpen();
         }}
         className={className}
-        aria-label={`${n.message}${n.unread ? ', unread' : ''}`}
+        aria-label={`${spoken}${n.unread ? ', unread' : ''}`}
       >
         {body}
       </Link>
@@ -71,7 +72,7 @@ function NotificationRow({ notification: n, onOpen }: { notification: AppNotific
         type="button"
         onClick={onOpen}
         className={cn(className, 'w-full text-left')}
-        aria-label={`${n.message}${n.unread ? ', unread' : ''}`}
+        aria-label={`${spoken}${n.unread ? ', unread' : ''}`}
       >
         {body}
       </button>

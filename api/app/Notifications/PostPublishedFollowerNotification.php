@@ -38,7 +38,8 @@ class PostPublishedFollowerNotification extends Notification
             'deep_link' => PostPaths::deepLink($this->post),
             'actor_id' => $this->creator->id,
             'actor_name' => $actorName,
-            'message' => 'New '.$contentType.': '.$actorName.' posted a new '.$contentType,
+            // Inbox clients bold `actor_name`; keep verb phrase only.
+            'message' => 'New '.$contentType.': posted a new '.$contentType,
         ];
     }
 }

@@ -24,15 +24,16 @@ final class PostLikedNotifyCopy
         return $others > 0 ? ' and '.$others.' others' : '';
     }
 
+    /**
+     * In-app inbox body only — clients bold `actor_name` separately.
+     * Push templates still include {{actor_name}} for lock-screen copy.
+     */
     public static function message(Post $post, User $actor, int $othersCount = 0): string
     {
-        $actorName = ActorLabel::for($actor);
         $others = max(0, $othersCount);
-        $who = $others > 0
-            ? $actorName.' and '.$others.' others'
-            : $actorName;
+        $suffix = 'liked your '.self::contentType($post);
 
-        return $who.' liked your '.self::contentType($post);
+        return $others > 0 ? 'and '.$others.' others '.$suffix : $suffix;
     }
 
     /**

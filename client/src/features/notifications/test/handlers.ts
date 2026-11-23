@@ -13,7 +13,7 @@ const fixtures = [
     id: 'n1',
     type: 'post_liked',
     data: {
-      message: 'Like: Sara liked your post.',
+      message: 'liked your post.',
       actor_name: 'Sara Ali',
       deep_link: '/feed/8',
     },
@@ -24,7 +24,7 @@ const fixtures = [
     id: 'n2',
     type: 'user_followed',
     data: {
-      message: 'Follow: Ahmed started following you.',
+      message: 'New follower: started following you',
       actor_name: 'Ahmed Khan',
       actor_id: 11,
       deep_link: '/notification-center',

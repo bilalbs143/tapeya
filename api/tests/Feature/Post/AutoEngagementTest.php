@@ -534,7 +534,8 @@ class AutoEngagementTest extends TestCase
             $payload = $notification->toArray($owner);
 
             return ($payload['others_count'] ?? 0) === 2
-                && str_contains((string) $payload['message'], 'and 2 others liked your video');
+                && str_contains((string) $payload['message'], 'and 2 others liked your video')
+                && ! str_contains((string) $payload['message'], 'Real Fan and');
         });
 
         Notification::fake();
@@ -544,7 +545,8 @@ class AutoEngagementTest extends TestCase
             $payload = $notification->toArray($owner);
 
             return ($payload['others_count'] ?? -1) === 0
-                && ($payload['message'] ?? '') === 'Real Fan liked your video';
+                && ($payload['message'] ?? '') === 'liked your video'
+                && ($payload['actor_name'] ?? '') === 'Real Fan';
         });
         Queue::assertPushed(CallQueuedListener::class, function (CallQueuedListener $job): bool {
             return $job->class === PostLikedPushListener::class;

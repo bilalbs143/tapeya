@@ -41,7 +41,8 @@ class PostCommentedUserNotification extends Notification
             'deep_link' => PostPaths::deepLink($this->post),
             'actor_id' => $this->actor->id,
             'actor_name' => $actorName,
-            'message' => 'New comment: '.$actorName.' commented on your '.$contentType,
+            // Inbox clients bold `actor_name`; keep verb phrase only.
+            'message' => 'New comment: commented on your '.$contentType,
         ];
     }
 }

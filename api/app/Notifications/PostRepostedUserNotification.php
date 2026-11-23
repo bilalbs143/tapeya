@@ -36,7 +36,8 @@ class PostRepostedUserNotification extends Notification
             'deep_link' => PostPaths::deepLink($this->original),
             'actor_id' => $this->actor->id,
             'actor_name' => $actorName,
-            'message' => 'Repost: '.$actorName.' reposted your post',
+            // Inbox clients bold `actor_name`; keep verb phrase only.
+            'message' => 'Repost: reposted your post',
         ];
     }
 }
