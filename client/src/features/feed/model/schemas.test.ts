@@ -218,6 +218,7 @@ describe('formatters', () => {
   it('formats friendly relative ages', () => {
     const now = Date.parse('2026-11-01T12:00:00.000Z');
     expect(formatRelativeAge('2026-11-01T11:59:30.000Z', now)).toBe('Just now');
+    expect(formatRelativeAge('2026-11-01T11:59:10.000Z', now)).toBe('Just now');
     expect(formatRelativeAge('2026-11-01T11:59:00.000Z', now)).toBe('1 minute ago');
     expect(formatRelativeAge('2026-11-01T11:45:00.000Z', now)).toBe('15 minutes ago');
     expect(formatRelativeAge('2026-11-01T11:00:00.000Z', now)).toBe('1 hour ago');

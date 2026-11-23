@@ -32,7 +32,7 @@ export function ReelActions({
     reel.author.id != null ? userProfilePath({ id: reel.author.id, nickname: reel.author.nickname }) : undefined;
 
   return (
-    <div className={cn('flex flex-col items-center gap-3', className)}>
+    <div className={cn('flex flex-col items-center gap-3.5', className)}>
       <span className="relative block">
         <UserAvatar
           user={{ name: reel.author.name, avatarUrl: reel.author.avatarUrl }}
@@ -60,7 +60,7 @@ export function ReelActions({
         aria-pressed={reel.liked}
       >
         <HeartIcon
-          size="lg"
+          size="xl"
           filled={reel.liked}
           strokeWidth={1.8}
           className={reel.liked ? 'text-like' : 'text-white'}
@@ -69,12 +69,12 @@ export function ReelActions({
       </button>
 
       <button type="button" onClick={onComments} className="flex flex-col items-center gap-0.5" aria-label="Comments">
-        <CommentIcon size="lg" strokeWidth={1.8} className="text-white" />
+        <CommentIcon size="xl" strokeWidth={1.8} className="text-white" />
         <span className="font-mono text-4xs font-bold text-white">{reel.comments}</span>
       </button>
 
       <button type="button" aria-label="Share" className="text-white" onClick={onShare}>
-        <ShareIcon size="lg" strokeWidth={1.8} />
+        <ShareIcon size="xl" strokeWidth={1.8} />
       </button>
 
       <button
@@ -84,12 +84,12 @@ export function ReelActions({
         className="text-white"
         onClick={onSave}
       >
-        <BookmarkIcon size="lg" filled={reel.saved} strokeWidth={1.8} />
+        <BookmarkIcon size="xl" filled={reel.saved} strokeWidth={1.8} />
       </button>
 
       {!isOwn && !reel.isSponsored ? (
         <button type="button" aria-label="Report Reel" className="text-danger-text" onClick={onReport}>
-          <FlagIcon size="lg" strokeWidth={1.8} />
+          <FlagIcon size="xl" strokeWidth={1.8} />
         </button>
       ) : null}
     </div>

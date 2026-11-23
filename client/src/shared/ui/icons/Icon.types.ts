@@ -1,10 +1,11 @@
-export type IconSize = 'xs' | 'sm' | 'md' | 'lg';
+export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export const ICON_SIZE_PX: Record<IconSize, number> = {
   xs: 16,
   sm: 18,
   md: 20,
   lg: 24,
+  xl: 26,
 };
 
 export type IconProps = {
