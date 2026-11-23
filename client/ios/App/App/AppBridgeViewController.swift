@@ -19,6 +19,10 @@ class AppBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(TapeyaBroadcastPlugin())
         bridge?.registerPluginInstance(YoutubeStreamOverlayPlugin())
         bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
+        // Native iOS edge-swipe back. WKWebView records SPA navigations
+        // (history.pushState), so this steps back through React Router screens.
+        // TapeyaBroadcastPlugin turns it off while the camera preview is live.
+        webView?.allowsBackForwardNavigationGestures = true
         // Cap may insert its splash above the WebView — keep brand overlay on top.
         SplashBrandOverlay.bringToFront()
     }

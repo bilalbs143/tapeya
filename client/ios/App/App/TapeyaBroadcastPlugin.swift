@@ -587,6 +587,11 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     private func setWebViewTransparent(_ transparent: Bool) {
         guard let webView = bridge?.webView else { return }
 
+        // Transparent = camera preview/broadcast on screen. No edge-swipe back then:
+        // a stray swipe must not leave a live stream (and the swipe snapshot of a
+        // see-through WebView looks broken).
+        webView.allowsBackForwardNavigationGestures = !transparent
+
         if transparent {
             webView.isOpaque = false
             webView.backgroundColor = .clear
