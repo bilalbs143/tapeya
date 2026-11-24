@@ -3,7 +3,7 @@
 namespace App\Events\Broadcast;
 
 use App\Models\LiveAdTake;
-use App\Services\Ad\AdEligibilityService;
+use App\Support\Ad\LiveAdTakeViewerPayload;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -32,25 +32,7 @@ class LiveAdTakeStarted implements ShouldBroadcastNow
      */
     public static function payload(LiveAdTake $take): array
     {
-        $take->loadMissing(['creative.campaign.brandPartner', 'creative.post']);
-        $creative = $take->creative;
-        $envelope = $creative
-            ? app(AdEligibilityService::class)->sponsorshipEnvelope($creative)
-            : null;
-
-        return [
-            'id' => $take->id,
-            'mode' => $take->mode?->value,
-            'status' => $take->status?->value,
-            'presentation' => $take->presentation_json,
-            'note' => $take->note,
-            'started_at' => $take->started_at?->toIso8601String(),
-            'ended_at' => $take->ended_at?->toIso8601String(),
-            'campaign_id' => $take->campaign_id,
-            'creative_id' => $take->creative_id,
-            'post_id' => $creative?->post_id,
-            'sponsorship' => $envelope,
-        ];
+        return LiveAdTakeViewerPayload::fromTake($take);
     }
 
     /**

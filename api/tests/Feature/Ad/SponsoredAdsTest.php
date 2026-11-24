@@ -22,6 +22,7 @@ use App\Models\AdEvent;
 use App\Models\BrandPartner;
 use App\Models\LiveStream;
 use App\Models\Post;
+use App\Models\PostMedia;
 use App\Models\User;
 use App\Settings\AdsSettings;
 use Database\Seeders\SystemSettingsSeeder;
@@ -131,7 +132,10 @@ class SponsoredAdsTest extends TestCase
         ]);
 
         $start->assertCreated()
-            ->assertJsonPath('data.status', LiveAdTakeStatusEnum::Live->value);
+            ->assertJsonPath('data.status', LiveAdTakeStatusEnum::Live->value)
+            ->assertJsonPath('data.take.mode', LiveAdTakeModeEnum::Overlay->value)
+            ->assertJsonPath('data.take.creative.id', $setup['creative']->id)
+            ->assertJsonPath('data.take.sponsorship.cta.url', 'https://example.com/pepsi');
 
         Event::assertDispatched(LiveAdTakeStarted::class);
 
@@ -140,6 +144,118 @@ class SponsoredAdsTest extends TestCase
         $end->assertOk()->assertJsonPath('data.status', LiveAdTakeStatusEnum::Ended->value);
 
         Event::assertDispatched(LiveAdTakeEnded::class);
+    }
+
+    public function test_watch_stream_show_bootstraps_active_take_for_authenticated_viewer(): void
+    {
+        $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
+        $viewer = User::factory()->create();
+        $setup = $this->createServableCreative(withImageMedia: true);
+        $stream = LiveStream::factory()->create([
+            'status' => 'live',
+            'ads_allowed' => true,
+            'started_at' => now(),
+        ]);
+
+        $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-ad-takes', [
+            'creative_id' => $setup['creative']->id,
+            'mode' => LiveAdTakeModeEnum::Break->value,
+            'stream_ids' => [$stream->id],
+            'presentation' => ['position' => 'bottom'],
+        ])->assertCreated();
+
+        // Drop prior actingAs so the teaser request is truly anonymous.
+        auth('api')->forgetUser();
+        $this->app['auth']->forgetGuards();
+
+        $guest = $this->getJson('/api/v1/live/streams/'.$stream->id);
+        $guest->assertOk()
+            ->assertJsonPath('data.ads_allowed', true)
+            ->assertJsonPath('data.active_take', null);
+
+        $watch = $this->actingAs($viewer, 'api')->getJson('/api/v1/live/streams/'.$stream->id);
+        $watch->assertOk()
+            ->assertJsonPath('data.ads_allowed', true)
+            ->assertJsonPath('data.active_take.mode', LiveAdTakeModeEnum::Break->value)
+            ->assertJsonPath('data.active_take.surface', AdSurfaceEnum::LiveBreak->value)
+            ->assertJsonPath('data.active_take.creative_id', $setup['creative']->id)
+            ->assertJsonPath('data.active_take.creative.type', PostTypeEnum::Image->value)
+            ->assertJsonPath('data.active_take.sponsorship.is_sponsored', true)
+            ->assertJsonPath('data.active_take.presentation.position', 'bottom');
+
+        $this->assertNotEmpty($watch->json('data.active_take.creative.media'));
+
+        $lite = $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/live/streams/'.$stream->id.'/active-take');
+        $lite->assertOk()
+            ->assertJsonPath('data.active_take.id', $watch->json('data.active_take.id'))
+            ->assertJsonPath('data.active_take.creative.id', $setup['creative']->id);
+
+        $this->actingAs($viewer, 'api')->postJson('/api/v1/ads/events', [
+            'events' => [[
+                'client_event_id' => (string) Str::uuid(),
+                'type' => 'impression',
+                'creative_id' => $setup['creative']->id,
+                'campaign_id' => $setup['campaign']->id,
+                'surface' => AdSurfaceEnum::LiveBreak->value,
+                'take_id' => $watch->json('data.active_take.id'),
+                'platform' => 'ios',
+                'occurred_at' => now()->toIso8601String(),
+            ]],
+        ])->assertOk()->assertJsonPath('data.accepted', 1);
+
+        $this->assertDatabaseHas('ad_events', [
+            'creative_id' => $setup['creative']->id,
+            'take_id' => $watch->json('data.active_take.id'),
+            'surface' => AdSurfaceEnum::LiveBreak->value,
+        ]);
+    }
+
+    public function test_watch_active_take_clears_after_end_and_when_ads_disabled(): void
+    {
+        $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
+        $viewer = User::factory()->create();
+        $setup = $this->createServableCreative();
+        $stream = LiveStream::factory()->create([
+            'status' => 'live',
+            'ads_allowed' => true,
+            'started_at' => now(),
+        ]);
+
+        $start = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-ad-takes', [
+            'creative_id' => $setup['creative']->id,
+            'mode' => LiveAdTakeModeEnum::Overlay->value,
+            'stream_ids' => [$stream->id],
+        ])->assertCreated();
+
+        $takeId = (int) $start->json('data.id');
+        $this->actingAs($admin, 'api')->postJson("/api/v1/admin/live-ad-takes/{$takeId}/end")->assertOk();
+
+        $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/live/streams/'.$stream->id)
+            ->assertOk()
+            ->assertJsonPath('data.active_take', null);
+
+        $setup2 = $this->createServableCreative();
+        $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-ad-takes', [
+            'creative_id' => $setup2['creative']->id,
+            'mode' => LiveAdTakeModeEnum::Overlay->value,
+            'stream_ids' => [$stream->id],
+        ])->assertCreated();
+
+        $ads = app(AdsSettings::class);
+        $ads->enabled = 0;
+        $ads->save();
+
+        $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/live/streams/'.$stream->id)
+            ->assertOk()
+            ->assertJsonPath('data.active_take', null);
+
+        $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/live/streams/'.$stream->id.'/active-take')
+            ->assertOk()
+            ->assertJsonPath('data.active_take', null);
     }
 
     public function test_ad_events_are_idempotent_on_client_event_id(): void
@@ -178,25 +294,36 @@ class SponsoredAdsTest extends TestCase
     /**
      * @return array{partner: BrandPartner, campaign: AdCampaign, creative: AdCreative, post: Post}
      */
-    private function createServableCreative(): array
+    private function createServableCreative(bool $withImageMedia = false): array
     {
-        $brandUser = User::factory()->create(['is_official' => true, 'nickname' => 'pepsi']);
+        $brandUser = User::factory()->create(['is_official' => true, 'nickname' => 'pepsi-'.Str::lower(Str::random(6))]);
 
         $partner = BrandPartner::query()->create([
             'name' => 'Pepsi',
-            'slug' => 'pepsi',
+            'slug' => 'pepsi-'.Str::lower(Str::random(6)),
             'user_id' => $brandUser->id,
             'status' => BrandPartnerStatusEnum::Active,
         ]);
 
         $post = Post::query()->create([
             'user_id' => $brandUser->id,
-            'type' => PostTypeEnum::Text,
+            'type' => $withImageMedia ? PostTypeEnum::Image : PostTypeEnum::Text,
             'body' => 'Drink Pepsi',
             'status' => PostStatusEnum::Ready,
             'distribution' => PostDistributionEnum::SponsoredOnly,
             'published_at' => now(),
         ]);
+
+        if ($withImageMedia) {
+            PostMedia::query()->create([
+                'post_id' => $post->id,
+                'kind' => 'image',
+                'path' => 'ads/pepsi-card.jpg',
+                'width' => 1080,
+                'height' => 1350,
+                'sort_order' => 0,
+            ]);
+        }
 
         $campaign = AdCampaign::query()->create([
             'brand_partner_id' => $partner->id,
@@ -206,7 +333,12 @@ class SponsoredAdsTest extends TestCase
             'starts_at' => now()->subHour(),
             'ends_at' => now()->addDays(7),
             'priority' => 10,
-            'surfaces' => [AdSurfaceEnum::HomeFeed->value, AdSurfaceEnum::ReelsFeed->value],
+            'surfaces' => [
+                AdSurfaceEnum::HomeFeed->value,
+                AdSurfaceEnum::ReelsFeed->value,
+                AdSurfaceEnum::LiveOverlay->value,
+                AdSurfaceEnum::LiveBreak->value,
+            ],
             'slot_every_n' => 3,
             'max_ads_per_response' => 1,
             'targeting_json' => null,

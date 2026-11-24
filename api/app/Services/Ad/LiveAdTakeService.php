@@ -226,7 +226,12 @@ class LiveAdTakeService
         return LiveAdTake::query()
             ->where('status', LiveAdTakeStatusEnum::Live)
             ->whereHas('streams', fn ($q) => $q->where('live_streams.id', $streamId))
-            ->with(['creative.campaign.brandPartner', 'creative.post', 'streams'])
+            ->with([
+                'creative.campaign.brandPartner',
+                'creative.post.media',
+                'creative.post.video',
+                'streams',
+            ])
             ->orderByDesc('started_at')
             ->orderByDesc('id')
             ->first();

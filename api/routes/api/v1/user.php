@@ -121,6 +121,9 @@ Route::middleware(['auth:api', 'touch.last_active'])->group(function () {
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
 
     Route::post('ads/events', [AdEventController::class, 'store'])->middleware('throttle:120,1');
+    // Mid-take join / reconnect without reloading full stream show.
+    Route::get('live/streams/{stream}/active-take', [LiveStreamController::class, 'activeTake'])
+        ->middleware('throttle:60,1');
 
     Route::get('feed', [FeedController::class, 'explore']);
     Route::get('feed/following', [FeedController::class, 'following']);
